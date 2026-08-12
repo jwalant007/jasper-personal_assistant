@@ -1,0 +1,16 @@
+{
+  "memories": [
+    {
+      "id": 1,
+      "text": "User prefers concise audio responses",
+      "category": "preference",
+      "date": "2026-08-03T13:47:48.288Z"
+    },
+    {
+      "id": 2,
+      "text": "Default smart home TV is Samsung Frame in Living Room",
+      "category": "device",
+      "date": "2026-08-03T13:47:48.288Z"
+    }
+  ]
+}

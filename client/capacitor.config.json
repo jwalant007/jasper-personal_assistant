@@ -1,0 +1,9 @@
+{
+  "appId": "com.antigravity.jasper",
+  "appName": "JASPER Assistant",
+  "webDir": "dist",
+  "server": {
+    "cleartext": true,
+    "androidScheme": "http"
+  }
+}

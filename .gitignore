@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs & Bundles
+dist/
+**/dist/
+dist-electron/
+build/
+**/build/
+
+# Android & Gradle
+**/android/.gradle/
+**/android/app/build/
+**/android/build/
+**/android/captures/
+**/android/local.properties
+.gradle/
+
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+*.pem
+
+# Log files and temp artifacts
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+client/vite.config.js.timestamp-*.mjs
+
+# Compiled binary packages & executables
+*.apk
+
+# OS metadata
+.DS_Store
+Thumbs.db

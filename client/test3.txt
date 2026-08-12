@@ -1,0 +1,47 @@
+
+HKEY_CURRENT_USER\Control Panel\International
+    s1159    REG_SZ    AM
+    s2359    REG_SZ    PM
+    sDecimal    REG_SZ    .
+    sList    REG_SZ    ,
+    sMonDecimalSep    REG_SZ    .
+    sMonThousandSep    REG_SZ    ,
+    sNativeDigits    REG_SZ    0123456789
+    sNegativeSign    REG_SZ    -
+    sPositiveSign    REG_SZ    
+    sThousand    REG_SZ    ,
+    sTime    REG_SZ    :
+    iCalendarType    REG_SZ    1
+    iCurrDigits    REG_SZ    2
+    iDigits    REG_SZ    2
+    NumShape    REG_SZ    1
+    iFirstWeekOfYear    REG_SZ    0
+    iLZero    REG_SZ    1
+    iNegNumber    REG_SZ    1
+    iTimePrefix    REG_SZ    0
+    Locale    REG_SZ    00004009
+    LocaleName    REG_SZ    en-IN
+    sCurrency    REG_SZ    ₹
+    sDate    REG_SZ    -
+    sGrouping    REG_SZ    3;2;0
+    sLanguage    REG_SZ    ENN
+    sLongDate    REG_SZ    dd MMMM yyyy
+    sMonGrouping    REG_SZ    3;2;0
+    sShortDate    REG_SZ    dd-MM-yyyy
+    sTimeFormat    REG_SZ    HH:mm:ss
+    sShortTime    REG_SZ    HH:mm
+    sYearMonth    REG_SZ    MMMM, yyyy
+    iCountry    REG_SZ    91
+    iCurrency    REG_SZ    2
+    iDate    REG_SZ    1
+    iFirstDayOfWeek    REG_SZ    0
+    iMeasure    REG_SZ    0
+    iNegCurr    REG_SZ    12
+    iPaperSize    REG_SZ    9
+    iTime    REG_SZ    1
+    iTLZero    REG_SZ    1
+
+HKEY_CURRENT_USER\Control Panel\International\Geo
+HKEY_CURRENT_USER\Control Panel\International\User Profile
+HKEY_CURRENT_USER\Control Panel\International\User Profile System Backup
+HKEY_CURRENT_USER\Control Panel\International\🌎🌏🌍

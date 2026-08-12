@@ -1,0 +1,17 @@
+{
+  "java.jdt.ls.java.home": "C:\\Users\\Jwalant\\jdk21",
+  "java.import.gradle.java.home": "C:\\Users\\Jwalant\\jdk21",
+  "gradle.java.home": "C:\\Users\\Jwalant\\jdk21",
+  "java.configuration.runtimes": [
+    {
+      "name": "JavaSE-21",
+      "path": "C:\\Users\\Jwalant\\jdk21",
+      "default": true
+    },
+    {
+      "name": "JavaSE-17",
+      "path": "C:\\Users\\Jwalant\\jdk17\\jdk-17.0.10+7"
+    }
+  ],
+  "java.configuration.updateBuildConfiguration": "automatic"
+}
