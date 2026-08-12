@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import geminiClient from '../utils/geminiClient';
+import { speakDeviceAudio, playCallChime, unlockDeviceAudio } from '../utils/speakDeviceAudio';
 import { 
   Bot, PhoneCall, Search, Calendar, Users, Utensils, CheckCircle2, 
   Clock, AlertCircle, Volume2, VolumeX, Play, Pause, RefreshCw, 
@@ -90,8 +91,10 @@ export default function AgenticActionsWidget({ onClose, initialQuery = '' }) {
   const handleInitiateContactCall = async () => {
     if (!selectedContact || !contactGoal.trim()) return;
 
+    unlockDeviceAudio();
     setContactCallStatus('dialing');
     setContactCallDuration(0);
+    playCallChime('dialing');
 
     const greeting = `Hey ${selectedContact.name}! I'm calling on behalf of Jwalant.`;
     const initialTranscript = [{
@@ -121,7 +124,9 @@ export default function AgenticActionsWidget({ onClose, initialQuery = '' }) {
 
     setTimeout(() => {
       setContactCallStatus('talking');
-      // Speak opening greeting directly on mobile phone
+      playCallChime('connected');
+      // Speak opening greeting directly on the device placing the call
+      speakUtterance(greeting);
       try {
         fetch('/api/phone/speak', {
           method: 'POST',
@@ -289,22 +294,10 @@ export default function AgenticActionsWidget({ onClose, initialQuery = '' }) {
     }
   };
 
-  // Text-To-Speech audio helper using Web Speech API
+  // Text-To-Speech audio helper using robust device voice engine
   const speakUtterance = (text) => {
-    if (!audioEnabled || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-    try {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 1.0;
-      utterance.pitch = 1.0;
-      // Try finding natural voices
-      const voices = window.speechSynthesis.getVoices();
-      const preferredVoice = voices.find(v => v.name.includes('Natural') || v.name.includes('Google') || v.lang.startsWith('en'));
-      if (preferredVoice) utterance.voice = preferredVoice;
-      window.speechSynthesis.speak(utterance);
-    } catch (e) {
-      console.error('TTS error:', e);
-    }
+    if (!audioEnabled || !text) return;
+    speakDeviceAudio(text);
   };
 
   // 1. Search for Venues
@@ -348,11 +341,13 @@ export default function AgenticActionsWidget({ onClose, initialQuery = '' }) {
     const targetVenue = venue || selectedVenue || candidates[0];
     if (!targetVenue) return;
 
+    unlockDeviceAudio();
     setSelectedVenue(targetVenue);
     setExecutionState('calling');
     setCurrentStep(2);
     setCallStatus('dialing');
     setCallDuration(0);
+    playCallChime('dialing');
 
     speakUtterance(`Initiating call to ${targetVenue.name} at ${targetVenue.phone}.`);
 
@@ -378,6 +373,7 @@ export default function AgenticActionsWidget({ onClose, initialQuery = '' }) {
         // After dialing sound/delay, transition to active conversation
         setTimeout(() => {
           setCallStatus('connected');
+          playCallChime('connected');
           setCurrentStep(3);
           runCallTurn(data.sessionId, 1, targetVenue);
         }, 3000);

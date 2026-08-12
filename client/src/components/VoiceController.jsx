@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
 import { getWsBase, getApiBase } from '../utils/apiConfig.js';
+import { speakDeviceAudio, unlockDeviceAudio } from '../utils/speakDeviceAudio.js';
 
 // Web Audio API Sound Generator helper
 const playChime = (type = 'wake') => {
@@ -224,60 +225,22 @@ const VoiceController = forwardRef(({
 
   // Handle Output Voice Synthesis (Speak text when speakingText updates)
   useEffect(() => {
-    if (!speakingText || typeof window === 'undefined' || !window.speechSynthesis) return;
+    if (!speakingText || typeof window === 'undefined') return;
 
     try {
-      // Cancel current speech
-      window.speechSynthesis.cancel();
-
-      const utterance = new SpeechSynthesisUtterance(speakingText);
-      
-      // Choose British male/female voice if available (fits JASPER/JARVIS vibe)
-      const voices = window.speechSynthesis.getVoices() || [];
-      const britishVoice = voices.find(v => v.lang?.startsWith('en-GB')) || 
-                           voices.find(v => v.name?.includes('Google UK English')) ||
-                           voices.find(v => v.name?.includes('George') || v.name?.includes('Hazel')) ||
-                           voices[0]; // fallback to default
-
-      if (britishVoice) {
-        utterance.voice = britishVoice;
-      }
-
-      // Slightly lower pitch, normal speed
-      utterance.pitch = 0.95; 
-      utterance.rate = 1.05; 
-
-      utterance.onstart = () => {
-        onStateChange('speaking');
-      };
-
-      utterance.onend = () => {
-        onStateChange('idle');
-        onSpeakingComplete();
-      };
-
-      utterance.onerror = (err) => {
-        console.error('[VoiceController] TTS error:', err);
-        onStateChange('idle');
-        onSpeakingComplete();
-      };
-
-      // Chrome bug: SpeechSynthesis can sometimes crash mid-speech if text is long.
-      // Call pause/resume to keep it active
-      const resumeInfinity = setInterval(() => {
-        if (window.speechSynthesis?.speaking) {
-          window.speechSynthesis.pause();
-          window.speechSynthesis.resume();
-        } else {
-          clearInterval(resumeInfinity);
+      speakDeviceAudio(speakingText, {
+        rate: 1.05,
+        pitch: 0.95,
+        onStart: () => onStateChange('speaking'),
+        onEnd: () => {
+          onStateChange('idle');
+          onSpeakingComplete();
+        },
+        onError: () => {
+          onStateChange('idle');
+          onSpeakingComplete();
         }
-      }, 12000);
-
-      window.speechSynthesis.speak(utterance);
-
-      return () => {
-        clearInterval(resumeInfinity);
-      };
+      });
     } catch (e) {
       console.warn('[VoiceController] Speech synthesis failed:', e);
       onStateChange('idle');
