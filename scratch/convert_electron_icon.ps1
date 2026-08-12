@@ -1,6 +1,6 @@
 Add-Type -AssemblyName System.Drawing
 
-$srcPath = "C:\Users\Jwalant\.gemini\antigravity-ide\brain\9a901639-f8da-4138-910c-5711633f44f2\jasper_app_icon_1785945766821.png"
+$srcPath = "c:\Users\Jwalant\.gemini\antigravity\scratch\jasper-assistant\electron\assets\icon.png"
 $electronAssets = "c:\Users\Jwalant\.gemini\antigravity\scratch\jasper-assistant\electron\assets"
 
 if (-not (Test-Path $electronAssets)) {
@@ -10,9 +10,10 @@ if (-not (Test-Path $electronAssets)) {
 $pngDest = Join-Path $electronAssets "icon.png"
 $icoDest = Join-Path $electronAssets "icon.ico"
 
-# Copy high-res PNG for Electron window & taskbar icon
-Copy-Item $srcPath -Destination $pngDest -Force
-Write-Host "Updated electron/assets/icon.png"
+if ($srcPath -ne $pngDest) {
+    Copy-Item $srcPath -Destination $pngDest -Force
+    Write-Host "Updated electron/assets/icon.png"
+}
 
 # Convert PNG to high-res ICO for Windows application & NSIS installer
 $img = [System.Drawing.Image]::FromFile($srcPath)

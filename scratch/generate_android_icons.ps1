@@ -1,9 +1,6 @@
 Add-Type -AssemblyName System.Drawing
 
-$srcPath = "C:\Users\Jwalant\.gemini\antigravity-ide\brain\9a901639-f8da-4138-910c-5711633f44f2\jasper_app_icon_1785945766821.png"
-if (-not (Test-Path $srcPath)) {
-    $srcPath = "c:\Users\Jwalant\.gemini\antigravity\scratch\jasper-assistant\electron\assets\icon.png"
-}
+$srcPath = "c:\Users\Jwalant\.gemini\antigravity\scratch\jasper-assistant\electron\assets\icon.png"
 
 Write-Host "Source image path: $srcPath"
 $img = [System.Drawing.Image]::FromFile($srcPath)
