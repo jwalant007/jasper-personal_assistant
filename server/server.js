@@ -922,6 +922,26 @@ app.get('/api/phone/screenshot', async (req, res) => {
   }
 });
 
+app.post('/api/phone/tap', async (req, res) => {
+  try {
+    const { x, y } = req.body;
+    const result = await phoneController.tap(x, y);
+    res.json({ result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/phone/keyevent', async (req, res) => {
+  try {
+    const { keycode } = req.body;
+    const result = await phoneController.keyevent(keycode);
+    res.json({ result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // System Power Endpoint (Shutdown / Restart / Abort)
 app.post('/api/system/power', (req, res) => {
   const { action, timeout = 30 } = req.body;

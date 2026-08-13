@@ -26,7 +26,7 @@ async function runAdb(command) {
     let targetCommand = command;
     const metaCommands = ['devices', 'connect', 'disconnect', 'start-server', 'kill-server'];
     const isMetaCommand = metaCommands.some(meta => command.startsWith(meta));
-    if (PhoneController.activeDeviceId && !isMetaCommand) {
+    if (PhoneController.activeDeviceId && !PhoneController.virtualMode && !isMetaCommand) {
       targetCommand = `-s ${PhoneController.activeDeviceId} ${command}`;
     }
     const fullCommand = `${adbBin} ${targetCommand}`;
@@ -65,17 +65,28 @@ function generateVirtualPhoneScreenshot() {
 
 const PhoneController = {
   activeDeviceId: null,
+  lastKnownIp: '192.168.29.159:42931',
   virtualMode: false,
 
   // Check if device is connected
   status: async () => {
     try {
-      const devices = await runAdb('devices');
-      const lines = devices.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('*'));
+      let devices = await runAdb('devices');
+      let lines = devices.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('*'));
+      
+      // Auto-reconnect to last known IP if no physical device attached
+      if (lines.length <= 1 && PhoneController.lastKnownIp) {
+        try {
+          console.log(`[PhoneController] Attempting auto-reconnect to ${PhoneController.lastKnownIp}...`);
+          await runAdb(`connect ${PhoneController.lastKnownIp}`);
+          devices = await runAdb('devices');
+          lines = devices.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('*'));
+        } catch (e) {}
+      }
       
       if (lines.length > 1) {
         const deviceLine = lines[1];
-        const parts = deviceLine.split('\t');
+        const parts = deviceLine.split(/\s+/);
         const deviceId = parts[0];
         const deviceState = parts[1];
 
@@ -91,7 +102,14 @@ const PhoneController = {
             const batteryRaw = await runAdb('shell dumpsys battery');
             const batteryLevelMatch = batteryRaw.match(/level: (\d+)/);
             if (batteryLevelMatch) batteryLevel = parseInt(batteryLevelMatch[1], 10);
-            model = await runAdb('shell getprop ro.product.model');
+            
+            const rawModel = await runAdb('shell getprop ro.product.model');
+            const rawBrand = await runAdb('shell getprop ro.product.brand');
+            const brandStr = rawBrand ? (rawBrand.charAt(0).toUpperCase() + rawBrand.slice(1)) : '';
+            model = brandStr && !rawModel.toLowerCase().includes(brandStr.toLowerCase()) 
+              ? `${brandStr} ${rawModel}` 
+              : rawModel || 'Android Device';
+
             androidVersion = await runAdb('shell getprop ro.build.version.release');
           } catch (e) {}
 
@@ -117,8 +135,8 @@ const PhoneController = {
       connected: true,
       isVirtual: true,
       deviceId: 'JASPER-VIRTUAL-ADB',
-      model: 'Galaxy S24 Ultra (Virtual Uplink)',
-      androidVersion: 'Android 14 (OneUI 6.1)',
+      model: 'Virtual Mobile Uplink (No Physical Phone Connected)',
+      androidVersion: 'Android 14',
       batteryLevel: 94
     };
   },
@@ -126,6 +144,7 @@ const PhoneController = {
   connect: async (ip) => {
     try {
       const target = ip.includes(':') ? ip : `${ip}:5555`;
+      PhoneController.lastKnownIp = target;
       return await runAdb(`connect ${target}`);
     } catch (e) {
       PhoneController.virtualMode = true;
@@ -360,6 +379,15 @@ const PhoneController = {
       return await runAdb(`shell input tap ${x} ${y}`);
     } catch (e) {
       return `Tapped screen at (${x}, ${y}) (Virtual Uplink)`;
+    }
+  },
+
+  keyevent: async (keycode) => {
+    try {
+      const codeStr = (keycode || '').startsWith('KEYCODE_') ? keycode : `KEYCODE_${(keycode || '').toUpperCase()}`;
+      return await runAdb(`shell input keyevent ${codeStr}`);
+    } catch (e) {
+      return `Executed keyevent ${keycode} (Virtual Uplink)`;
     }
   },
 
