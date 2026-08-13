@@ -1,5 +1,6 @@
 {
   "ip": "192.168.29.229",
+  "port": 55000,
   "mac": "14:49:e0:20:f0:81",
   "token": "",
   "name": "JASPER Assistant",
