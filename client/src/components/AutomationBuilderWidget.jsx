@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getApiBase } from '../utils/apiConfig.js';
 import { Workflow, Plus, Play, Trash2, ArrowRight, Zap, Volume2, Monitor, Smartphone, XCircle, CheckCircle2, Copy, Layers, Bell, Tv, BatteryCharging } from 'lucide-react';
 
 export default function AutomationBuilderWidget({ onClose }) {
@@ -56,7 +57,7 @@ export default function AutomationBuilderWidget({ onClose }) {
   const handleRunWorkflow = async (wf) => {
     setStatusMsg(`Executing workflow: "${wf.name}"...`);
     try {
-      await fetch('/api/analytics/increment', {
+      await fetch(`${getApiBase()}/api/analytics/increment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ metric: 'automationRuns' })

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getApiBase } from '../utils/apiConfig.js';
 import { Globe, FileText, CheckSquare, Search, ExternalLink, Sparkles, XCircle, Loader2 } from 'lucide-react';
 
 export default function BrowserAgentWidget({ onClose }) {
@@ -23,7 +24,7 @@ export default function BrowserAgentWidget({ onClose }) {
     if (!target.startsWith('http://') && !target.startsWith('https://')) {
       target = 'https://' + target;
     }
-    fetch('/api/system/launch', {
+    fetch(`${getApiBase()}/api/system/launch`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url: target })
@@ -39,7 +40,7 @@ export default function BrowserAgentWidget({ onClose }) {
     try {
       let target = urlInput.trim();
       if (!target.startsWith('http')) target = 'https://' + target;
-      const res = await fetch('/api/fetch-page', {
+      const res = await fetch(`${getApiBase()}/api/fetch-page`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: target })
@@ -68,7 +69,7 @@ export default function BrowserAgentWidget({ onClose }) {
     setLoading(true);
     setResearchData(null);
     try {
-      const res = await fetch('/api/agent/research', {
+      const res = await fetch(`${getApiBase()}/api/agent/research`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ topic: researchTopic })
@@ -251,7 +252,7 @@ export default function BrowserAgentWidget({ onClose }) {
                   key={site.url}
                   onClick={() => {
                     setUrlInput(site.url);
-                    fetch('/api/system/launch', {
+                    fetch(`${getApiBase()}/api/system/launch`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ url: site.url })

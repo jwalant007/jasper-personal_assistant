@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getApiBase } from '../utils/apiConfig.js';
 import { BarChart3, MessageSquare, Mic, Image, Zap, Smartphone, Clock, RefreshCw, XCircle } from 'lucide-react';
 
 export default function AnalyticsWidget({ onClose }) {
@@ -13,7 +14,7 @@ export default function AnalyticsWidget({ onClose }) {
 
   const fetchAnalytics = async () => {
     try {
-      const res = await fetch('/api/analytics');
+      const res = await fetch(`${getApiBase()}/api/analytics`);
       const data = await res.json();
       setStats(data);
     } catch (e) {

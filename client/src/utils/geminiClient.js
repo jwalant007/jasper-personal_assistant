@@ -845,7 +845,7 @@ RULES FOR HUMAN CONVERSATION:
 
     try {
       const models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.5-pro'];
-      const key = this.apiKey || localStorage.getItem('jasper_gemini_api_key');
+      const key = this.apiKey || localStorage.getItem('jasper_gemini_key') || localStorage.getItem('jasper_gemini_api_key');
 
       if (!key) {
         return this.getOfflineHumanTurn(contactName, goal, recipientWords, history.length);

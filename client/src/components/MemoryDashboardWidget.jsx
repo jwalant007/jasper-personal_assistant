@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getApiBase } from '../utils/apiConfig.js';
 import { Brain, Plus, Trash2, Edit2, Search, Sparkles, XCircle, CheckCircle2 } from 'lucide-react';
 
 export default function MemoryDashboardWidget({ onClose }) {
@@ -12,7 +13,7 @@ export default function MemoryDashboardWidget({ onClose }) {
 
   const fetchMemories = async () => {
     try {
-      const res = await fetch('/api/memory');
+      const res = await fetch(`${getApiBase()}/api/memory`);
       const data = await res.json();
       setMemories(data.memories || []);
     } catch (e) {
@@ -28,7 +29,7 @@ export default function MemoryDashboardWidget({ onClose }) {
     e.preventDefault();
     if (!newMemoryText.trim()) return;
     try {
-      const res = await fetch('/api/memory', {
+      const res = await fetch(`${getApiBase()}/api/memory`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: newMemoryText, category: newCategory })
@@ -43,7 +44,7 @@ export default function MemoryDashboardWidget({ onClose }) {
 
   const handleDeleteMemory = async (id) => {
     try {
-      const res = await fetch(`/api/memory/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${getApiBase()}/api/memory/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.memories) setMemories(data.memories);
     } catch (e) {

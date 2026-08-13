@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import geminiClient from '../utils/geminiClient';
+import { getApiBase } from '../utils/apiConfig.js';
 import { speakDeviceAudio, playCallChime, unlockDeviceAudio } from '../utils/speakDeviceAudio';
 import { 
   Bot, PhoneCall, Search, Calendar, Users, Utensils, CheckCircle2, 
@@ -109,7 +110,7 @@ export default function AgenticActionsWidget({ onClose, initialQuery = '' }) {
 
     // Trigger real Android phone call via backend API & ADB intent
     try {
-      const res = await fetch('/api/phone/call', {
+      const res = await fetch(`${getApiBase()}/api/phone/call`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ number: selectedContact.phone })
@@ -128,7 +129,7 @@ export default function AgenticActionsWidget({ onClose, initialQuery = '' }) {
       // Speak opening greeting directly on the device placing the call
       speakUtterance(greeting);
       try {
-        fetch('/api/phone/speak', {
+        fetch(`${getApiBase()}/api/phone/speak`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text: greeting })
@@ -139,7 +140,7 @@ export default function AgenticActionsWidget({ onClose, initialQuery = '' }) {
 
   const handleToggleSpeaker = async () => {
     try {
-      await fetch('/api/phone/speaker', { method: 'POST' });
+      await fetch(`${getApiBase()}/api/phone/speaker`, { method: 'POST' });
       speakUtterance('Toggled phone speakerphone.');
     } catch (e) {}
   };
@@ -187,7 +188,7 @@ export default function AgenticActionsWidget({ onClose, initialQuery = '' }) {
       // Speak aloud in browser and trigger direct speech on mobile phone
       speakUtterance(aiReply);
       try {
-        fetch('/api/phone/speak', {
+        fetch(`${getApiBase()}/api/phone/speak`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text: aiReply })
@@ -234,7 +235,7 @@ export default function AgenticActionsWidget({ onClose, initialQuery = '' }) {
     speakUtterance('Synchronizing contact list from your mobile device...');
 
     try {
-      const res = await fetch('/api/phone/contacts');
+      const res = await fetch(`${getApiBase()}/api/phone/contacts`);
       const data = await res.json();
       if (data.success && data.contacts && data.contacts.length > 0) {
         const existingPhones = new Set(mobileContacts.map(c => c.phone));
@@ -284,7 +285,7 @@ export default function AgenticActionsWidget({ onClose, initialQuery = '' }) {
   // Fetch saved reservations
   const fetchReservations = async () => {
     try {
-      const res = await fetch('/api/agentic-actions/reservations');
+      const res = await fetch(`${getApiBase()}/api/agentic-actions/reservations`);
       const data = await res.json();
       if (data.success && data.reservations) {
         setAllReservations(data.reservations);
@@ -312,7 +313,7 @@ export default function AgenticActionsWidget({ onClose, initialQuery = '' }) {
     speakUtterance(`Searching suitable ${cuisine} restaurants for ${partySize} guests for ${dateStr} at ${timeStr}.`);
 
     try {
-      const res = await fetch('/api/agentic-actions/search', {
+      const res = await fetch(`${getApiBase()}/api/agentic-actions/search`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -352,7 +353,7 @@ export default function AgenticActionsWidget({ onClose, initialQuery = '' }) {
     speakUtterance(`Initiating call to ${targetVenue.name} at ${targetVenue.phone}.`);
 
     try {
-      const res = await fetch('/api/agentic-actions/start-call', {
+      const res = await fetch(`${getApiBase()}/api/agentic-actions/start-call`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -388,7 +389,7 @@ export default function AgenticActionsWidget({ onClose, initialQuery = '' }) {
     setCurrentTurnStep(stepNum);
 
     try {
-      const res = await fetch('/api/agentic-actions/call-step', {
+      const res = await fetch(`${getApiBase()}/api/agentic-actions/call-step`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -458,7 +459,7 @@ export default function AgenticActionsWidget({ onClose, initialQuery = '' }) {
     };
 
     try {
-      const res = await fetch('/api/agentic-actions/reservations', {
+      const res = await fetch(`${getApiBase()}/api/agentic-actions/reservations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -478,7 +479,7 @@ export default function AgenticActionsWidget({ onClose, initialQuery = '' }) {
   // Cancel saved reservation
   const handleDeleteReservation = async (id) => {
     try {
-      const res = await fetch(`/api/agentic-actions/reservations/${id}`, {
+      const res = await fetch(`${getApiBase()}/api/agentic-actions/reservations/${id}`, {
         method: 'DELETE'
       });
       const data = await res.json();

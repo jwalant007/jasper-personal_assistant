@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getApiBase } from '../utils/apiConfig.js';
 import { Monitor, Power, Search, Music, Cpu, HardDrive, ShieldAlert, RefreshCw, Play, SkipForward, SkipBack, XCircle, CheckCircle2 } from 'lucide-react';
 
 export default function PcCommandCenterWidget({ onClose }) {
@@ -14,7 +15,7 @@ export default function PcCommandCenterWidget({ onClose }) {
   // Fetch PC Diagnostics
   const fetchDiagnostics = async () => {
     try {
-      const res = await fetch('/api/system/diagnostics');
+      const res = await fetch(`${getApiBase()}/api/system/diagnostics`);
       const data = await res.json();
       setDiagnostics(data);
     } catch (err) {
@@ -32,7 +33,7 @@ export default function PcCommandCenterWidget({ onClose }) {
   const handleLaunchApp = async (appName) => {
     setAppLaunchStatus(`Launching ${appName}...`);
     try {
-      const res = await fetch('/api/system/launch', {
+      const res = await fetch(`${getApiBase()}/api/system/launch`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ appName })
@@ -55,7 +56,7 @@ export default function PcCommandCenterWidget({ onClose }) {
     if (!searchQuery.trim()) return;
     setIsSearching(true);
     try {
-      const res = await fetch('/api/system/search-files', {
+      const res = await fetch(`${getApiBase()}/api/system/search-files`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: searchQuery })
@@ -72,7 +73,7 @@ export default function PcCommandCenterWidget({ onClose }) {
   // Power control execution
   const handlePowerAction = async (action) => {
     try {
-      const res = await fetch('/api/system/power', {
+      const res = await fetch(`${getApiBase()}/api/system/power`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action, timeout: 30 })
@@ -88,7 +89,7 @@ export default function PcCommandCenterWidget({ onClose }) {
   // Media controls
   const handleMediaControl = async (action) => {
     try {
-      await fetch('/api/system/media', {
+      await fetch(`${getApiBase()}/api/system/media`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action })
