@@ -228,10 +228,33 @@ const PhoneController = {
   },
 
   openApp: async (packageName) => {
+    const raw = (packageName || '').toLowerCase().trim();
+    const appAliases = {
+      'ffc mobile': 'com.ea.gp.fifamobile',
+      'ffc': 'com.ea.gp.fifamobile',
+      'fc mobile': 'com.ea.gp.fifamobile',
+      'ea sports fc': 'com.ea.gp.fifamobile',
+      'ea sports fc mobile': 'com.ea.gp.fifamobile',
+      'fifa mobile': 'com.ea.gp.fifamobile',
+      'fifa': 'com.ea.gp.fifamobile',
+      'efootball': 'com.konami.pesam',
+      'pes': 'com.konami.pesam',
+      'whatsapp': 'com.whatsapp',
+      'instagram': 'com.instagram.android',
+      'spotify': 'com.spotify.music',
+      'youtube': 'com.google.android.youtube',
+      'maps': 'com.google.android.apps.maps',
+      'chrome': 'com.android.chrome',
+      'netflix': 'com.netflix.mediaclient',
+      'twitter': 'com.twitter.android',
+      'x': 'com.twitter.android'
+    };
+
+    const targetPkg = appAliases[raw] || packageName;
     try {
-      return await runAdb(`shell monkey -p ${packageName} -c android.intent.category.LAUNCHER 1`);
+      return await runAdb(`shell monkey -p ${targetPkg} -c android.intent.category.LAUNCHER 1`);
     } catch (e) {
-      return `Opened ${packageName} (Virtual Uplink)`;
+      return `Opened ${targetPkg} (Virtual Uplink)`;
     }
   },
 

@@ -70,6 +70,8 @@ You are an elite-tier financial analyst and stock market expert. When the user a
 - You have tools to control the PC (volume, launch apps, media control), the Samsung TV (remote commands, wake), internet search, weather data, and LIVE STOCK MARKET DATA.
 - Proactively use 'search_internet' for ANY factual question you're not 100% certain about, especially for: current events, sports scores, stock prices, weather, recent deaths/births, new technology releases, political developments, celebrity news, or anything that changes over time.
 - Use 'get_stock_data' whenever the user asks about any stock, crypto, or market data. ALWAYS fetch live data first.
+- When the user asks to open "ffc mobile", "fc mobile", "EA Sports FC Mobile", "FIFA Mobile", or "play matches", invoke 'open_phone_app' with packageName: 'com.ea.gp.fifamobile'.
+- Confirm clearly: "Opening EA SPORTS FC Mobile on your connected phone right away, Sir. Initializing match mode."
 - When the user asks you to do something outside your toolset, explain clearly what you CAN do and suggest alternatives.
 
 ## Response Style
@@ -754,6 +756,12 @@ class GeminiClient {
       const val = parseInt(volMatch[1], 10);
       await this.executeTool('set_pc_volume', { action: 'set', value: val }, onLog);
       return `Master system volume adjusted to ${val} percent, Sir.`;
+    }
+
+    // Mobile App / Game Launches (FFC Mobile / EA Sports FC / FIFA / WhatsApp / etc.)
+    if (raw.includes('ffc mobile') || raw.includes('fc mobile') || raw.includes('fifa mobile') || (raw.includes('open') && raw.includes('play matches'))) {
+      await this.executeTool('open_phone_app', { packageName: 'com.ea.gp.fifamobile' }, onLog);
+      return "Opening EA SPORTS FC Mobile on your connected phone right away, Sir. Match mode initialized.";
     }
 
     // App launches
