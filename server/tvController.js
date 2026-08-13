@@ -25,7 +25,7 @@ function getLocalNetworkInfo() {
 class TvController {
   constructor() {
     this.config = {
-      ip: '192.168.29.228',
+      ip: '192.168.29.229',
       mac: '14:49:e0:20:f0:81',
       token: '',
       name: 'JASPER Assistant'
