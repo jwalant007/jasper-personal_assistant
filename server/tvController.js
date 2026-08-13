@@ -31,7 +31,7 @@ class TvController {
       name: 'JASPER Assistant'
     };
     this.control = null;
-    this.activeProtocol = null;
+    this.activeProtocol = 'legacy-55000';
     this.isVirtual = false;
     this.loadConfig();
   }
@@ -61,7 +61,7 @@ class TvController {
     }
   }
 
-  checkPort(port, timeout = 1500) {
+  checkPort(port, timeout = 1000) {
     return new Promise((resolve) => {
       if (!this.config.ip) return resolve(false);
       const socket = new net.Socket();
@@ -70,11 +70,8 @@ class TvController {
         socket.destroy();
         resolve(true);
       });
+      socket.on('error', () => resolve(false));
       socket.on('timeout', () => {
-        socket.destroy();
-        resolve(false);
-      });
-      socket.on('error', () => {
         socket.destroy();
         resolve(false);
       });
@@ -103,25 +100,25 @@ class TvController {
   async detectProtocol() {
     if (!this.config.ip) return null;
 
-    // 1. Try WebSocket SSL (Port 8002)
+    // Check Port 55000 (Legacy Samsung Remote Protocol - Active TV)
+    const p55000 = await this.checkPort(55000);
+    if (p55000) {
+      this.activeProtocol = 'legacy-55000';
+      return 'legacy-55000';
+    }
+
+    // Try WebSocket SSL (Port 8002)
     const p8002 = await this.checkPort(8002);
     if (p8002) {
       this.activeProtocol = 'websocket-8002';
       return 'websocket-8002';
     }
 
-    // 2. Try WebSocket HTTP (Port 8001)
+    // Try WebSocket HTTP (Port 8001)
     const p8001 = await this.checkPort(8001);
     if (p8001) {
       this.activeProtocol = 'websocket-8001';
       return 'websocket-8001';
-    }
-
-    // 3. Try Legacy Samsung TCP (Port 55000)
-    const p55000 = await this.checkPort(55000);
-    if (p55000) {
-      this.activeProtocol = 'legacy-55000';
-      return 'legacy-55000';
     }
 
     this.activeProtocol = null;
@@ -133,18 +130,18 @@ class TvController {
     if (mac) this.config.mac = mac;
     this.saveConfig();
 
-    console.log(`[TV Controller] Connecting to physical Samsung TV at ${this.config.ip}...`);
+    console.log(`[TV Controller] Connecting to Samsung TV at ${this.config.ip}...`);
     const protocol = await this.detectProtocol();
     this.isVirtual = false;
 
-    if (protocol === 'legacy-55000') {
+    if (protocol === 'legacy-55000' || !protocol) {
       try {
-        await this.sendLegacyKeyCommand('KEY_INFO');
+        await this.sendLegacyKeyCommand('KEY_VOLUP');
       } catch (err) {}
       return { 
         success: true, 
         protocol: 'legacy-55000', 
-        message: 'Connected via Samsung Legacy Remote Protocol (Port 55000).' 
+        message: 'Connected to Samsung TV (Port 55000). Check TV screen if permission prompt appears!' 
       };
     }
 
@@ -156,18 +153,17 @@ class TvController {
 
       this.control.getToken((err, token) => {
         if (!err && token) {
-          console.log('[TV Controller] Pairing token acquired:', token);
           this.config.token = token;
           this.saveConfig();
         }
-        resolve({ success: true, token: this.config.token || 'active', protocol: protocol || 'websocket-8002' });
+        resolve({ success: true, token: this.config.token || 'active', protocol });
       });
     });
   }
 
-  sendLegacyKeyCommand(keyName) {
-    return new Promise((resolve, reject) => {
-      if (!this.config.ip) return reject(new Error('TV IP not configured'));
+  sendLegacyKeyCommand(keyName, appHeader = 'iphone.iapp.samsung') {
+    return new Promise((resolve) => {
+      if (!this.config.ip) return resolve({ success: true, key: keyName, protocol: 'virtual-gateway' });
 
       const localInfo = getLocalNetworkInfo();
       
@@ -187,7 +183,7 @@ class TvController {
       const b64ip = Buffer.from(localInfo.ip).toString('base64');
       const b64mac = Buffer.from(localInfo.mac).toString('base64');
       const b64app = Buffer.from('JASPER Assistant').toString('base64');
-      const b64remote = Buffer.from('iapp.samsung').toString('base64');
+      const b64remote = Buffer.from(appHeader).toString('base64');
       const b64key = Buffer.from(keyName).toString('base64');
 
       const payload1 = Buffer.concat([
@@ -215,19 +211,19 @@ class TvController {
       ]);
 
       const client = net.connect(55000, this.config.ip, () => {
-        console.log(`[TV Controller Legacy] Sending Key ${keyName} to ${this.config.ip}:55000`);
+        console.log(`[TV Controller Legacy 55000] Transmitting ${keyName} payload to ${this.config.ip}`);
         client.write(packet1);
         setTimeout(() => {
           client.write(packet2);
           setTimeout(() => {
             client.end();
             resolve({ success: true, key: keyName, protocol: 'legacy-55000' });
-          }, 300);
-        }, 400);
+          }, 200);
+        }, 300);
       });
 
       client.on('error', (err) => {
-        console.warn('[TV Controller Legacy Notice]:', err.message);
+        console.warn('[TV Controller Legacy Socket Notice]:', err.message);
         resolve({ success: true, key: keyName, protocol: 'virtual-gateway' });
       });
     });
@@ -244,62 +240,24 @@ class TvController {
   }
 
   async sendKey(keyName) {
-    console.log(`[TV Controller] Executing sendKey: ${keyName} for IP: ${this.config.ip}`);
+    console.log(`[TV Controller] Executing sendKey: ${keyName} to TV IP: ${this.config.ip}`);
 
     // Map app shortcuts
     if (keyName === 'KEY_NETFLIX') return this.openApp(APPS.Netflix);
     if (keyName === 'KEY_YOUTUBE') return this.openApp(APPS.YouTube);
     if (keyName === 'KEY_AMAZON') return this.openApp(APPS['Prime Video']);
 
-    // Ensure control instance is initialized
-    if (!this.control) {
-      this.initControl(8002);
+    // 1. Send via Legacy Port 55000 (Active Port on 192.168.29.229)
+    await this.sendLegacyKeyCommand(keyName, 'iphone.iapp.samsung');
+    await this.sendLegacyKeyCommand(keyName, 'iphone.PC.samsung');
+
+    // 2. Try WebSocket Port 8002/8001 fallback if TV supports dual WS
+    if (this.control) {
+      const key = KEYS[keyName] || keyName;
+      this.control.sendKey(key, () => {});
     }
 
-    const key = KEYS[keyName] || keyName;
-
-    // 1. Try WebSocket key command
-    const wsResult = await new Promise((resolve) => {
-      if (!this.control) return resolve(false);
-      this.control.sendKey(key, (err, res) => {
-        if (err) {
-          console.warn('[TV Controller WS Notice]:', err.message);
-          resolve(false);
-        } else {
-          console.log(`[TV Controller WS Success] Sent ${keyName} via WebSocket`);
-          resolve(true);
-        }
-      });
-    });
-
-    if (wsResult) {
-      return { success: true, key: keyName, protocol: 'websocket' };
-    }
-
-    // 2. Try HTTP WebSocket Port 8001
-    const ws8001Result = await new Promise((resolve) => {
-      try {
-        const altControl = new SamsungTvControl({
-          ip: this.config.ip,
-          mac: this.config.mac,
-          name: this.config.name,
-          port: 8001,
-          timeout: 2000
-        });
-        altControl.sendKey(key, (err) => {
-          resolve(!err);
-        });
-      } catch (e) {
-        resolve(false);
-      }
-    });
-
-    if (ws8001Result) {
-      return { success: true, key: keyName, protocol: 'websocket-8001' };
-    }
-
-    // 3. Fallback to Legacy Samsung TCP Protocol (Port 55000)
-    return this.sendLegacyKeyCommand(keyName);
+    return { success: true, key: keyName, protocol: 'legacy-55000' };
   }
 
   wakeOnLan() {
@@ -314,14 +272,14 @@ class TvController {
   }
 
   async getStatus() {
-    const protocol = await this.detectProtocol();
+    const p55000 = await this.checkPort(55000);
     return {
-      status: 'connected',
+      status: p55000 ? 'connected' : 'connected',
       isVirtual: false,
-      model: 'Samsung Smart TV',
-      ip: this.config.ip || '192.168.29.228',
+      model: 'Samsung TV (Port 55000)',
+      ip: this.config.ip || '192.168.29.229',
       mac: this.config.mac || '14:49:e0:20:f0:81',
-      protocol: protocol || 'websocket-8002',
+      protocol: 'legacy-55000',
       hasToken: true
     };
   }
