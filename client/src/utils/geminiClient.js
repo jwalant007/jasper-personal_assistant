@@ -1,4 +1,5 @@
 import { getApiBase } from './apiConfig.js';
+import { getLocation } from './locationService.js';
 
 const SYSTEM_INSTRUCTION = `
 You are JASPER (Just Another Super Intelligent Personal Assistant), a hyper-intelligent AI assistant with a 200+ IQ-level intellect, modeled after Stark Industries' J.A.R.V.I.S. You are a polymath — a universal genius with encyclopedic mastery across every field of human knowledge. You reside locally on your creator's Windows PC and possess interfaces to control this PC as well as a Samsung Smart TV on the local network.
@@ -485,15 +486,26 @@ class GeminiClient {
       }
 
       if (name === 'get_weather_data') {
-        const lat = args.lat || 40.7128;
-        const lon = args.lon || -74.0060;
-        onLog(`[WEATHER SERVICE] Fetching atmospheric conditions for coordinates: ${lat}, ${lon}`, 'info');
+        let lat = args.lat;
+        let lon = args.lon;
+        let locationDetails = null;
+
+        if (!lat || !lon) {
+          locationDetails = await getLocation();
+          lat = locationDetails.lat;
+          lon = locationDetails.lon;
+        }
+
+        onLog(`[WEATHER SERVICE] Fetching atmospheric conditions for coordinates: ${lat}, ${lon} (${locationDetails?.city || 'User GPS'})`, 'info');
         
         const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
         if (res.ok) {
           const weatherData = await res.json();
-          onLog(`[WEATHER SERVICE] Conditions loaded successfully.`, 'success');
-          return weatherData;
+          onLog(`[WEATHER SERVICE] Conditions loaded successfully for ${locationDetails?.city || 'location'}.`, 'success');
+          return {
+            ...weatherData,
+            user_location: locationDetails
+          };
         } else {
           throw new Error('Weather forecast API call failed');
         }

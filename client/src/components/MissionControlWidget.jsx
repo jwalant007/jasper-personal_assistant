@@ -18,12 +18,32 @@ import {
   RefreshCw,
   XCircle
 } from 'lucide-react';
+import { subscribeLocation } from '../utils/locationService';
 
 export default function MissionControlWidget({ onClose, onNavigate }) {
   const [cpuLoad, setCpuLoad] = useState(38);
   const [memoryUsage, setMemoryUsage] = useState(64);
   const [batteryLevel, setBatteryLevel] = useState(84);
   const [timeStr, setTimeStr] = useState('');
+  const [locationInfo, setLocationInfo] = useState(null);
+  const [weatherData, setWeatherData] = useState(null);
+
+  useEffect(() => {
+    const unsubscribe = subscribeLocation((loc) => {
+      if (loc) {
+        setLocationInfo(loc);
+        fetch(`https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current_weather=true`)
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.current_weather) {
+              setWeatherData(data.current_weather);
+            }
+          })
+          .catch(err => console.warn('[MissionControl] Weather fetch error:', err));
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const updateTime = () => {
@@ -189,9 +209,15 @@ export default function MissionControlWidget({ onClose, onNavigate }) {
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-2xl font-black text-white font-orbitron">27°C</div>
-                <div className="text-xs text-slate-300 font-medium mt-0.5">Partly Cloudy • Mumbai</div>
-                <div className="text-[10px] text-slate-400 font-mono mt-1">Humidity: 68% • Wind: 12 km/h</div>
+                <div className="text-2xl font-black text-white font-orbitron">
+                  {weatherData ? `${weatherData.temperature}°C` : '--°C'}
+                </div>
+                <div className="text-xs text-slate-300 font-medium mt-0.5">
+                  {locationInfo?.city || 'Detecting Location...'} {locationInfo?.country ? `• ${locationInfo.country}` : ''}
+                </div>
+                <div className="text-[10px] text-slate-400 font-mono mt-1">
+                  Wind: {weatherData ? `${weatherData.windspeed} km/h` : '--'} • Live GPS Telemetry
+                </div>
               </div>
               <CloudSun className="w-12 h-12 text-amber-400/80 animate-bounce" style={{ animationDuration: '4s' }} />
             </div>

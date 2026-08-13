@@ -1,34 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { Sun, Cloud, CloudRain, CloudSnow, CloudLightning, Wind, Thermometer, AlertTriangle, Compass } from 'lucide-react';
+import { Sun, Cloud, CloudRain, CloudSnow, CloudLightning, Wind, Thermometer, AlertTriangle, Compass, MapPin } from 'lucide-react';
+import { subscribeLocation } from '../utils/locationService';
 
 export default function WeatherWidget() {
   const [weather, setWeather] = useState(null);
-  const [coords, setCoords] = useState(null);
-  const [status, setStatus] = useState('Initializing GPS...');
+  const [locationInfo, setLocationInfo] = useState(null);
+  const [status, setStatus] = useState('Acquiring Telemetry...');
   const [isWarning, setIsWarning] = useState(false);
 
   useEffect(() => {
-    if (!navigator.geolocation) {
-      setStatus('GPS not supported');
-      fetchWeather(40.7128, -74.0060); // Default to NY
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
-        setCoords({ lat: latitude, lon: longitude });
-        fetchWeather(latitude, longitude);
-      },
-      (err) => {
-        console.warn('Geolocation error:', err);
-        setStatus('GPS Denied. Default: NY');
-        fetchWeather(40.7128, -74.0060); // Default NY fallback
+    const unsubscribe = subscribeLocation((loc) => {
+      if (loc) {
+        setLocationInfo(loc);
+        fetchWeather(loc.lat, loc.lon, loc.city);
       }
-    );
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  const fetchWeather = async (lat, lon) => {
+  const fetchWeather = async (lat, lon, cityName) => {
     try {
       setStatus('Syncing forecast...');
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
@@ -36,7 +27,7 @@ export default function WeatherWidget() {
       if (res.ok) {
         const data = await res.json();
         setWeather(data.current_weather);
-        setStatus('Nominal');
+        setStatus(cityName || 'Nominal');
         
         // Evaluate atmospheric warning conditions (e.g. windspeed > 25km/h, storm code >= 80, or extreme temp)
         const code = data.current_weather.weathercode;
@@ -85,8 +76,9 @@ export default function WeatherWidget() {
           <Compass size={11} className="text-cyan-400" />
           ATMOSPHERIC HUD
         </span>
-        <span className={`font-mono text-[8px] uppercase font-bold tracking-widest ${isWarning ? 'text-orange-500 animate-pulse' : 'text-sky-500'}`}>
-          {isWarning ? 'ALERT' : status}
+        <span className={`font-mono text-[8px] uppercase font-bold tracking-widest flex items-center gap-1 ${isWarning ? 'text-orange-500 animate-pulse' : 'text-sky-400'}`}>
+          <MapPin size={9} className="text-cyan-400" />
+          {locationInfo?.city || status}
         </span>
       </div>
 
@@ -110,9 +102,13 @@ export default function WeatherWidget() {
               <Wind size={10} className="text-sky-600" />
               WIND: <strong className="text-cyan-400">{weather.windspeed} km/h</strong>
             </span>
-            {isWarning && (
+            {isWarning ? (
               <span className="flex items-center gap-0.5 text-orange-400 font-bold uppercase animate-pulse">
                 <AlertTriangle size={10} /> STORM WARNING
+              </span>
+            ) : (
+              <span className="text-[8px] text-slate-400">
+                {locationInfo?.region ? `${locationInfo.region}, ${locationInfo.country}` : (locationInfo?.source || 'GPS')}
               </span>
             )}
           </div>
