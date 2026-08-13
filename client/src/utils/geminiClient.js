@@ -758,6 +758,18 @@ class GeminiClient {
       return `Master system volume adjusted to ${val} percent, Sir.`;
     }
 
+    // Macro Scenarios (Gaming Mode & Cinema Mode)
+    if (raw.includes('gaming mode') || raw.includes('game mode') || raw.includes('start gaming')) {
+      await this.executeTool('open_phone_app', { packageName: 'com.ea.gp.fifamobile' }, onLog);
+      await this.executeTool('set_pc_volume', { action: 'set', value: 85 }, onLog);
+      return "Gaming Mode activated, Sir! Set master audio to 85% and launched EA SPORTS FC Mobile.";
+    }
+    if (raw.includes('cinema mode') || raw.includes('movie mode')) {
+      await this.executeTool('send_tv_command', { keyName: 'KEY_NETFLIX' }, onLog);
+      await this.executeTool('set_pc_volume', { action: 'mute' }, onLog);
+      return "Cinema Mode initialized, muted PC audio, and launched Netflix on Smart TV, Sir.";
+    }
+
     // Mobile App / Game Launches (FFC Mobile / EA Sports FC / FIFA / WhatsApp / etc.)
     if (raw.includes('ffc mobile') || raw.includes('fc mobile') || raw.includes('fifa mobile') || (raw.includes('open') && raw.includes('play matches'))) {
       await this.executeTool('open_phone_app', { packageName: 'com.ea.gp.fifamobile' }, onLog);

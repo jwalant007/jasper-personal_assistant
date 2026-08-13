@@ -1,6 +1,6 @@
 {
   "name": "jasper-assistant",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "JASPER - Personalized AI Assistant",
   "main": "electron/main.js",
   "scripts": {

@@ -21,6 +21,7 @@ import MissionControlWidget from './components/MissionControlWidget';
 import MapsWidget from './components/MapsWidget';
 import SportsHubWidget from './components/SportsHubWidget';
 import AgenticActionsWidget from './components/AgenticActionsWidget';
+import UserManualWidget from './components/UserManualWidget';
 import geminiClient from './utils/geminiClient';
 import { getServerIp, setServerIp } from './utils/apiConfig.js';
 
@@ -32,7 +33,7 @@ import {
   clearOwnerProfile, 
   hasOwnerProfile 
 } from './utils/faceBiometrics.js';
-import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall } from 'lucide-react';
+import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, BookOpen } from 'lucide-react';
 
 export default function App() {
   const [jasperState, setJasperState] = useState('idle'); // idle, listening, processing, speaking
@@ -54,6 +55,7 @@ export default function App() {
   const [showSportsHub, setShowSportsHub] = useState(false);
   const [showAgenticActions, setShowAgenticActions] = useState(false);
   const [agenticQuery, setAgenticQuery] = useState('');
+  const [showManual, setShowManual] = useState(false);
   const [showThemes, setShowThemes] = useState(false);
   const [currentTheme, setCurrentTheme] = useState(() => {
     return localStorage.getItem('jasper_theme') || 'cyber-blue';
@@ -852,6 +854,14 @@ export default function App() {
               >
                 <Sparkles size={12} />
                 IMAGE SYNTHESIS
+              </button>
+
+              <button 
+                onClick={() => setShowManual(true)}
+                className="btn-sidebar btn-sidebar-blue w-full flex gap-1.5 items-center justify-center font-bold border-cyan-500/50 bg-cyan-950/40 text-cyan-300"
+              >
+                <BookOpen size={12} className="text-cyan-400 animate-pulse" />
+                USER MANUAL &amp; GUIDE
               </button>
 
               <div className="flex gap-1.5 w-full">
@@ -1833,6 +1843,14 @@ export default function App() {
             }} 
           />
         </div>
+      )}
+
+      {/* 15. JASPER User Manual & Guide Modal */}
+      {showManual && (
+        <UserManualWidget 
+          onClose={() => setShowManual(false)} 
+          onExecuteCommand={(cmd) => handleTextSubmit(cmd)} 
+        />
       )}
     </div>
   );
