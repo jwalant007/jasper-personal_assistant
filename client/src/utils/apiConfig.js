@@ -1,12 +1,12 @@
 // Dynamic API & WebSocket Base URL manager
-// Supports local PC access, LAN mobile access, and custom server IP or Ngrok URL configuration
+// Supports local PC access, LAN mobile access, and custom server IP configuration
 const API_PORT = 3001;
-export const DEFAULT_SERVER_IP = 'https://5b34-2405-201-202f-28a9-ddad-6cf0-2973-7f39.ngrok-free.app';
+export const DEFAULT_SERVER_IP = 'localhost';
 
 export function getServerIp() {
   let saved = localStorage.getItem('jasper_server_ip');
-  // If saved contains old local IP default, clear it to use the new ngrok server URL default
-  if (saved && (saved.trim() === '192.168.29.132' || saved.trim() === '192.168.1.100')) {
+  // Clear any old expired ngrok or outdated IP values from localStorage
+  if (saved && (saved.includes('ngrok') || saved.trim() === '192.168.29.132' || saved.trim() === '192.168.1.100')) {
     localStorage.removeItem('jasper_server_ip');
     saved = null;
   }
@@ -14,15 +14,9 @@ export function getServerIp() {
 
   if (typeof window !== 'undefined') {
     const host = window.location.hostname;
-    const ua = navigator.userAgent || '';
-    const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
-    const isLocalHost = !host || host === 'localhost' || host === '127.0.0.1' || host === 'capacitor';
-
-    // If running inside Capacitor / APK or on mobile device with localhost, use DEFAULT_SERVER_IP
-    if (isLocalHost || isMobileUA || window.Capacitor) {
-      return DEFAULT_SERVER_IP;
+    if (host && host !== 'capacitor') {
+      return host;
     }
-    return host;
   }
   return DEFAULT_SERVER_IP;
 }
@@ -40,8 +34,7 @@ export function getApiBase() {
   if (ip.startsWith('http://') || ip.startsWith('https://')) {
     return ip;
   }
-  // Domain / ngrok host without protocol (e.g. 5b34-...ngrok-free.app)
-  if (ip.includes('ngrok') || (ip.includes('.') && !/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(ip))) {
+  if (ip.includes('ngrok') || (ip.includes('.') && !/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(ip) && !ip.includes('localhost'))) {
     return `https://${ip}`;
   }
   return `http://${ip}:${API_PORT}`;
@@ -59,7 +52,7 @@ export function getWsBase() {
     return url;
   } else if (url.startsWith('ws://')) {
     return isHttpsPage ? url.replace('ws://', 'wss://') : url;
-  } else if (url.includes('ngrok') || (url.includes('.') && !/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(url))) {
+  } else if (url.includes('ngrok') || (url.includes('.') && !/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(url) && !url.includes('localhost'))) {
     url = `wss://${url}`;
   } else {
     url = isHttpsPage ? `wss://${url}:${API_PORT}` : `ws://${url}:${API_PORT}`;
@@ -68,7 +61,6 @@ export function getWsBase() {
   return url;
 }
 
-// Dynamic string objects: calling toString() or template string evaluates getApiBase() / getWsBase() dynamically!
 export const API_BASE = {
   toString: () => getApiBase(),
   valueOf: () => getApiBase()
@@ -78,5 +70,3 @@ export const WS_BASE = {
   toString: () => getWsBase(),
   valueOf: () => getWsBase()
 };
-
-
