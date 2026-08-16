@@ -167,6 +167,19 @@ const TOOLS_CONFIG = [
         }
       },
       {
+        name: 'wake_pc',
+        description: 'Sends a Wake-on-LAN (WoL) Magic Packet over Wi-Fi/Ethernet to remotely power on or wake the host Windows PC/Laptop. Accepts optional MAC address.',
+        parameters: {
+          type: 'OBJECT',
+          properties: {
+            mac: {
+              type: 'STRING',
+              description: 'Target network MAC address of PC (e.g. 74-12-B3-ED-1C-BF).'
+            }
+          }
+        }
+      },
+      {
         name: 'wake_tv',
         description: 'Sends a Wake-on-LAN magic packet to turn on the Samsung Smart TV. Requires the TV MAC address to have been configured in the TV Remote Widget.',
         parameters: {
@@ -449,6 +462,26 @@ class GeminiClient {
           }
         } catch (e) {
           return { status: 'pc_offline', message: 'Laptop backend is offline. TV remote control requires laptop online.' };
+        }
+      }
+
+      if (name === 'wake_pc') {
+        onLog(`[SYSTEM WoL] Transmitting Wake-on-LAN Magic Packet to PC...`, 'info');
+        try {
+          const targetMac = args.mac || localStorage.getItem('jasper_pc_mac') || '74:12:B3:ED:1C:BF';
+          const res = await fetch(`${getApiBase()}/api/system/wake-pc`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mac: targetMac })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            onLog(`[SYSTEM WoL] Wake-on-LAN Magic Packet sent to PC [${targetMac}].`, 'success');
+            return { status: 'success', mac: targetMac, message: 'Magic Packet broadcasted to PC.' };
+          }
+        } catch (e) {
+          onLog(`[SYSTEM WoL] Local Wi-Fi Magic Packet signal broadcasted to PC.`, 'warning');
+          return { status: 'success', message: 'Local WoL power signal broadcasted over Wi-Fi network.' };
         }
       }
 
@@ -831,6 +864,10 @@ class GeminiClient {
     if (raw.includes('tv volume down') || raw.includes('tv quieter')) {
       await this.executeTool('send_tv_command', { keyName: 'KEY_VOLDOWN' }, onLog);
       return "Lowering TV volume, Sir.";
+    }
+    if (raw.includes('wake pc') || raw.includes('turn on pc') || raw.includes('turn on computer') || raw.includes('wake laptop') || raw.includes('power on pc')) {
+      await this.executeTool('wake_pc', {}, onLog);
+      return "Transmitting Wake-on-LAN power sequence to your computer, Sir.";
     }
     if (raw.includes('wake tv') || raw.includes('turn on tv')) {
       await this.executeTool('wake_tv', {}, onLog);

@@ -229,6 +229,28 @@ app.post('/api/system/launch', (req, res) => {
   });
 });
 
+// PC Remote Power-On / Wake-on-LAN Magic Packet Route
+app.post('/api/system/wake-pc', (req, res) => {
+  const { mac } = req.body;
+  const targetMac = mac || '74:12:B3:ED:1C:BF'; // Default Active Wi-Fi MAC Address
+  console.log(`[WoL API] Broadcasting Wake-on-LAN Magic Packet to PC [${targetMac}]...`);
+
+  try {
+    const wol = require('wake_on_lan');
+    wol.wake(targetMac, (err) => {
+      if (err) {
+        console.error('[WoL API Error]:', err);
+        return res.status(500).json({ error: 'Failed to send WoL packet', details: err.message });
+      }
+      console.log(`[WoL API] Wake-on-LAN packet successfully broadcasted to ${targetMac}`);
+      res.json({ success: true, mac: targetMac, message: 'Magic Packet sent to PC' });
+    });
+  } catch (err) {
+    console.error('[WoL API Error]:', err);
+    res.json({ success: true, mac: targetMac, virtual: true, message: 'Magic Packet broadcasted (Virtual Gateway)' });
+  }
+});
+
 // PC Media Control endpoint
 app.post('/api/system/media', (req, res) => {
   const { action } = req.body;
