@@ -2,6 +2,7 @@
   "java.jdt.ls.java.home": "C:\\Users\\Jwalant\\jdk21",
   "java.import.gradle.java.home": "C:\\Users\\Jwalant\\jdk21",
   "gradle.java.home": "C:\\Users\\Jwalant\\jdk21",
+  "java.errors.incompleteClasspath.severity": "ignore",
   "java.project.exclusionPaths": [
     "**/node_modules/**",
     "node_modules"
