@@ -22,8 +22,10 @@ import MapsWidget from './components/MapsWidget';
 import SportsHubWidget from './components/SportsHubWidget';
 import AgenticActionsWidget from './components/AgenticActionsWidget';
 import UserManualWidget from './components/UserManualWidget';
+import HealthFitbandWidget from './components/HealthFitbandWidget';
 import geminiClient from './utils/geminiClient';
 import { getServerIp, setServerIp } from './utils/apiConfig.js';
+import { getPhoneBrainMode, setPhoneBrainMode, togglePhoneBrainMode } from './utils/mobileBrain.js';
 
 import { 
   extractFaceVector, 
@@ -33,7 +35,7 @@ import {
   clearOwnerProfile, 
   hasOwnerProfile 
 } from './utils/faceBiometrics.js';
-import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, BookOpen } from 'lucide-react';
+import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, BookOpen, Activity, Heart } from 'lucide-react';
 
 export default function App() {
   const [jasperState, setJasperState] = useState('idle'); // idle, listening, processing, speaking
@@ -54,6 +56,8 @@ export default function App() {
   const [showMaps, setShowMaps] = useState(false);
   const [showSportsHub, setShowSportsHub] = useState(false);
   const [showAgenticActions, setShowAgenticActions] = useState(false);
+  const [showHealthHub, setShowHealthHub] = useState(false);
+  const [isPhoneBrainMode, setIsPhoneBrainModeState] = useState(() => getPhoneBrainMode());
   const [agenticQuery, setAgenticQuery] = useState('');
   const [showManual, setShowManual] = useState(false);
   const [showThemes, setShowThemes] = useState(false);
@@ -899,6 +903,9 @@ export default function App() {
                 <button onClick={() => setShowAgenticActions(!showAgenticActions)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-cyan-400/60 bg-cyan-500/20 text-cyan-300 font-extrabold shadow-[0_0_12px_rgba(6,182,212,0.25)]">
                   <PhoneCall size={12} className="text-cyan-400 animate-pulse" /> AGENTIC ACTIONS
                 </button>
+                <button onClick={() => setShowHealthHub(!showHealthHub)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-rose-500/40 bg-rose-500/10 text-rose-300 font-bold shadow-[0_0_12px_rgba(244,63,94,0.2)]">
+                  <Activity size={12} className="text-rose-400 animate-pulse" /> HEALTH & FITBAND HUB
+                </button>
                 <button onClick={() => setShowMissionControl(!showMissionControl)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-cyan-500/40 bg-cyan-500/10 text-cyan-300 font-bold">
                   <LayoutDashboard size={12} className="text-cyan-400" /> MISSION CONTROL
                 </button>
@@ -1105,6 +1112,20 @@ export default function App() {
             {/* Actions list */}
             <div className={`flex items-center gap-1.5 ${isMobileLayout ? 'justify-end' : 'gap-2'}`}>
               <button 
+                onClick={() => {
+                  const updated = togglePhoneBrainMode();
+                  setIsPhoneBrainModeState(updated);
+                }}
+                className={`btn-hdr-action text-[10px] py-1 px-2 font-mono font-bold transition-all flex items-center gap-1 ${
+                  isPhoneBrainMode 
+                    ? 'bg-purple-500/20 text-purple-300 border-purple-500/50 shadow-[0_0_10px_rgba(168,85,247,0.3)]' 
+                    : 'text-cyan-400 hover:text-cyan-200'
+                }`}
+                title="Toggle Mobile Master Brain Mode"
+              >
+                {isPhoneBrainMode ? (isMobileLayout ? '📱 BRAIN' : '📱 PHONE IS BRAIN') : (isMobileLayout ? '🧠 PC CORE' : '🧠 PC IS CORE')}
+              </button>
+              <button 
                 onClick={() => setIsLocked(true)}
                 className="btn-hdr-action text-[10px] py-1 px-2"
               >
@@ -1217,7 +1238,7 @@ export default function App() {
 
       {/* Sliding Phone Control Overlay */}
       {showPhoneControl && (
-        <div className={`fixed z-40 p-4 rounded-lg tv-remote-panel animate-slide-in flex flex-col ${isMobileLayout ? 'top-14 inset-x-2 w-auto h-[calc(100%-4.5rem)]' : 'top-20 right-4 w-96 h-[calc(100%-7rem)]'}`}>
+        <div className={`fixed z-40 p-4 rounded-lg tv-remote-panel animate-slide-in flex flex-col ${isMobileLayout ? 'top-14 inset-x-2 w-auto h-[calc(100%-4.5rem)]' : 'top-20 right-4 w-[580px] max-w-[92vw] h-[calc(100%-7rem)]'}`}>
           <div className="flex justify-between items-center border-b border-cyan-500/20 pb-2 mb-3 select-none">
             <span className="font-orbitron font-bold text-xs text-cyan-400">PHONE UPLINK</span>
             <button onClick={() => setShowPhoneControl(false)} className="text-sky-500 hover:text-cyan-400 font-bold text-[10px]">[X] CLOSE</button>
@@ -1851,6 +1872,21 @@ export default function App() {
           onClose={() => setShowManual(false)} 
           onExecuteCommand={(cmd) => handleTextSubmit(cmd)} 
         />
+      )}
+
+      {/* 16. Health & Fitband Hub Modal */}
+      {showHealthHub && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+          <div className="max-w-4xl w-full">
+            <HealthFitbandWidget 
+              onClose={() => setShowHealthHub(false)} 
+              onAskJasper={(query) => {
+                setShowHealthHub(false);
+                handleCommand(query);
+              }}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

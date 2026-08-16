@@ -295,6 +295,11 @@ const TOOLS_CONFIG = [
         name: 'get_phone_status',
         description: 'Get phone battery level, model, and connection status.',
         parameters: { type: 'OBJECT', properties: {} }
+      },
+      {
+        name: 'get_health_vitals',
+        description: 'Get real-time health telemetry from connected fitband or health monitor including Heart Rate (BPM), Oxygen Saturation (SpO2), steps, and stress levels.',
+        parameters: { type: 'OBJECT', properties: {} }
       }
     ]
   }
@@ -302,13 +307,16 @@ const TOOLS_CONFIG = [
 
 class GeminiClient {
   constructor() {
-    this.apiKey = localStorage.getItem('jasper_gemini_key') || '';
+    this.apiKey = localStorage.getItem('jasper_gemini_key') || 
+                  localStorage.getItem('jasper_gemini_api_key') || 
+                  localStorage.getItem('gemini_api_key') || '';
     this.chatHistory = [];
   }
 
   setApiKey(key) {
     this.apiKey = key;
     localStorage.setItem('jasper_gemini_key', key);
+    localStorage.setItem('jasper_gemini_api_key', key);
   }
 
   hasKey() {
@@ -651,7 +659,7 @@ class GeminiClient {
       throw new Error("Maximum tool calling execution depth exceeded.");
     }
 
-    const models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.5-pro'];
+    const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
     let lastError = null;
     let response = null;
 
@@ -876,7 +884,7 @@ RULES FOR HUMAN CONVERSATION:
 }`;
 
     try {
-      const models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.5-pro'];
+      const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
       const key = this.apiKey || localStorage.getItem('jasper_gemini_key') || localStorage.getItem('jasper_gemini_api_key');
 
       if (!key) {
