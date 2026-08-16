@@ -391,6 +391,7 @@ export default function PhoneControlWidget() {
           >
             DISCONNECT
           </button>
+        </div>
       </div>
 
       {/* MOBILE MASTER BRAIN BANNER */}
