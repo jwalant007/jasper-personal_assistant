@@ -220,7 +220,7 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
     };
   }, [heartRate, connectionMode, isAlerting]);
 
-  // Real BLE Fitband Connect via Web Bluetooth API or Target MAC Address
+  // Real BLE Fitband Connect via Web Bluetooth API
   const handleConnectBLE = async (targetMac = macAddress) => {
     if (!navigator.bluetooth) {
       setBleError('Web Bluetooth API is not supported in this browser environment. Using Virtual Simulator.');
@@ -236,43 +236,38 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
     }
 
     try {
-      let requestOptions = {
-        optionalServices: ['heart_rate', 'pulse_oximeter', 0x180d, 0x1822, 0x180a]
-      };
+      // Use broad acceptAllDevices to show all nearby Bluetooth Fitbands & Wearables in native dialog
+      const device = await navigator.bluetooth.requestDevice({
+        acceptAllDevices: true,
+        optionalServices: [
+          'heart_rate', 
+          'pulse_oximeter', 
+          'battery_service', 
+          'device_information',
+          0x180d, 
+          0x1822, 
+          0x180a, 
+          0x180f
+        ]
+      });
 
-      // If MAC address / custom prefix is provided, attempt name prefix or acceptAllDevices
-      if (cleanMac && cleanMac.length > 2) {
-        requestOptions.filters = [
-          { namePrefix: cleanMac },
-          { name: cleanMac },
-          { services: ['heart_rate'] }
-        ];
-      } else {
-        requestOptions.filters = [
-          { services: ['heart_rate'] },
-          { services: [0x180d] },
-          { services: ['pulse_oximeter'] }
-        ];
-      }
-
-      let device;
-      try {
-        device = await navigator.bluetooth.requestDevice(requestOptions);
-      } catch (filterErr) {
-        // Fallback to acceptAllDevices if strict filter fails
-        device = await navigator.bluetooth.requestDevice({
-          acceptAllDevices: true,
-          optionalServices: ['heart_rate', 'pulse_oximeter', 0x180d, 0x1822, 0x180a]
-        });
-      }
-
-      const displayDevName = device.name || (cleanMac ? `Fitband [${cleanMac}]` : 'Bluetooth Fitband');
+      const displayDevName = device.name 
+        ? `${device.name}${cleanMac ? ` (${cleanMac})` : ''}` 
+        : (cleanMac ? `Fitband [${cleanMac}]` : 'Bluetooth Fitband');
+      
       setDeviceName(displayDevName);
       gattDeviceRef.current = device;
 
+      // Handle device disconnect listener
+      device.addEventListener('gattserverdisconnected', () => {
+        setConnectionMode('disconnected');
+        setBleError('BLE Fitband disconnected. Click "Pair BLE Fitband" or "Retry" to reconnect.');
+      });
+
       const server = await device.gatt.connect();
       
-      // Try Heart Rate Service
+      // Attempt Heart Rate Service subscription
+      let heartRateActive = false;
       try {
         const hrService = await server.getPrimaryService('heart_rate');
         const hrChar = await hrService.getCharacteristic('heart_rate_measurement');
@@ -290,8 +285,21 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
           }
           if (bpmVal > 0) setHeartRate(bpmVal);
         });
+        heartRateActive = true;
       } catch (err) {
-        console.warn('Heart rate service subscription warning:', err);
+        console.warn('Standard Heart Rate service subscription warning:', err);
+      }
+
+      // Fallback: If heart rate service is non-standard, query secondary GATT services
+      if (!heartRateActive) {
+        try {
+          const services = await server.getPrimaryServices();
+          if (services && services.length > 0) {
+            console.log(`Found ${services.length} GATT services on ${displayDevName}`);
+          }
+        } catch (e) {
+          console.warn('GATT service enumeration fallback:', e);
+        }
       }
 
       setConnectionMode('ble');
@@ -299,7 +307,13 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
     } catch (err) {
       console.error('BLE connection error:', err);
       setIsBleConnecting(false);
-      setBleError(err.message || 'BLE fitband connection cancelled or unavailable.');
+      if (err.name === 'NotFoundError') {
+        setBleError('Bluetooth pairing dialogue cancelled or no device selected. Ensure fitband screen is awake and try again.');
+      } else if (err.name === 'SecurityError') {
+        setBleError('Web Bluetooth security blocked. Please use HTTPS or localhost (http://localhost:5173).');
+      } else {
+        setBleError(err.message || 'BLE fitband connection unavailable.');
+      }
     }
   };
 
@@ -415,9 +429,18 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
       )}
 
       {bleError && (
-        <div className="ble-error-banner">
-          <AlertTriangle size={16} />
-          <span>{bleError}</span>
+        <div className="ble-error-banner flex items-center justify-between gap-2 p-3 bg-amber-950/40 border border-amber-500/40 rounded-xl text-amber-200 text-xs font-mono my-2">
+          <div className="flex items-center gap-2 flex-1">
+            <AlertTriangle size={18} className="text-amber-400 shrink-0" />
+            <span>{bleError}</span>
+          </div>
+          <button 
+            onClick={() => handleConnectBLE()}
+            disabled={isBleConnecting}
+            className="px-3 py-1 bg-amber-500/20 border border-amber-500/50 hover:bg-amber-500/40 text-amber-300 rounded font-bold uppercase tracking-wider text-[10px] shrink-0 transition-colors"
+          >
+            {isBleConnecting ? 'Scanning...' : 'Try Again'}
+          </button>
         </div>
       )}
 
