@@ -23,6 +23,7 @@ import SportsHubWidget from './components/SportsHubWidget';
 import AgenticActionsWidget from './components/AgenticActionsWidget';
 import UserManualWidget from './components/UserManualWidget';
 import HealthFitbandWidget from './components/HealthFitbandWidget';
+import LaptopConnectModal from './components/LaptopConnectModal';
 import geminiClient from './utils/geminiClient';
 import { getServerIp, setServerIp } from './utils/apiConfig.js';
 import { getPhoneBrainMode, setPhoneBrainMode, togglePhoneBrainMode } from './utils/mobileBrain.js';
@@ -35,7 +36,7 @@ import {
   clearOwnerProfile, 
   hasOwnerProfile 
 } from './utils/faceBiometrics.js';
-import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, BookOpen, Activity, Heart } from 'lucide-react';
+import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, BookOpen, Activity, Heart, Laptop } from 'lucide-react';
 
 export default function App() {
   const [jasperState, setJasperState] = useState('idle'); // idle, listening, processing, speaking
@@ -57,6 +58,7 @@ export default function App() {
   const [showSportsHub, setShowSportsHub] = useState(false);
   const [showAgenticActions, setShowAgenticActions] = useState(false);
   const [showHealthHub, setShowHealthHub] = useState(false);
+  const [showLaptopConnect, setShowLaptopConnect] = useState(false);
   const [isPhoneBrainMode, setIsPhoneBrainModeState] = useState(() => getPhoneBrainMode());
   const [agenticQuery, setAgenticQuery] = useState('');
   const [showManual, setShowManual] = useState(false);
@@ -64,6 +66,16 @@ export default function App() {
   const [currentTheme, setCurrentTheme] = useState(() => {
     return localStorage.getItem('jasper_theme') || 'cyber-blue';
   });
+
+  useEffect(() => {
+    const handleBrainChange = (e) => {
+      if (e?.detail?.enabled !== undefined) {
+        setIsPhoneBrainModeState(e.detail.enabled);
+      }
+    };
+    window.addEventListener('jasper_phone_brain_change', handleBrainChange);
+    return () => window.removeEventListener('jasper_phone_brain_change', handleBrainChange);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('jasper_theme', currentTheme);
@@ -896,6 +908,17 @@ export default function App() {
                 CONNECT PHONE
               </button>
 
+              <button 
+                onClick={() => {
+                  setShowLaptopConnect(true);
+                  if (isMobileLayout) setShowSidebar(false);
+                }}
+                className="btn-sidebar btn-sidebar-blue w-full flex gap-1.5 items-center justify-center font-bold border-cyan-400/60 bg-cyan-950/50 text-cyan-300 shadow-[0_0_12px_rgba(0,240,255,0.2)] hover:bg-cyan-900/60"
+              >
+                <Laptop size={14} className="text-cyan-400 animate-pulse" />
+                CONNECT TO LAPTOP MODE
+              </button>
+
               {/* Feature Modules Suite */}
               <div className="flex flex-col gap-1.5 border-t border-cyan-500/15 pt-2 mt-1">
                 <span className="font-mono text-[9px] text-cyan-400 font-bold uppercase tracking-widest px-1">Feature Suite</span>
@@ -1112,6 +1135,15 @@ export default function App() {
             {/* Actions list */}
             <div className={`flex items-center gap-1.5 ${isMobileLayout ? 'justify-end' : 'gap-2'}`}>
               <button 
+                onClick={() => setShowLaptopConnect(true)}
+                className="btn-hdr-action text-[10px] py-1 px-2 font-mono font-bold text-cyan-300 border-cyan-500/50 bg-cyan-950/60 hover:bg-cyan-900/80 transition-all flex items-center gap-1 cursor-pointer shadow-[0_0_10px_rgba(0,240,255,0.2)]"
+                title="Connect to Laptop Mode"
+              >
+                <Laptop size={12} className="text-cyan-400" />
+                {isMobileLayout ? '💻 Laptop' : '💻 Connect Laptop'}
+              </button>
+
+              <button 
                 onClick={() => {
                   const updated = togglePhoneBrainMode();
                   setIsPhoneBrainModeState(updated);
@@ -1123,7 +1155,7 @@ export default function App() {
                 }`}
                 title="Toggle Mobile Master Brain Mode"
               >
-                {isPhoneBrainMode ? (isMobileLayout ? '📱 BRAIN' : '📱 PHONE IS BRAIN') : (isMobileLayout ? '🧠 PC CORE' : '🧠 PC IS CORE')}
+                {isPhoneBrainMode ? (isMobileLayout ? '📱 MOBILE CORE' : '📱 PHONE IS BRAIN') : (isMobileLayout ? '🧠 PC CORE' : '🧠 PC IS CORE')}
               </button>
               <button 
                 onClick={() => setIsLocked(true)}
@@ -1887,6 +1919,14 @@ export default function App() {
             />
           </div>
         </div>
+      )}
+
+      {/* 17. Connect to Laptop Mode Modal */}
+      {showLaptopConnect && (
+        <LaptopConnectModal 
+          onClose={() => setShowLaptopConnect(false)} 
+          onLog={(text, type) => console.log(`[LAPTOP] ${text}`)}
+        />
       )}
     </div>
   );
