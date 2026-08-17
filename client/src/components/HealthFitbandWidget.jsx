@@ -21,6 +21,10 @@ import {
 export default function HealthFitbandWidget({ onClose, onAskJasper }) {
   const [connectionMode, setConnectionMode] = useState('simulated'); // 'disconnected', 'ble', 'simulated'
   const [deviceName, setDeviceName] = useState('Virtual Fitband Pro');
+  const [macAddress, setMacAddress] = useState(() => {
+    return localStorage.getItem('jasper_fitband_mac') || '';
+  });
+  const [showMacInput, setShowMacInput] = useState(false);
   const [heartRate, setHeartRate] = useState(74);
   const [spO2, setSpO2] = useState(98);
   const [steps, setSteps] = useState(6480);
@@ -38,6 +42,16 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
   const animationFrameRef = useRef(null);
   const pulsePhaseRef = useRef(0);
   const gattDeviceRef = useRef(null);
+
+  // Persist MAC address when updated
+  const saveMacAddress = (mac) => {
+    setMacAddress(mac);
+    if (mac && mac.trim()) {
+      localStorage.setItem('jasper_fitband_mac', mac.trim().toUpperCase());
+    } else {
+      localStorage.removeItem('jasper_fitband_mac');
+    }
+  };
 
   // Sync current vitals to localStorage so Gemini tool calls can query them instantly
   useEffect(() => {
@@ -206,8 +220,8 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
     };
   }, [heartRate, connectionMode, isAlerting]);
 
-  // Real BLE Fitband Connect via Web Bluetooth API
-  const handleConnectBLE = async () => {
+  // Real BLE Fitband Connect via Web Bluetooth API or Target MAC Address
+  const handleConnectBLE = async (targetMac = macAddress) => {
     if (!navigator.bluetooth) {
       setBleError('Web Bluetooth API is not supported in this browser environment. Using Virtual Simulator.');
       return;
@@ -216,18 +230,44 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
     setIsBleConnecting(true);
     setBleError(null);
 
+    const cleanMac = (targetMac || '').trim().toUpperCase();
+    if (cleanMac) {
+      localStorage.setItem('jasper_fitband_mac', cleanMac);
+    }
+
     try {
-      // Request device with standard BLE Heart Rate Service (0x180D) and Pulse Oximeter (0x1822)
-      const device = await navigator.bluetooth.requestDevice({
-        filters: [
+      let requestOptions = {
+        optionalServices: ['heart_rate', 'pulse_oximeter', 0x180d, 0x1822, 0x180a]
+      };
+
+      // If MAC address / custom prefix is provided, attempt name prefix or acceptAllDevices
+      if (cleanMac && cleanMac.length > 2) {
+        requestOptions.filters = [
+          { namePrefix: cleanMac },
+          { name: cleanMac },
+          { services: ['heart_rate'] }
+        ];
+      } else {
+        requestOptions.filters = [
           { services: ['heart_rate'] },
           { services: [0x180d] },
           { services: ['pulse_oximeter'] }
-        ],
-        optionalServices: ['heart_rate', 'pulse_oximeter', 0x180d, 0x1822, 0x180a]
-      });
+        ];
+      }
 
-      setDeviceName(device.name || 'Bluetooth Fitband');
+      let device;
+      try {
+        device = await navigator.bluetooth.requestDevice(requestOptions);
+      } catch (filterErr) {
+        // Fallback to acceptAllDevices if strict filter fails
+        device = await navigator.bluetooth.requestDevice({
+          acceptAllDevices: true,
+          optionalServices: ['heart_rate', 'pulse_oximeter', 0x180d, 0x1822, 0x180a]
+        });
+      }
+
+      const displayDevName = device.name || (cleanMac ? `Fitband [${cleanMac}]` : 'Bluetooth Fitband');
+      setDeviceName(displayDevName);
       gattDeviceRef.current = device;
 
       const server = await device.gatt.connect();
@@ -299,10 +339,18 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
 
           <button 
             className={`mode-btn ${connectionMode === 'ble' ? 'active' : ''}`}
-            onClick={handleConnectBLE}
+            onClick={() => handleConnectBLE()}
             disabled={isBleConnecting}
           >
             <Bluetooth size={14} /> {isBleConnecting ? 'Pairing...' : 'Pair BLE Fitband'}
+          </button>
+
+          <button 
+            className={`mode-btn ${showMacInput ? 'active' : ''}`}
+            onClick={() => setShowMacInput(prev => !prev)}
+            title="Set Fitband MAC Address"
+          >
+            <Sliders size={14} /> MAC Config
           </button>
 
           {onClose && (
@@ -312,6 +360,51 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
           )}
         </div>
       </div>
+
+      {/* MAC Address Configuration Bar */}
+      {showMacInput && (
+        <div className="flex flex-col gap-2 p-3 my-2 bg-slate-900/90 border border-cyan-500/40 rounded-xl font-mono text-xs text-cyan-200 animate-in fade-in duration-200">
+          <div className="flex items-center justify-between">
+            <span className="font-bold text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
+              <Bluetooth size={14} className="text-cyan-400" /> Target Fitband MAC Address / Device ID
+            </span>
+            <span className="text-[10px] text-slate-400">e.g. C4:58:6E:9A:12:34 or Mi Band 7</span>
+          </div>
+
+          <div className="flex gap-2">
+            <input 
+              type="text"
+              value={macAddress}
+              onChange={(e) => saveMacAddress(e.target.value)}
+              placeholder="Enter MAC Address (e.g. C4:58:6E:9A:12:34 or Band Name)"
+              className="flex-1 bg-black/60 border border-cyan-500/30 rounded-lg px-3 py-1.5 text-xs text-cyan-100 outline-none focus:border-cyan-400 font-mono"
+            />
+            <button 
+              onClick={() => handleConnectBLE(macAddress)}
+              disabled={isBleConnecting}
+              className="px-4 py-1.5 bg-cyan-950 border border-cyan-500/40 hover:bg-cyan-900 text-cyan-300 text-xs font-bold rounded-lg transition-all"
+            >
+              CONNECT VIA MAC
+            </button>
+          </div>
+
+          <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+            <span>Quick Presets:</span>
+            {['C4:58:6E:9A:12:34', 'FD:34:C1:23:45:67', 'Mi Smart Band', 'Fitbit Charge'].map(preset => (
+              <button 
+                key={preset}
+                onClick={() => {
+                  saveMacAddress(preset);
+                  handleConnectBLE(preset);
+                }}
+                className="px-2 py-0.5 rounded bg-slate-800 border border-cyan-500/20 text-cyan-300 hover:border-cyan-400"
+              >
+                {preset}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Safety Alert Banner if triggered */}
       {isAlerting && (
