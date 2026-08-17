@@ -22,7 +22,7 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
   const [connectionMode, setConnectionMode] = useState('simulated'); // 'disconnected', 'ble', 'simulated'
   const [deviceName, setDeviceName] = useState('Virtual Fitband Pro');
   const [macAddress, setMacAddress] = useState(() => {
-    return localStorage.getItem('jasper_fitband_mac') || '';
+    return localStorage.getItem('jasper_fitband_mac') || 'F4:67:F4:16:7C:53';
   });
   const [showMacInput, setShowMacInput] = useState(false);
   const [heartRate, setHeartRate] = useState(74);
@@ -388,16 +388,16 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
             </button>
           </div>
 
-          <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+          <div className="flex items-center gap-1.5 text-[10px] text-slate-400 flex-wrap">
             <span>Quick Presets:</span>
-            {['C4:58:6E:9A:12:34', 'FD:34:C1:23:45:67', 'Mi Smart Band', 'Fitbit Charge'].map(preset => (
+            {['F4:67:F4:16:7C:53', 'F4-67-F4-16-7C-53', 'Mi Smart Band', 'Fitbit Charge'].map(preset => (
               <button 
                 key={preset}
                 onClick={() => {
                   saveMacAddress(preset);
                   handleConnectBLE(preset);
                 }}
-                className="px-2 py-0.5 rounded bg-slate-800 border border-cyan-500/20 text-cyan-300 hover:border-cyan-400"
+                className="px-2 py-0.5 rounded bg-cyan-950/40 border border-cyan-500/30 text-cyan-300 hover:border-cyan-400 hover:bg-cyan-900/60 transition-colors"
               >
                 {preset}
               </button>
