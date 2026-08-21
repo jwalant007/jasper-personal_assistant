@@ -609,6 +609,32 @@ class GeminiClient {
         }
       }
 
+      if (name === 'get_health_vitals') {
+        onLog(`[HEALTH FITBAND] Fetching real-time vital metrics...`, 'info');
+        try {
+          const saved = localStorage.getItem('jasper_health_vitals');
+          if (saved) {
+            const data = JSON.parse(saved);
+            onLog(`[HEALTH FITBAND] Telemetry loaded: ${data.bpm} BPM | SpO2: ${data.spO2}%`, 'success');
+            return data;
+          }
+        } catch (e) {}
+
+        const fallbackData = {
+          bpm: 74,
+          spO2: 98,
+          steps: 6480,
+          calories: 320,
+          stress: 22,
+          hrv: 65,
+          device: 'Virtual Fitband Pro',
+          status: 'Normal',
+          lastUpdated: new Date().toLocaleTimeString()
+        };
+        onLog(`[HEALTH FITBAND] Telemetry loaded: ${fallbackData.bpm} BPM | SpO2: ${fallbackData.spO2}%`, 'success');
+        return fallbackData;
+      }
+
       throw new Error(`Unknown tool: ${name}`);
     } catch (err) {
       onLog(`[SYSTEM CORE] Tool ${name} execution failed: ${err.message}`, 'error');

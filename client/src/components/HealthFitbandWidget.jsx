@@ -244,10 +244,10 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
           'pulse_oximeter', 
           'battery_service', 
           'device_information',
-          0x180d, 
-          0x1822, 
-          0x180a, 
-          0x180f
+          '0000180d-0000-1000-8000-00805f9b34fb', 
+          '00001822-0000-1000-8000-00805f9b34fb', 
+          '0000180a-0000-1000-8000-00805f9b34fb', 
+          '0000180f-0000-1000-8000-00805f9b34fb'
         ]
       });
 

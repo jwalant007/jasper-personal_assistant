@@ -1200,16 +1200,48 @@ export default function App() {
                   {renderResponseText(pastChats.find(c => c.id === selectedChatId)?.response)}
                 </div>
               ) : (
-                /* Welcomes user with Arc Reactor */
-                <div className="flex flex-col items-center justify-center h-full gap-4 sm:gap-6">
+                /* Welcomes user with heroic Arc Reactor and J.A.R.V.I.S. Quick Pills */
+                <div className="flex flex-col items-center justify-center h-full gap-5 sm:gap-6 py-4">
                   <div className="text-center font-orbitron max-w-md">
-                    <h3 className="text-cyan-400 font-extrabold text-xs sm:text-sm tracking-widest mb-1.5 glow-cyan">SYSTEM CORE ON-LINE</h3>
-                    <p className="font-mono text-[9px] sm:text-[10px] text-sky-500 uppercase tracking-widest leading-relaxed">
-                      Standing by for query request or voice override protocols, Sir.
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 mb-2">
+                      <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                      <span className="text-[10px] font-bold tracking-widest text-cyan-300">SYSTEM CORE ONLINE • J.A.R.V.I.S. v4.1</span>
+                    </div>
+                    <h3 className="text-cyan-400 font-extrabold text-sm sm:text-base tracking-widest glow-cyan">AT YOUR SERVICE, SIR</h3>
+                    <p className="font-mono text-[9px] sm:text-[10px] text-sky-400/80 uppercase tracking-widest leading-relaxed mt-1">
+                      Select a quick command below or speak your directive.
                     </p>
                   </div>
-                  <div className={`${isMobileLayout ? 'w-36 h-36' : 'w-48 h-48'}`}>
+                  <div className={`hero-arc-animated ${isMobileLayout ? 'w-36 h-36' : 'w-48 h-48'}`}>
                     <ArcReactor state={jasperState} onClick={handleReactorClick} />
+                  </div>
+
+                  {/* Interactive Stark HUD Quick Action Pills */}
+                  <div className="flex flex-wrap items-center justify-center gap-2 max-w-2xl px-2">
+                    <button onClick={() => handleCommand('Set PC volume to 50%')} className="jarvis-pill">
+                      ⚡ Set Volume 50%
+                    </button>
+                    <button onClick={() => handleCommand('Open EA Sports FC Mobile on phone')} className="jarvis-pill">
+                      📱 Open FC Mobile
+                    </button>
+                    <button onClick={() => handleCommand('What is the current price of AAPL stock?')} className="jarvis-pill">
+                      📈 Check Apple Stock
+                    </button>
+                    <button onClick={() => setShowTvRemote(!showTvRemote)} className="jarvis-pill">
+                      📺 TV Remote
+                    </button>
+                    <button onClick={() => setShowHealthHub(true)} className="jarvis-pill">
+                      🩺 Health Vitals
+                    </button>
+                    <button onClick={() => handleCommand('Research latest news on Artificial Intelligence')} className="jarvis-pill">
+                      🤖 Research AI
+                    </button>
+                    <button onClick={() => handleCommand('What song is currently playing on my PC?')} className="jarvis-pill">
+                      🎵 Now Playing
+                    </button>
+                    <button onClick={() => setShowAgenticActions(true)} className="jarvis-pill">
+                      🍽️ Reserve Restaurant Table
+                    </button>
                   </div>
                 </div>
               )}

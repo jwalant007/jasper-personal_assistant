@@ -2417,5 +2417,76 @@ input, textarea, select {
   box-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
 }
 
+/* -------------------------------------------------------------
+   MODERN STARK J.A.R.V.I.S. HUD UTILITIES
+   ------------------------------------------------------------- */
+.glass-card-jarvis {
+  background: rgba(8, 16, 32, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 240, 255, 0.18);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card-jarvis:hover {
+  border-color: rgba(0, 240, 255, 0.35);
+  box-shadow: 0 12px 40px 0 rgba(0, 240, 255, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.jarvis-pill {
+  background: rgba(0, 240, 255, 0.07);
+  border: 1px solid rgba(0, 240, 255, 0.22);
+  color: #e0f7fc;
+  border-radius: 9999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(8px);
+}
+
+.jarvis-pill:hover {
+  background: rgba(0, 240, 255, 0.2);
+  border-color: rgba(0, 240, 255, 0.5);
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.35);
+  transform: translateY(-1px) scale(1.02);
+}
+
+.hud-glow-button {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(0, 85, 255, 0.25));
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 8px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+}
+
+.hud-glow-button:hover {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.35), rgba(0, 85, 255, 0.4));
+  box-shadow: 0 0 25px rgba(0, 240, 255, 0.45);
+  transform: scale(1.03);
+}
+
+@keyframes hero-pulse {
+  0% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(0, 240, 255, 0.3)); }
+  50% { transform: scale(1.02); filter: drop-shadow(0 0 30px rgba(0, 240, 255, 0.6)); }
+  100% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(0, 240, 255, 0.3)); }
+}
+
+.hero-arc-animated {
+  animation: hero-pulse 4s ease-in-out infinite;
+}
+
 
 

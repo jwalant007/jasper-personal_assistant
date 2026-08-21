@@ -1,0 +1,390 @@
+const fs = require('fs');
+const path = require('path');
+
+// Target directory & file path for database
+const DATA_DIR = path.join(__dirname, 'data');
+const DB_FILE = path.join(DATA_DIR, 'jasper.db.json');
+
+// Existing legacy files for automatic seamless migration
+const LEGACY_MEMORY = path.join(__dirname, 'memory_store.json');
+const LEGACY_ANALYTICS = path.join(__dirname, 'analytics_store.json');
+const LEGACY_ACTIONS = path.join(__dirname, 'agentic_actions_store.json');
+const LEGACY_TV = path.join(__dirname, 'tv-config.json');
+
+// Ensure data directory exists
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+// Initial Database Schema
+const DEFAULT_SCHEMA = {
+  version: 1.0,
+  lastUpdated: new Date().toISOString(),
+  memories: [
+    { id: 1, text: 'User prefers concise audio responses', category: 'preference', date: new Date().toISOString() },
+    { id: 2, text: 'Default smart home TV is Samsung Frame in Living Room', category: 'device', date: new Date().toISOString() }
+  ],
+  analytics: {
+    conversations: 42,
+    voiceCommands: 128,
+    imagesGenerated: 15,
+    automationRuns: 24,
+    connectedDevices: 3,
+    startTime: Date.now()
+  },
+  reservations: [
+    {
+      id: 'RES-DEMO-01',
+      venueName: 'Trattoria Bella Vista',
+      cuisine: 'Italian Fine Dining',
+      partySize: 4,
+      date: 'Tomorrow',
+      time: '8:30 PM',
+      confirmationCode: 'JSP-8821',
+      contactName: 'Jwalant',
+      phone: '+1 (555) 382-9901',
+      address: '450 Grand Avenue, Suite 12',
+      specialRequests: 'Quiet garden booth',
+      createdAt: new Date().toISOString(),
+      status: 'Confirmed'
+    }
+  ],
+  chat_history: [
+    {
+      id: 1,
+      query: 'who is narendra modi',
+      response: 'Narendra Damodardas Modi is an Indian politician who has served as the prime minister of India since 2014.',
+      timestamp: new Date().toLocaleString()
+    }
+  ],
+  reminders: [
+    {
+      id: 1,
+      title: 'Review System Diagnostics',
+      time: '09:00 AM',
+      date: 'Today',
+      category: 'System',
+      completed: false,
+      createdAt: new Date().toISOString()
+    }
+  ],
+  automations: [
+    {
+      id: 'auto-1',
+      name: 'Morning Wakeup Routine',
+      trigger: 'Voice Command: "Good Morning"',
+      action: 'Set Volume 50%, Fetch Weather, Play Music',
+      enabled: true,
+      createdAt: new Date().toISOString()
+    }
+  ],
+  health_vitals: [
+    {
+      id: Date.now(),
+      bpm: 74,
+      spO2: 98,
+      steps: 6480,
+      calories: 320,
+      stress: 22,
+      hrv: 65,
+      device: 'Virtual Fitband Pro',
+      status: 'Normal',
+      timestamp: new Date().toLocaleTimeString()
+    }
+  ],
+  settings: {
+    theme: 'cyber-blue',
+    serverIp: 'localhost',
+    fitbandMac: 'F4:67:F4:16:7C:53',
+    pcMac: '74:12:B3:ED:1C:BF'
+  }
+};
+
+class DatabaseManager {
+  constructor() {
+    this.data = this.init();
+  }
+
+  // Load database or initialize with migrations
+  init() {
+    let dbData = null;
+
+    if (fs.existsSync(DB_FILE)) {
+      try {
+        const content = fs.readFileSync(DB_FILE, 'utf8');
+        dbData = JSON.parse(content);
+        console.log('[Database Core] Loaded database from:', DB_FILE);
+      } catch (e) {
+        console.error('[Database Core] Database file read error, recreating schema:', e.message);
+      }
+    }
+
+    if (!dbData) {
+      dbData = JSON.parse(JSON.stringify(DEFAULT_SCHEMA));
+      this.migrateLegacyFiles(dbData);
+      this.save(dbData);
+    } else {
+      // Ensure all tables exist in loaded dbData
+      for (const key of Object.keys(DEFAULT_SCHEMA)) {
+        if (dbData[key] === undefined) {
+          dbData[key] = DEFAULT_SCHEMA[key];
+        }
+      }
+    }
+
+    return dbData;
+  }
+
+  // Migrate legacy individual JSON files if they exist
+  migrateLegacyFiles(dbData) {
+    console.log('[Database Core] Checking legacy JSON files for data migration...');
+    try {
+      if (fs.existsSync(LEGACY_MEMORY)) {
+        const mem = JSON.parse(fs.readFileSync(LEGACY_MEMORY, 'utf8'));
+        if (mem.memories && Array.isArray(mem.memories)) {
+          dbData.memories = mem.memories;
+          console.log(`[Database Core] Migrated ${mem.memories.length} legacy memory records.`);
+        }
+      }
+    } catch (e) {}
+
+    try {
+      if (fs.existsSync(LEGACY_ANALYTICS)) {
+        const ana = JSON.parse(fs.readFileSync(LEGACY_ANALYTICS, 'utf8'));
+        dbData.analytics = { ...dbData.analytics, ...ana };
+        console.log('[Database Core] Migrated legacy analytics counters.');
+      }
+    } catch (e) {}
+
+    try {
+      if (fs.existsSync(LEGACY_ACTIONS)) {
+        const act = JSON.parse(fs.readFileSync(LEGACY_ACTIONS, 'utf8'));
+        if (Array.isArray(act)) {
+          dbData.reservations = act;
+          console.log(`[Database Core] Migrated ${act.length} legacy reservations.`);
+        }
+      }
+    } catch (e) {}
+
+    try {
+      if (fs.existsSync(LEGACY_TV)) {
+        const tv = JSON.parse(fs.readFileSync(LEGACY_TV, 'utf8'));
+        dbData.settings = { ...dbData.settings, tvConfig: tv };
+        console.log('[Database Core] Migrated legacy TV config.');
+      }
+    } catch (e) {}
+  }
+
+  // Save database with atomic file write (.tmp -> rename)
+  save(dataToSave = this.data) {
+    try {
+      dataToSave.lastUpdated = new Date().toISOString();
+      const tmpFile = `${DB_FILE}.tmp`;
+      fs.writeFileSync(tmpFile, JSON.stringify(dataToSave, null, 2), 'utf8');
+      fs.renameSync(tmpFile, DB_FILE);
+      this.data = dataToSave;
+      return true;
+    } catch (e) {
+      console.error('[Database Core] Atomic write error:', e.message);
+      return false;
+    }
+  }
+
+  // Get full database dump
+  getAll() {
+    return this.data;
+  }
+
+  // --- MEMORIES ---
+  getMemories() {
+    return this.data.memories || [];
+  }
+
+  addMemory(text, category = 'general') {
+    const newItem = {
+      id: Date.now(),
+      text,
+      category,
+      date: new Date().toISOString()
+    };
+    this.data.memories.unshift(newItem);
+    this.save();
+    return { item: newItem, memories: this.data.memories };
+  }
+
+  deleteMemory(id) {
+    const numId = parseInt(id, 10);
+    this.data.memories = this.data.memories.filter(m => m.id !== numId && m.id !== id);
+    this.save();
+    return this.data.memories;
+  }
+
+  // --- ANALYTICS ---
+  getAnalytics() {
+    const data = this.data.analytics || DEFAULT_SCHEMA.analytics;
+    const uptimeSeconds = Math.floor((Date.now() - (data.startTime || Date.now())) / 1000);
+    return { ...data, uptimeSeconds };
+  }
+
+  incrementMetric(metric) {
+    if (!this.data.analytics) this.data.analytics = { ...DEFAULT_SCHEMA.analytics };
+    if (this.data.analytics[metric] !== undefined) {
+      this.data.analytics[metric] += 1;
+    } else {
+      this.data.analytics[metric] = 1;
+    }
+    this.save();
+    return this.getAnalytics();
+  }
+
+  // --- RESERVATIONS ---
+  getReservations() {
+    return this.data.reservations || [];
+  }
+
+  saveReservation(reservation) {
+    if (!this.data.reservations) this.data.reservations = [];
+    this.data.reservations.unshift(reservation);
+    this.save();
+    return this.data.reservations;
+  }
+
+  deleteReservation(id) {
+    this.data.reservations = (this.data.reservations || []).filter(r => r.id !== id);
+    this.save();
+    return this.data.reservations;
+  }
+
+  // --- CHAT HISTORY ---
+  getChatHistory() {
+    return this.data.chat_history || [];
+  }
+
+  saveChatHistory(chats) {
+    this.data.chat_history = Array.isArray(chats) ? chats : [];
+    this.save();
+    return this.data.chat_history;
+  }
+
+  addChatEntry(query, response) {
+    if (!this.data.chat_history) this.data.chat_history = [];
+    const newEntry = {
+      id: Date.now(),
+      query,
+      response,
+      timestamp: new Date().toLocaleString()
+    };
+    this.data.chat_history.unshift(newEntry);
+    this.save();
+    return newEntry;
+  }
+
+  deleteChatEntry(id) {
+    const numId = parseInt(id, 10);
+    this.data.chat_history = (this.data.chat_history || []).filter(c => c.id !== numId && c.id !== id);
+    this.save();
+    return this.data.chat_history;
+  }
+
+  // --- REMINDERS ---
+  getReminders() {
+    return this.data.reminders || [];
+  }
+
+  saveReminders(reminders) {
+    this.data.reminders = Array.isArray(reminders) ? reminders : [];
+    this.save();
+    return this.data.reminders;
+  }
+
+  addReminder(reminder) {
+    if (!this.data.reminders) this.data.reminders = [];
+    const item = {
+      id: reminder.id || Date.now(),
+      title: reminder.title || 'Untitled Reminder',
+      time: reminder.time || '12:00 PM',
+      date: reminder.date || 'Today',
+      category: reminder.category || 'General',
+      completed: !!reminder.completed,
+      createdAt: new Date().toISOString()
+    };
+    this.data.reminders.unshift(item);
+    this.save();
+    return this.data.reminders;
+  }
+
+  deleteReminder(id) {
+    const numId = parseInt(id, 10);
+    this.data.reminders = (this.data.reminders || []).filter(r => r.id !== numId && r.id !== id);
+    this.save();
+    return this.data.reminders;
+  }
+
+  // --- AUTOMATIONS ---
+  getAutomations() {
+    return this.data.automations || [];
+  }
+
+  saveAutomations(automations) {
+    this.data.automations = Array.isArray(automations) ? automations : [];
+    this.save();
+    return this.data.automations;
+  }
+
+  // --- HEALTH VITALS ---
+  getHealthVitals() {
+    return this.data.health_vitals || [];
+  }
+
+  addHealthVital(vital) {
+    if (!this.data.health_vitals) this.data.health_vitals = [];
+    const entry = {
+      id: Date.now(),
+      bpm: vital.bpm || 74,
+      spO2: vital.spO2 || 98,
+      steps: vital.steps || 0,
+      calories: vital.calories || 0,
+      stress: vital.stress || 20,
+      hrv: vital.hrv || 65,
+      device: vital.device || 'Fitband',
+      status: vital.status || 'Normal',
+      timestamp: new Date().toLocaleTimeString()
+    };
+    this.data.health_vitals.unshift(entry);
+    // Keep max 100 historical readings
+    if (this.data.health_vitals.length > 100) {
+      this.data.health_vitals = this.data.health_vitals.slice(0, 100);
+    }
+    this.save();
+    return entry;
+  }
+
+  // --- SETTINGS ---
+  getSettings() {
+    return this.data.settings || {};
+  }
+
+  updateSettings(newSettings) {
+    this.data.settings = { ...this.data.settings, ...newSettings };
+    this.save();
+    return this.data.settings;
+  }
+
+  // --- IMPORT / EXPORT ---
+  exportBackup() {
+    return {
+      backupDate: new Date().toISOString(),
+      data: this.data
+    };
+  }
+
+  importBackup(backupObj) {
+    if (!backupObj || !backupObj.data) throw new Error('Invalid database backup file format');
+    this.data = backupObj.data;
+    this.save();
+    return this.data;
+  }
+}
+
+const dbManager = new DatabaseManager();
+module.exports = dbManager;

@@ -8,13 +8,16 @@ const fs = require('fs');
 const os = require('os');
 const tvController = require('./tvController');
 const phoneController = require('./phoneController');
+const dbManager = require('./database');
 
 // Helper to resolve PowerShell script paths correctly in production (from unpacked extraResources)
 function getScriptPath(scriptName) {
   if (process.env.JASPER_RESOURCES_PATH) {
-    return path.join(process.env.JASPER_RESOURCES_PATH, 'server', scriptName);
+    const resPath = path.normalize(path.join(process.env.JASPER_RESOURCES_PATH, 'server', scriptName));
+    if (fs.existsSync(resPath)) return resPath;
   }
-  return path.join(__dirname, scriptName);
+  const localPath = path.normalize(path.join(__dirname, scriptName));
+  return localPath;
 }
 
 const PORT = 3001;
@@ -1151,50 +1154,30 @@ app.post('/api/agent/research', async (req, res) => {
   }
 });
 
-// Persistent Memory Store Endpoint
-const MEMORY_FILE = path.join(__dirname, 'memory_store.json');
-function getMemories() {
-  if (!fs.existsSync(MEMORY_FILE)) {
-    const defaultData = {
-      memories: [
-        { id: 1, text: 'User prefers concise audio responses', category: 'preference', date: new Date().toISOString() },
-        { id: 2, text: 'Default smart home TV is Samsung Frame in Living Room', category: 'device', date: new Date().toISOString() }
-      ]
-    };
-    fs.writeFileSync(MEMORY_FILE, JSON.stringify(defaultData, null, 2));
-  }
-  try {
-    return JSON.parse(fs.readFileSync(MEMORY_FILE, 'utf8'));
-  } catch (e) {
-    return { memories: [] };
-  }
-}
+// -------------------------------------------------------------
+// UNIFIED DATABASE & PERSISTENCE ENDPOINTS
+// -------------------------------------------------------------
 
+// Dump entire database (for client hydration)
+app.get('/api/db/all', (req, res) => {
+  res.json({ success: true, db: dbManager.getAll() });
+});
+
+// Memory Store Endpoints
 app.get('/api/memory', (req, res) => {
-  res.json(getMemories());
+  res.json({ memories: dbManager.getMemories() });
 });
 
 app.post('/api/memory', (req, res) => {
   const { text, category } = req.body;
   if (!text) return res.status(400).json({ error: 'Text required' });
-  const data = getMemories();
-  const newItem = {
-    id: Date.now(),
-    text,
-    category: category || 'general',
-    date: new Date().toISOString()
-  };
-  data.memories.unshift(newItem);
-  fs.writeFileSync(MEMORY_FILE, JSON.stringify(data, null, 2));
-  res.json({ success: true, item: newItem, memories: data.memories });
+  const result = dbManager.addMemory(text, category);
+  res.json({ success: true, item: result.item, memories: result.memories });
 });
 
 app.delete('/api/memory/:id', (req, res) => {
-  const id = parseInt(req.params.id, 10);
-  const data = getMemories();
-  data.memories = data.memories.filter(m => m.id !== id);
-  fs.writeFileSync(MEMORY_FILE, JSON.stringify(data, null, 2));
-  res.json({ success: true, memories: data.memories });
+  const memories = dbManager.deleteMemory(req.params.id);
+  res.json({ success: true, memories });
 });
 
 // Analytics Store Endpoint
@@ -1406,8 +1389,7 @@ app.post('/api/agentic-actions/call-step', (req, res) => {
 
 // GET active reservations
 app.get('/api/agentic-actions/reservations', (req, res) => {
-  const reservations = getAgenticReservations();
-  res.json({ success: true, reservations });
+  res.json({ success: true, reservations: dbManager.getReservations() });
 });
 
 // POST save confirmed reservation
@@ -1428,37 +1410,111 @@ app.post('/api/agentic-actions/reservations', (req, res) => {
     status: 'Confirmed'
   };
 
-  const updated = saveAgenticReservation(reservation);
-  res.json({ success: true, reservation, allReservations: updated });
+  const allReservations = dbManager.saveReservation(reservation);
+  res.json({ success: true, reservation, allReservations });
 });
 
 // DELETE reservation
 app.delete('/api/agentic-actions/reservations/:id', (req, res) => {
-  const { id } = req.params;
-  let current = getAgenticReservations();
-  current = current.filter(r => r.id !== id);
-  try {
-    fs.writeFileSync(AGENTIC_ACTIONS_FILE, JSON.stringify(current, null, 2));
-  } catch (e) {
-    console.error('[Agentic Actions] Store write error:', e);
-  }
-  res.json({ success: true, reservations: current });
+  const reservations = dbManager.deleteReservation(req.params.id);
+  res.json({ success: true, reservations });
 });
 
+// Analytics Endpoints
 app.get('/api/analytics', (req, res) => {
-  const data = getAnalytics();
-  data.uptimeSeconds = Math.floor((Date.now() - data.startTime) / 1000);
-  res.json(data);
+  res.json(dbManager.getAnalytics());
 });
 
 app.post('/api/analytics/increment', (req, res) => {
   const { metric } = req.body;
-  const data = getAnalytics();
-  if (metric && data[metric] !== undefined) {
-    data[metric] += 1;
-    fs.writeFileSync(ANALYTICS_FILE, JSON.stringify(data, null, 2));
+  const analytics = dbManager.incrementMetric(metric);
+  res.json(analytics);
+});
+
+// Chat History Endpoints
+app.get('/api/db/chats', (req, res) => {
+  res.json({ success: true, chats: dbManager.getChatHistory() });
+});
+
+app.post('/api/db/chats', (req, res) => {
+  const chats = dbManager.saveChatHistory(req.body.chats);
+  res.json({ success: true, chats });
+});
+
+app.post('/api/db/chats/entry', (req, res) => {
+  const { query, response } = req.body;
+  if (!query) return res.status(400).json({ error: 'Query required' });
+  const entry = dbManager.addChatEntry(query, response);
+  res.json({ success: true, entry, chats: dbManager.getChatHistory() });
+});
+
+app.delete('/api/db/chats/:id', (req, res) => {
+  const chats = dbManager.deleteChatEntry(req.params.id);
+  res.json({ success: true, chats });
+});
+
+// Reminders Endpoints
+app.get('/api/db/reminders', (req, res) => {
+  res.json({ success: true, reminders: dbManager.getReminders() });
+});
+
+app.post('/api/db/reminders', (req, res) => {
+  let reminders;
+  if (Array.isArray(req.body.reminders)) {
+    reminders = dbManager.saveReminders(req.body.reminders);
+  } else {
+    reminders = dbManager.addReminder(req.body);
   }
-  res.json(data);
+  res.json({ success: true, reminders });
+});
+
+app.delete('/api/db/reminders/:id', (req, res) => {
+  const reminders = dbManager.deleteReminder(req.params.id);
+  res.json({ success: true, reminders });
+});
+
+// Automations Endpoints
+app.get('/api/db/automations', (req, res) => {
+  res.json({ success: true, automations: dbManager.getAutomations() });
+});
+
+app.post('/api/db/automations', (req, res) => {
+  const automations = dbManager.saveAutomations(req.body.automations || req.body);
+  res.json({ success: true, automations });
+});
+
+// Health Vitals Telemetry Endpoints
+app.get('/api/db/health', (req, res) => {
+  res.json({ success: true, vitals: dbManager.getHealthVitals() });
+});
+
+app.post('/api/db/health', (req, res) => {
+  const entry = dbManager.addHealthVital(req.body);
+  res.json({ success: true, entry, vitals: dbManager.getHealthVitals() });
+});
+
+// Settings & Preferences Endpoints
+app.get('/api/db/settings', (req, res) => {
+  res.json({ success: true, settings: dbManager.getSettings() });
+});
+
+app.post('/api/db/settings', (req, res) => {
+  const settings = dbManager.updateSettings(req.body);
+  res.json({ success: true, settings });
+});
+
+// Backup Export & Import Endpoints
+app.get('/api/db/export', (req, res) => {
+  res.json(dbManager.exportBackup());
+});
+
+app.post('/api/db/import', (req, res) => {
+  try {
+    const data = dbManager.importBackup(req.body);
+    res.json({ success: true, message: 'Database imported successfully', db: data });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 });
 
 // Wildcard fallback to serve index.html for SPA client routing
