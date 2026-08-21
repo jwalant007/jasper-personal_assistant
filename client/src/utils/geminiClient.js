@@ -782,12 +782,58 @@ class GeminiClient {
     return this.handleFallbackOfflineMode(userText, onLog);
   }
 
+  // Auto-fetch latest valid Gemini models directly from Google AI Studio API
+  async fetchLatestAvailableModels(onLog) {
+    if (!this.apiKey) return null;
+    
+    // Cache for 1 hour to prevent unnecessary API overhead
+    if (this.cachedModels && this.lastModelsFetch && (Date.now() - this.lastModelsFetch < 3600000)) {
+      return this.cachedModels;
+    }
+
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${this.apiKey}`;
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.models && Array.isArray(data.models)) {
+          // Extract model names that support generateContent and start with models/gemini
+          const validModels = data.models
+            .filter(m => m.name && m.name.includes('gemini') && (m.supportedGenerationMethods || []).includes('generateContent'))
+            .map(m => m.name.replace('models/', ''));
+          
+          if (validModels.length > 0) {
+            // Sort models by preference (2.0-flash, 1.5-flash, etc.)
+            const preferred = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash-8b'];
+            const sortedModels = [
+              ...preferred.filter(p => validModels.includes(p)),
+              ...validModels.filter(v => !preferred.includes(v))
+            ];
+            
+            this.cachedModels = sortedModels;
+            this.lastModelsFetch = Date.now();
+            onLog?.(`[JASPER CORE] Auto-updated Gemini models dynamically (${sortedModels.length} active models loaded).`, 'info');
+            return sortedModels;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[Gemini Auto-Update] Dynamic model fetch failed, using fallback list:', err);
+    }
+    return null;
+  }
+
   async runGeminiLoop(onLog, depth = 0) {
     if (depth > 10) {
       throw new Error("Maximum tool calling execution depth exceeded.");
     }
 
-    const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash-8b'];
+    // Try dynamic auto-updated model list first, or fallback to curated list
+    const dynamicModels = await this.fetchLatestAvailableModels(onLog);
+    const models = (dynamicModels && dynamicModels.length) 
+      ? dynamicModels 
+      : ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash-8b'];
+    
     let lastError = null;
     let response = null;
 
