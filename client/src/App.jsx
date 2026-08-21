@@ -95,6 +95,7 @@ export default function App() {
     ];
   });
   const [selectedChatId, setSelectedChatId] = useState(null);
+  const [manualInput, setManualInput] = useState('');
   const [apiKey, setApiKey] = useState(geminiClient.apiKey);
   const [aiProvider, setAiProvider] = useState(() => geminiClient.provider || 'ollama');
   const [ollamaModel, setOllamaModel] = useState(() => geminiClient.ollamaModel || 'llama3');
