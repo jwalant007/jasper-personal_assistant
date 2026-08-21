@@ -1131,7 +1131,7 @@ RULES FOR HUMAN CONVERSATION:
 }`;
 
     try {
-      const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+      const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash-8b'];
       const key = this.apiKey || localStorage.getItem('jasper_gemini_key') || localStorage.getItem('jasper_gemini_api_key');
 
       if (!key) {
