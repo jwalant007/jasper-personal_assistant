@@ -210,17 +210,18 @@ export function calculateMatchConfidence(vectorA, vectorB) {
 }
 
 /**
- * Storage helpers for Owner Face Profile
+ * Storage helpers for Owner Face Profile (Dual Persistence: LocalStorage + Server DB)
  */
 export function getOwnerProfile() {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
-    if (!data) return null;
-    return JSON.parse(data);
+    if (data) {
+      return JSON.parse(data);
+    }
   } catch (e) {
-    console.error('Failed to load face profile:', e);
-    return null;
+    console.error('Failed to load face profile from localStorage:', e);
   }
+  return null;
 }
 
 export function saveOwnerProfile(vector, meta = {}) {
@@ -230,7 +231,16 @@ export function saveOwnerProfile(vector, meta = {}) {
       enrolledAt: new Date().toISOString(),
       ...meta
     };
+    // 1. Save to browser localStorage
     localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+    
+    // 2. Persist permanently to server database jasper.db.json
+    fetch('/api/face-profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(profile)
+    }).catch(err => console.warn('[Face Sync] Server DB save warning:', err));
+
     return true;
   } catch (e) {
     console.error('Failed to save face profile:', e);
@@ -238,9 +248,31 @@ export function saveOwnerProfile(vector, meta = {}) {
   }
 }
 
+export async function syncOwnerProfileFromServer() {
+  try {
+    const res = await fetch('/api/face-profile');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && data.profile && Array.isArray(data.profile.vector)) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data.profile));
+        console.log('[Face Biometrics] Successfully restored face profile from server database!');
+        return data.profile;
+      }
+    }
+  } catch (e) {
+    console.warn('[Face Sync] Could not sync face profile from server DB:', e);
+  }
+  return getOwnerProfile();
+}
+
 export function clearOwnerProfile() {
   try {
     localStorage.removeItem(STORAGE_KEY);
+    fetch('/api/face-profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(null)
+    }).catch(() => {});
     return true;
   } catch (e) {
     return false;

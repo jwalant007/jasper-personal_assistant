@@ -370,6 +370,18 @@ class DatabaseManager {
     return this.data.settings;
   }
 
+  // --- FACE BIOMETRIC PROFILE ---
+  getFaceProfile() {
+    return this.data.settings?.ownerFaceProfile || null;
+  }
+
+  saveFaceProfile(profile) {
+    if (!this.data.settings) this.data.settings = {};
+    this.data.settings.ownerFaceProfile = profile;
+    this.save();
+    return this.data.settings.ownerFaceProfile;
+  }
+
   // --- IMPORT / EXPORT ---
   exportBackup() {
     return {

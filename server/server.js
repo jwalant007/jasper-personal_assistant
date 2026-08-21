@@ -1517,6 +1517,18 @@ app.post('/api/db/import', (req, res) => {
   }
 });
 
+// Face Biometric Profile Endpoints for permanent server database storage
+app.get('/api/face-profile', (req, res) => {
+  const profile = dbManager.getFaceProfile();
+  res.json({ success: true, profile });
+});
+
+app.post('/api/face-profile', (req, res) => {
+  const profile = dbManager.saveFaceProfile(req.body);
+  console.log('[Face Biometrics] Permanent owner face profile saved to server database.');
+  res.json({ success: true, profile });
+});
+
 // -------------------------------------------------------------
 // PROACTIVE MORNING BRIEFING & LOCAL OLLAMA AI FALLBACK
 // -------------------------------------------------------------

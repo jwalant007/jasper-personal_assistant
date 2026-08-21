@@ -35,7 +35,8 @@ import {
   saveOwnerProfile, 
   clearOwnerProfile, 
   hasOwnerProfile,
-  captureWebcamFrameAsBase64
+  captureWebcamFrameAsBase64,
+  syncOwnerProfileFromServer
 } from './utils/faceBiometrics.js';
 import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, BookOpen, Activity, Heart, Laptop } from 'lucide-react';
 
@@ -685,6 +686,11 @@ export default function App() {
       const newUrl = window.location.protocol + '//' + window.location.host + window.location.pathname;
       window.history.replaceState({ path: newUrl }, '', newUrl);
     }
+  }, []);
+
+  // Sync face biometric profile from server DB on mount
+  useEffect(() => {
+    syncOwnerProfileFromServer();
   }, []);
 
   // Process User Command (Voice or Text)
