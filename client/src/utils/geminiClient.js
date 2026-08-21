@@ -787,7 +787,7 @@ class GeminiClient {
       throw new Error("Maximum tool calling execution depth exceeded.");
     }
 
-    const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+    const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash-8b'];
     let lastError = null;
     let response = null;
 
