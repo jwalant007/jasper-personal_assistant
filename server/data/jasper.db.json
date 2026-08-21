@@ -1,0 +1,100 @@
+{
+  "version": 1,
+  "lastUpdated": "2026-08-21T06:44:20.955Z",
+  "memories": [
+    {
+      "id": 1,
+      "text": "User prefers concise audio responses",
+      "category": "preference",
+      "date": "2026-08-03T13:47:48.288Z"
+    },
+    {
+      "id": 2,
+      "text": "Default smart home TV is Samsung Frame in Living Room",
+      "category": "device",
+      "date": "2026-08-03T13:47:48.288Z"
+    }
+  ],
+  "analytics": {
+    "conversations": 42,
+    "voiceCommands": 128,
+    "imagesGenerated": 15,
+    "automationRuns": 24,
+    "connectedDevices": 3,
+    "startTime": 1785650061434
+  },
+  "reservations": [
+    {
+      "id": "RES-DEMO-01",
+      "venueName": "Trattoria Bella Vista",
+      "cuisine": "Italian Fine Dining",
+      "partySize": 4,
+      "date": "Tomorrow",
+      "time": "8:30 PM",
+      "confirmationCode": "JSP-8821",
+      "contactName": "Jwalant",
+      "phone": "+1 (555) 382-9901",
+      "address": "450 Grand Avenue, Suite 12",
+      "specialRequests": "Quiet garden booth",
+      "createdAt": "2026-08-21T06:44:20.683Z",
+      "status": "Confirmed"
+    }
+  ],
+  "chat_history": [
+    {
+      "id": 1,
+      "query": "who is narendra modi",
+      "response": "Narendra Damodardas Modi is an Indian politician who has served as the prime minister of India since 2014.",
+      "timestamp": "21/8/2026, 12:14:20 pm"
+    }
+  ],
+  "reminders": [
+    {
+      "id": 1,
+      "title": "Review System Diagnostics",
+      "time": "09:00 AM",
+      "date": "Today",
+      "category": "System",
+      "completed": false,
+      "createdAt": "2026-08-21T06:44:20.938Z"
+    }
+  ],
+  "automations": [
+    {
+      "id": "auto-1",
+      "name": "Morning Wakeup Routine",
+      "trigger": "Voice Command: \"Good Morning\"",
+      "action": "Set Volume 50%, Fetch Weather, Play Music",
+      "enabled": true,
+      "createdAt": "2026-08-21T06:44:20.938Z"
+    }
+  ],
+  "health_vitals": [
+    {
+      "id": 1787294660938,
+      "bpm": 74,
+      "spO2": 98,
+      "steps": 6480,
+      "calories": 320,
+      "stress": 22,
+      "hrv": 65,
+      "device": "Virtual Fitband Pro",
+      "status": "Normal",
+      "timestamp": "12:14:20 pm"
+    }
+  ],
+  "settings": {
+    "theme": "cyber-blue",
+    "serverIp": "localhost",
+    "fitbandMac": "F4:67:F4:16:7C:53",
+    "pcMac": "74:12:B3:ED:1C:BF",
+    "tvConfig": {
+      "ip": "192.168.29.229",
+      "port": 55000,
+      "mac": "14:49:e0:20:f0:81",
+      "token": "",
+      "name": "JASPER Assistant",
+      "protocol": "legacy-55000"
+    }
+  }
+}

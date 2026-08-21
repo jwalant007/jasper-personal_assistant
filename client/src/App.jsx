@@ -92,7 +92,7 @@ export default function App() {
       }
     ];
   });
-  const [selectedChatId, setSelectedChatId] = useState(1);
+  const [selectedChatId, setSelectedChatId] = useState(null);
   const [manualInput, setManualInput] = useState('');
   const [apiKey, setApiKey] = useState(geminiClient.apiKey);
   const [serverIp, setServerIpState] = useState(getServerIp);
@@ -1134,6 +1134,14 @@ export default function App() {
 
             {/* Actions list */}
             <div className={`flex items-center gap-1.5 ${isMobileLayout ? 'justify-end' : 'gap-2'}`}>
+              <button 
+                onClick={() => setSelectedChatId(null)}
+                className="btn-hdr-action text-[10px] py-1 px-2.5 font-mono font-extrabold text-cyan-300 border-cyan-400/60 bg-cyan-950/70 hover:bg-cyan-800/80 transition-all flex items-center gap-1 cursor-pointer shadow-[0_0_12px_rgba(0,240,255,0.3)]"
+                title="Return to Main J.A.R.V.I.S. Home HUD"
+              >
+                🏠 {isMobileLayout ? 'HOME' : 'HOME HUD'}
+              </button>
+
               <button 
                 onClick={() => setShowLaptopConnect(true)}
                 className="btn-hdr-action text-[10px] py-1 px-2 font-mono font-bold text-cyan-300 border-cyan-500/50 bg-cyan-950/60 hover:bg-cyan-900/80 transition-all flex items-center gap-1 cursor-pointer shadow-[0_0_10px_rgba(0,240,255,0.2)]"
