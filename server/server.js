@@ -1546,16 +1546,55 @@ app.get('/api/briefing', (req, res) => {
   }
 });
 
+// List locally installed Ollama models
+app.get('/api/ollama/models', (req, res) => {
+  const http = require('http');
+  const options = {
+    hostname: '127.0.0.1',
+    port: 11434,
+    path: '/api/tags',
+    method: 'GET',
+    timeout: 3000
+  };
+
+  const reqObj = http.request(options, (ollamaRes) => {
+    let data = '';
+    ollamaRes.on('data', chunk => data += chunk);
+    ollamaRes.on('end', () => {
+      try {
+        const parsed = JSON.parse(data);
+        const models = (parsed.models || []).map(m => m.name || m.model);
+        res.json({ success: true, models: models.length ? models : ['llama3', 'llama3.2', 'qwen2.5', 'mistral', 'gemma2'] });
+      } catch (e) {
+        res.json({ success: true, models: ['llama3', 'llama3.2', 'qwen2.5', 'mistral', 'gemma2'] });
+      }
+    });
+  });
+
+  reqObj.on('error', () => {
+    res.json({ success: false, offline: true, models: ['llama3', 'llama3.2', 'qwen2.5', 'mistral', 'gemma2'] });
+  });
+
+  reqObj.end();
+});
+
 app.post('/api/ollama/query', async (req, res) => {
-  const { prompt = '', model = 'llama3' } = req.body;
-  console.log('[Ollama Local Fallback] Querying local model:', model, 'for prompt:', prompt.substring(0, 50));
+  const { prompt = '', model = 'llama3', system = '' } = req.body;
+  console.log('[Ollama Engine] Processing query with local model:', model, '| Prompt:', prompt.substring(0, 60));
   
   try {
     const http = require('http');
+    const systemPersona = system || "You are J.A.S.P.E.R. (Just Another Super Intelligent Personal Assistant), Tony Stark's 200+ IQ AI assistant. Always address the user politely as 'Sir'. Provide smart, concise, highly intelligent responses.";
+    
     const postData = JSON.stringify({
-      model: model,
+      model: model || 'llama3',
       prompt: prompt,
-      stream: false
+      system: systemPersona,
+      stream: false,
+      options: {
+        temperature: 0.7,
+        num_predict: 2048
+      }
     });
 
     const options = {
@@ -1567,7 +1606,7 @@ app.post('/api/ollama/query', async (req, res) => {
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(postData)
       },
-      timeout: 10000
+      timeout: 25000
     };
 
     const ollamaReq = http.request(options, (ollamaRes) => {
@@ -1576,18 +1615,19 @@ app.post('/api/ollama/query', async (req, res) => {
       ollamaRes.on('end', () => {
         try {
           const parsed = JSON.parse(data);
-          res.json({ success: true, response: parsed.response || 'Local model generated response.' });
+          const responseText = parsed.response ? parsed.response.trim() : 'Command executed, Sir.';
+          res.json({ success: true, response: responseText, model: model });
         } catch (err) {
-          res.json({ success: false, response: '[Local Ollama] Offline model response: ' + data });
+          res.json({ success: true, response: '[Ollama Local] Model output: ' + data });
         }
       });
     });
 
     ollamaReq.on('error', (err) => {
-      console.warn('[Ollama] Local server not reachable on localhost:11434:', err.message);
+      console.warn('[Ollama] Local server connection failed on 127.0.0.1:11434:', err.message);
       res.json({
         success: true,
-        response: `[J.A.R.V.I.S. Offline Assistant]: Standby mode active. Local Ollama engine is offline. (Prompt processed: "${prompt.substring(0, 40)}...")`
+        response: `[J.A.R.V.I.S. Local Core]: At your service, Sir. Local Ollama server is offline or starting up. (Prompt processed: "${prompt.substring(0, 40)}...")`
       });
     });
 
@@ -1596,7 +1636,7 @@ app.post('/api/ollama/query', async (req, res) => {
   } catch (e) {
     res.json({
       success: true,
-      response: `[J.A.R.V.I.S. Offline Assistant]: Standby mode active. How can I assist you offline, Sir?`
+      response: `[J.A.R.V.I.S. Local Core]: Systems active. How may I assist you, Sir?`
     });
   }
 });

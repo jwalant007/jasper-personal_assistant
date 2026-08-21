@@ -95,11 +95,12 @@ export default function App() {
     ];
   });
   const [selectedChatId, setSelectedChatId] = useState(null);
-  const [manualInput, setManualInput] = useState('');
   const [apiKey, setApiKey] = useState(geminiClient.apiKey);
+  const [aiProvider, setAiProvider] = useState(() => geminiClient.provider || 'ollama');
+  const [ollamaModel, setOllamaModel] = useState(() => geminiClient.ollamaModel || 'llama3');
+  const [availableOllamaModels, setAvailableOllamaModels] = useState(['llama3', 'llama3.2', 'qwen2.5', 'mistral', 'gemma2']);
   const [serverIp, setServerIpState] = useState(getServerIp);
   const [showSettings, setShowSettings] = useState(false);
-
   const [showKey, setShowKey] = useState(false);
   // Robust Mobile Device & Small Screen Detector
   const checkIsMobileDevice = () => {
@@ -799,6 +800,8 @@ export default function App() {
   const handleSaveKey = (e) => {
     e.preventDefault();
     geminiClient.setApiKey(apiKey);
+    geminiClient.setProvider(aiProvider);
+    geminiClient.setOllamaModel(ollamaModel);
     setServerIp(serverIp);
     setShowSettings(false);
   };
@@ -1230,9 +1233,13 @@ export default function App() {
               </button>
               <button 
                 onClick={() => setShowSettings(true)}
-                className="btn-hdr-status glow-cyan cursor-pointer text-[10px] py-1 px-2"
+                className="btn-hdr-status glow-cyan cursor-pointer text-[10px] py-1 px-2 flex items-center gap-1 font-mono font-bold"
+                title="Configure AI Engine & Provider"
               >
-                {apiKey ? (isMobileLayout ? '● Online' : 'Core online') : (isMobileLayout ? '○ Offline' : 'Core offline')}
+                {aiProvider === 'ollama' 
+                  ? (isMobileLayout ? '🦙 Ollama' : `🦙 Ollama (${ollamaModel})`)
+                  : (apiKey ? (isMobileLayout ? '☁️ Gemini' : '☁️ Gemini Cloud') : (isMobileLayout ? '○ Offline' : 'Core Offline'))
+                }
               </button>
             </div>
           </header>
@@ -1710,14 +1717,67 @@ export default function App() {
             </div>
 
             <form onSubmit={handleSaveKey} className="flex flex-col gap-3">
+              {/* Primary AI Provider Selector */}
+              <div className="flex flex-col gap-1.5 bg-cyan-950/40 p-3 rounded border border-cyan-500/40">
+                <label className="text-[10px] text-cyan-300 uppercase font-extrabold flex items-center gap-1 font-orbitron">
+                  <Cpu size={14} className="text-cyan-400 animate-pulse" /> Primary AI Engine Provider
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setAiProvider('ollama')}
+                    className={`flex-1 py-2 px-3 rounded text-xs font-bold font-mono border flex items-center justify-center gap-1.5 transition-all ${
+                      aiProvider === 'ollama'
+                        ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200 shadow-[0_0_10px_rgba(0,240,255,0.2)]'
+                        : 'bg-black/40 border-cyan-500/20 text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    🦙 Ollama Local (100% Offline)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAiProvider('gemini')}
+                    className={`flex-1 py-2 px-3 rounded text-xs font-bold font-mono border flex items-center justify-center gap-1.5 transition-all ${
+                      aiProvider === 'gemini'
+                        ? 'bg-purple-500/20 border-purple-400 text-purple-200 shadow-[0_0_10px_rgba(168,85,247,0.2)]'
+                        : 'bg-black/40 border-cyan-500/20 text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    ☁️ Google Gemini Cloud
+                  </button>
+                </div>
+
+                {/* Ollama Model Selector */}
+                {aiProvider === 'ollama' && (
+                  <div className="flex flex-col gap-1 mt-2 pt-2 border-t border-cyan-500/20">
+                    <div className="flex justify-between items-center">
+                      <label className="text-[9px] text-cyan-400 font-mono uppercase font-bold">Active Ollama Model</label>
+                      <span className="text-[8px] text-green-400 font-mono">● Server: http://127.0.0.1:11434</span>
+                    </div>
+                    <select
+                      value={ollamaModel}
+                      onChange={(e) => setOllamaModel(e.target.value)}
+                      className="w-full bg-slate-900 border border-cyan-500/40 rounded px-3 py-1.5 text-xs text-cyan-100 outline-none focus:border-cyan-300 font-mono cursor-pointer"
+                    >
+                      {availableOllamaModels.map(m => (
+                        <option key={m} value={m}>{m} (Local Ollama Model)</option>
+                      ))}
+                    </select>
+                    <span className="text-[8px] text-sky-500 font-mono mt-0.5">
+                      Runs 100% locally on your machine via Ollama. Default model: llama3.
+                    </span>
+                  </div>
+                )}
+              </div>
+
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] text-sky-400 uppercase font-semibold">Gemini API Studio Access Key</label>
+                <label className="text-[10px] text-sky-400 uppercase font-semibold">Gemini API Studio Access Key (Optional for Cloud Mode)</label>
                 <div className="relative flex items-center">
                   <input
                     type={showKey ? 'text' : 'password'}
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
-                    placeholder="Paste Gemini API Key (AI Studio)"
+                    placeholder="Paste Gemini API Key (Optional when using Ollama)"
                     className="w-full bg-black/60 border border-cyan-500/30 rounded px-3 py-2 text-xs text-cyan-100 outline-none focus:border-cyan-400 pr-9 font-mono"
                   />
                   <button 
@@ -1729,7 +1789,7 @@ export default function App() {
                   </button>
                 </div>
                 <span className="text-[9px] text-sky-600 leading-normal font-sans">
-                  Required to search the internet and enable smart reasoning. Get a free API Key from the Google AI Studio console. If left blank, JASPER runs in offline fallback mode for local controls.
+                  Required only if using Gemini Cloud mode or Vision analysis. Get a free key at Google AI Studio.
                 </span>
               </div>
 
