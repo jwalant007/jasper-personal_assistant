@@ -1,18 +1,17 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, Tray, Menu, globalShortcut, nativeImage } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 
-let mainWindow;
-let serverProcess;
+let mainWindow = null;
+let tray = null;
+let serverProcess = null;
+let isQuitting = false;
 
 function startBackendServer() {
-  // Determine path to server.js
   let serverPath;
   if (app.isPackaged) {
-    // In production, server is inside the app.asar
     serverPath = path.join(process.resourcesPath, 'app.asar', 'server', 'server.js');
   } else {
-    // In dev
     serverPath = path.join(__dirname, '..', 'server', 'server.js');
   }
 
@@ -30,8 +29,6 @@ function startBackendServer() {
   };
 
   if (app.isPackaged) {
-    // In production, cwd must be a physical directory (like process.resourcesPath)
-    // because Windows CreateProcess fails if cwd is set to a virtual app.asar path.
     spawnOptions.cwd = process.resourcesPath;
   } else {
     spawnOptions.cwd = path.dirname(serverPath);
@@ -56,6 +53,64 @@ function startBackendServer() {
   });
 }
 
+function createTray() {
+  const iconPath = process.platform === 'win32'
+    ? path.join(__dirname, 'assets', 'icon.ico')
+    : path.join(__dirname, 'assets', 'icon.png');
+
+  let trayIcon;
+  try {
+    trayIcon = nativeImage.createFromPath(iconPath);
+  } catch (e) {
+    trayIcon = nativeImage.createEmpty();
+  }
+
+  tray = new Tray(trayIcon);
+  tray.setToolTip('J.A.S.P.E.R. AI Assistant (Running in Background)');
+
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: 'Open J.A.R.V.I.S. HUD (Ctrl+Alt+J)',
+      click: () => {
+        if (mainWindow) {
+          mainWindow.show();
+          mainWindow.focus();
+        }
+      }
+    },
+    {
+      label: 'Wake Voice Listener',
+      click: () => {
+        try {
+          const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+          fetch('http://localhost:3001/api/system/wake', { method: 'POST' }).catch(() => {});
+        } catch (e) {}
+      }
+    },
+    { type: 'separator' },
+    {
+      label: 'Quit J.A.R.V.I.S.',
+      click: () => {
+        isQuitting = true;
+        app.quit();
+      }
+    }
+  ]);
+
+  tray.setContextMenu(contextMenu);
+
+  tray.on('double-click', () => {
+    if (mainWindow) {
+      if (mainWindow.isVisible()) {
+        mainWindow.hide();
+      } else {
+        mainWindow.show();
+        mainWindow.focus();
+      }
+    }
+  });
+}
+
 function createWindow() {
   const iconPath = process.platform === 'win32'
     ? path.join(__dirname, 'assets', 'icon.ico')
@@ -67,32 +122,62 @@ function createWindow() {
     minWidth: 1024,
     minHeight: 768,
     icon: iconPath,
-    // frame: false, // Optional: for custom title bar
+    show: true,
     webPreferences: {
       nodeIntegration: true,
-      contextIsolation: false // Note: For a real production app, use preload script + contextIsolation: true
+      contextIsolation: false
     }
   });
 
-  // Load UI
   if (app.isPackaged) {
-    // Production
     mainWindow.loadFile(path.join(__dirname, '..', 'client', 'dist', 'index.html'));
   } else {
-    // Development
     mainWindow.loadURL('http://localhost:5173');
   }
+
+  // Close to tray behavior (Spotify-style)
+  mainWindow.on('close', (event) => {
+    if (!isQuitting) {
+      event.preventDefault();
+      mainWindow.hide();
+      console.log('[Electron] Minimized to System Tray (running in background).');
+      return false;
+    }
+  });
 
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
 }
 
-app.whenReady().then(() => {
-  // Start the Express backend
-  startBackendServer();
+function registerGlobalHotkeys() {
+  try {
+    const ret = globalShortcut.register('CommandOrControl+Alt+J', () => {
+      console.log('[Electron] Global shortcut Ctrl+Alt+J triggered!');
+      if (mainWindow) {
+        if (mainWindow.isVisible() && mainWindow.isFocused()) {
+          mainWindow.hide();
+        } else {
+          mainWindow.show();
+          mainWindow.focus();
+        }
+      }
+    });
 
-  // Wait a moment for server to spin up, then create window
+    if (!ret) {
+      console.warn('[Electron] Global shortcut registration failed.');
+    } else {
+      console.log('[Electron] Global shortcut Ctrl+Alt+J registered successfully!');
+    }
+  } catch (e) {
+    console.error('[Electron] Hotkey registration error:', e);
+  }
+}
+
+app.whenReady().then(() => {
+  startBackendServer();
+  createTray();
+  registerGlobalHotkeys();
   setTimeout(createWindow, 1000);
 
   app.on('activate', () => {
@@ -101,21 +186,23 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
+  if (process.platform !== 'darwin' && isQuitting) {
     app.quit();
   }
 });
 
-// Cleanup processes on quit
+app.on('will-quit', () => {
+  globalShortcut.unregisterAll();
+});
+
 app.on('before-quit', () => {
+  isQuitting = true;
   if (serverProcess && serverProcess.pid) {
     console.log('[Electron] Killing backend server process...');
     if (process.platform === 'win32') {
       try {
         require('child_process').execSync(`taskkill /F /T /PID ${serverProcess.pid}`);
-      } catch (e) {
-        // Ignore errors if process already exited
-      }
+      } catch (e) {}
     } else {
       serverProcess.kill();
     }

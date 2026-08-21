@@ -251,3 +251,22 @@ export function hasOwnerProfile() {
   const p = getOwnerProfile();
   return Boolean(p && Array.isArray(p.vector) && p.vector.length === VECTOR_SIZE);
 }
+
+/**
+ * Captures a clean JPEG image snapshot as a base64 string for Gemini Vision AI analysis
+ * @param {HTMLVideoElement} videoElement
+ * @returns {string | null} base64 encoded image string (without data URL prefix)
+ */
+export function captureWebcamFrameAsBase64(videoElement) {
+  if (!videoElement || videoElement.readyState < 2) return null;
+  const width = videoElement.videoWidth || 640;
+  const height = videoElement.videoHeight || 480;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+  ctx.drawImage(videoElement, 0, 0, width, height);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+  return dataUrl.split(',')[1] || null;
+}

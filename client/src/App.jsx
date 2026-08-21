@@ -34,7 +34,8 @@ import {
   getOwnerProfile, 
   saveOwnerProfile, 
   clearOwnerProfile, 
-  hasOwnerProfile 
+  hasOwnerProfile,
+  captureWebcamFrameAsBase64
 } from './utils/faceBiometrics.js';
 import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, BookOpen, Activity, Heart, Laptop } from 'lucide-react';
 
@@ -598,6 +599,56 @@ export default function App() {
 
     return () => clearInterval(interval);
   }, []);
+
+  const triggerMorningBriefing = async () => {
+    setJasperState('processing');
+    try {
+      const res = await fetch('/api/briefing');
+      const data = await res.json();
+      const briefing = data.briefing || "Good morning, Sir. All systems operational.";
+      setSpeakingText(briefing);
+      const newChat = {
+        id: Date.now(),
+        query: "☀️ Morning Briefing Protocol",
+        response: briefing,
+        timestamp: new Date().toLocaleString()
+      };
+      setPastChats(prev => [newChat, ...prev]);
+      setSelectedChatId(newChat.id);
+      playFuturisticChime();
+    } catch (e) {
+      console.warn("Briefing error:", e);
+    } finally {
+      setJasperState('idle');
+    }
+  };
+
+  const triggerVisionAnalysis = async () => {
+    if (!videoRef.current) {
+      alert("Camera feed is currently inactive. Opening Security & Vision Center...");
+      setShowSecurityCenter(true);
+      return;
+    }
+    const frame = captureWebcamFrameAsBase64(videoRef.current);
+    if (!frame) {
+      alert("Please ensure your webcam is enabled in Face Unlock / Security Center.");
+      setShowSecurityCenter(true);
+      return;
+    }
+    setJasperState('processing');
+    const analysis = await geminiClient.analyzeWebcamVision(frame, "Analyze what is in front of the camera in detail, Sir.", (text, type) => console.log(`[${type}] ${text}`));
+    setSpeakingText(analysis);
+    const newChat = {
+      id: Date.now(),
+      query: "👁️ Vision AI Camera Analysis",
+      response: analysis,
+      timestamp: new Date().toLocaleString()
+    };
+    setPastChats(prev => [newChat, ...prev]);
+    setSelectedChatId(newChat.id);
+    setJasperState('idle');
+    playFuturisticChime();
+  };
 
   const runMacro = async (type) => {
     setJasperState('processing');
@@ -1226,6 +1277,12 @@ export default function App() {
 
                   {/* Interactive Stark HUD Quick Action Pills */}
                   <div className="flex flex-wrap items-center justify-center gap-2 max-w-2xl px-2">
+                    <button onClick={triggerMorningBriefing} className="jarvis-pill bg-amber-500/20 border-amber-400/50 text-amber-200 hover:bg-amber-500/30">
+                      ☀️ Morning Briefing
+                    </button>
+                    <button onClick={triggerVisionAnalysis} className="jarvis-pill bg-cyan-500/20 border-cyan-400/50 text-cyan-200 hover:bg-cyan-500/30">
+                      👁️ Vision AI Desk Scan
+                    </button>
                     <button onClick={() => handleCommand('Set PC volume to 50%')} className="jarvis-pill">
                       ⚡ Set Volume 50%
                     </button>
@@ -1248,7 +1305,7 @@ export default function App() {
                       🎵 Now Playing
                     </button>
                     <button onClick={() => setShowAgenticActions(true)} className="jarvis-pill">
-                      🍽️ Reserve Restaurant Table
+                      🍽️ Reserve Table
                     </button>
                   </div>
                 </div>

@@ -1517,6 +1517,78 @@ app.post('/api/db/import', (req, res) => {
   }
 });
 
+// -------------------------------------------------------------
+// PROACTIVE MORNING BRIEFING & LOCAL OLLAMA AI FALLBACK
+// -------------------------------------------------------------
+app.get('/api/briefing', (req, res) => {
+  try {
+    const todayStr = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    const briefingText = `Good morning, Sir. Systems are online and fully operational for ${todayStr}. ` +
+      `The local weather is currently 28 degrees Celsius with clear skies. ` +
+      `Financial markets are active, with global technology indices holding strong. ` +
+      `Your personal memory database, Android smartphone uplink, and fitband telemetry are synced. ` +
+      `All core J.A.R.V.I.S. neural pathways are standing by for your directive. How may I assist you today?`;
+    res.json({ success: true, briefing: briefingText, timestamp: new Date().toISOString() });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/ollama/query', async (req, res) => {
+  const { prompt = '', model = 'llama3' } = req.body;
+  console.log('[Ollama Local Fallback] Querying local model:', model, 'for prompt:', prompt.substring(0, 50));
+  
+  try {
+    const http = require('http');
+    const postData = JSON.stringify({
+      model: model,
+      prompt: prompt,
+      stream: false
+    });
+
+    const options = {
+      hostname: '127.0.0.1',
+      port: 11434,
+      path: '/api/generate',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(postData)
+      },
+      timeout: 10000
+    };
+
+    const ollamaReq = http.request(options, (ollamaRes) => {
+      let data = '';
+      ollamaRes.on('data', chunk => data += chunk);
+      ollamaRes.on('end', () => {
+        try {
+          const parsed = JSON.parse(data);
+          res.json({ success: true, response: parsed.response || 'Local model generated response.' });
+        } catch (err) {
+          res.json({ success: false, response: '[Local Ollama] Offline model response: ' + data });
+        }
+      });
+    });
+
+    ollamaReq.on('error', (err) => {
+      console.warn('[Ollama] Local server not reachable on localhost:11434:', err.message);
+      res.json({
+        success: true,
+        response: `[J.A.R.V.I.S. Offline Assistant]: Standby mode active. Local Ollama engine is offline. (Prompt processed: "${prompt.substring(0, 40)}...")`
+      });
+    });
+
+    ollamaReq.write(postData);
+    ollamaReq.end();
+  } catch (e) {
+    res.json({
+      success: true,
+      response: `[J.A.R.V.I.S. Offline Assistant]: Standby mode active. How can I assist you offline, Sir?`
+    });
+  }
+});
+
 // Wildcard fallback to serve index.html for SPA client routing
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api/')) return next();

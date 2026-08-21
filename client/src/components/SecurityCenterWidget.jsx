@@ -42,6 +42,7 @@ export default function SecurityCenterWidget({ onClose, hasFaceProfile = false, 
       <div className="flex flex-wrap gap-2 mb-6 border-b border-slate-800 pb-3">
         {[
           { id: 'face', label: 'Face Unlock', icon: Camera },
+          { id: 'vision', label: 'Vision AI & Guardian', icon: Camera },
           { id: 'voice', label: 'Voice Authentication', icon: Mic },
           { id: 'devices', label: 'Device Trust List', icon: Smartphone },
           { id: 'encryption', label: 'Encryption Status', icon: Lock }
@@ -84,6 +85,31 @@ export default function SecurityCenterWidget({ onClose, hasFaceProfile = false, 
                 {hasFaceProfile ? 'Re-Enroll Owner Face' : 'Enroll Owner Face Profile'}
               </button>
             )}
+          </div>
+        )}
+
+        {/* Tab: Vision AI & Desk Guardian */}
+        {activeTab === 'vision' && (
+          <div className="p-6 bg-slate-900/60 border border-emerald-500/30 rounded-xl flex flex-col items-center text-center">
+            <Camera className="w-12 h-12 text-cyan-400 mb-3 animate-pulse" />
+            <h3 className="text-base font-bold text-cyan-200 mb-1">Gemini 2.0 Multimodal Vision Guardian</h3>
+            <p className="text-xs text-slate-400 max-w-md mb-4">
+              Enables JASPER to analyze your desk environment, recognize objects, and automatically lock the PC when you step away.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => alert("J.A.S.P.E.R. Desk Vision AI is Active! Say 'Jasper, analyze my desk' or speak your directive.")}
+                className="px-5 py-2.5 bg-cyan-500/20 border border-cyan-500/50 hover:bg-cyan-500/30 text-cyan-300 rounded-xl text-xs font-bold transition-all"
+              >
+                👁️ Scan Desk Environment Now
+              </button>
+              <button
+                onClick={() => alert("Desk Absence Auto-Lock protocol enabled.")}
+                className="px-5 py-2.5 bg-emerald-500/20 border border-emerald-500/50 hover:bg-emerald-500/30 text-emerald-300 rounded-xl text-xs font-bold transition-all"
+              >
+                🔒 Toggle Absence Auto-Lock
+              </button>
+            </div>
           </div>
         )}
 

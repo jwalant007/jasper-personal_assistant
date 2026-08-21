@@ -802,10 +802,79 @@ class GeminiClient {
     return textPart ? textPart.text : "Command executed, Sir.";
   }
 
-  // Zero-Key local fallback parses basic requests offline
+  /**
+   * Gemini 2.0 Multimodal Vision AI snapshot analyzer
+   */
+  async analyzeWebcamVision(base64Frame, prompt = "Analyze what is in front of the camera in detail, Sir.", onLog = () => {}) {
+    onLog(`[VISION AI] Analyzing camera frame with Gemini 2.0 Vision...`, 'info');
+    if (!this.apiKey) {
+      return "I require a Gemini API key registered in Settings to perform neural vision analysis, Sir.";
+    }
+
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${this.apiKey}`;
+      const requestBody = {
+        contents: [
+          {
+            parts: [
+              { text: prompt },
+              {
+                inlineData: {
+                  mimeType: "image/jpeg",
+                  data: base64Frame
+                }
+              }
+            ]
+          }
+        ],
+        systemInstruction: {
+          parts: [{ text: "You are J.A.S.P.E.R., Tony Stark's futuristic AI vision neural core. Provide crisp, professional, high-detail visual analysis of the camera image." }]
+        }
+      };
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody)
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        onLog(`[VISION AI] Visual analysis completed successfully.`, 'success');
+        return text || "Visual frame analyzed, Sir. No anomalies detected.";
+      } else {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error?.message || `HTTP ${res.status}`);
+      }
+    } catch (e) {
+      onLog(`[VISION AI ERROR] Analysis failed: ${e.message}`, 'error');
+      return `Vision analysis error: ${e.message}`;
+    }
+  }
+
+  // Zero-Key local fallback parses basic requests offline & queries Local Ollama AI
   async handleFallbackOfflineMode(text, onLog) {
     const raw = text.toLowerCase().trim();
-    onLog(`[JASPER CORE] Running in offline fallback mode (No Gemini API Key set).`, 'info');
+    onLog(`[JASPER CORE] Running in offline mode. Querying local Ollama AI endpoint...`, 'info');
+
+    // Attempt local Ollama endpoint query first
+    try {
+      const res = await fetch(`${getApiBase()}/api/ollama/query`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: text, model: 'llama3' })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.response) {
+          onLog(`[LOCAL AI] Response received from Ollama model.`, 'success');
+          return data.response;
+        }
+      }
+    } catch (e) {
+      console.warn('[Ollama API Error]:', e);
+    }
 
     // Date & Time query
     if (raw.includes('date') || raw.includes('time') || raw.includes('today')) {
