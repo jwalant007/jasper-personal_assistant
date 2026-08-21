@@ -103,6 +103,8 @@ export default function App() {
   const [serverIp, setServerIpState] = useState(getServerIp);
   const [showSettings, setShowSettings] = useState(false);
   const [showKey, setShowKey] = useState(false);
+  const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [apkDownloadUrl, setApkDownloadUrl] = useState('');
   const hudPanelRef = useRef(null);
   const [showScrollTopButton, setShowScrollTopButton] = useState(false);
 
@@ -711,6 +713,28 @@ export default function App() {
     syncOwnerProfileFromServer();
   }, []);
 
+  // Auto-check version and server APK updates on mount and every 60s
+  useEffect(() => {
+    const checkVersion = async () => {
+      try {
+        const res = await fetch('/api/version');
+        if (res.ok) {
+          const data = await res.json();
+          const savedTs = localStorage.getItem('jasper_app_build_ts');
+          if (savedTs && parseInt(savedTs, 10) < data.timestamp) {
+            setUpdateAvailable(true);
+            setApkDownloadUrl(data.apkUrl);
+          }
+          localStorage.setItem('jasper_app_build_ts', data.timestamp.toString());
+        }
+      } catch (e) {}
+    };
+
+    checkVersion();
+    const interval = setInterval(checkVersion, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Process User Command (Voice or Text)
   const handleCommand = async (commandText) => {
     if (!commandText.trim()) return;
@@ -1211,6 +1235,16 @@ export default function App() {
 
             {/* Actions list */}
             <div className={`flex items-center gap-1.5 ${isMobileLayout ? 'justify-end' : 'gap-2'}`}>
+              {updateAvailable && (
+                <a
+                  href={apkDownloadUrl || '/api/apk/download'}
+                  download="JASPER_Assistant.apk"
+                  className="bg-green-950/90 text-green-300 border border-green-400/80 px-2 py-1 rounded text-[10px] font-mono font-extrabold flex items-center gap-1 hover:bg-green-900 transition-all animate-pulse shadow-[0_0_12px_rgba(34,197,94,0.4)]"
+                  title="New APK build compiled! Tap to download & update your phone."
+                >
+                  🚀 {isMobileLayout ? 'APK UPDATE' : 'APK UPDATE READY'}
+                </a>
+              )}
               <button 
                 onClick={() => {
                   setSelectedChatId(null);

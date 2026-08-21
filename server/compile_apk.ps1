@@ -21,6 +21,18 @@ if ($apkFile) {
     Write-Host "[APK Builder] SUCCESS! Generated APK at: $($apkFile.FullName)"
     Copy-Item -Path $apkFile.FullName -Destination "c:\Users\Jwalant\.gemini\antigravity\scratch\jasper-assistant\JASPER_Assistant.apk" -Force
     Write-Host "[APK Builder] Copied updated APK to project root: JASPER_Assistant.apk"
+    
+    $adbPath = "C:\Users\Jwalant\AppData\Local\Android\platform-tools\adb.exe"
+    if (Test-Path $adbPath) {
+        Write-Host "[APK Builder] Attempting automatic wireless ADB push to connected Android device..."
+        try {
+            & $adbPath connect 192.168.29.159:42931
+            & $adbPath install -r "c:\Users\Jwalant\.gemini\antigravity\scratch\jasper-assistant\JASPER_Assistant.apk"
+            Write-Host "[APK Builder] SUCCESS! Updated APK automatically installed on your phone over wireless ADB!"
+        } catch {
+            Write-Host "[APK Builder] Phone wireless ADB install skipped: $($_.Exception.Message)"
+        }
+    }
 } else {
     Write-Host "[APK Builder] Finished build task."
 }

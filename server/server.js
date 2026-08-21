@@ -1529,6 +1529,29 @@ app.post('/api/face-profile', (req, res) => {
   res.json({ success: true, profile });
 });
 
+// Version & OTA Auto-Updater Endpoints
+const BUILD_VERSION = '1.0.2';
+const BUILD_TIMESTAMP = Date.now();
+
+app.get('/api/version', (req, res) => {
+  res.json({
+    success: true,
+    version: BUILD_VERSION,
+    timestamp: BUILD_TIMESTAMP,
+    apkUrl: `${req.protocol}://${req.get('host')}/api/apk/download`
+  });
+});
+
+app.get('/api/apk/download', (req, res) => {
+  const apkPath = path.join(__dirname, '../JASPER_Assistant.apk');
+  if (fs.existsSync(apkPath)) {
+    res.setHeader('Content-Type', 'application/vnd.android.package-archive');
+    res.setHeader('Content-Disposition', 'attachment; filename=JASPER_Assistant.apk');
+    return res.sendFile(apkPath);
+  }
+  res.status(404).json({ error: 'APK file not found on server.' });
+});
+
 // -------------------------------------------------------------
 // PROACTIVE MORNING BRIEFING & LOCAL OLLAMA AI FALLBACK
 // -------------------------------------------------------------
