@@ -1202,6 +1202,13 @@ export default function App() {
               >
                 🏠 {isMobileLayout ? 'HOME' : 'HOME HUD'}
               </button>
+              <button 
+                onClick={() => setViewMode(prev => prev === 'mobile' ? 'pc' : 'mobile')}
+                className="btn-hdr-action text-[10px] py-1 px-2 font-mono font-bold text-amber-300 border-amber-500/50 bg-amber-950/40 hover:bg-amber-900/60 transition-all flex items-center gap-1 cursor-pointer"
+                title="Switch UI Layout between Mobile Touch & Full PC HUD"
+              >
+                {viewMode === 'mobile' ? '🖥️ PC Layout' : '📱 Mobile Layout'}
+              </button>
 
               <button 
                 onClick={() => setShowLaptopConnect(true)}
