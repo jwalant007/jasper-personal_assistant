@@ -103,6 +103,22 @@ export default function App() {
   const [serverIp, setServerIpState] = useState(getServerIp);
   const [showSettings, setShowSettings] = useState(false);
   const [showKey, setShowKey] = useState(false);
+  const hudPanelRef = useRef(null);
+  const [showScrollTopButton, setShowScrollTopButton] = useState(false);
+
+  const handleHudScroll = (e) => {
+    if (e.target.scrollTop > 60) {
+      setShowScrollTopButton(true);
+    } else {
+      setShowScrollTopButton(false);
+    }
+  };
+
+  const scrollToTop = () => {
+    if (hudPanelRef.current) {
+      hudPanelRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
   // Robust Mobile Device & Small Screen Detector
   const checkIsMobileDevice = () => {
     if (typeof window === 'undefined') return false;
@@ -1196,7 +1212,10 @@ export default function App() {
             {/* Actions list */}
             <div className={`flex items-center gap-1.5 ${isMobileLayout ? 'justify-end' : 'gap-2'}`}>
               <button 
-                onClick={() => setSelectedChatId(null)}
+                onClick={() => {
+                  setSelectedChatId(null);
+                  scrollToTop();
+                }}
                 className="btn-hdr-action text-[10px] py-1 px-2.5 font-mono font-extrabold text-cyan-300 border-cyan-400/60 bg-cyan-950/70 hover:bg-cyan-800/80 transition-all flex items-center gap-1 cursor-pointer shadow-[0_0_12px_rgba(0,240,255,0.3)]"
                 title="Return to Main J.A.R.V.I.S. Home HUD"
               >
@@ -1254,7 +1273,11 @@ export default function App() {
 
           {/* Main Response Area */}
           <main className={`flex-1 overflow-hidden flex flex-col relative ${isMobileLayout ? 'p-2 sm:p-4' : 'p-6'}`}>
-            <div className={`hud-panel flex-1 overflow-y-auto relative bg-gradient-to-b from-cyan-950/5 to-black/30 border border-cyan-500/10 ${isMobileLayout ? 'p-3 sm:p-5' : 'p-6'}`}>
+            <div 
+              ref={hudPanelRef}
+              onScroll={handleHudScroll}
+              className={`hud-panel flex-1 overflow-y-auto relative bg-gradient-to-b from-cyan-950/5 to-black/30 border border-cyan-500/10 ${isMobileLayout ? 'p-3 sm:p-5' : 'p-6'}`}
+            >
               {/* Scanline laser */}
               <div className="absolute inset-x-0 top-0 h-0.5 bg-cyan-500/10 pointer-events-none animate-pulse" />
               
@@ -1371,6 +1394,18 @@ export default function App() {
                 </button>
               </div>
             </form>
+
+            {/* Scroll-To-Top Floating Button */}
+            {showScrollTopButton && (
+              <button
+                type="button"
+                onClick={scrollToTop}
+                className="absolute bottom-20 right-5 z-50 py-2 px-3.5 bg-cyan-950/95 border border-cyan-400 text-cyan-300 font-orbitron font-extrabold text-[10px] rounded-full shadow-[0_0_20px_rgba(0,240,255,0.5)] flex items-center gap-1.5 hover:bg-cyan-900 transition-all cursor-pointer"
+                title="Scroll to Top"
+              >
+                ⬆️ TOP
+              </button>
+            )}
           </main>
         </div>
       </div>

@@ -2488,5 +2488,13 @@ input, textarea, select {
   animation: hero-pulse 4s ease-in-out infinite;
 }
 
+/* Smooth Touch Scroll for Mobile & Desktop HUD Panels */
+.hud-panel {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+}
+
 
 
