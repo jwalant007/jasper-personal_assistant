@@ -96,27 +96,33 @@ export default function MissionControlWidget({ onClose, onNavigate }) {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button 
             onClick={() => onNavigate && onNavigate('hologram3d')}
-            className="px-3.5 py-2 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400 rounded-xl text-xs font-semibold text-purple-200 flex items-center gap-2 transition-all shadow-lg shadow-purple-500/10"
+            className="px-3.5 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400 rounded-xl text-xs font-semibold text-purple-200 flex items-center gap-1.5 transition-all shadow-md shadow-purple-500/10"
           >
             <Box className="w-4 h-4 text-purple-400 animate-pulse" /> 3D Hologram
           </button>
           <button 
             onClick={() => onNavigate && onNavigate('swarm')}
-            className="px-3.5 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 rounded-xl text-xs font-semibold text-cyan-200 flex items-center gap-2 transition-all shadow-lg shadow-cyan-500/10"
+            className="px-3.5 py-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 rounded-xl text-xs font-semibold text-cyan-200 flex items-center gap-1.5 transition-all shadow-md shadow-cyan-500/10"
           >
             <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse" /> Swarm Coordinator
           </button>
           <button 
-            onClick={() => onNavigate && onNavigate('automation')}
-            className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-xl text-xs font-semibold text-slate-300 flex items-center gap-2 transition-all"
+            onClick={() => onNavigate && onNavigate('sports')}
+            className="px-3.5 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400 rounded-xl text-xs font-semibold text-emerald-200 flex items-center gap-1.5 transition-all shadow-md shadow-emerald-500/10"
           >
-            <Zap className="w-4 h-4 text-cyan-400" /> Automation Engine
+            <Trophy className="w-4 h-4 text-emerald-400" /> Sports Hub
+          </button>
+          <button 
+            onClick={() => onNavigate && onNavigate('automation')}
+            className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-xl text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition-all"
+          >
+            <Zap className="w-4 h-4 text-cyan-400" /> Automations
           </button>
           {onClose && (
-            <button onClick={onClose} className="p-2 rounded-xl bg-slate-800/60 hover:bg-rose-500/20 hover:text-rose-400 text-slate-400 transition-all">
+            <button onClick={onClose} className="p-1.5 rounded-xl bg-slate-800/60 hover:bg-rose-500/20 hover:text-rose-400 text-slate-400 transition-all">
               <XCircle className="w-5 h-5" />
             </button>
           )}
