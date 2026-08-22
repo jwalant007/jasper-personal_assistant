@@ -1875,6 +1875,76 @@ app.post('/api/pc/remote/key', async (req, res) => {
   }
 });
 
+// -------------------------------------------------------------
+// OLLAMA LOCAL SERVER HEALTH & PROXY ROUTE
+// -------------------------------------------------------------
+app.get('/api/ollama/status', async (req, res) => {
+  try {
+    const http = require('http');
+    const check = http.get('http://127.0.0.1:11434/api/tags', { timeout: 2000 }, (ollamaRes) => {
+      if (ollamaRes.statusCode === 200) {
+        res.json({ online: true });
+      } else {
+        res.json({ online: false });
+      }
+    });
+    check.on('error', () => res.json({ online: false }));
+    check.on('timeout', () => { check.destroy(); res.json({ online: false }); });
+  } catch (err) {
+    res.json({ online: false });
+  }
+});
+
+app.post('/api/ollama/query', async (req, res) => {
+  try {
+    const { prompt = '', model = 'llama3' } = req.body;
+    const http = require('http');
+
+    const postData = JSON.stringify({ model, prompt, stream: false });
+    const reqOpts = {
+      hostname: '127.0.0.1',
+      port: 11434,
+      path: '/api/generate',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(postData)
+      },
+      timeout: 8000
+    };
+
+    const ollamaReq = http.request(reqOpts, (ollamaRes) => {
+      let body = '';
+      ollamaRes.on('data', chunk => body += chunk);
+      ollamaRes.on('end', () => {
+        try {
+          const json = JSON.parse(body);
+          if (json.response) {
+            res.json({ success: true, response: json.response });
+          } else {
+            res.json({ success: false, error: 'Ollama offline or model not found' });
+          }
+        } catch (e) {
+          res.json({ success: false, error: 'Invalid response from Ollama' });
+        }
+      });
+    });
+
+    ollamaReq.on('error', () => {
+      res.json({ success: false, error: 'Local Ollama server connection refused' });
+    });
+    ollamaReq.on('timeout', () => {
+      ollamaReq.destroy();
+      res.json({ success: false, error: 'Ollama timeout' });
+    });
+
+    ollamaReq.write(postData);
+    ollamaReq.end();
+  } catch (err) {
+    res.json({ success: false, error: err.message });
+  }
+});
+
 // Wildcard fallback to serve index.html for SPA client routing
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api/')) return next();

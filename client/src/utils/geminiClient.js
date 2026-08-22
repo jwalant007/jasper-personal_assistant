@@ -317,13 +317,12 @@ const TOOLS_CONFIG = [
     ]
   }
 ];
-
 class GeminiClient {
   constructor() {
     this.apiKey = localStorage.getItem('jasper_gemini_key') || 
                   localStorage.getItem('jasper_gemini_api_key') || 
                   localStorage.getItem('gemini_api_key') || '';
-    this.provider = localStorage.getItem('jasper_ai_provider') || 'ollama'; // Default to Ollama Local Server
+    this.provider = localStorage.getItem('jasper_ai_provider') || 'gemini'; // Default to Google Gemini Cloud Engine
     this.ollamaModel = localStorage.getItem('jasper_ollama_model') || 'llama3';
     this.chatHistory = [];
   }
