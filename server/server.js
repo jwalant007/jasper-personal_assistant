@@ -12,6 +12,7 @@ const dbManager = require('./database');
 const vectorMemory = require('./vectorMemory');
 const agentEngine = require('./agentEngine');
 const swarmEngine = require('./swarmEngine');
+const sportsEngine = require('./sportsEngine');
 
 // Helper to resolve PowerShell script paths correctly in production (from unpacked extraResources)
 function getScriptPath(scriptName) {
@@ -1721,6 +1722,17 @@ app.post('/api/swarm/execute', async (req, res) => {
     res.json(result);
   } catch (err) {
     console.error('[API /api/swarm/execute Error]:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/sports/hub', async (req, res) => {
+  try {
+    const sport = req.query.sport || 'football';
+    const payload = await sportsEngine.getLiveSportsHub(sport);
+    res.json(payload);
+  } catch (err) {
+    console.error('[API /api/sports/hub Error]:', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
