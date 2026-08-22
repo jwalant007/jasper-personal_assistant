@@ -132,13 +132,16 @@ export default function SwarmOrchestratorWidget({ onClose }) {
                 <div className={`p-2 rounded-lg ${isActive ? 'bg-cyan-400/20 text-cyan-300' : 'bg-slate-800 text-slate-400'}`}>
                   <Icon className="w-4 h-4" />
                 </div>
-                <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded font-mono ${
-                  agent.healthStatus === 'FAILOVER_ACTIVE' 
-                    ? 'bg-amber-950 text-amber-300 border border-amber-500/40' 
-                    : 'bg-emerald-950 text-emerald-300 border border-emerald-500/30'
-                }`}>
-                  {agent.healthStatus === 'FAILOVER_ACTIVE' ? '⚡ FAILOVER' : '● HEALTHY'}
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-cyan-400 animate-ping' : isDone ? 'bg-emerald-400' : 'bg-slate-600'}`} />
+                  <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded font-mono ${
+                    agent.healthStatus === 'FAILOVER_ACTIVE' 
+                      ? 'bg-amber-950 text-amber-300 border border-amber-500/40' 
+                      : 'bg-emerald-950 text-emerald-300 border border-emerald-500/30'
+                  }`}>
+                    {agent.healthStatus === 'FAILOVER_ACTIVE' ? '⚡ FAILOVER' : 'HEALTHY'}
+                  </span>
+                </div>
               </div>
               <div>
                 <div className="text-xs font-bold font-orbitron truncate">{agent.name}</div>
