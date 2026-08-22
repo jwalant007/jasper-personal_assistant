@@ -1831,12 +1831,14 @@ export default function App() {
                   </button>
                 </div>
 
-                {/* Ollama Model Selector */}
+                {/* Ollama Model Selector & Install Guide */}
                 {aiProvider === 'ollama' && (
-                  <div className="flex flex-col gap-1 mt-2 pt-2 border-t border-cyan-500/20">
+                  <div className="flex flex-col gap-1.5 mt-2 pt-2 border-t border-cyan-500/20 bg-amber-950/20 p-2.5 rounded border border-amber-500/30">
                     <div className="flex justify-between items-center">
-                      <label className="text-[9px] text-cyan-400 font-mono uppercase font-bold">Active Ollama Model</label>
-                      <span className="text-[8px] text-green-400 font-mono">● Server: http://127.0.0.1:11434</span>
+                      <label className="text-[9px] text-amber-300 font-mono uppercase font-bold">Active Ollama Model</label>
+                      <span className="text-[8px] text-rose-400 font-mono font-bold bg-rose-950 px-1.5 py-0.5 rounded border border-rose-500/30">
+                        ● Offline (Not Installed/Running)
+                      </span>
                     </div>
                     <select
                       value={ollamaModel}
@@ -1847,9 +1849,32 @@ export default function App() {
                         <option key={m} value={m}>{m} (Local Ollama Model)</option>
                       ))}
                     </select>
-                    <span className="text-[8px] text-sky-500 font-mono mt-0.5">
-                      Runs 100% locally on your machine via Ollama. Default model: llama3.
-                    </span>
+                    
+                    <div className="flex flex-col gap-1 mt-1">
+                      <p className="text-[9px] text-amber-200/90 leading-relaxed font-sans">
+                        Ollama is an offline desktop app. Since Ollama is not currently running on this PC, queries will automatically use <strong>Google Gemini Cloud AI</strong>.
+                      </p>
+                      <div className="flex gap-2 mt-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAiProvider('gemini');
+                            geminiClient.setProvider('gemini');
+                          }}
+                          className="flex-1 py-1.5 bg-purple-500/25 border border-purple-400 text-purple-200 text-[9px] font-bold rounded hover:bg-purple-500/40 font-mono"
+                        >
+                          ☁️ Switch to Google Gemini Cloud
+                        </button>
+                        <a
+                          href="https://ollama.com/download/windows"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="py-1.5 px-2 bg-slate-900 border border-cyan-500/30 text-cyan-300 text-[9px] font-bold rounded hover:bg-cyan-950 text-center font-mono"
+                        >
+                          ⬇️ Download Ollama
+                        </a>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
