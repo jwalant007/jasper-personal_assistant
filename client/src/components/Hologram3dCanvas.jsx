@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
-export default function Hologram3dCanvas({ mode = 'spiderman', autoRotate = true }) {
+export default function Hologram3dCanvas({ mode = 'spiderman', spidermanSuit = 'classic', autoRotate = true }) {
   const mountRef = useRef(null);
 
   useEffect(() => {
@@ -33,36 +33,81 @@ export default function Hologram3dCanvas({ mode = 'spiderman', autoRotate = true
     pointLight.position.set(5, 5, 5);
     scene.add(pointLight);
 
-    // Objects depending on mode
     let animateCallback = () => {};
 
     if (mode === 'spiderman') {
-      // 🕸️ Spider-Man Web & Cyber Lattice
+      // 🕸️ Spider-Man Suit Customization Engine
+      let primaryColor = 0x00f3ff;
+      let coreColor = 0xff0055;
+      let particleColor = 0x00f3ff;
+      let hasSpiderLegs = false;
+
+      if (spidermanSuit === 'ironspider') {
+        // Iron Spider Nanotech
+        primaryColor = 0xffd700; // Gold
+        coreColor = 0xff0033; // Crimson Red
+        particleColor = 0xffd700;
+        hasSpiderLegs = true;
+      } else if (spidermanSuit === 'symbiote') {
+        // Symbiote Black Suit
+        primaryColor = 0xffffff; // White Spider emblem
+        coreColor = 0x111111; // Black Core
+        particleColor = 0x888888;
+      } else if (spidermanSuit === 'miles') {
+        // Miles Morales Black & Red
+        primaryColor = 0xff0033; // Electric Red Web
+        coreColor = 0x0a0a0a; // Matte Black
+        particleColor = 0xff0033;
+      } else if (spidermanSuit === '2099') {
+        // Spider-Man 2099 Cyberpunk
+        primaryColor = 0x00d2ff; // Neon Blue
+        coreColor = 0xff0055; // Cyber Red
+        particleColor = 0x00d2ff;
+      } else {
+        // Classic Peter Parker Red & Blue
+        primaryColor = 0x00f3ff;
+        coreColor = 0xff0055;
+        particleColor = 0x00f3ff;
+      }
+
+      // Outer Web & Cyber Mesh
       const geo = new THREE.IcosahedronGeometry(2.5, 2);
       const mat = new THREE.MeshBasicMaterial({
-        color: 0x00f3ff,
+        color: primaryColor,
         wireframe: true,
         transparent: true,
-        opacity: 0.65
+        opacity: 0.75
       });
       const webMesh = new THREE.Mesh(geo, mat);
       hologramGroup.add(webMesh);
 
-      // Inner Core Node
-      const coreGeo = new THREE.SphereGeometry(0.8, 16, 16);
-      const coreMat = new THREE.MeshBasicMaterial({ color: 0xff0055, wireframe: true });
+      // Inner Core Suit Emblem
+      const coreGeo = new THREE.OctahedronGeometry(1.0, 1);
+      const coreMat = new THREE.MeshBasicMaterial({ color: coreColor, wireframe: true });
       const coreMesh = new THREE.Mesh(coreGeo, coreMat);
       hologramGroup.add(coreMesh);
 
+      // Iron Spider Mechanical Arms / Legs
+      if (hasSpiderLegs) {
+        for (let l = 0; l < 4; l++) {
+          const legGeo = new THREE.CylinderGeometry(0.04, 0.04, 3, 8);
+          const legMat = new THREE.MeshBasicMaterial({ color: 0xffd700, wireframe: true });
+          const leg = new THREE.Mesh(legGeo, legMat);
+          leg.rotation.z = Math.PI / 4 * (l % 2 === 0 ? 1 : -1);
+          leg.rotation.x = Math.PI / 3 * (l < 2 ? 1 : -1);
+          hologramGroup.add(leg);
+        }
+      }
+
       // Outer Web Particles
       const particleGeo = new THREE.BufferGeometry();
-      const count = 300;
+      const count = 350;
       const pos = new Float32Array(count * 3);
       for (let i = 0; i < count * 3; i++) {
         pos[i] = (Math.random() - 0.5) * 8;
       }
       particleGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-      const particleMat = new THREE.PointsMaterial({ size: 0.05, color: 0x00f3ff, transparent: true, opacity: 0.8 });
+      const particleMat = new THREE.PointsMaterial({ size: 0.06, color: particleColor, transparent: true, opacity: 0.85 });
       const particles = new THREE.Points(particleGeo, particleMat);
       hologramGroup.add(particles);
 
@@ -70,7 +115,7 @@ export default function Hologram3dCanvas({ mode = 'spiderman', autoRotate = true
         webMesh.rotation.y += 0.008;
         webMesh.rotation.x += 0.004;
         coreMesh.rotation.y -= 0.015;
-        particles.rotation.y += 0.002;
+        particles.rotation.y += 0.003;
       };
     } else if (mode === 'atom') {
       // ⚛️ Atomic Nucleus & Electron Orbits
@@ -79,7 +124,6 @@ export default function Hologram3dCanvas({ mode = 'spiderman', autoRotate = true
       const nucleus = new THREE.Mesh(nucGeo, nucMat);
       hologramGroup.add(nucleus);
 
-      // 3 Electron Ring Orbits
       const rings = [];
       for (let r = 0; r < 3; r++) {
         const ringGeo = new THREE.TorusGeometry(2.2 + r * 0.4, 0.02, 16, 100);
@@ -100,16 +144,10 @@ export default function Hologram3dCanvas({ mode = 'spiderman', autoRotate = true
     } else if (mode === 'planet') {
       // 🪐 Solar System & Planetary Globe
       const planetGeo = new THREE.SphereGeometry(2, 32, 32);
-      const planetMat = new THREE.MeshStandardMaterial({
-        color: 0x0077b6,
-        wireframe: true,
-        emissive: 0x03045e,
-        wireframeLinewidth: 1.5
-      });
+      const planetMat = new THREE.MeshStandardMaterial({ color: 0x0077b6, wireframe: true, emissive: 0x03045e });
       const planet = new THREE.Mesh(planetGeo, planetMat);
       hologramGroup.add(planet);
 
-      // Saturn-like Atmosphere Ring
       const ringGeo = new THREE.RingGeometry(2.6, 3.8, 64);
       const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, side: THREE.DoubleSide, transparent: true, opacity: 0.5, wireframe: true });
       const ring = new THREE.Mesh(ringGeo, ringMat);
@@ -199,7 +237,7 @@ export default function Hologram3dCanvas({ mode = 'spiderman', autoRotate = true
       }
       renderer.dispose();
     };
-  }, [mode, autoRotate]);
+  }, [mode, spidermanSuit, autoRotate]);
 
   return (
     <div 
