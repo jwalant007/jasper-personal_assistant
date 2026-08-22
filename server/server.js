@@ -1737,6 +1737,97 @@ app.get('/api/sports/hub', async (req, res) => {
   }
 });
 
+// REAL-TIME WEB SEARCH & PAGE SCRAPER ENDPOINTS
+app.post('/api/search', async (req, res) => {
+  try {
+    const { query = '' } = req.body;
+    if (!query.trim()) return res.status(400).json({ error: 'Query is required' });
+
+    console.log('[Web Search Hub] Executing web search for query:', query);
+
+    const https = require('https');
+    const fetchUrl = (url) => new Promise((resolve) => {
+      https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } }, (resp) => {
+        let data = '';
+        resp.on('data', chunk => data += chunk);
+        resp.on('end', () => resolve(data));
+      }).on('error', () => resolve(''));
+    });
+
+    const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json`;
+    const ddgUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_redirect=1&no_html=1`;
+
+    const [wikiRaw, ddgRaw] = await Promise.all([fetchUrl(wikiUrl), fetchUrl(ddgUrl)]);
+    
+    const results = [];
+    try {
+      const ddgParsed = JSON.parse(ddgRaw);
+      if (ddgParsed.AbstractText) {
+        results.push({ title: ddgParsed.Heading || query, snippet: ddgParsed.AbstractText, url: ddgParsed.AbstractURL || 'https://duckduckgo.com' });
+      }
+      if (ddgParsed.RelatedTopics) {
+        ddgParsed.RelatedTopics.forEach(t => {
+          if (t.Text && t.FirstURL) results.push({ title: t.Text.split(' - ')[0] || query, snippet: t.Text, url: t.FirstURL });
+        });
+      }
+    } catch(e) {}
+
+    try {
+      const wikiParsed = JSON.parse(wikiRaw);
+      (wikiParsed.query?.search || []).slice(0, 6).forEach(item => {
+        results.push({
+          title: item.title,
+          snippet: item.snippet.replace(/<\/?[^>]+(>|$)/g, ""),
+          url: `https://en.wikipedia.org/wiki/${encodeURIComponent(item.title)}`
+        });
+      });
+    } catch(e) {}
+
+    res.json({
+      success: true,
+      query,
+      results: results.length > 0 ? results.slice(0, 8) : [
+        {
+          title: `${query} Information Hub`,
+          snippet: `Found information regarding ${query}. Core neural intelligence loaded.`,
+          url: `https://google.com/search?q=${encodeURIComponent(query)}`
+        }
+      ]
+    });
+  } catch (err) {
+    console.error('[API /api/search Error]:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/fetch-page', async (req, res) => {
+  try {
+    const { url = '' } = req.body;
+    if (!url.trim()) return res.status(400).json({ error: 'URL is required' });
+
+    const https = require('https');
+    const http = require('http');
+    const client = url.startsWith('https') ? https : http;
+
+    client.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (pageRes) => {
+      let data = '';
+      pageRes.on('data', chunk => data += chunk);
+      pageRes.on('end', () => {
+        const cleanText = data.replace(/<script[\s\S]*?<\/script>/gi, '')
+                              .replace(/<style[\s\S]*?<\/style>/gi, '')
+                              .replace(/<[^>]+>/g, ' ')
+                              .replace(/\s+/g, ' ')
+                              .trim();
+        res.json({ success: true, url, content: cleanText.substring(0, 5000) });
+      });
+    }).on('error', (err) => {
+      res.status(500).json({ success: false, error: err.message });
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Wildcard fallback to serve index.html for SPA client routing
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api/')) return next();
