@@ -11,6 +11,7 @@ const phoneController = require('./phoneController');
 const dbManager = require('./database');
 const vectorMemory = require('./vectorMemory');
 const agentEngine = require('./agentEngine');
+const swarmEngine = require('./swarmEngine');
 
 // Helper to resolve PowerShell script paths correctly in production (from unpacked extraResources)
 function getScriptPath(scriptName) {
@@ -1704,6 +1705,22 @@ app.post('/api/memory/auto-extract', (req, res) => {
     dbManager.save();
     res.json({ success: true, extractedCount, memories: vectorMemory.getAllMemories() });
   } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/swarm/agents', (req, res) => {
+  res.json({ success: true, agents: swarmEngine.getAgentsStatus() });
+});
+
+app.post('/api/swarm/execute', async (req, res) => {
+  try {
+    const { goal = '' } = req.body;
+    if (!goal.trim()) return res.status(400).json({ success: false, error: 'Goal prompt is required' });
+    const result = await swarmEngine.executeGoal(goal);
+    res.json(result);
+  } catch (err) {
+    console.error('[API /api/swarm/execute Error]:', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });

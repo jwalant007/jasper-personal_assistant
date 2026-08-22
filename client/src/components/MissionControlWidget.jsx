@@ -97,8 +97,14 @@ export default function MissionControlWidget({ onClose, onNavigate }) {
 
         <div className="flex items-center gap-2">
           <button 
+            onClick={() => onNavigate && onNavigate('swarm')}
+            className="px-3.5 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 rounded-xl text-xs font-semibold text-cyan-200 flex items-center gap-2 transition-all shadow-lg shadow-cyan-500/10"
+          >
+            <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse" /> Swarm Coordinator
+          </button>
+          <button 
             onClick={() => onNavigate && onNavigate('automation')}
-            className="px-3.5 py-2 bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/40 rounded-xl text-xs font-semibold text-cyan-300 flex items-center gap-2 transition-all"
+            className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-xl text-xs font-semibold text-slate-300 flex items-center gap-2 transition-all"
           >
             <Zap className="w-4 h-4 text-cyan-400" /> Automation Engine
           </button>

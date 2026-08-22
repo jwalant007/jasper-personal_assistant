@@ -18,6 +18,7 @@ import AiAvatarWidget from './components/AiAvatarWidget';
 import SecurityCenterWidget from './components/SecurityCenterWidget';
 import AutomationBuilderWidget from './components/AutomationBuilderWidget';
 import MissionControlWidget from './components/MissionControlWidget';
+import SwarmOrchestratorWidget from './components/SwarmOrchestratorWidget';
 import MapsWidget from './components/MapsWidget';
 import SportsHubWidget from './components/SportsHubWidget';
 import AgenticActionsWidget from './components/AgenticActionsWidget';
@@ -56,6 +57,7 @@ export default function App() {
   const [showSecurity, setShowSecurity] = useState(false);
   const [showAutomation, setShowAutomation] = useState(false);
   const [showMissionControl, setShowMissionControl] = useState(false);
+  const [showSwarmOrchestrator, setShowSwarmOrchestrator] = useState(false);
   const [showMaps, setShowMaps] = useState(false);
   const [showSportsHub, setShowSportsHub] = useState(false);
   const [showAgenticActions, setShowAgenticActions] = useState(false);
@@ -2054,10 +2056,18 @@ export default function App() {
             onNavigate={(target) => {
               setShowMissionControl(false);
               if (target === 'automation') setShowAutomation(true);
+              if (target === 'swarm') setShowSwarmOrchestrator(true);
               if (target === 'sports') setShowSportsHub(true);
               if (target === 'maps') setShowMaps(true);
             }}
           />
+        </div>
+      )}
+
+      {/* Swarm Orchestrator Multi-Agent Modal */}
+      {showSwarmOrchestrator && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+          <SwarmOrchestratorWidget onClose={() => setShowSwarmOrchestrator(false)} />
         </div>
       )}
 
