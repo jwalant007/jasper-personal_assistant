@@ -27,6 +27,7 @@ import AgenticActionsWidget from './components/AgenticActionsWidget';
 import UserManualWidget from './components/UserManualWidget';
 import HealthFitbandWidget from './components/HealthFitbandWidget';
 import LaptopConnectModal from './components/LaptopConnectModal';
+import LiveTranslationWidget from './components/LiveTranslationWidget';
 import geminiClient from './utils/geminiClient';
 import { getServerIp, setServerIp } from './utils/apiConfig.js';
 import { getPhoneBrainMode, setPhoneBrainMode, togglePhoneBrainMode } from './utils/mobileBrain.js';
@@ -41,7 +42,7 @@ import {
   captureWebcamFrameAsBase64,
   syncOwnerProfileFromServer
 } from './utils/faceBiometrics.js';
-import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, BookOpen, Activity, Heart, Laptop } from 'lucide-react';
+import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, BookOpen, Activity, Heart, Laptop, Languages } from 'lucide-react';
 
 export default function App() {
   const [jasperState, setJasperState] = useState('idle'); // idle, listening, processing, speaking
@@ -68,6 +69,9 @@ export default function App() {
   const [showAgenticActions, setShowAgenticActions] = useState(false);
   const [showHealthHub, setShowHealthHub] = useState(false);
   const [showLaptopConnect, setShowLaptopConnect] = useState(false);
+  const [showLiveTranslation, setShowLiveTranslation] = useState(true);
+  const [autoTranslateEnabled, setAutoTranslateEnabled] = useState(true);
+
   const [isPhoneBrainMode, setIsPhoneBrainModeState] = useState(() => getPhoneBrainMode());
   const [agenticQuery, setAgenticQuery] = useState('');
   const [showManual, setShowManual] = useState(false);
@@ -1031,6 +1035,9 @@ export default function App() {
               <div className="flex flex-col gap-1.5 border-t border-cyan-500/15 pt-2 mt-1">
                 <span className="font-mono text-[9px] text-cyan-400 font-bold uppercase tracking-widest px-1">Feature Suite</span>
                 
+                <button onClick={() => setShowLiveTranslation(!showLiveTranslation)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/40 bg-amber-500/10 text-amber-300 font-bold shadow-[0_0_12px_rgba(245,158,11,0.2)]">
+                  <Languages size={12} className="text-amber-400 animate-pulse" /> CHROME LIVE TRANSLATE
+                </button>
                 <button onClick={() => setShowAgenticActions(!showAgenticActions)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-cyan-400/60 bg-cyan-500/20 text-cyan-300 font-extrabold shadow-[0_0_12px_rgba(6,182,212,0.25)]">
                   <PhoneCall size={12} className="text-cyan-400 animate-pulse" /> AGENTIC ACTIONS
                 </button>
@@ -2229,6 +2236,14 @@ export default function App() {
           onLog={(text, type) => console.log(`[LAPTOP] ${text}`)}
         />
       )}
+
+      {/* 18. Chrome-Style Live Translation Overlay */}
+      <LiveTranslationWidget 
+        isOpen={showLiveTranslation} 
+        onClose={() => setShowLiveTranslation(false)} 
+        autoTranslateEnabled={autoTranslateEnabled}
+        onToggleAutoTranslate={(val) => setAutoTranslateEnabled(val)}
+      />
     </div>
   );
 }

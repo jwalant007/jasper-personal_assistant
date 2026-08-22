@@ -401,8 +401,137 @@ app.get('/api/system/diagnostics', (req, res) => {
 });
 
 // -------------------------------------------------------------
-// LIVE STOCK MARKET DATA (Yahoo Finance)
+// LIVE TRANSLATION & LANGUAGE DETECTION ENDPOINT
 // -------------------------------------------------------------
+
+const LANG_MAP = {
+  'en': 'English',
+  'es': 'Spanish',
+  'fr': 'French',
+  'de': 'German',
+  'hi': 'Hindi',
+  'ja': 'Japanese',
+  'zh': 'Chinese (Mandarin)',
+  'zh-CN': 'Chinese (Simplified)',
+  'zh-TW': 'Chinese (Traditional)',
+  'it': 'Italian',
+  'ru': 'Russian',
+  'ko': 'Korean',
+  'pt': 'Portuguese',
+  'ar': 'Arabic',
+  'nl': 'Dutch',
+  'tr': 'Turkish',
+  'pl': 'Polish',
+  'sv': 'Swedish',
+  'uk': 'Ukrainian',
+  'el': 'Greek',
+  'he': 'Hebrew',
+  'th': 'Thai',
+  'vi': 'Vietnamese',
+  'id': 'Indonesian',
+  'ms': 'Malay',
+  'fa': 'Persian',
+  'bn': 'Bengali',
+  'ta': 'Tamil',
+  'te': 'Telugu',
+  'ur': 'Urdu',
+  'gu': 'Gujarati',
+  'kn': 'Kannada',
+  'mr': 'Marathi',
+  'pa': 'Punjabi'
+};
+
+app.post('/api/system/translate', async (req, res) => {
+  try {
+    const { text, sourceLang = 'auto', targetLang = 'en' } = req.body || {};
+    if (!text || !text.trim()) {
+      return res.status(400).json({ success: false, error: 'Text content is required for translation' });
+    }
+
+    const cleanText = text.trim();
+    let translatedText = '';
+    let detectedLang = sourceLang;
+
+    // Helper fetch using global fetch or https module
+    const httpFetch = async (url) => {
+      if (typeof fetch === 'function') {
+        const response = await fetch(url);
+        return await response.json();
+      } else {
+        const https = require('https');
+        return new Promise((resolve, reject) => {
+          https.get(url, (resp) => {
+            let data = '';
+            resp.on('data', (chunk) => { data += chunk; });
+            resp.on('end', () => {
+              try { resolve(JSON.parse(data)); } catch (e) { reject(e); }
+            });
+          }).on('error', reject);
+        });
+      }
+    };
+
+    // Primary: Google Translate GTX endpoint
+    try {
+      const gUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(sourceLang)}&tl=${encodeURIComponent(targetLang)}&dt=t&q=${encodeURIComponent(cleanText)}`;
+      const gRes = await httpFetch(gUrl);
+      if (Array.isArray(gRes) && gRes[0] && Array.isArray(gRes[0])) {
+        translatedText = gRes[0].map(part => part && part[0] ? part[0] : '').join(' ');
+        if (gRes[2]) {
+          detectedLang = gRes[2];
+        }
+      }
+    } catch (e1) {
+      console.warn('[Translate API] Primary engine failed, trying MyMemory fallback:', e1.message);
+    }
+
+    // Fallback: MyMemory Translate
+    if (!translatedText || translatedText === cleanText) {
+      try {
+        const pair = `${sourceLang === 'auto' ? 'autodetect' : sourceLang}|${targetLang}`;
+        const mUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(cleanText)}&langpair=${pair}`;
+        const mRes = await httpFetch(mUrl);
+        if (mRes && mRes.responseData && mRes.responseData.translatedText) {
+          translatedText = mRes.responseData.translatedText;
+          if (mRes.responseData.match > 0 && mRes.responseDetails && mRes.responseDetails.includes('IS-')) {
+            const langCode = mRes.responseDetails.split('-')[1]?.toLowerCase();
+            if (langCode) detectedLang = langCode;
+          }
+        }
+      } catch (e2) {
+        console.warn('[Translate API] Fallback engine failed:', e2.message);
+      }
+    }
+
+    // If translation is still empty, fallback to clean text
+    if (!translatedText) {
+      translatedText = cleanText;
+    }
+
+    // Determine non-English status
+    const isLangCodeEn = (code) => typeof code === 'string' && code.toLowerCase().startsWith('en');
+    const isNonEnglish = !isLangCodeEn(detectedLang);
+    const langName = LANG_MAP[detectedLang] || (LANG_MAP[detectedLang.split('-')[0]]) || detectedLang.toUpperCase();
+
+    return res.json({
+      success: true,
+      originalText: cleanText,
+      translatedText: translatedText,
+      sourceLang: detectedLang,
+      sourceLangName: langName,
+      targetLang: targetLang,
+      isNonEnglish: isNonEnglish,
+      confidence: isNonEnglish ? 0.95 : 0.99,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (err) {
+    console.error('[Translate API Error]:', err);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+
 
 app.post('/api/stock', async (req, res) => {
   const { symbol } = req.body;

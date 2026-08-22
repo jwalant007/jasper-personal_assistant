@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, SkipForward, SkipBack, Music, ExternalLink, Search, Radio, Headphones, X } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, Music, ExternalLink, Search, Radio, Headphones, X, Globe } from 'lucide-react';
 import geminiClient from '../utils/geminiClient';
 import { API_BASE } from '../utils/apiConfig';
 
@@ -199,10 +199,17 @@ export default function MediaControllerWidget() {
           <Music size={11} className="text-cyan-400" />
           SYSTEM MEDIA LINK
         </span>
-        <span className="font-mono text-[8px] text-sky-500 uppercase tracking-widest font-bold">
-          {!currentTrack ? 'IDLE' : isPlaying ? 'STREAMING' : 'PAUSED'}
-        </span>
+        <div className="flex items-center space-x-1.5">
+          <span className="flex items-center space-x-1 px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[9px] font-mono font-bold">
+            <Globe className="w-2.5 h-2.5 animate-spin-slow" />
+            <span>LIVE TRANSLATE ACTIVE</span>
+          </span>
+          <span className="font-mono text-[8px] text-sky-500 uppercase tracking-widest font-bold">
+            {!currentTrack ? 'IDLE' : isPlaying ? 'STREAMING' : 'PAUSED'}
+          </span>
+        </div>
       </div>
+
 
       <div className="flex flex-col gap-2 font-mono">
 
