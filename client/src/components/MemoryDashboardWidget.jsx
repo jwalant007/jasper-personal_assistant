@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { getApiBase } from '../utils/apiConfig.js';
-import { Brain, Plus, Trash2, Edit2, Search, Sparkles, XCircle, CheckCircle2 } from 'lucide-react';
+import { Brain, Plus, Trash2, Search, Sparkles, XCircle, CheckCircle2, RefreshCw } from 'lucide-react';
 
 export default function MemoryDashboardWidget({ onClose }) {
-  const [activeTab, setActiveTab] = useState('recent'); // recent, learned, preferences
+  const [activeTab, setActiveTab] = useState('recent'); // recent, learned, preferences, semantic
   const [memories, setMemories] = useState([]);
   const [newMemoryText, setNewMemoryText] = useState('');
   const [newCategory, setNewCategory] = useState('learned');
   const [searchQuery, setSearchQuery] = useState('');
-  const [editingId, setEditingId] = useState(null);
-  const [editText, setEditText] = useState('');
+  const [semanticResults, setSemanticResults] = useState([]);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [extractStatus, setExtractStatus] = useState('');
 
   const fetchMemories = async () => {
     try {
@@ -52,13 +53,50 @@ export default function MemoryDashboardWidget({ onClose }) {
     }
   };
 
-  const filteredMemories = memories.filter(m => {
-    const matchesSearch = m.text.toLowerCase().includes(searchQuery.toLowerCase());
-    if (activeTab === 'recent') return matchesSearch;
-    if (activeTab === 'learned') return matchesSearch && (m.category === 'learned' || m.category === 'knowledge');
-    if (activeTab === 'preferences') return matchesSearch && (m.category === 'preference' || m.category === 'device');
-    return matchesSearch;
-  });
+  const handleSemanticSearch = async (query) => {
+    setSearchQuery(query);
+    if (!query.trim()) {
+      setSemanticResults([]);
+      return;
+    }
+    try {
+      const res = await fetch(`${getApiBase()}/api/memory/semantic-search`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, limit: 5 })
+      });
+      const data = await res.json();
+      setSemanticResults(data.memories || []);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleAutoExtract = async () => {
+    setIsExtracting(true);
+    setExtractStatus('Extracting user facts from chat logs...');
+    try {
+      const res = await fetch(`${getApiBase()}/api/memory/auto-extract`, { method: 'POST' });
+      const data = await res.json();
+      if (data.memories) setMemories(data.memories);
+      setExtractStatus(`Extracted ${data.extractedCount || 0} memory facts!`);
+      setTimeout(() => setExtractStatus(''), 4000);
+    } catch (e) {
+      setExtractStatus('Failed to extract memories');
+    } finally {
+      setIsExtracting(false);
+    }
+  };
+
+  const filteredMemories = activeTab === 'semantic' && searchQuery.trim() 
+    ? semanticResults
+    : memories.filter(m => {
+        const matchesSearch = m.text.toLowerCase().includes(searchQuery.toLowerCase());
+        if (activeTab === 'recent') return matchesSearch;
+        if (activeTab === 'learned') return matchesSearch && (m.category === 'learned' || m.category === 'knowledge' || m.category === 'auto-extracted');
+        if (activeTab === 'preferences') return matchesSearch && (m.category === 'preference' || m.category === 'device' || m.category === 'user-fact');
+        return matchesSearch;
+      });
 
   return (
     <div className="bg-slate-950/90 border border-purple-500/30 rounded-2xl p-6 text-slate-100 backdrop-blur-xl shadow-2xl max-w-4xl w-full mx-auto relative overflow-hidden">
@@ -69,25 +107,42 @@ export default function MemoryDashboardWidget({ onClose }) {
             <Brain className="w-6 h-6 animate-pulse" />
           </div>
           <div>
-            <h2 className="text-xl font-bold tracking-wider text-purple-300 uppercase">Memory Dashboard</h2>
-            <p className="text-xs text-slate-400">Long-term Memory & Knowledge Management</p>
+            <h2 className="text-xl font-bold tracking-wider text-purple-300 uppercase">Semantic Memory Engine</h2>
+            <p className="text-xs text-slate-400">Long-term TF-IDF Vector & Conversational Memory</p>
           </div>
         </div>
-        {onClose && (
-          <button 
-            onClick={onClose}
-            className="p-2 rounded-lg bg-slate-800/60 hover:bg-rose-500/20 hover:text-rose-400 text-slate-400 transition-colors"
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleAutoExtract}
+            disabled={isExtracting}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-200 rounded-xl text-xs transition-colors"
           >
-            <XCircle className="w-5 h-5" />
+            <RefreshCw className={`w-3.5 h-3.5 ${isExtracting ? 'animate-spin' : ''}`} />
+            Auto-Extract Memory
           </button>
-        )}
+          {onClose && (
+            <button 
+              onClick={onClose}
+              className="p-2 rounded-lg bg-slate-800/60 hover:bg-rose-500/20 hover:text-rose-400 text-slate-400 transition-colors"
+            >
+              <XCircle className="w-5 h-5" />
+            </button>
+          )}
+        </div>
       </div>
+
+      {extractStatus && (
+        <div className="mb-4 text-xs font-mono text-purple-400 bg-purple-900/30 border border-purple-500/30 rounded-xl p-2.5 text-center">
+          {extractStatus}
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex flex-wrap gap-2 mb-4 border-b border-slate-800 pb-3">
         {[
           { id: 'recent', label: 'Recent Memories', icon: Brain },
-          { id: 'learned', label: 'Things J.A.S.P.E.R. Learned', icon: Sparkles },
+          { id: 'semantic', label: 'Vector Semantic Search', icon: Search },
+          { id: 'learned', label: 'Auto-Extracted Facts', icon: Sparkles },
           { id: 'preferences', label: 'User Preferences', icon: CheckCircle2 }
         ].map(tab => {
           const Icon = tab.icon;
@@ -137,10 +192,10 @@ export default function MemoryDashboardWidget({ onClose }) {
           <Search className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-500" />
           <input
             type="text"
-            placeholder="Filter memories..."
+            placeholder={activeTab === 'semantic' ? 'Type to perform semantic vector search...' : 'Filter memories...'}
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-900/60 border border-slate-800/80 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-300"
+            onChange={(e) => activeTab === 'semantic' ? handleSemanticSearch(e.target.value) : setSearchQuery(e.target.value)}
+            className="w-full bg-slate-900/60 border border-slate-800/80 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-300 focus:border-purple-500/50"
           />
         </div>
       </div>
@@ -157,10 +212,15 @@ export default function MemoryDashboardWidget({ onClose }) {
                   {m.category || 'general'}
                 </span>
                 <span className="text-slate-200 truncate">{m.text}</span>
+                {m.score !== undefined && (
+                  <span className="text-[10px] px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded font-mono shrink-0">
+                    {(m.score * 100).toFixed(0)}% match
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <span className="text-[10px] text-slate-500 font-mono hidden sm:inline">
-                  {new Date(m.date).toLocaleDateString()}
+                  {m.date ? new Date(m.date).toLocaleDateString() : ''}
                 </span>
                 <button
                   onClick={() => handleDeleteMemory(m.id)}

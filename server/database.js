@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const vectorMemory = require('./vectorMemory');
 
 // Target directory & file path for database
 const DATA_DIR = path.join(__dirname, 'data');
@@ -195,26 +196,26 @@ class DatabaseManager {
     return this.data;
   }
 
-  // --- MEMORIES ---
+  // --- MEMORY ENGINE ---
   getMemories() {
+    const vectorList = vectorMemory.getAllMemories();
+    if (vectorList && vectorList.length > 0) {
+      return vectorList;
+    }
     return this.data.memories || [];
   }
 
   addMemory(text, category = 'general') {
-    const newItem = {
-      id: Date.now(),
-      text,
-      category,
-      date: new Date().toISOString()
-    };
-    this.data.memories.unshift(newItem);
+    const newItem = vectorMemory.addMemory(text, category);
+    this.data.memories = vectorMemory.getAllMemories();
     this.save();
     return { item: newItem, memories: this.data.memories };
   }
 
   deleteMemory(id) {
     const numId = parseInt(id, 10);
-    this.data.memories = this.data.memories.filter(m => m.id !== numId && m.id !== id);
+    vectorMemory.deleteMemory(numId);
+    this.data.memories = vectorMemory.getAllMemories();
     this.save();
     return this.data.memories;
   }
@@ -275,6 +276,11 @@ class DatabaseManager {
       timestamp: new Date().toLocaleString()
     };
     this.data.chat_history.unshift(newEntry);
+    
+    // Auto-extract long term memories from user queries
+    vectorMemory.extractMemoriesFromText(query);
+    this.data.memories = vectorMemory.getAllMemories();
+    
     this.save();
     return newEntry;
   }

@@ -9,6 +9,8 @@ const os = require('os');
 const tvController = require('./tvController');
 const phoneController = require('./phoneController');
 const dbManager = require('./database');
+const vectorMemory = require('./vectorMemory');
+const agentEngine = require('./agentEngine');
 
 // Helper to resolve PowerShell script paths correctly in production (from unpacked extraResources)
 function getScriptPath(scriptName) {
@@ -1661,6 +1663,48 @@ app.post('/api/ollama/query', async (req, res) => {
       success: true,
       response: `[J.A.R.V.I.S. Local Core]: Systems active. How may I assist you, Sir?`
     });
+  }
+});
+
+// -------------------------------------------------------------
+// AGENT REASONING ENGINE & SEMANTIC VECTOR MEMORY ENDPOINTS
+// -------------------------------------------------------------
+
+app.post('/api/agent/chat', async (req, res) => {
+  try {
+    const { query, model = 'llama3', userKey = '' } = req.body;
+    const result = await agentEngine.processQuery({ query, model, userKey });
+    res.json(result);
+  } catch (err) {
+    console.error('[API /api/agent/chat Error]:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/memory/semantic-search', (req, res) => {
+  try {
+    const { query, limit = 5 } = req.body;
+    const memories = vectorMemory.searchMemory(query, limit);
+    res.json({ success: true, query, memories });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/memory/auto-extract', (req, res) => {
+  try {
+    const chats = dbManager.getChatHistory();
+    let extractedCount = 0;
+    for (const chat of chats) {
+      if (chat.query) {
+        const added = vectorMemory.extractMemoriesFromText(chat.query);
+        extractedCount += added.length;
+      }
+    }
+    dbManager.save();
+    res.json({ success: true, extractedCount, memories: vectorMemory.getAllMemories() });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 

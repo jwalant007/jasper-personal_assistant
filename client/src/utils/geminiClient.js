@@ -689,18 +689,45 @@ class GeminiClient {
     }
   }
 
+  async fetchSemanticMemories(query) {
+    try {
+      const res = await fetch(`${getApiBase()}/api/memory/semantic-search`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, limit: 3 })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return data.memories || [];
+      }
+    } catch (e) {}
+    return [];
+  }
+
   async sendQuery(userText, onLog) {
+    // Search semantic memory vector store for relevance
+    const relevantMemories = await this.fetchSemanticMemories(userText);
+    if (relevantMemories.length > 0) {
+      onLog(`[VECTOR MEMORY] Recalled ${relevantMemories.length} relevant memory context(s): ${relevantMemories.map(m => m.text).join(' | ')}`, 'info');
+    }
+
     // 1. If provider is set to Ollama Local Server, or if no Gemini key exists, run Ollama engine!
     if (this.provider === 'ollama' || !this.apiKey) {
-      return this.handleOllamaQueryMode(userText, onLog);
+      return this.handleOllamaQueryMode(userText, onLog, relevantMemories);
     }
 
     onLog(`[JASPER CORE] Processing neural request via Gemini Cloud...`, 'info');
     
+    // Format message with memory grounding if available
+    let promptWithMemory = userText;
+    if (relevantMemories.length > 0) {
+      promptWithMemory = `[System Memory Grounding: ${relevantMemories.map(m => m.text).join('; ')}]\nUser Request: ${userText}`;
+    }
+
     // Add user message to history
     this.chatHistory.push({
       role: 'user',
-      parts: [{ text: userText }]
+      parts: [{ text: promptWithMemory }]
     });
 
     // Limit history length to keep context clean (50 messages for richer memory)

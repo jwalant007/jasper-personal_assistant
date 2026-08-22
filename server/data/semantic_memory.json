@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "text": "User prefers concise audio responses",
+    "category": "preference",
+    "date": "2026-08-22T10:18:31.886Z",
+    "tokens": [
+      "user",
+      "prefers",
+      "concise",
+      "audio",
+      "responses"
+    ]
+  },
+  {
+    "id": 2,
+    "text": "Default smart home TV is Samsung Frame in Living Room",
+    "category": "device",
+    "date": "2026-08-22T10:18:31.900Z",
+    "tokens": [
+      "default",
+      "smart",
+      "home",
+      "tv",
+      "samsung",
+      "frame",
+      "living",
+      "room"
+    ]
+  },
+  {
+    "id": 3,
+    "text": "User name is Jwalant",
+    "category": "profile",
+    "date": "2026-08-22T10:18:31.900Z",
+    "tokens": [
+      "user",
+      "name",
+      "jwalant"
+    ]
+  }
+]
