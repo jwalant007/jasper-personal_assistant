@@ -19,6 +19,7 @@ import SecurityCenterWidget from './components/SecurityCenterWidget';
 import AutomationBuilderWidget from './components/AutomationBuilderWidget';
 import MissionControlWidget from './components/MissionControlWidget';
 import SwarmOrchestratorWidget from './components/SwarmOrchestratorWidget';
+import HolographicAnswerModal from './components/HolographicAnswerModal';
 import MapsWidget from './components/MapsWidget';
 import SportsHubWidget from './components/SportsHubWidget';
 import AgenticActionsWidget from './components/AgenticActionsWidget';
@@ -58,6 +59,7 @@ export default function App() {
   const [showAutomation, setShowAutomation] = useState(false);
   const [showMissionControl, setShowMissionControl] = useState(false);
   const [showSwarmOrchestrator, setShowSwarmOrchestrator] = useState(false);
+  const [showHologram3d, setShowHologram3d] = useState(false);
   const [showMaps, setShowMaps] = useState(false);
   const [showSportsHub, setShowSportsHub] = useState(false);
   const [showAgenticActions, setShowAgenticActions] = useState(false);
@@ -2057,6 +2059,7 @@ export default function App() {
               setShowMissionControl(false);
               if (target === 'automation') setShowAutomation(true);
               if (target === 'swarm') setShowSwarmOrchestrator(true);
+              if (target === 'hologram3d') setShowHologram3d(true);
               if (target === 'sports') setShowSportsHub(true);
               if (target === 'maps') setShowMaps(true);
             }}
@@ -2068,6 +2071,13 @@ export default function App() {
       {showSwarmOrchestrator && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
           <SwarmOrchestratorWidget onClose={() => setShowSwarmOrchestrator(false)} />
+        </div>
+      )}
+
+      {/* 3D Holographic Visualizer Modal */}
+      {showHologram3d && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+          <HolographicAnswerModal onClose={() => setShowHologram3d(false)} />
         </div>
       )}
 

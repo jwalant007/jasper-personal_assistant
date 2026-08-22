@@ -11,6 +11,7 @@ import {
   BatteryCharging, 
   Cpu, 
   Sparkles, 
+  Box,
   Bell, 
   Zap, 
   CheckCircle2, 
@@ -96,6 +97,12 @@ export default function MissionControlWidget({ onClose, onNavigate }) {
         </div>
 
         <div className="flex items-center gap-2">
+          <button 
+            onClick={() => onNavigate && onNavigate('hologram3d')}
+            className="px-3.5 py-2 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400 rounded-xl text-xs font-semibold text-purple-200 flex items-center gap-2 transition-all shadow-lg shadow-purple-500/10"
+          >
+            <Box className="w-4 h-4 text-purple-400 animate-pulse" /> 3D Hologram
+          </button>
           <button 
             onClick={() => onNavigate && onNavigate('swarm')}
             className="px-3.5 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 rounded-xl text-xs font-semibold text-cyan-200 flex items-center gap-2 transition-all shadow-lg shadow-cyan-500/10"
