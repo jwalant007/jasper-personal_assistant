@@ -184,3 +184,6 @@ function fallbackHtml5Audio(text, onStart, onEnd, onError) {
     if (onEnd) onEnd();
   }
 }
+
+export const speakMessage = speakDeviceAudio;
+
