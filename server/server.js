@@ -13,6 +13,7 @@ const vectorMemory = require('./vectorMemory');
 const agentEngine = require('./agentEngine');
 const swarmEngine = require('./swarmEngine');
 const sportsEngine = require('./sportsEngine');
+const pcRemoteController = require('./pcRemoteController');
 
 // Helper to resolve PowerShell script paths correctly in production (from unpacked extraResources)
 function getScriptPath(scriptName) {
@@ -1823,6 +1824,52 @@ app.post('/api/fetch-page', async (req, res) => {
     }).on('error', (err) => {
       res.status(500).json({ success: false, error: err.message });
     });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// -------------------------------------------------------------
+// PC REMOTE DESKTOP & FULL INTERACTIVE INPUT ENDPOINTS
+// -------------------------------------------------------------
+app.get('/api/pc/remote/screen', async (req, res) => {
+  try {
+    const screenData = await pcRemoteController.getScreenCapture();
+    if (screenData) {
+      res.json({ success: true, image: screenData, timestamp: Date.now() });
+    } else {
+      res.status(500).json({ success: false, error: 'Screen capture failed' });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/pc/remote/click', async (req, res) => {
+  try {
+    const { x = 50, y = 50, type = 'left' } = req.body;
+    const result = await pcRemoteController.clickMouse(x, y, type);
+    res.json({ success: result.success, details: result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/pc/remote/type', async (req, res) => {
+  try {
+    const { text = '' } = req.body;
+    const result = await pcRemoteController.typeText(text);
+    res.json({ success: result.success });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/pc/remote/key', async (req, res) => {
+  try {
+    const { key = '' } = req.body;
+    const result = await pcRemoteController.sendHotkey(key);
+    res.json({ success: result.success });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

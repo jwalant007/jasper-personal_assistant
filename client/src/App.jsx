@@ -20,6 +20,7 @@ import AutomationBuilderWidget from './components/AutomationBuilderWidget';
 import MissionControlWidget from './components/MissionControlWidget';
 import SwarmOrchestratorWidget from './components/SwarmOrchestratorWidget';
 import HolographicAnswerModal from './components/HolographicAnswerModal';
+import PcRemoteDesktopWidget from './components/PcRemoteDesktopWidget';
 import MapsWidget from './components/MapsWidget';
 import SportsHubWidget from './components/SportsHubWidget';
 import AgenticActionsWidget from './components/AgenticActionsWidget';
@@ -60,6 +61,7 @@ export default function App() {
   const [showMissionControl, setShowMissionControl] = useState(false);
   const [showSwarmOrchestrator, setShowSwarmOrchestrator] = useState(false);
   const [showHologram3d, setShowHologram3d] = useState(false);
+  const [showPcRemote, setShowPcRemote] = useState(false);
   const [showMaps, setShowMaps] = useState(false);
   const [showSportsHub, setShowSportsHub] = useState(false);
   const [showAgenticActions, setShowAgenticActions] = useState(false);
@@ -2056,10 +2058,10 @@ export default function App() {
           <MissionControlWidget 
             onClose={() => setShowMissionControl(false)} 
             onNavigate={(target) => {
-              setShowMissionControl(false);
               if (target === 'automation') setShowAutomation(true);
               if (target === 'swarm') setShowSwarmOrchestrator(true);
               if (target === 'hologram3d') setShowHologram3d(true);
+              if (target === 'pcremote') setShowPcRemote(true);
               if (target === 'sports') setShowSportsHub(true);
               if (target === 'maps') setShowMaps(true);
             }}
@@ -2078,6 +2080,13 @@ export default function App() {
       {showHologram3d && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
           <HolographicAnswerModal onClose={() => setShowHologram3d(false)} />
+        </div>
+      )}
+
+      {/* PC Remote Desktop Modal */}
+      {showPcRemote && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+          <PcRemoteDesktopWidget onClose={() => setShowPcRemote(false)} />
         </div>
       )}
 

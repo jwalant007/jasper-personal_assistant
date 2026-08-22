@@ -12,6 +12,7 @@ import {
   Cpu, 
   Sparkles, 
   Box,
+  Monitor,
   Bell, 
   Zap, 
   CheckCircle2, 
@@ -97,6 +98,12 @@ export default function MissionControlWidget({ onClose, onNavigate }) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <button 
+            onClick={() => onNavigate && onNavigate('pcremote')}
+            className="px-3.5 py-1.5 bg-cyan-500/25 hover:bg-cyan-500/35 border border-cyan-400 rounded-xl text-xs font-semibold text-cyan-200 flex items-center gap-1.5 transition-all shadow-md shadow-cyan-500/10 font-orbitron"
+          >
+            <Monitor className="w-4 h-4 text-cyan-400 animate-pulse" /> PC Remote Desktop
+          </button>
           <button 
             onClick={() => onNavigate && onNavigate('hologram3d')}
             className="px-3.5 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400 rounded-xl text-xs font-semibold text-purple-200 flex items-center gap-1.5 transition-all shadow-md shadow-purple-500/10"
