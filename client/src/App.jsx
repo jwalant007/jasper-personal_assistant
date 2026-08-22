@@ -18,10 +18,10 @@ import AiAvatarWidget from './components/AiAvatarWidget';
 import SecurityCenterWidget from './components/SecurityCenterWidget';
 import AutomationBuilderWidget from './components/AutomationBuilderWidget';
 import MissionControlWidget from './components/MissionControlWidget';
-import SwarmOrchestratorWidget from './components/SwarmOrchestratorWidget';
-import HolographicAnswerModal from './components/HolographicAnswerModal';
-import PcRemoteDesktopWidget from './components/PcRemoteDesktopWidget';
-import MapsWidget from './components/MapsWidget';
+import PcMasterHubWidget from './components/PcMasterHubWidget';
+import MusicMasterHubWidget from './components/MusicMasterHubWidget';
+import DevicesMasterHubWidget from './components/DevicesMasterHubWidget';
+import AiMasterHubWidget from './components/AiMasterHubWidget';
 import SportsHubWidget from './components/SportsHubWidget';
 import AgenticActionsWidget from './components/AgenticActionsWidget';
 import UserManualWidget from './components/UserManualWidget';
@@ -59,10 +59,10 @@ export default function App() {
   const [showSecurity, setShowSecurity] = useState(false);
   const [showAutomation, setShowAutomation] = useState(false);
   const [showMissionControl, setShowMissionControl] = useState(false);
-  const [showSwarmOrchestrator, setShowSwarmOrchestrator] = useState(false);
-  const [showHologram3d, setShowHologram3d] = useState(false);
-  const [showPcRemote, setShowPcRemote] = useState(false);
-  const [showMaps, setShowMaps] = useState(false);
+  const [showPcMasterHub, setShowPcMasterHub] = useState(false);
+  const [showMusicMasterHub, setShowMusicMasterHub] = useState(false);
+  const [showDevicesMasterHub, setShowDevicesMasterHub] = useState(false);
+  const [showAiMasterHub, setShowAiMasterHub] = useState(false);
   const [showSportsHub, setShowSportsHub] = useState(false);
   const [showAgenticActions, setShowAgenticActions] = useState(false);
   const [showHealthHub, setShowHealthHub] = useState(false);
@@ -2058,35 +2058,41 @@ export default function App() {
           <MissionControlWidget 
             onClose={() => setShowMissionControl(false)} 
             onNavigate={(target) => {
-              if (target === 'automation') setShowAutomation(true);
-              if (target === 'swarm') setShowSwarmOrchestrator(true);
-              if (target === 'hologram3d') setShowHologram3d(true);
-              if (target === 'pcremote') setShowPcRemote(true);
+              if (target === 'pcmaster') setShowPcMasterHub(true);
+              if (target === 'musicmaster') setShowMusicMasterHub(true);
+              if (target === 'devicesmaster') setShowDevicesMasterHub(true);
+              if (target === 'aimaster') setShowAiMasterHub(true);
               if (target === 'sports') setShowSportsHub(true);
-              if (target === 'maps') setShowMaps(true);
             }}
           />
         </div>
       )}
 
-      {/* Swarm Orchestrator Multi-Agent Modal */}
-      {showSwarmOrchestrator && (
+      {/* 1. PC Master Control Hub */}
+      {showPcMasterHub && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
-          <SwarmOrchestratorWidget onClose={() => setShowSwarmOrchestrator(false)} />
+          <PcMasterHubWidget onClose={() => setShowPcMasterHub(false)} />
         </div>
       )}
 
-      {/* 3D Holographic Visualizer Modal */}
-      {showHologram3d && (
+      {/* 2. Music & Media Master Hub */}
+      {showMusicMasterHub && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
-          <HolographicAnswerModal onClose={() => setShowHologram3d(false)} />
+          <MusicMasterHubWidget onClose={() => setShowMusicMasterHub(false)} />
         </div>
       )}
 
-      {/* PC Remote Desktop Modal */}
-      {showPcRemote && (
+      {/* 3. Smart Devices Master Hub */}
+      {showDevicesMasterHub && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
-          <PcRemoteDesktopWidget onClose={() => setShowPcRemote(false)} />
+          <DevicesMasterHubWidget onClose={() => setShowDevicesMasterHub(false)} />
+        </div>
+      )}
+
+      {/* 4. AI & 3D Intelligence Master Hub */}
+      {showAiMasterHub && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+          <AiMasterHubWidget onClose={() => setShowAiMasterHub(false)} />
         </div>
       )}
 

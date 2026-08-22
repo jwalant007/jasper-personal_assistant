@@ -13,6 +13,7 @@ import {
   Sparkles, 
   Box,
   Monitor,
+  Music,
   Bell, 
   Zap, 
   CheckCircle2, 
@@ -99,34 +100,34 @@ export default function MissionControlWidget({ onClose, onNavigate }) {
 
         <div className="flex flex-wrap items-center gap-2">
           <button 
-            onClick={() => onNavigate && onNavigate('pcremote')}
-            className="px-3.5 py-1.5 bg-cyan-500/25 hover:bg-cyan-500/35 border border-cyan-400 rounded-xl text-xs font-semibold text-cyan-200 flex items-center gap-1.5 transition-all shadow-md shadow-cyan-500/10 font-orbitron"
+            onClick={() => onNavigate && onNavigate('pcmaster')}
+            className="px-3 py-1.5 bg-cyan-500/25 hover:bg-cyan-500/35 border border-cyan-400 rounded-xl text-xs font-bold text-cyan-200 flex items-center gap-1.5 transition-all shadow-md shadow-cyan-500/10 font-orbitron"
           >
-            <Monitor className="w-4 h-4 text-cyan-400 animate-pulse" /> PC Remote Desktop
+            <Laptop className="w-4 h-4 text-cyan-400 animate-pulse" /> 💻 PC Master Hub
           </button>
           <button 
-            onClick={() => onNavigate && onNavigate('hologram3d')}
-            className="px-3.5 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400 rounded-xl text-xs font-semibold text-purple-200 flex items-center gap-1.5 transition-all shadow-md shadow-purple-500/10"
+            onClick={() => onNavigate && onNavigate('musicmaster')}
+            className="px-3 py-1.5 bg-purple-500/25 hover:bg-purple-500/35 border border-purple-400 rounded-xl text-xs font-bold text-purple-200 flex items-center gap-1.5 transition-all shadow-md shadow-purple-500/10 font-orbitron"
           >
-            <Box className="w-4 h-4 text-purple-400 animate-pulse" /> 3D Hologram
+            <Music className="w-4 h-4 text-purple-400 animate-pulse" /> 🎵 Music & Media
           </button>
           <button 
-            onClick={() => onNavigate && onNavigate('swarm')}
-            className="px-3.5 py-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 rounded-xl text-xs font-semibold text-cyan-200 flex items-center gap-1.5 transition-all shadow-md shadow-cyan-500/10"
+            onClick={() => onNavigate && onNavigate('devicesmaster')}
+            className="px-3 py-1.5 bg-emerald-500/25 hover:bg-emerald-500/35 border border-emerald-400 rounded-xl text-xs font-bold text-emerald-200 flex items-center gap-1.5 transition-all shadow-md shadow-emerald-500/10 font-orbitron"
           >
-            <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse" /> Swarm Coordinator
+            <Smartphone className="w-4 h-4 text-emerald-400" /> 📱 Smart Devices
+          </button>
+          <button 
+            onClick={() => onNavigate && onNavigate('aimaster')}
+            className="px-3 py-1.5 bg-sky-500/25 hover:bg-sky-500/35 border border-sky-400 rounded-xl text-xs font-bold text-sky-200 flex items-center gap-1.5 transition-all shadow-md shadow-sky-500/10 font-orbitron"
+          >
+            <Brain className="w-4 h-4 text-sky-400 animate-pulse" /> 🤖 AI & 3D Intelligence
           </button>
           <button 
             onClick={() => onNavigate && onNavigate('sports')}
-            className="px-3.5 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400 rounded-xl text-xs font-semibold text-emerald-200 flex items-center gap-1.5 transition-all shadow-md shadow-emerald-500/10"
+            className="px-3 py-1.5 bg-amber-500/25 hover:bg-amber-500/35 border border-amber-400 rounded-xl text-xs font-bold text-amber-200 flex items-center gap-1.5 transition-all shadow-md shadow-amber-500/10 font-orbitron"
           >
-            <Trophy className="w-4 h-4 text-emerald-400" /> Sports Hub
-          </button>
-          <button 
-            onClick={() => onNavigate && onNavigate('automation')}
-            className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-xl text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition-all"
-          >
-            <Zap className="w-4 h-4 text-cyan-400" /> Automations
+            <Trophy className="w-4 h-4 text-amber-400" /> 🏆 Sports Hub
           </button>
           {onClose && (
             <button onClick={onClose} className="p-1.5 rounded-xl bg-slate-800/60 hover:bg-rose-500/20 hover:text-rose-400 text-slate-400 transition-all">
