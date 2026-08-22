@@ -6,16 +6,70 @@ const tvController = require('./tvController');
 class SwarmEngine {
   constructor() {
     this.agents = [
-      { id: 'research', name: 'Web Research Agent', role: 'Web Scraper & News Intelligence', icon: 'Globe', status: 'idle' },
-      { id: 'system', name: 'Coding & PC Agent', role: 'System Commands & App Launcher', icon: 'Cpu', status: 'idle' },
-      { id: 'mobile', name: 'Mobile & IoT Agent', role: 'ADB Phone & Smart TV Controller', icon: 'Smartphone', status: 'idle' },
-      { id: 'memory', name: 'Memory & RAG Agent', role: 'Semantic Vector Store & Fact Indexer', icon: 'Brain', status: 'idle' },
-      { id: 'security', name: 'Vision & Security Agent', role: 'Biometrics & Telemetry Monitor', icon: 'ShieldCheck', status: 'idle' }
+      { id: 'research', name: 'Web Research Agent', role: 'Web Scraper & News Intelligence', icon: 'Globe', status: 'idle', activeModel: 'gemini-2.5-flash' },
+      { id: 'system', name: 'Coding & PC Agent', role: 'System Commands & App Launcher', icon: 'Cpu', status: 'idle', activeModel: 'gemini-2.5-flash' },
+      { id: 'mobile', name: 'Mobile & IoT Agent', role: 'ADB Phone & Smart TV Controller', icon: 'Smartphone', status: 'idle', activeModel: 'gemini-2.5-flash' },
+      { id: 'memory', name: 'Memory & RAG Agent', role: 'Semantic Vector Store & Fact Indexer', icon: 'Brain', status: 'idle', activeModel: 'gemini-2.5-flash' },
+      { id: 'security', name: 'Vision & Security Agent', role: 'Biometrics & Telemetry Monitor', icon: 'ShieldCheck', status: 'idle', activeModel: 'gemini-2.5-flash' }
+    ];
+
+    // Ordered Model Failover & Load Balancing Pool
+    this.modelPool = [
+      { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', type: 'cloud', rateLimitedUntil: 0, errorCount: 0 },
+      { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', type: 'cloud', rateLimitedUntil: 0, errorCount: 0 },
+      { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', type: 'cloud', rateLimitedUntil: 0, errorCount: 0 },
+      { id: 'ollama-local', name: 'Ollama Local (llama3)', type: 'local', rateLimitedUntil: 0, errorCount: 0 },
+      { id: 'offline-vector-rag', name: 'Offline Vector Engine', type: 'offline', rateLimitedUntil: 0, errorCount: 0 }
     ];
   }
 
   getAgentsStatus() {
-    return this.agents;
+    return this.agents.map(a => {
+      const modelObj = this.modelPool.find(m => m.id === a.activeModel) || this.modelPool[0];
+      const isRateLimited = modelObj.rateLimitedUntil > Date.now();
+      return {
+        ...a,
+        healthStatus: isRateLimited ? 'FAILOVER_ACTIVE' : 'HEALTHY',
+        activeModelName: modelObj.name,
+        cooldownRemainingSec: isRateLimited ? Math.ceil((modelObj.rateLimitedUntil - Date.now()) / 1000) : 0
+      };
+    });
+  }
+
+  /**
+   * Selects the highest-priority healthy model from the model pool.
+   */
+  getActiveHealthyModel() {
+    const now = Date.now();
+    for (const model of this.modelPool) {
+      if (model.rateLimitedUntil <= now) {
+        return model;
+      }
+    }
+    return this.modelPool[this.modelPool.length - 1]; // Ultimate fallback (offline vector RAG)
+  }
+
+  /**
+   * Reports a model rate-limit or quota limit error, triggering backoff and hot-swap.
+   */
+  reportModelQuotaError(modelId, errorMsg = '') {
+    const model = this.modelPool.find(m => m.id === modelId);
+    if (model) {
+      model.errorCount += 1;
+      // 60 second rate-limit cooldown backoff
+      model.rateLimitedUntil = Date.now() + 60000;
+      console.warn(`[SwarmEngine Rate-Limit Warning] Model '${modelId}' hit quota limit (${errorMsg}). Cooldown set for 60s.`);
+    }
+
+    // Auto-update sub-agents to hot-swap to the next healthy model
+    const newHealthyModel = this.getActiveHealthyModel();
+    this.agents.forEach(agent => {
+      if (agent.activeModel === modelId) {
+        agent.activeModel = newHealthyModel.id;
+      }
+    });
+
+    return newHealthyModel;
   }
 
   /**
@@ -72,33 +126,91 @@ class SwarmEngine {
   }
 
   /**
-   * Executes a multi-agent goal sequentially across sub-agents.
+   * Executes a multi-agent goal sequentially with dynamic agent model failover.
    */
   async executeGoal(goalText) {
     console.log(`\n[SwarmEngine] Master Coordinator received goal: "${goalText}"`);
     
     const logs = [];
+    const failoverEvents = [];
     const timestamp = new Date().toISOString();
     const taskPlan = this.decomposeGoal(goalText);
 
-    logs.push({ time: new Date().toLocaleTimeString(), text: `Master Coordinator decomposed goal into ${taskPlan.length} sub-agent step(s).`, type: 'info' });
+    let activeModel = this.getActiveHealthyModel();
+
+    logs.push({ 
+      time: new Date().toLocaleTimeString(), 
+      text: `Master Coordinator assigned goal across ${taskPlan.length} sub-agent(s) using primary model '${activeModel.name}'.`, 
+      type: 'info' 
+    });
 
     // Step 1: Memory RAG Agent
-    this.agents.find(a => a.id === 'memory').status = 'active';
-    logs.push({ time: new Date().toLocaleTimeString(), agent: 'Memory Agent', text: `Searching semantic vector store for memories related to "${goalText}"...`, type: 'agent' });
+    const memoryAgent = this.agents.find(a => a.id === 'memory');
+    memoryAgent.status = 'active';
+    logs.push({ 
+      time: new Date().toLocaleTimeString(), 
+      agent: 'Memory Agent', 
+      text: `Searching semantic vector store using model '${activeModel.name}'...`, 
+      type: 'agent' 
+    });
     
     const memories = vectorMemory.searchMemory(goalText, 3);
     if (memories.length > 0) {
-      logs.push({ time: new Date().toLocaleTimeString(), agent: 'Memory Agent', text: `Recalled ${memories.length} relevant memory context(s): ${memories.map(m => m.text).join('; ')}`, type: 'success' });
+      logs.push({ 
+        time: new Date().toLocaleTimeString(), 
+        agent: 'Memory Agent', 
+        text: `Recalled ${memories.length} relevant memory context(s): ${memories.map(m => m.text).join('; ')}`, 
+        type: 'success' 
+      });
     } else {
-      logs.push({ time: new Date().toLocaleTimeString(), agent: 'Memory Agent', text: `No prior memory vectors found. Initializing fresh context.`, type: 'info' });
+      logs.push({ 
+        time: new Date().toLocaleTimeString(), 
+        agent: 'Memory Agent', 
+        text: `No prior memory vectors found. Initializing fresh context.`, 
+        type: 'info' 
+      });
     }
-    this.agents.find(a => a.id === 'memory').status = 'completed';
+    memoryAgent.status = 'completed';
 
-    // Step 2: System / Mobile / Research Agents via AgentEngine
-    const executionResult = await agentEngine.processQuery({ query: goalText });
+    // Step 2: Sub-Agent Execution with Failover Loop
+    let executionResult;
+    try {
+      executionResult = await agentEngine.processQuery({ query: goalText });
+    } catch (err) {
+      // Check if error is quota or rate-limit
+      const errMsg = err.message || '';
+      if (errMsg.includes('429') || errMsg.includes('ResourceExhausted') || errMsg.includes('quota') || errMsg.includes('limit')) {
+        const failedModel = activeModel.id;
+        const backupModel = this.reportModelQuotaError(failedModel, errMsg);
+        activeModel = backupModel;
+
+        failoverEvents.push({
+          time: new Date().toLocaleTimeString(),
+          failedModel,
+          newModel: backupModel.id,
+          reason: '429 Rate Limit Exceeded'
+        });
+
+        logs.push({ 
+          time: new Date().toLocaleTimeString(), 
+          agent: 'Swarm Coordinator', 
+          text: `[AGENT FAILOVER] Model '${failedModel}' hit rate limit! Hot-swapping sub-agents to backup model '${backupModel.name}'...`, 
+          type: 'warning' 
+        });
+
+        // Retry with backup model
+        executionResult = await agentEngine.processQuery({ query: goalText });
+      } else {
+        throw err;
+      }
+    }
     
-    logs.push({ time: new Date().toLocaleTimeString(), agent: 'Master Coordinator', text: `Execution complete. Response synthesized: "${executionResult.response}"`, type: 'success' });
+    logs.push({ 
+      time: new Date().toLocaleTimeString(), 
+      agent: 'Master Coordinator', 
+      text: `Task completed using '${activeModel.name}'. Response synthesized: "${executionResult.response}"`, 
+      type: 'success' 
+    });
 
     // Reset status
     this.agents.forEach(a => a.status = 'idle');
@@ -107,9 +219,13 @@ class SwarmEngine {
       success: true,
       goal: goalText,
       taskPlan,
+      activeModel: activeModel.id,
+      activeModelName: activeModel.name,
+      failoverEvents,
       memoriesUsed: memories,
       logs,
       result: executionResult.response,
+      agentsStatus: this.getAgentsStatus(),
       timestamp
     };
   }

@@ -132,11 +132,20 @@ export default function SwarmOrchestratorWidget({ onClose }) {
                 <div className={`p-2 rounded-lg ${isActive ? 'bg-cyan-400/20 text-cyan-300' : 'bg-slate-800 text-slate-400'}`}>
                   <Icon className="w-4 h-4" />
                 </div>
-                <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-cyan-400 animate-ping' : isDone ? 'bg-emerald-400' : 'bg-slate-600'}`} />
+                <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded font-mono ${
+                  agent.healthStatus === 'FAILOVER_ACTIVE' 
+                    ? 'bg-amber-950 text-amber-300 border border-amber-500/40' 
+                    : 'bg-emerald-950 text-emerald-300 border border-emerald-500/30'
+                }`}>
+                  {agent.healthStatus === 'FAILOVER_ACTIVE' ? '⚡ FAILOVER' : '● HEALTHY'}
+                </span>
               </div>
               <div>
                 <div className="text-xs font-bold font-orbitron truncate">{agent.name}</div>
                 <div className="text-[10px] text-slate-400 truncate">{agent.role}</div>
+                <div className="text-[9px] font-mono text-cyan-400/80 truncate mt-1">
+                  Model: {agent.activeModelName || 'gemini-2.5-flash'}
+                </div>
               </div>
               <div className="mt-2 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[9px] font-mono uppercase">
                 <span className={isActive ? 'text-cyan-400 font-bold' : 'text-slate-500'}>
