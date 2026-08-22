@@ -64,6 +64,7 @@ export default function App() {
   const [showDevicesMasterHub, setShowDevicesMasterHub] = useState(false);
   const [showAiMasterHub, setShowAiMasterHub] = useState(false);
   const [showSportsHub, setShowSportsHub] = useState(false);
+  const [showMaps, setShowMaps] = useState(false);
   const [showAgenticActions, setShowAgenticActions] = useState(false);
   const [showHealthHub, setShowHealthHub] = useState(false);
   const [showLaptopConnect, setShowLaptopConnect] = useState(false);
