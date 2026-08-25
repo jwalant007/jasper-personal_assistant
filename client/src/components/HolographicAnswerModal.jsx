@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Hologram3dCanvas from './Hologram3dCanvas';
 import { speakMessage } from '../utils/speakDeviceAudio';
 import { getApiBase } from '../utils/apiConfig';
@@ -26,6 +26,13 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
   );
   const [isLoading, setIsLoading] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+
+  useEffect(() => {
+    if (initialQuery) {
+      setQuery(initialQuery);
+      handleAskQuery(initialQuery);
+    }
+  }, [initialQuery]);
 
   const modePresets = [
     { id: 'spiderman', label: 'Spider-Man Cyber Web', emoji: '🕸️', icon: Eye },

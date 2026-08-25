@@ -909,8 +909,8 @@ export default function App() {
       return;
     }
 
-    // Intercept 3D Hologram commands
-    const hologramRegex = /(3d hologram|hologram|show 3d|render 3d|spiderman 3d|3d model)/i;
+    // Intercept 3D Hologram commands (including "show me spiderman")
+    const hologramRegex = /(3d hologram|hologram|show 3d|render 3d|3d model|spiderman|spider-man|spider man|peter parker|iron spider|miles morales)/i;
     if (hologramRegex.test(queryText)) {
       setHologramQuery(queryText);
       setShowHologramModal(true);
