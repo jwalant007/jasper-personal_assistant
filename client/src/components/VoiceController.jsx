@@ -175,8 +175,12 @@ const VoiceController = forwardRef(({
           try {
             const data = JSON.parse(event.data);
             if (data.type === 'WAKE_UP') {
-              console.log('[VoiceController WS] Woke up from background voice listener!');
-              startListeningWithChime();
+              console.log('[VoiceController WS] Woke up from background voice listener!', data);
+              if (data.action === 'WORK_ROUTINE' || (data.phrase && /work|ready for work|prepare for work/i.test(data.phrase))) {
+                onCommandReceived('Hey Jasper, get ready for work');
+              } else {
+                startListeningWithChime();
+              }
             }
           } catch (err) {
             console.error('[VoiceController WS] Parse error:', err);

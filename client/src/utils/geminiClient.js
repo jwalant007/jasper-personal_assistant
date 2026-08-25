@@ -703,7 +703,7 @@ class GeminiClient {
     return [];
   }
 
-  async sendQuery(userText, onLog) {
+  async sendQuery(userText, onLog, attachments = []) {
     // Search semantic memory vector store for relevance
     const relevantMemories = await this.fetchSemanticMemories(userText);
     if (relevantMemories.length > 0) {
@@ -712,7 +712,7 @@ class GeminiClient {
 
     // 1. If provider is set to Ollama Local Server, or if no Gemini key exists, run Ollama engine!
     if (this.provider === 'ollama' || !this.apiKey) {
-      return this.handleOllamaQueryMode(userText, onLog, relevantMemories);
+      return this.handleOllamaQueryMode(userText, onLog, attachments);
     }
 
     onLog(`[JASPER CORE] Processing neural request via Gemini Cloud...`, 'info');
@@ -723,10 +723,41 @@ class GeminiClient {
       promptWithMemory = `[System Memory Grounding: ${relevantMemories.map(m => m.text).join('; ')}]\nUser Request: ${userText}`;
     }
 
+    // Build text contents from text/code file attachments if present
+    let attachedTextContent = '';
+    const inlineDataParts = [];
+
+    if (Array.isArray(attachments) && attachments.length > 0) {
+      onLog(`[MULTIMODAL CORE] Processing ${attachments.length} attachment(s)...`, 'info');
+      attachments.forEach((att, idx) => {
+        if (att.textContent) {
+          attachedTextContent += `\n\n--- [Attached File ${idx + 1}: ${att.name}] ---\n${att.textContent}\n--- [End of ${att.name}] ---`;
+        } else if (att.base64) {
+          // Gemini API supports image, pdf, audio inlineData
+          inlineDataParts.push({
+            inlineData: {
+              mimeType: att.type || 'image/jpeg',
+              data: att.base64
+            }
+          });
+        }
+      });
+    }
+
+    if (attachedTextContent) {
+      promptWithMemory += attachedTextContent;
+    }
+
+    // Combine text part and any inline binary parts (images, PDF, audio)
+    const userParts = [
+      { text: promptWithMemory },
+      ...inlineDataParts
+    ];
+
     // Add user message to history
     this.chatHistory.push({
       role: 'user',
-      parts: [{ text: promptWithMemory }]
+      parts: userParts
     });
 
     // Limit history length to keep context clean (50 messages for richer memory)
@@ -747,13 +778,26 @@ class GeminiClient {
     } catch (err) {
       console.error('[Gemini API Client Error]:', err);
       onLog(`[API ERROR] Gemini connection failed: ${err.message}. Rerouting to Ollama local server...`, 'error');
-      return this.handleOllamaQueryMode(userText, onLog);
+      return this.handleOllamaQueryMode(userText, onLog, attachments);
     }
   }
 
   // Ollama Primary & Fallback Engine Handler
-  async handleOllamaQueryMode(userText, onLog) {
+  async handleOllamaQueryMode(userText, onLog, attachments = []) {
     onLog(`[OLLAMA ENGINE] Querying local model '${this.ollamaModel}'...`, 'info');
+
+    let fullPrompt = userText;
+    const images = [];
+
+    if (Array.isArray(attachments) && attachments.length > 0) {
+      attachments.forEach((att, idx) => {
+        if (att.textContent) {
+          fullPrompt += `\n\n--- [Attached File ${idx + 1}: ${att.name}] ---\n${att.textContent}\n--- [End of ${att.name}] ---`;
+        } else if (att.base64 && (att.isImage || att.type?.startsWith('image/'))) {
+          images.push(att.base64);
+        }
+      });
+    }
 
     // First, check local intent rules for volume, app launch, etc.
     const raw = userText.toLowerCase().trim();
@@ -776,10 +820,14 @@ class GeminiClient {
     }
 
     try {
+      const payload = { prompt: fullPrompt, model: this.ollamaModel };
+      if (images.length > 0) {
+        payload.images = images;
+      }
       const res = await fetch(`${getApiBase()}/api/ollama/query`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: userText, model: this.ollamaModel })
+        body: JSON.stringify(payload)
       });
       if (res.ok) {
         const data = await res.json();
@@ -796,7 +844,7 @@ class GeminiClient {
     if (this.apiKey) {
       onLog(`[NEURAL CORE] Local Ollama offline. Failover to Gemini Cloud AI...`, 'warning');
       try {
-        this.chatHistory.push({ role: 'user', parts: [{ text: userText }] });
+        this.chatHistory.push({ role: 'user', parts: [{ text: fullPrompt }] });
         const responseText = await this.runGeminiLoop(onLog);
         this.chatHistory.push({ role: 'model', parts: [{ text: responseText }] });
         return responseText;

@@ -43,6 +43,10 @@ try {
 $WakeChoices = New-Object System.Speech.Recognition.Choices
 $WakeChoices.Add("Hey Jasper")
 $WakeChoices.Add("Jasper")
+$WakeChoices.Add("Hey Jasper get ready for work")
+$WakeChoices.Add("Hey Jasper, get ready for work")
+$WakeChoices.Add("get ready for work")
+$WakeChoices.Add("prepare for work")
 
 $GrammarBuilder = New-Object System.Speech.Recognition.GrammarBuilder
 $GrammarBuilder.Append($WakeChoices)
@@ -50,7 +54,7 @@ $GrammarBuilder.Append($WakeChoices)
 $Grammar = New-Object System.Speech.Recognition.Grammar($GrammarBuilder)
 $Engine.LoadGrammar($Grammar)
 
-Write-Host "[SYSTEM] Wake-phrase loaded: 'Hey Jasper'"
+Write-Host "[SYSTEM] Wake-phrases loaded: 'Hey Jasper', 'Hey Jasper, get ready for work'"
 Write-Host "[SYSTEM] Mode: ALWAYS ON / OFFLINE LISTENING..."
 Write-Host "[SYSTEM] Standing by..."
 
@@ -68,11 +72,11 @@ while ($true) {
             
             # 0.65 threshold works well for clear speech without too many false triggers
             if ($Confidence -ge 0.65) {
-                Write-Host "[WAKE DETECTED] Activating JASPER system core..."
+                Write-Host "[WAKE DETECTED] Activating JASPER system core for phrase: '$Text'..."
                 
                 # Send HTTP POST to the local Express server
                 try {
-                    $BodyObj = @{ source = "voice_background"; confidence = $Confidence }
+                    $BodyObj = @{ source = "voice_background"; phrase = $Text; confidence = $Confidence }
                     $BodyJson = $BodyObj | ConvertTo-Json
                     
                     $response = Invoke-RestMethod -Method Post -Uri "http://localhost:3001/api/system/wake" -ContentType "application/json; charset=utf-8" -Body $BodyJson

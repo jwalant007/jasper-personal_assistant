@@ -106,7 +106,10 @@ function startBackgroundVoiceListener() {
 // Wake trigger endpoint called by background listener.ps1
 app.post('/api/system/wake', (req, res) => {
   const now = Date.now();
-  console.log('[API] Wake request received from background speech listener.');
+  const phrase = req.body?.phrase || '';
+  const isWorkRoutine = /work|ready for work|prepare for work/i.test(phrase);
+  
+  console.log(`[API] Wake request received from background speech listener. Phrase: "${phrase}" | WorkRoutine: ${isWorkRoutine}`);
 
   if (now - lastWakeTime < WAKE_COOLDOWN) {
     console.log('[API] Wake request ignored due to cooldown.');
@@ -116,26 +119,27 @@ app.post('/api/system/wake', (req, res) => {
   lastWakeTime = now;
   
   // 1. Broadcast wake signal to active web clients
-  broadcastToClients({ type: 'WAKE_UP', timestamp: now });
+  broadcastToClients({ 
+    type: 'WAKE_UP', 
+    action: isWorkRoutine ? 'WORK_ROUTINE' : 'WAKE', 
+    phrase: phrase,
+    timestamp: now 
+  });
 
-  // 2. If no clients are connected, launch the browser automatically!
-  if (activeSockets.size === 0) {
-    console.log('[API] No active dashboard client connected. Launching browser...');
-    const clientUrl = 'http://localhost:5173/?wake=true';
-    
-    // Windows command to launch default browser
-    exec(`start ${clientUrl}`, (err) => {
-      if (err) {
-        console.error('[API] Error launching client browser:', err);
-      } else {
-        console.log('[API] Client browser launched successfully.');
-      }
-    });
-  } else {
-    console.log(`[API] Broadcasted wake signal to ${activeSockets.size} open dashboard client(s).`);
-  }
+  // 2. Launch or focus the client browser / desktop window immediately
+  const clientUrl = `http://localhost:5173/?wake=true${isWorkRoutine ? '&action=work' : ''}`;
+  console.log(`[API] Opening JASPER app immediately: ${clientUrl}`);
+  
+  // Windows command to launch/focus default browser immediately
+  exec(`start ${clientUrl}`, (err) => {
+    if (err) {
+      console.error('[API] Error launching client browser:', err);
+    } else {
+      console.log('[API] Client browser launched successfully.');
+    }
+  });
 
-  res.json({ status: 'activated' });
+  res.json({ status: 'activated', isWorkRoutine });
 });
 
 // PC Volume manipulation endpoint
@@ -1736,14 +1740,14 @@ app.get('/api/ollama/models', (req, res) => {
 });
 
 app.post('/api/ollama/query', async (req, res) => {
-  const { prompt = '', model = 'llama3', system = '' } = req.body;
-  console.log('[Ollama Engine] Processing query with local model:', model, '| Prompt:', prompt.substring(0, 60));
+  const { prompt = '', model = 'llama3', system = '', images = [] } = req.body;
+  console.log('[Ollama Engine] Processing query with local model:', model, '| Prompt:', prompt.substring(0, 60), '| Images:', images.length);
   
   try {
     const http = require('http');
     const systemPersona = system || "You are J.A.S.P.E.R. (Just Another Super Intelligent Personal Assistant), Tony Stark's 200+ IQ AI assistant. Always address the user politely as 'Sir'. Provide smart, concise, highly intelligent responses.";
     
-    const postData = JSON.stringify({
+    const ollamaPayload = {
       model: model || 'llama3',
       prompt: prompt,
       system: systemPersona,
@@ -1752,7 +1756,13 @@ app.post('/api/ollama/query', async (req, res) => {
         temperature: 0.7,
         num_predict: 2048
       }
-    });
+    };
+
+    if (Array.isArray(images) && images.length > 0) {
+      ollamaPayload.images = images;
+    }
+
+    const postData = JSON.stringify(ollamaPayload);
 
     const options = {
       hostname: '127.0.0.1',

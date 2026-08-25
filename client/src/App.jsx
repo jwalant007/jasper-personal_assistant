@@ -117,7 +117,115 @@ export default function App() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [apkDownloadUrl, setApkDownloadUrl] = useState('');
   const hudPanelRef = useRef(null);
+  const fileInputRef = useRef(null);
   const [showScrollTopButton, setShowScrollTopButton] = useState(false);
+  const [pendingAttachments, setPendingAttachments] = useState([]);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState(null);
+
+  const processFiles = (files) => {
+    if (!files || files.length === 0) return;
+    const fileArray = Array.from(files);
+
+    fileArray.forEach((file) => {
+      if (file.size > 20 * 1024 * 1024) {
+        alert(`File "${file.name}" exceeds the maximum size limit of 20MB.`);
+        return;
+      }
+
+      const isImage = file.type.startsWith('image/');
+      const isAudio = file.type.startsWith('audio/');
+      const isPdf = file.type === 'application/pdf';
+      const isText = file.type.startsWith('text/') || 
+                     /\.(js|jsx|ts|tsx|json|csv|py|md|html|css|c|cpp|h|java|txt|log|xml|yaml|yml|sh|ps1)$/i.test(file.name);
+
+      const reader = new FileReader();
+
+      if (isText) {
+        reader.onload = (e) => {
+          const textContent = e.target.result;
+          setPendingAttachments(prev => [
+            ...prev,
+            {
+              id: Date.now() + Math.random(),
+              name: file.name,
+              type: file.type || 'text/plain',
+              size: file.size,
+              isText: true,
+              textContent: textContent,
+              icon: '📄'
+            }
+          ]);
+        };
+        reader.readAsText(file);
+      } else {
+        reader.onload = (e) => {
+          const dataUrl = e.target.result;
+          const base64 = dataUrl.split(',')[1] || '';
+          
+          let icon = '📁';
+          if (isImage) icon = '🖼️';
+          else if (isAudio) icon = '🎵';
+          else if (isPdf) icon = '📕';
+
+          setPendingAttachments(prev => [
+            ...prev,
+            {
+              id: Date.now() + Math.random(),
+              name: file.name,
+              type: file.type || (isImage ? 'image/png' : 'application/octet-stream'),
+              size: file.size,
+              dataUrl: dataUrl,
+              base64: base64,
+              isImage,
+              isAudio,
+              isPdf,
+              icon
+            }
+          ]);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  };
+
+  const handleFileSelect = (e) => {
+    processFiles(e.target.files);
+    e.target.value = null;
+  };
+
+  const handleRemoveAttachment = (id) => {
+    setPendingAttachments(prev => prev.filter(att => att.id !== id));
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isDraggingOver) setIsDraggingOver(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.clientX <= 0 || e.clientY <= 0 || e.clientX >= window.innerWidth || e.clientY >= window.innerHeight) {
+      setIsDraggingOver(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(false);
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      processFiles(e.dataTransfer.files);
+    }
+  };
+
+  const handlePaste = (e) => {
+    if (e.clipboardData && e.clipboardData.files && e.clipboardData.files.length > 0) {
+      processFiles(e.clipboardData.files);
+    }
+  };
 
   const handleHudScroll = (e) => {
     if (e.target.scrollTop > 60) {
@@ -632,6 +740,21 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
+  // Auto-detect wake triggers in URL parameters (e.g. ?wake=true&action=work)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.search) {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('wake') === 'true') {
+        setIsLocked(false);
+        if (params.get('action') === 'work') {
+          setTimeout(() => {
+            handleCommand('Hey Jasper, get ready for work');
+          }, 800);
+        }
+      }
+    }
+  }, []);
+
   const triggerMorningBriefing = async () => {
     setJasperState('processing');
     try {
@@ -746,19 +869,53 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // Process User Command (Voice or Text)
-  const handleCommand = async (commandText) => {
-    if (!commandText.trim()) return;
+  // Process User Command (Voice, Text, and Attachments)
+  const handleCommand = async (commandText, attachments = []) => {
+    const hasAttachments = Array.isArray(attachments) && attachments.length > 0;
+    if (!commandText.trim() && !hasAttachments) return;
+
+    const queryText = commandText.trim() || (attachments.length === 1 ? `[Uploaded file: ${attachments[0].name}]` : `[Uploaded ${attachments.length} files]`);
+
+    // Intercept "Get ready for work" wake-up routine
+    const workRoutineRegex = /(get ready for work|ready for work|prepare for work|start work routine)/i;
+    if (workRoutineRegex.test(queryText)) {
+      try {
+        geminiClient.executeTool('set_pc_volume', { action: 'set', value: 50 });
+      } catch (e) {}
+
+      setIsLocked(false);
+      const response = `Good day, Sir! Initializing your work environment immediately. Setting master volume to 50%, unlocking systems, and bringing up your morning work briefing.`;
+      const newChat = {
+        id: Date.now(),
+        query: queryText,
+        attachments: attachments,
+        response: response,
+        timestamp: new Date().toLocaleString()
+      };
+      setPastChats((prev) => [newChat, ...prev]);
+      setSelectedChatId(newChat.id);
+      setSpeakingText(response);
+      
+      setTimeout(() => {
+        triggerMorningBriefing();
+      }, 1800);
+
+      if (voiceControllerRef.current) {
+        voiceControllerRef.current.playSuccess();
+      }
+      return;
+    }
 
     // Intercept Agentic Actions commands (book table, call restaurant, reserve, agentic action)
     const agenticRegex = /(book|reserve|call restaurant|agentic action|schedule appointment)/i;
-    if (agenticRegex.test(commandText)) {
-      setAgenticQuery(commandText);
+    if (agenticRegex.test(queryText)) {
+      setAgenticQuery(queryText);
       setShowAgenticActions(true);
-      const response = `Initiating J.A.S.P.E.R. Agentic Actions module for query: "${commandText}"`;
+      const response = `Initiating J.A.S.P.E.R. Agentic Actions module for query: "${queryText}"`;
       const newChat = {
         id: Date.now(),
-        query: commandText,
+        query: queryText,
+        attachments: attachments,
         response: response,
         timestamp: new Date().toLocaleString()
       };
@@ -772,7 +929,7 @@ export default function App() {
 
     // Intercept time-based reminders
     const reminderRegex = /remind me to (.*?) in (\d+)\s*(second|sec|minute|min|hour|hr)s?/i;
-    const match = commandText.match(reminderRegex);
+    const match = queryText.match(reminderRegex);
     if (match) {
       const task = match[1];
       const amount = parseInt(match[2], 10);
@@ -799,7 +956,8 @@ export default function App() {
       
       const newChat = {
         id: Date.now(),
-        query: commandText,
+        query: queryText,
+        attachments: attachments,
         response: response,
         timestamp: new Date().toLocaleString()
       };
@@ -816,15 +974,16 @@ export default function App() {
 
     setJasperState('processing');
 
-    // 1. Query Gemini / Fallback Handler
-    const response = await geminiClient.sendQuery(commandText, (text, type) => {
+    // 1. Query Gemini / Fallback Handler with Attachments
+    const response = await geminiClient.sendQuery(queryText, (text, type) => {
       console.log(`[${type.toUpperCase()}] ${text}`);
-    });
+    }, attachments);
 
     // 2. Add new chat to history
     const newChat = {
       id: Date.now(),
-      query: commandText,
+      query: queryText,
+      attachments: attachments,
       response: response,
       timestamp: new Date().toLocaleString()
     };
@@ -843,10 +1002,12 @@ export default function App() {
 
   const handleManualSubmit = (e) => {
     e.preventDefault();
-    if (!manualInput.trim()) return;
+    if (!manualInput.trim() && pendingAttachments.length === 0) return;
     const cmd = manualInput;
+    const atts = [...pendingAttachments];
     setManualInput('');
-    handleCommand(cmd);
+    setPendingAttachments([]);
+    handleCommand(cmd, atts);
   };
 
   const handleSaveKey = (e) => {
@@ -1320,7 +1481,21 @@ export default function App() {
           </header>
 
           {/* Main Response Area */}
-          <main className={`flex-1 overflow-hidden flex flex-col relative ${isMobileLayout ? 'p-2 sm:p-4' : 'p-6'}`}>
+          <main 
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`flex-1 overflow-hidden flex flex-col relative ${isMobileLayout ? 'p-2 sm:p-4' : 'p-6'}`}
+          >
+            {/* Drag & Drop Sci-Fi Overlay */}
+            {isDraggingOver && (
+              <div className="drag-drop-overlay">
+                <div className="text-4xl animate-bounce">📥</div>
+                <div className="text-lg font-bold tracking-widest text-cyan-300">DROP FILES TO UPLOAD TO J.A.S.P.E.R.</div>
+                <div className="text-xs font-mono text-cyan-400">Images, Code, PDFs, Text Documents & Audio supported</div>
+              </div>
+            )}
+
             <div 
               ref={hudPanelRef}
               onScroll={handleHudScroll}
@@ -1348,6 +1523,35 @@ export default function App() {
                     <span className="truncate max-w-[70%]">QUERY: {pastChats.find(c => c.id === selectedChatId)?.query}</span>
                     <span className="shrink-0">{pastChats.find(c => c.id === selectedChatId)?.timestamp}</span>
                   </div>
+
+                  {/* Attached Files in user message */}
+                  {pastChats.find(c => c.id === selectedChatId)?.attachments?.length > 0 && (
+                    <div className="flex flex-wrap gap-3 my-2">
+                      {pastChats.find(c => c.id === selectedChatId).attachments.map((att) => (
+                        att.isImage ? (
+                          <div 
+                            key={att.id} 
+                            className="relative group cursor-pointer border border-cyan-500/30 rounded-lg overflow-hidden bg-black/50 p-1.5 hover:border-cyan-400 transition-all shadow-[0_0_15px_rgba(0,240,255,0.15)]"
+                            onClick={() => setLightboxImage(att.dataUrl)}
+                          >
+                            <img src={att.dataUrl} alt={att.name} className="h-36 max-w-xs object-cover rounded" />
+                            <div className="absolute inset-0 bg-cyan-950/70 opacity-0 group-hover:opacity-100 flex items-center justify-center text-cyan-300 font-mono text-xs transition-opacity">
+                              🔍 Expand Image
+                            </div>
+                          </div>
+                        ) : (
+                          <div key={att.id} className="flex items-center gap-2.5 px-3 py-2 bg-slate-900/80 border border-cyan-500/30 rounded-lg font-mono text-xs text-cyan-200">
+                            <span className="text-xl">{att.icon || '📄'}</span>
+                            <div className="flex flex-col">
+                              <span className="font-semibold text-cyan-100 truncate max-w-[200px]">{att.name}</span>
+                              <span className="text-[10px] text-sky-400">{(att.size / 1024).toFixed(1)} KB</span>
+                            </div>
+                          </div>
+                        )
+                      ))}
+                    </div>
+                  )}
+
                   {renderResponseText(pastChats.find(c => c.id === selectedChatId)?.response)}
                 </div>
               ) : (
@@ -1369,6 +1573,9 @@ export default function App() {
 
                   {/* Interactive Stark HUD Quick Action Pills */}
                   <div className="flex flex-wrap items-center justify-center gap-2 max-w-2xl px-2">
+                    <button onClick={() => handleCommand('Hey Jasper, get ready for work')} className="jarvis-pill bg-emerald-500/20 border-emerald-400/50 text-emerald-200 hover:bg-emerald-500/30 font-bold">
+                      💼 Get Ready for Work
+                    </button>
                     <button onClick={triggerMorningBriefing} className="jarvis-pill bg-amber-500/20 border-amber-400/50 text-amber-200 hover:bg-amber-500/30">
                       ☀️ Morning Briefing
                     </button>
@@ -1404,17 +1611,65 @@ export default function App() {
               )}
             </div>
 
+            {/* Staged Attachments Preview Bar */}
+            {pendingAttachments.length > 0 && (
+              <div className="chat-attachment-bar">
+                {pendingAttachments.map((att) => (
+                  <div key={att.id} className="chat-attachment-chip">
+                    {att.isImage ? (
+                      <img src={att.dataUrl} alt={att.name} className="chat-attachment-thumb" />
+                    ) : (
+                      <div className="chat-attachment-icon-badge">{att.icon}</div>
+                    )}
+                    <div className="flex flex-col text-left">
+                      <span className="font-medium text-cyan-100 truncate max-w-[140px]">{att.name}</span>
+                      <span className="text-[9px] text-sky-400">{(att.size / 1024).toFixed(1)} KB</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveAttachment(att.id)}
+                      className="chat-attachment-remove"
+                      title="Remove attachment"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Hidden File Input */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileSelect}
+              multiple
+              style={{ display: 'none' }}
+              accept="image/*,application/pdf,text/*,.js,.jsx,.ts,.tsx,.json,.csv,.py,.md,.html,.css,.c,.cpp,.java,.mp3,.wav,.ogg,.m4a"
+            />
+
             {/* Input Form */}
             <form onSubmit={handleManualSubmit} className={`flex border-t border-cyan-500/10 select-none shrink-0 ${isMobileLayout ? 'flex-col gap-2 mt-2 pt-2' : 'flex-row gap-3 mt-4 pt-4'}`}>
-              <input
-                type="text"
-                value={manualInput}
-                onChange={(e) => setManualInput(e.target.value)}
-                placeholder="Enter command or question..."
-                className={`input-main bg-black/50 px-4 py-3 border border-cyan-500/20 text-cyan-100 placeholder-sky-700/80 outline-none font-mono text-sm sm:text-base w-full focus:border-cyan-400/60 transition-all`}
-                style={{ fontSize: '16px' }}
-              />
-              <div className={`flex gap-2 ${isMobileLayout ? 'w-full' : ''}`}>
+              <div className="flex items-center gap-2 w-full">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="btn-attach shrink-0"
+                  title="Upload image or file"
+                >
+                  📎
+                </button>
+                <input
+                  type="text"
+                  value={manualInput}
+                  onChange={(e) => setManualInput(e.target.value)}
+                  onPaste={handlePaste}
+                  placeholder={pendingAttachments.length > 0 ? "Ask JASPER about uploaded file(s)..." : "Enter command or question, paste or drop files..."}
+                  className={`input-main bg-black/50 px-4 py-3 border border-cyan-500/20 text-cyan-100 placeholder-sky-700/80 outline-none font-mono text-sm sm:text-base w-full focus:border-cyan-400/60 transition-all`}
+                  style={{ fontSize: '16px' }}
+                />
+              </div>
+              <div className={`flex gap-2 ${isMobileLayout ? 'w-full shrink-0' : ''}`}>
                 <button 
                   type="submit" 
                   className={`btn-send flex items-center justify-center shrink-0 ${isMobileLayout ? 'flex-1 py-2.5 text-xs' : ''}`}
@@ -2244,6 +2499,22 @@ export default function App() {
         autoTranslateEnabled={autoTranslateEnabled}
         onToggleAutoTranslate={(val) => setAutoTranslateEnabled(val)}
       />
+
+      {/* 19. Lightbox Image Preview Modal */}
+      {lightboxImage && (
+        <div className="image-lightbox-backdrop" onClick={() => setLightboxImage(null)}>
+          <div className="image-lightbox-content" onClick={e => e.stopPropagation()}>
+            <button 
+              type="button"
+              className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-cyan-950/80 border border-cyan-400 text-cyan-200 flex items-center justify-center hover:bg-cyan-900 transition-all font-bold cursor-pointer"
+              onClick={() => setLightboxImage(null)}
+            >
+              ✕
+            </button>
+            <img src={lightboxImage} alt="Uploaded attachment full preview" className="image-lightbox-img" />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
