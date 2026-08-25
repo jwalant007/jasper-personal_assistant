@@ -187,6 +187,25 @@ export default function Hologram3dCanvas({ mode = 'spiderman', spidermanSuit = '
       };
     }
 
+    const handleResize = () => {
+      if (!container) return;
+      const w = container.clientWidth || container.offsetWidth || 500;
+      const h = container.clientHeight || container.offsetHeight || 380;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    let resizeObserver;
+    try {
+      resizeObserver = new ResizeObserver(() => {
+        handleResize();
+      });
+      resizeObserver.observe(container);
+    } catch (e) {}
+
     // Interactive Drag to Rotate
     let isDragging = false;
     let previousMousePosition = { x: 0, y: 0 };
@@ -225,10 +244,13 @@ export default function Hologram3dCanvas({ mode = 'spiderman', spidermanSuit = '
     };
 
     renderLoop();
+    handleResize(); // Initial sizing check after DOM attachment
 
     // Cleanup on unmount
     return () => {
       cancelAnimationFrame(animationFrameId);
+      window.removeEventListener('resize', handleResize);
+      if (resizeObserver) resizeObserver.disconnect();
       domEl.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);

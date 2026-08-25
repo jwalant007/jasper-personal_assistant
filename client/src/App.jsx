@@ -28,6 +28,7 @@ import UserManualWidget from './components/UserManualWidget';
 import HealthFitbandWidget from './components/HealthFitbandWidget';
 import LaptopConnectModal from './components/LaptopConnectModal';
 import LiveTranslationWidget from './components/LiveTranslationWidget';
+import HolographicAnswerModal from './components/HolographicAnswerModal';
 import geminiClient from './utils/geminiClient';
 import { getServerIp, setServerIp } from './utils/apiConfig.js';
 import { getPhoneBrainMode, setPhoneBrainMode, togglePhoneBrainMode } from './utils/mobileBrain.js';
@@ -42,7 +43,7 @@ import {
   captureWebcamFrameAsBase64,
   syncOwnerProfileFromServer
 } from './utils/faceBiometrics.js';
-import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, BookOpen, Activity, Heart, Laptop, Languages } from 'lucide-react';
+import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, BookOpen, Activity, Heart, Laptop, Languages, Box } from 'lucide-react';
 
 export default function App() {
   const [jasperState, setJasperState] = useState('idle'); // idle, listening, processing, speaking
@@ -265,6 +266,8 @@ export default function App() {
   const [scanProgress, setScanProgress] = useState(0);
   const [voiceTranscript, setVoiceTranscript] = useState('');
   const [showAudioPage, setShowAudioPage] = useState(false);
+  const [showHologramModal, setShowHologramModal] = useState(false);
+  const [hologramQuery, setHologramQuery] = useState('');
 
   // Auto-detect mobile screen on load & window resize
   useEffect(() => {
@@ -906,6 +909,28 @@ export default function App() {
       return;
     }
 
+    // Intercept 3D Hologram commands
+    const hologramRegex = /(3d hologram|hologram|show 3d|render 3d|spiderman 3d|3d model)/i;
+    if (hologramRegex.test(queryText)) {
+      setHologramQuery(queryText);
+      setShowHologramModal(true);
+      const response = `Activating J.A.S.P.E.R. 3D Holographic Rendering Engine for query: "${queryText}"`;
+      const newChat = {
+        id: Date.now(),
+        query: queryText,
+        attachments: attachments,
+        response: response,
+        timestamp: new Date().toLocaleString()
+      };
+      setPastChats((prev) => [newChat, ...prev]);
+      setSelectedChatId(newChat.id);
+      setSpeakingText(response);
+      if (voiceControllerRef.current) {
+        voiceControllerRef.current.playSuccess();
+      }
+      return;
+    }
+
     // Intercept Agentic Actions commands (book table, call restaurant, reserve, agentic action)
     const agenticRegex = /(book|reserve|call restaurant|agentic action|schedule appointment)/i;
     if (agenticRegex.test(queryText)) {
@@ -1198,6 +1223,9 @@ export default function App() {
                 
                 <button onClick={() => setShowLiveTranslation(!showLiveTranslation)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-blue-400/60 bg-blue-500/20 text-blue-300 font-extrabold shadow-[0_0_15px_rgba(59,130,246,0.35)]">
                   <Languages size={12} className="text-blue-400 animate-pulse" /> CHROME LIVE TRANSLATE
+                </button>
+                <button onClick={() => setShowHologramModal(!showHologramModal)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-purple-400/60 bg-purple-500/20 text-purple-300 font-extrabold shadow-[0_0_15px_rgba(168,85,247,0.35)]">
+                  <Box size={12} className="text-purple-400 animate-pulse" /> 3D HOLOGRAM VISUALIZER
                 </button>
                 <button onClick={() => setShowAgenticActions(!showAgenticActions)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-cyan-400/60 bg-cyan-500/20 text-cyan-300 font-extrabold shadow-[0_0_12px_rgba(6,182,212,0.25)]">
                   <PhoneCall size={12} className="text-cyan-400 animate-pulse" /> AGENTIC ACTIONS
@@ -1573,6 +1601,9 @@ export default function App() {
 
                   {/* Interactive Stark HUD Quick Action Pills */}
                   <div className="flex flex-wrap items-center justify-center gap-2 max-w-2xl px-2">
+                    <button onClick={() => setShowHologramModal(true)} className="jarvis-pill bg-purple-500/20 border-purple-400/50 text-purple-200 hover:bg-purple-500/30 font-bold">
+                      🌌 3D Hologram
+                    </button>
                     <button onClick={() => handleCommand('Hey Jasper, get ready for work')} className="jarvis-pill bg-emerald-500/20 border-emerald-400/50 text-emerald-200 hover:bg-emerald-500/30 font-bold">
                       💼 Get Ready for Work
                     </button>
@@ -2499,6 +2530,19 @@ export default function App() {
         autoTranslateEnabled={autoTranslateEnabled}
         onToggleAutoTranslate={(val) => setAutoTranslateEnabled(val)}
       />
+
+      {/* 20. 3D Holographic Visualizer Modal */}
+      {showHologramModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
+          <HolographicAnswerModal 
+            initialQuery={hologramQuery}
+            onClose={() => {
+              setShowHologramModal(false);
+              setHologramQuery('');
+            }} 
+          />
+        </div>
+      )}
 
       {/* 19. Lightbox Image Preview Modal */}
       {lightboxImage && (
