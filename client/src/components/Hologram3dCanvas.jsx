@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 export default function Hologram3dCanvas({ mode = 'spiderman', spidermanSuit = 'classic', autoRotate = true }) {
   const mountRef = useRef(null);
@@ -87,224 +88,297 @@ export default function Hologram3dCanvas({ mode = 'spiderman', spidermanSuit = '
       const figureGroup = new THREE.Group();
       hologramGroup.add(figureGroup);
 
-      // 1. HEAD MASK (Anatomical Mask Head with Tapered Neck)
-      const headGeo = new THREE.SphereGeometry(0.72, 32, 24);
-      headGeo.scale(0.85, 1.15, 0.92);
-      const headMat = new THREE.MeshStandardMaterial({
+      // 1. ANATOMICAL SMOOTH CURVED HEAD MASK
+      const headPoints = [
+        new THREE.Vector2(0, 0.75),
+        new THREE.Vector2(0.42, 0.65),
+        new THREE.Vector2(0.48, 0.35),
+        new THREE.Vector2(0.45, 0.0),
+        new THREE.Vector2(0.38, -0.35),
+        new THREE.Vector2(0.24, -0.65),
+        new THREE.Vector2(0.0, -0.72)
+      ];
+
+      const headGeo = new THREE.LatheGeometry(headPoints, 32);
+      const headMat = new THREE.MeshPhysicalMaterial({
         color: primaryColor,
+        clearcoat: 0.85,
+        clearcoatRoughness: 0.15,
         roughness: 0.25,
-        metalness: 0.4,
+        metalness: isIronSpider ? 0.85 : 0.35,
         emissive: primaryColor,
-        emissiveIntensity: 0.25
+        emissiveIntensity: 0.2
       });
       const headMesh = new THREE.Mesh(headGeo, headMat);
-      headMesh.position.set(0, 1.85, 0);
+      headMesh.position.set(0, 1.8, 0);
       figureGroup.add(headMesh);
 
-      // Neck Collar
-      const neckGeo = new THREE.CylinderGeometry(0.38, 0.44, 0.4, 16);
-      const neckMat = new THREE.MeshStandardMaterial({ color: isIronSpider ? 0xffd700 : primaryColor, roughness: 0.2, metalness: isIronSpider ? 0.8 : 0.3 });
+      // Smooth Neck Collar
+      const neckPoints = [
+        new THREE.Vector2(0.25, 0.0),
+        new THREE.Vector2(0.30, 0.2),
+        new THREE.Vector2(0.36, 0.4)
+      ];
+      const neckGeo = new THREE.LatheGeometry(neckPoints, 24);
+      const neckMat = new THREE.MeshPhysicalMaterial({
+        color: isIronSpider ? 0xffd700 : primaryColor,
+        clearcoat: 0.8,
+        metalness: isIronSpider ? 0.9 : 0.3,
+        roughness: 0.2
+      });
       const neckMesh = new THREE.Mesh(neckGeo, neckMat);
-      neckMesh.position.set(0, 1.35, 0);
+      neckMesh.position.set(0, 1.15, 0);
       figureGroup.add(neckMesh);
 
-      // Detailed Web Grid Texture Overlay on Mask Head
-      const headWebGeo = new THREE.SphereGeometry(0.73, 20, 14);
-      headWebGeo.scale(0.85, 1.15, 0.92);
-      const headWebMat = new THREE.MeshBasicMaterial({ color: isIronSpider ? 0xffd700 : secondaryColor, wireframe: true, transparent: true, opacity: 0.65 });
+      // Web Lattice Line Grid on Head Mask
+      const headWebGeo = new THREE.SphereGeometry(0.72, 24, 16);
+      headWebGeo.scale(0.88, 1.12, 0.95);
+      const headWebMat = new THREE.MeshBasicMaterial({
+        color: isIronSpider ? 0xffd700 : secondaryColor,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.55
+      });
       const headWebMesh = new THREE.Mesh(headWebGeo, headWebMat);
-      headWebMesh.position.set(0, 1.85, 0);
+      headWebMesh.position.set(0, 1.8, 0);
       figureGroup.add(headWebMesh);
 
-      // 2. SPIDER-MAN EYES / LENSES (Left & Right 3D Angular Expressive Lenses)
+      // 2. MOVIE-ACCURATE EXPRESSIVE 3D SPIDER EYES / LENSES
       [-0.22, 0.22].forEach(xOffset => {
-        // Glowing White Eye Lens
-        const eyeGeo = new THREE.CircleGeometry(0.2, 20);
-        eyeGeo.scale(0.75, 1.35, 1);
-        const eyeMat = new THREE.MeshStandardMaterial({
+        const eyeShape = new THREE.Shape();
+        eyeShape.moveTo(0, 0.28);
+        eyeShape.quadraticCurveTo(0.22, 0.20, 0.24, -0.05);
+        eyeShape.quadraticCurveTo(0.15, -0.26, 0, -0.32);
+        eyeShape.quadraticCurveTo(-0.15, -0.26, -0.24, -0.05);
+        eyeShape.quadraticCurveTo(-0.22, 0.20, 0, 0.28);
+
+        const eyeExtrudeSettings = { depth: 0.05, bevelEnabled: true, bevelSegments: 4, steps: 1, bevelSize: 0.02, bevelThickness: 0.02 };
+        const eyeGeo = new THREE.ExtrudeGeometry(eyeShape, eyeExtrudeSettings);
+        eyeGeo.scale(0.75, 0.9, 0.8);
+
+        // White Glowing Lens Surface
+        const eyeMat = new THREE.MeshPhysicalMaterial({
           color: eyeColor,
           emissive: eyeColor,
-          emissiveIntensity: 0.9,
-          side: THREE.DoubleSide
+          emissiveIntensity: 1.0,
+          clearcoat: 1.0,
+          clearcoatRoughness: 0.05
         });
         const eyeMesh = new THREE.Mesh(eyeGeo, eyeMat);
-        eyeMesh.position.set(xOffset, 1.94, 0.61);
-        eyeMesh.rotation.y = xOffset * -0.62;
-        eyeMesh.rotation.z = xOffset * 0.35;
+        eyeMesh.position.set(xOffset, 1.88, 0.58);
+        eyeMesh.rotation.y = xOffset * -0.58;
+        eyeMesh.rotation.z = xOffset * 0.3;
         figureGroup.add(eyeMesh);
 
-        // Dark Lens Frame Trim
-        const eyeFrameGeo = new THREE.RingGeometry(0.2, 0.27, 20);
-        eyeFrameGeo.scale(0.75, 1.35, 1);
-        const eyeFrameMat = new THREE.MeshBasicMaterial({ color: 0x020202, side: THREE.DoubleSide });
-        const eyeFrameMesh = new THREE.Mesh(eyeFrameGeo, eyeFrameMat);
-        eyeFrameMesh.position.set(xOffset, 1.94, 0.605);
-        eyeFrameMesh.rotation.y = xOffset * -0.62;
-        eyeFrameMesh.rotation.z = xOffset * 0.35;
-        figureGroup.add(eyeFrameMesh);
+        // Dark Lens Outer Contour Frame
+        const frameShape = new THREE.Shape();
+        frameShape.moveTo(0, 0.32);
+        frameShape.quadraticCurveTo(0.26, 0.24, 0.28, -0.05);
+        frameShape.quadraticCurveTo(0.18, -0.30, 0, -0.36);
+        frameShape.quadraticCurveTo(-0.18, -0.30, -0.28, -0.05);
+        frameShape.quadraticCurveTo(-0.26, 0.24, 0, 0.32);
+
+        const frameGeo = new THREE.ExtrudeGeometry(frameShape, { depth: 0.04, bevelEnabled: true, bevelSegments: 3, bevelSize: 0.01, bevelThickness: 0.01 });
+        frameGeo.scale(0.78, 0.92, 0.8);
+        const frameMat = new THREE.MeshBasicMaterial({ color: 0x050508 });
+        const frameMesh = new THREE.Mesh(frameGeo, frameMat);
+        frameMesh.position.set(xOffset, 1.88, 0.56);
+        frameMesh.rotation.y = xOffset * -0.58;
+        frameMesh.rotation.z = xOffset * 0.3;
+        figureGroup.add(frameMesh);
       });
 
-      // 3. TORSO / CHEST & ABS (Muscular Anatomical Chest Plate)
-      const chestGeo = new THREE.CylinderGeometry(0.92, 0.68, 1.35, 16);
-      const chestMat = new THREE.MeshStandardMaterial({
+      // 3. ORGANIC MUSCULAR CHEST & WAIST (Lathe Profile Curve)
+      const torsoPoints = [
+        new THREE.Vector2(0.55, 0.0),   // Waist
+        new THREE.Vector2(0.64, 0.25),  // Lower Abs
+        new THREE.Vector2(0.78, 0.65),  // Mid Chest
+        new THREE.Vector2(0.92, 1.05),  // Upper Pectorals
+        new THREE.Vector2(0.88, 1.35)   // Shoulders / Base of Neck
+      ];
+
+      const torsoGeo = new THREE.LatheGeometry(torsoPoints, 32);
+      const torsoMat = new THREE.MeshPhysicalMaterial({
         color: primaryColor,
+        clearcoat: 0.8,
+        clearcoatRoughness: 0.2,
         roughness: 0.3,
-        metalness: isIronSpider ? 0.6 : 0.35,
+        metalness: isIronSpider ? 0.85 : 0.3,
         emissive: primaryColor,
         emissiveIntensity: 0.15
       });
-      const chestMesh = new THREE.Mesh(chestGeo, chestMat);
-      chestMesh.position.set(0, 0.65, 0);
-      figureGroup.add(chestMesh);
+      const torsoMesh = new THREE.Mesh(torsoGeo, torsoMat);
+      torsoMesh.position.set(0, 0.0, 0);
+      figureGroup.add(torsoMesh);
 
-      // Abdominal Muscle Contours (Blue/Navy Lat Side Panels)
-      [-0.45, 0.45].forEach(side => {
-        const latGeo = new THREE.CylinderGeometry(0.28, 0.22, 1.2, 12);
-        const latMat = new THREE.MeshStandardMaterial({ color: secondaryColor, roughness: 0.4 });
+      // Dark Navy / Black Lat Side Panels (for MCU Integrated Suit)
+      [-0.46, 0.46].forEach(side => {
+        const latPoints = [
+          new THREE.Vector2(0.22, 0.0),
+          new THREE.Vector2(0.28, 0.5),
+          new THREE.Vector2(0.24, 1.1)
+        ];
+        const latGeo = new THREE.LatheGeometry(latPoints, 20);
+        const latMat = new THREE.MeshPhysicalMaterial({ color: secondaryColor, roughness: 0.4, metalness: 0.4 });
         const latMesh = new THREE.Mesh(latGeo, latMat);
-        latMesh.position.set(side * 0.42, 0.65, -0.05);
+        latMesh.position.set(side * 0.42, 0.0, -0.05);
         figureGroup.add(latMesh);
       });
 
-      // Suit Web Grid on Chest
-      const chestWebGeo = new THREE.CylinderGeometry(0.93, 0.69, 1.36, 14, 6);
-      const chestWebMat = new THREE.MeshBasicMaterial({ color: isIronSpider ? 0xffd700 : secondaryColor, wireframe: true, transparent: true, opacity: 0.55 });
-      const chestWebMesh = new THREE.Mesh(chestWebGeo, chestWebMat);
-      chestWebMesh.position.set(0, 0.65, 0);
-      figureGroup.add(chestWebMesh);
-
-      // 4. SPIDER EMBLEM ON CHEST & BACK (Giant Metallic Gold Spider Logo for Iron Spider)
-      const emblemGeo = new THREE.OctahedronGeometry(isIronSpider ? 0.45 : 0.3, 1);
-      emblemGeo.scale(1.35, 0.75, 0.22);
-      const emblemMat = new THREE.MeshStandardMaterial({
-        color: emblemColor,
-        metalness: isIronSpider ? 0.95 : 0.2,
-        roughness: isIronSpider ? 0.1 : 0.5,
-        emissive: isIronSpider ? 0xffa500 : 0x000000,
-        emissiveIntensity: isIronSpider ? 0.35 : 0.0
+      // Suit Web Grid on Torso
+      const torsoWebGeo = new THREE.LatheGeometry(torsoPoints, 16);
+      const torsoWebMat = new THREE.MeshBasicMaterial({
+        color: isIronSpider ? 0xffd700 : secondaryColor,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.45
       });
-      
-      // Front Spider Emblem
+      const torsoWebMesh = new THREE.Mesh(torsoWebGeo, torsoWebMat);
+      torsoWebMesh.position.set(0, 0.0, 0);
+      figureGroup.add(torsoWebMesh);
+
+      // 4. GIANT METALLIC GOLD SPIDER EMBLEM & HARNESS (MCU No Way Home Integrated Suit)
+      const emblemShape = new THREE.Shape();
+      emblemShape.moveTo(0, 0.38);
+      emblemShape.lineTo(0.18, 0.18);
+      emblemShape.lineTo(0.35, 0.28);
+      emblemShape.lineTo(0.22, -0.05);
+      emblemShape.lineTo(0.42, -0.22);
+      emblemShape.lineTo(0.12, -0.28);
+      emblemShape.lineTo(0, -0.42);
+      emblemShape.lineTo(-0.12, -0.28);
+      emblemShape.lineTo(-0.42, -0.22);
+      emblemShape.lineTo(-0.22, -0.05);
+      emblemShape.lineTo(-0.35, 0.28);
+      emblemShape.lineTo(-0.18, 0.18);
+      emblemShape.closePath();
+
+      const emblemExtrude = { depth: 0.08, bevelEnabled: true, bevelSegments: 4, bevelSize: 0.02, bevelThickness: 0.02 };
+      const emblemGeo = new THREE.ExtrudeGeometry(emblemShape, emblemExtrude);
+      emblemGeo.scale(1.2, 1.2, 1.0);
+
+      const emblemMat = new THREE.MeshPhysicalMaterial({
+        color: emblemColor,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.1,
+        metalness: isIronSpider ? 0.95 : 0.3,
+        roughness: isIronSpider ? 0.1 : 0.5,
+        emissive: isIronSpider ? 0xffaa00 : 0x000000,
+        emissiveIntensity: isIronSpider ? 0.4 : 0.0
+      });
+
+      // Front Gold Spider Emblem
       const frontEmblem = new THREE.Mesh(emblemGeo, emblemMat);
-      frontEmblem.position.set(0, 0.78, 0.64);
+      frontEmblem.position.set(0, 0.72, 0.65);
       figureGroup.add(frontEmblem);
 
-      // Back Spider Emblem
+      // Rear Gold Spider Emblem
       const backEmblem = new THREE.Mesh(emblemGeo, emblemMat);
-      backEmblem.position.set(0, 0.78, -0.64);
+      backEmblem.position.set(0, 0.72, -0.65);
       backEmblem.rotation.y = Math.PI;
       figureGroup.add(backEmblem);
 
-      // Gold Spider Harness Straps stretching over shoulders & ribs for Iron Spider
+      // Gold Shoulder Armor Caps for Integrated Suit
       if (isIronSpider) {
-        [-0.48, 0.48].forEach(x => {
-          const strapGeo = new THREE.BoxGeometry(0.18, 0.85, 0.1);
-          const strapMat = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.9, roughness: 0.15, emissive: 0xffaa00, emissiveIntensity: 0.3 });
-          const strap = new THREE.Mesh(strapGeo, strapMat);
-          strap.position.set(x, 0.85, 0.55);
-          strap.rotation.z = x > 0 ? -0.35 : 0.35;
-          figureGroup.add(strap);
+        [-0.85, 0.85].forEach(x => {
+          const armorCapGeo = new THREE.SphereGeometry(0.36, 16, 16);
+          armorCapGeo.scale(1.1, 0.8, 1.0);
+          const armorCapMat = new THREE.MeshPhysicalMaterial({
+            color: 0xffd700,
+            clearcoat: 1.0,
+            metalness: 0.95,
+            roughness: 0.15,
+            emissive: 0xffaa00,
+            emissiveIntensity: 0.3
+          });
+          const armorCap = new THREE.Mesh(armorCapGeo, armorCapMat);
+          armorCap.position.set(x, 1.25, 0);
+          figureGroup.add(armorCap);
         });
       }
 
-      // Front Spider Legs
-      for (let side = -1; side <= 1; side += 2) {
-        for (let legIdx = 0; legIdx < 4; legIdx++) {
-          const legGeo = new THREE.CylinderGeometry(0.018, 0.018, 0.5, 6);
-          const legMat = new THREE.MeshBasicMaterial({ color: emblemColor });
-          const leg = new THREE.Mesh(legGeo, legMat);
-          const angle = (legIdx - 1.5) * 0.38;
-          leg.position.set(side * (0.22 + legIdx * 0.05), 0.82 + side * angle * 0.2, 0.62);
-          leg.rotation.z = side * (angle + Math.PI / 4);
-          figureGroup.add(leg);
-        }
-      }
-
-      // 5. HEROIC ARMS & WEB-SHOOTERS (Left Arm Extended in "Thwip" Web Gesture!)
-      // Right Shoulder & Arm (Cocked Athletic Stance)
-      const rShoulderGeo = new THREE.SphereGeometry(0.34, 16, 16);
-      const rShoulderMat = new THREE.MeshStandardMaterial({ color: primaryColor });
-      const rShoulder = new THREE.Mesh(rShoulderGeo, rShoulderMat);
-      rShoulder.position.set(1.08, 1.2, 0);
-      figureGroup.add(rShoulder);
-
-      const rArmGeo = new THREE.CylinderGeometry(0.25, 0.21, 0.85, 12);
-      const rArmMat = new THREE.MeshStandardMaterial({ color: secondaryColor });
-      const rArm = new THREE.Mesh(rArmGeo, rArmMat);
-      rArm.position.set(1.22, 0.7, 0);
-      rArm.rotation.z = -0.3;
+      // 5. SMOOTH ORGANIC ARMS & WEB-SHOOTERS
+      // Right Arm (Flexed Stance)
+      const armPoints = [
+        new THREE.Vector2(0.24, 0.0),
+        new THREE.Vector2(0.28, 0.4),
+        new THREE.Vector2(0.22, 0.85)
+      ];
+      const armGeo = new THREE.LatheGeometry(armPoints, 20);
+      const rArmMat = new THREE.MeshPhysicalMaterial({ color: secondaryColor, clearcoat: 0.8, metalness: 0.4, roughness: 0.3 });
+      const rArm = new THREE.Mesh(armGeo, rArmMat);
+      rArm.position.set(1.15, 0.4, 0);
+      rArm.rotation.z = -0.32;
       figureGroup.add(rArm);
 
-      const rForearmGeo = new THREE.CylinderGeometry(0.21, 0.17, 0.8, 12);
-      const rForearmMat = new THREE.MeshStandardMaterial({ color: primaryColor });
-      const rForearm = new THREE.Mesh(rForearmGeo, rForearmMat);
-      rForearm.position.set(1.35, 0.0, 0.1);
-      rForearm.rotation.z = -0.15;
+      const forearmPoints = [
+        new THREE.Vector2(0.18, 0.0),
+        new THREE.Vector2(0.22, 0.4),
+        new THREE.Vector2(0.19, 0.8)
+      ];
+      const forearmGeo = new THREE.LatheGeometry(forearmPoints, 20);
+      const forearmMat = new THREE.MeshPhysicalMaterial({ color: primaryColor, clearcoat: 0.8, metalness: 0.4, roughness: 0.3 });
+      const rForearm = new THREE.Mesh(forearmGeo, forearmMat);
+      rForearm.position.set(1.32, -0.3, 0.1);
+      rForearm.rotation.z = -0.18;
       figureGroup.add(rForearm);
 
-      // Left Shoulder & Arm (Extended Forward in Web-Shooting Gesture)
-      const lShoulder = new THREE.Mesh(rShoulderGeo, rShoulderMat);
-      lShoulder.position.set(-1.08, 1.2, 0);
-      figureGroup.add(lShoulder);
-
-      const lArm = new THREE.Mesh(rArmGeo, rArmMat);
-      lArm.position.set(-1.18, 0.85, 0.35);
-      lArm.rotation.x = -0.8; // Arm raised forward
-      lArm.rotation.z = 0.2;
+      // Left Arm (Extended Forward Web Gesture)
+      const lArm = new THREE.Mesh(armGeo, rArmMat);
+      lArm.position.set(-1.15, 0.55, 0.3);
+      lArm.rotation.x = -0.85;
+      lArm.rotation.z = 0.25;
       figureGroup.add(lArm);
 
-      const lForearm = new THREE.Mesh(rForearmGeo, rForearmMat);
-      lForearm.position.set(-1.25, 0.55, 1.0);
-      lForearm.rotation.x = -1.1; // Forearm pointing straight out!
+      const lForearm = new THREE.Mesh(forearmGeo, forearmMat);
+      lForearm.position.set(-1.24, 0.25, 0.95);
+      lForearm.rotation.x = -1.15;
       figureGroup.add(lForearm);
 
-      // Silver Metallic Web-Shooter Wrist Gauntlet on Left Hand
-      const webShooterGeo = new THREE.TorusGeometry(0.18, 0.04, 12, 24);
-      const webShooterMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.9, roughness: 0.2 });
+      // Silver Metallic Web-Shooter Wrist Gauntlet
+      const webShooterGeo = new THREE.TorusGeometry(0.19, 0.045, 16, 28);
+      const webShooterMat = new THREE.MeshPhysicalMaterial({ color: 0xdddddd, metalness: 0.95, clearcoat: 1.0, roughness: 0.15 });
       const webShooter = new THREE.Mesh(webShooterGeo, webShooterMat);
-      webShooter.position.set(-1.25, 0.35, 1.35);
+      webShooter.position.set(-1.24, 0.05, 1.35);
       webShooter.rotation.x = Math.PI / 2;
       figureGroup.add(webShooter);
 
-      // Laser Web Strand Fired from Web-Shooter Wrist!
+      // Laser Web Strand Line
       const webStrandGeo = new THREE.CylinderGeometry(0.015, 0.005, 3.5, 8);
       const webStrandMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9 });
       const webStrand = new THREE.Mesh(webStrandGeo, webStrandMat);
-      webStrand.position.set(-1.25, 0.35, 3.1);
+      webStrand.position.set(-1.24, 0.05, 3.1);
       webStrand.rotation.x = Math.PI / 2;
       figureGroup.add(webStrand);
 
-      // 6. WAIST & LEGS (Athletic Stance with Boots & Knee Pads)
-      const waistGeo = new THREE.CylinderGeometry(0.64, 0.58, 0.45, 16);
-      const waistMat = new THREE.MeshStandardMaterial({ color: secondaryColor });
-      const waist = new THREE.Mesh(waistGeo, waistMat);
-      waist.position.set(0, -0.2, 0);
-      figureGroup.add(waist);
+      // 6. WAIST & ATHLETIC LEGS (Smooth Thighs & Boots)
+      const thighPoints = [
+        new THREE.Vector2(0.20, 0.0),
+        new THREE.Vector2(0.28, 0.5),
+        new THREE.Vector2(0.24, 1.0)
+      ];
+      const thighGeo = new THREE.LatheGeometry(thighPoints, 20);
+      const thighMat = new THREE.MeshPhysicalMaterial({ color: secondaryColor, clearcoat: 0.8, metalness: 0.4, roughness: 0.3 });
 
-      [-0.34, 0.34].forEach(xPos => {
-        // Thigh (Blue Suit)
-        const thighGeo = new THREE.CylinderGeometry(0.27, 0.22, 1.1, 12);
-        const thighMat = new THREE.MeshStandardMaterial({ color: secondaryColor, roughness: 0.4 });
+      const bootPoints = [
+        new THREE.Vector2(0.16, 0.0),
+        new THREE.Vector2(0.22, 0.5),
+        new THREE.Vector2(0.20, 1.0)
+      ];
+      const bootGeo = new THREE.LatheGeometry(bootPoints, 20);
+      const bootMat = new THREE.MeshPhysicalMaterial({ color: primaryColor, clearcoat: 0.8, metalness: 0.4, roughness: 0.3 });
+
+      [-0.35, 0.35].forEach(xPos => {
         const thigh = new THREE.Mesh(thighGeo, thighMat);
-        thigh.position.set(xPos, -0.9, 0);
+        thigh.position.set(xPos, -1.0, 0);
         figureGroup.add(thigh);
 
-        // Knee Pad (Red)
-        const kneeGeo = new THREE.SphereGeometry(0.21, 12, 12);
-        const kneeMat = new THREE.MeshStandardMaterial({ color: primaryColor });
-        const knee = new THREE.Mesh(kneeGeo, kneeMat);
-        knee.position.set(xPos, -1.45, 0.1);
-        figureGroup.add(knee);
-
-        // Spider Boots (Red)
-        const bootGeo = new THREE.CylinderGeometry(0.22, 0.17, 1.0, 12);
-        const bootMat = new THREE.MeshStandardMaterial({ color: primaryColor, roughness: 0.3 });
         const boot = new THREE.Mesh(bootGeo, bootMat);
-        boot.position.set(xPos, -1.95, 0.05);
+        boot.position.set(xPos, -2.0, 0.05);
         figureGroup.add(boot);
       });
 
-      // 7. IRON SPIDER NANOTECH MECHANICAL ARMS / WALPERS
+      // 7. ARTICULATED GOLD NANOTECH MECHANICAL WALPER ARMS
       if (hasSpiderLegs) {
         for (let l = 0; l < 4; l++) {
           const side = l % 2 === 0 ? 1 : -1;
@@ -313,17 +387,17 @@ export default function Hologram3dCanvas({ mode = 'spiderman', spidermanSuit = '
           const armLegGroup = new THREE.Group();
           armLegGroup.position.set(side * 0.3, 0.9, -0.3);
 
-          const seg1Geo = new THREE.CylinderGeometry(0.04, 0.04, 1.8, 8);
-          const seg1Mat = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.85, roughness: 0.15, emissive: 0xffa500, emissiveIntensity: 0.35 });
+          const seg1Geo = new THREE.CylinderGeometry(0.045, 0.045, 1.8, 12);
+          const seg1Mat = new THREE.MeshPhysicalMaterial({ color: 0xffd700, metalness: 0.95, clearcoat: 1.0, roughness: 0.1, emissive: 0xffa500, emissiveIntensity: 0.35 });
           const seg1 = new THREE.Mesh(seg1Geo, seg1Mat);
-          seg1.position.set(side * 0.7, isUpper ? 0.8 : -0.4, -0.5);
+          seg1.position.set(side * 0.75, isUpper ? 0.85 : -0.45, -0.5);
           seg1.rotation.z = side * (isUpper ? -0.8 : -0.4);
           seg1.rotation.x = isUpper ? 0.6 : -0.6;
 
-          const clawGeo = new THREE.ConeGeometry(0.06, 0.6, 6);
-          const clawMat = new THREE.MeshStandardMaterial({ color: 0xff0033, metalness: 0.9, roughness: 0.1 });
+          const clawGeo = new THREE.ConeGeometry(0.07, 0.65, 8);
+          const clawMat = new THREE.MeshPhysicalMaterial({ color: 0xff0033, metalness: 0.95, clearcoat: 1.0, roughness: 0.1 });
           const claw = new THREE.Mesh(clawGeo, clawMat);
-          claw.position.set(side * 1.3, isUpper ? 1.4 : -0.9, -0.8);
+          claw.position.set(side * 1.35, isUpper ? 1.45 : -0.95, -0.8);
           claw.rotation.z = side * -1.2;
 
           armLegGroup.add(seg1);
@@ -332,31 +406,28 @@ export default function Hologram3dCanvas({ mode = 'spiderman', spidermanSuit = '
         }
       }
 
-      // 8. SCI-FI STARK HUD LASER SCAN LINE & HOLO-RINGS
-      // Laser Scan Line moving up and down body
-      const scanLineGeo = new THREE.RingGeometry(0.1, 2.6, 32);
+      // 8. CINEMATIC STARK HUD HOLOGRAM SCANNER & PEDESTAL
+      const scanLineGeo = new THREE.RingGeometry(0.1, 2.7, 40);
       const scanLineMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
       const scanLineMesh = new THREE.Mesh(scanLineGeo, scanLineMat);
       scanLineMesh.rotation.x = Math.PI / 2;
       scanLineMesh.position.y = 0;
       hologramGroup.add(scanLineMesh);
 
-      // Concentric Orbiting Stark HUD Telemetry Rings
-      const ring1Geo = new THREE.TorusGeometry(2.8, 0.015, 16, 80);
-      const ring1Mat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, transparent: true, opacity: 0.6 });
+      const ring1Geo = new THREE.TorusGeometry(2.9, 0.015, 16, 100);
+      const ring1Mat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, transparent: true, opacity: 0.65 });
       const ring1 = new THREE.Mesh(ring1Geo, ring1Mat);
       ring1.rotation.x = Math.PI / 2.2;
       hologramGroup.add(ring1);
 
-      const ring2Geo = new THREE.TorusGeometry(3.2, 0.012, 16, 80);
-      const ring2Mat = new THREE.MeshBasicMaterial({ color: 0xff0055, transparent: true, opacity: 0.5 });
+      const ring2Geo = new THREE.TorusGeometry(3.3, 0.012, 16, 100);
+      const ring2Mat = new THREE.MeshBasicMaterial({ color: 0xff0055, transparent: true, opacity: 0.55 });
       const ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
       ring2.rotation.x = Math.PI / 1.8;
       hologramGroup.add(ring2);
 
-      // Holographic Cyber Base Pedestal
-      const pedestalGeo = new THREE.CylinderGeometry(2.4, 2.7, 0.25, 32);
-      const pedestalMat = new THREE.MeshBasicMaterial({ color: secondaryColor, wireframe: true, transparent: true, opacity: 0.65 });
+      const pedestalGeo = new THREE.CylinderGeometry(2.5, 2.8, 0.25, 36);
+      const pedestalMat = new THREE.MeshBasicMaterial({ color: isIronSpider ? 0xffd700 : secondaryColor, wireframe: true, transparent: true, opacity: 0.65 });
       const pedestal = new THREE.Mesh(pedestalGeo, pedestalMat);
       pedestal.position.set(0, -2.5, 0);
       hologramGroup.add(pedestal);
@@ -372,7 +443,6 @@ export default function Hologram3dCanvas({ mode = 'spiderman', spidermanSuit = '
       const particles = new THREE.Points(particleGeo, particleMat);
       hologramGroup.add(particles);
 
-      // Animation Loop for Hero & Laser Scan Line
       let scanY = -2.5;
       let scanDirection = 1;
 
@@ -383,7 +453,6 @@ export default function Hologram3dCanvas({ mode = 'spiderman', spidermanSuit = '
         ring1.rotation.z += 0.006;
         ring2.rotation.z -= 0.008;
 
-        // Laser scan line vertical animation
         scanY += 0.035 * scanDirection;
         if (scanY > 2.7) scanDirection = -1;
         if (scanY < -2.5) scanDirection = 1;
