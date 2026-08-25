@@ -44,14 +44,16 @@ export default function Hologram3dCanvas({ mode = 'spiderman', spidermanSuit = '
       let particleColor = 0x00f3ff;
       let hasSpiderLegs = false;
 
+      let isIronSpider = false;
       if (spidermanSuit === 'ironspider') {
-        // Iron Spider Nanotech (Gold & Crimson)
-        primaryColor = 0xcc0022; // Metallic Crimson
-        secondaryColor = 0xffd700; // Gold Web Trim
-        eyeColor = 0x00f3ff; // Glowing Blue Nanotech Lenses
-        emblemColor = 0xffd700; // Giant Gold Spider Emblem
+        // MCU Integrated / Iron Spider Gold Nanotech (Crimson, Dark Metallic Navy & Massive Gold Spider)
+        primaryColor = 0xd60029; // Crimson Red Mask, Upper Chest, Boots
+        secondaryColor = 0x111624; // Dark Metallic Navy Body Weave
+        eyeColor = 0xffffff; // Glowing White Lenses
+        emblemColor = 0xffd700; // Giant Metallic Gold Spider Emblem
         particleColor = 0xffd700;
         hasSpiderLegs = true;
+        isIronSpider = true;
       } else if (spidermanSuit === 'symbiote') {
         // Symbiote Black Suit
         primaryColor = 0x111625; // Dark Symbiote Black
@@ -101,7 +103,7 @@ export default function Hologram3dCanvas({ mode = 'spiderman', spidermanSuit = '
 
       // Neck Collar
       const neckGeo = new THREE.CylinderGeometry(0.38, 0.44, 0.4, 16);
-      const neckMat = new THREE.MeshStandardMaterial({ color: primaryColor, roughness: 0.3 });
+      const neckMat = new THREE.MeshStandardMaterial({ color: isIronSpider ? 0xffd700 : primaryColor, roughness: 0.2, metalness: isIronSpider ? 0.8 : 0.3 });
       const neckMesh = new THREE.Mesh(neckGeo, neckMat);
       neckMesh.position.set(0, 1.35, 0);
       figureGroup.add(neckMesh);
@@ -109,7 +111,7 @@ export default function Hologram3dCanvas({ mode = 'spiderman', spidermanSuit = '
       // Detailed Web Grid Texture Overlay on Mask Head
       const headWebGeo = new THREE.SphereGeometry(0.73, 20, 14);
       headWebGeo.scale(0.85, 1.15, 0.92);
-      const headWebMat = new THREE.MeshBasicMaterial({ color: secondaryColor, wireframe: true, transparent: true, opacity: 0.65 });
+      const headWebMat = new THREE.MeshBasicMaterial({ color: isIronSpider ? 0xffd700 : secondaryColor, wireframe: true, transparent: true, opacity: 0.65 });
       const headWebMesh = new THREE.Mesh(headWebGeo, headWebMat);
       headWebMesh.position.set(0, 1.85, 0);
       figureGroup.add(headWebMesh);
@@ -147,7 +149,7 @@ export default function Hologram3dCanvas({ mode = 'spiderman', spidermanSuit = '
       const chestMat = new THREE.MeshStandardMaterial({
         color: primaryColor,
         roughness: 0.3,
-        metalness: 0.35,
+        metalness: isIronSpider ? 0.6 : 0.35,
         emissive: primaryColor,
         emissiveIntensity: 0.15
       });
@@ -166,26 +168,44 @@ export default function Hologram3dCanvas({ mode = 'spiderman', spidermanSuit = '
 
       // Suit Web Grid on Chest
       const chestWebGeo = new THREE.CylinderGeometry(0.93, 0.69, 1.36, 14, 6);
-      const chestWebMat = new THREE.MeshBasicMaterial({ color: secondaryColor, wireframe: true, transparent: true, opacity: 0.55 });
+      const chestWebMat = new THREE.MeshBasicMaterial({ color: isIronSpider ? 0xffd700 : secondaryColor, wireframe: true, transparent: true, opacity: 0.55 });
       const chestWebMesh = new THREE.Mesh(chestWebGeo, chestWebMat);
       chestWebMesh.position.set(0, 0.65, 0);
       figureGroup.add(chestWebMesh);
 
-      // 4. SPIDER EMBLEM ON CHEST & BACK (Front & Rear Spider Logos)
-      const emblemGeo = new THREE.OctahedronGeometry(0.3, 1);
-      emblemGeo.scale(1.25, 0.65, 0.2);
-      const emblemMat = new THREE.MeshBasicMaterial({ color: emblemColor });
+      // 4. SPIDER EMBLEM ON CHEST & BACK (Giant Metallic Gold Spider Logo for Iron Spider)
+      const emblemGeo = new THREE.OctahedronGeometry(isIronSpider ? 0.45 : 0.3, 1);
+      emblemGeo.scale(1.35, 0.75, 0.22);
+      const emblemMat = new THREE.MeshStandardMaterial({
+        color: emblemColor,
+        metalness: isIronSpider ? 0.95 : 0.2,
+        roughness: isIronSpider ? 0.1 : 0.5,
+        emissive: isIronSpider ? 0xffa500 : 0x000000,
+        emissiveIntensity: isIronSpider ? 0.35 : 0.0
+      });
       
       // Front Spider Emblem
       const frontEmblem = new THREE.Mesh(emblemGeo, emblemMat);
       frontEmblem.position.set(0, 0.78, 0.64);
       figureGroup.add(frontEmblem);
 
-      // Back Spider Emblem (Red/Black)
+      // Back Spider Emblem
       const backEmblem = new THREE.Mesh(emblemGeo, emblemMat);
       backEmblem.position.set(0, 0.78, -0.64);
       backEmblem.rotation.y = Math.PI;
       figureGroup.add(backEmblem);
+
+      // Gold Spider Harness Straps stretching over shoulders & ribs for Iron Spider
+      if (isIronSpider) {
+        [-0.48, 0.48].forEach(x => {
+          const strapGeo = new THREE.BoxGeometry(0.18, 0.85, 0.1);
+          const strapMat = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.9, roughness: 0.15, emissive: 0xffaa00, emissiveIntensity: 0.3 });
+          const strap = new THREE.Mesh(strapGeo, strapMat);
+          strap.position.set(x, 0.85, 0.55);
+          strap.rotation.z = x > 0 ? -0.35 : 0.35;
+          figureGroup.add(strap);
+        });
+      }
 
       // Front Spider Legs
       for (let side = -1; side <= 1; side += 2) {
