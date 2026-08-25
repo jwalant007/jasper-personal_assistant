@@ -909,8 +909,8 @@ export default function App() {
       return;
     }
 
-    // Intercept 3D Hologram commands (including "show me spiderman")
-    const hologramRegex = /(3d hologram|hologram|show 3d|render 3d|3d model|spiderman|spider-man|spider man|peter parker|iron spider|miles morales)/i;
+    // Intercept 3D Hologram & Simulation commands (including "run 3d simulation")
+    const hologramRegex = /(3d hologram|hologram|show 3d|render 3d|3d model|spiderman|spider-man|spider man|peter parker|iron spider|miles morales|simulation|simulations|simulate|run 3d|3d simulation|physics simulation|quantum simulation|stark simulation|dna simulation|orbital simulation)/i;
     if (hologramRegex.test(queryText)) {
       setHologramQuery(queryText);
       setShowHologramModal(true);

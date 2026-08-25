@@ -37,6 +37,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
   const modePresets = [
     { id: 'spiderman', label: 'Spider-Man Cyber Web', emoji: '🕸️', icon: Eye },
     { id: 'atom', label: 'Atomic & Quantum Core', emoji: '⚛️', icon: Atom },
+    { id: 'dna', label: 'DNA Genetic Sequence', emoji: '🧬', icon: Sparkles },
     { id: 'planet', label: 'Solar & Planetary Globe', emoji: '🪐', icon: Globe },
     { id: 'reactor', label: 'Stark Arc Reactor', emoji: '⚡', icon: Zap },
     { id: 'chassis', label: 'Engineering Wireframe', emoji: '⚙️', icon: Cpu }
@@ -47,15 +48,16 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
     if (!q.trim() || isLoading) return;
 
     setIsLoading(true);
-    setResponseText('Processing neural analysis and synthesizing 3D hologram...');
+    setResponseText('Processing neural analysis and running 3D simulation...');
 
-    // Auto-detect topic for 3D mode
+    // Auto-detect topic for 3D simulation mode
     const lower = q.toLowerCase();
     if (lower.includes('spider') || lower.includes('web') || lower.includes('suit')) setActive3dMode('spiderman');
-    else if (lower.includes('atom') || lower.includes('nuclear') || lower.includes('quantum') || lower.includes('molecule')) setActive3dMode('atom');
-    else if (lower.includes('planet') || lower.includes('solar') || lower.includes('earth') || lower.includes('space') || lower.includes('globe')) setActive3dMode('planet');
-    else if (lower.includes('reactor') || lower.includes('stark') || lower.includes('iron') || lower.includes('energy')) setActive3dMode('reactor');
-    else if (lower.includes('engine') || lower.includes('car') || lower.includes('wireframe') || lower.includes('chassis')) setActive3dMode('chassis');
+    else if (lower.includes('atom') || lower.includes('nuclear') || lower.includes('quantum') || lower.includes('molecule') || lower.includes('physics')) setActive3dMode('atom');
+    else if (lower.includes('dna') || lower.includes('gene') || lower.includes('biology') || lower.includes('genetics') || lower.includes('cell')) setActive3dMode('dna');
+    else if (lower.includes('planet') || lower.includes('solar') || lower.includes('earth') || lower.includes('space') || lower.includes('gravity') || lower.includes('globe')) setActive3dMode('planet');
+    else if (lower.includes('reactor') || lower.includes('stark') || lower.includes('iron') || lower.includes('energy') || lower.includes('fusion')) setActive3dMode('reactor');
+    else if (lower.includes('engine') || lower.includes('car') || lower.includes('wireframe') || lower.includes('chassis') || lower.includes('mechanical')) setActive3dMode('chassis');
 
     try {
       const res = await fetch(`${getApiBase()}/api/agent/chat`, {
@@ -84,9 +86,10 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
     }
   };
 
-  const [spidermanSuit, setSpidermanSuit] = useState('classic');
+  const [spidermanSuit, setSpidermanSuit] = useState('upgraded');
 
   const suitPresets = [
+    { id: 'upgraded', label: 'Upgraded Red & Black', color: 'text-rose-400', badge: '🕷️ Red & Black (Far From Home)' },
     { id: 'classic', label: 'Classic Red & Blue', color: 'text-cyan-400', badge: '🔴 Peter Parker' },
     { id: 'ironspider', label: 'Iron Spider Nanotech', color: 'text-amber-400', badge: '⚡ Gold Nanotech' },
     { id: 'symbiote', label: 'Symbiote Black', color: 'text-slate-300', badge: '🖤 Black Suit' },
