@@ -336,32 +336,32 @@ export default function LiveTranslationWidget({ isOpen, onClose, onToggleAutoTra
           width: '600px'
         }}
       >
-        <div className="bg-slate-950/90 backdrop-blur-xl border border-cyan-500/40 rounded-2xl shadow-2xl shadow-cyan-950/50 text-slate-100 overflow-hidden group">
+        <div className="bg-blue-950/40 backdrop-blur-2xl border border-blue-400/50 rounded-2xl shadow-[0_0_35px_rgba(37,99,235,0.45)] text-blue-100 overflow-hidden group">
           
           {/* Header Bar / Drag Handle */}
           <div 
             onMouseDown={handleMouseDown}
-            className="flex items-center justify-between px-4 py-2.5 bg-gradient-to-r from-slate-900 via-cyan-950/40 to-slate-900 border-b border-cyan-500/20 cursor-move"
+            className="flex items-center justify-between px-4 py-2.5 bg-gradient-to-r from-blue-950/80 via-blue-900/50 to-blue-950/80 border-b border-blue-400/30 cursor-move"
           >
             <div className="flex items-center space-x-2.5">
-              <div className="flex items-center space-x-1.5 px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-mono font-medium">
-                <Globe className="w-3.5 h-3.5 animate-spin-slow" />
+              <div className="flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/20 border border-blue-400/50 text-blue-300 text-xs font-mono font-medium shadow-[0_0_10px_rgba(59,130,246,0.3)]">
+                <Globe className="w-3.5 h-3.5 text-blue-400 animate-spin-slow" />
                 <span>CHROME LIVE TRANSLATE</span>
               </div>
 
               {/* Detected Language Pill */}
-              <div className="flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold">
+              <div className="flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-400/50 text-indigo-200 text-xs font-semibold">
                 <span className="uppercase tracking-wider">{detectedLangInfo.name} ({detectedLangInfo.code})</span>
-                <span className="text-slate-400">➔</span>
-                <span className="text-cyan-300 uppercase tracking-wider">{selectedTargetLang}</span>
+                <span className="text-blue-300">➔</span>
+                <span className="text-blue-200 uppercase tracking-wider">{selectedTargetLang}</span>
               </div>
 
               {/* Equalizer Animation when translating */}
               {isTranslating && (
                 <div className="flex items-center space-x-0.5 h-3">
-                  <div className="w-0.5 bg-cyan-400 animate-pulse h-full"></div>
-                  <div className="w-0.5 bg-cyan-300 animate-bounce h-2"></div>
-                  <div className="w-0.5 bg-cyan-500 animate-pulse h-3"></div>
+                  <div className="w-0.5 bg-blue-400 animate-pulse h-full"></div>
+                  <div className="w-0.5 bg-blue-300 animate-bounce h-2"></div>
+                  <div className="w-0.5 bg-blue-500 animate-pulse h-3"></div>
                 </div>
               )}
             </div>
@@ -370,7 +370,7 @@ export default function LiveTranslationWidget({ isOpen, onClose, onToggleAutoTra
             <div className="flex items-center space-x-1">
               <button
                 onClick={() => setShowSettings(!showSettings)}
-                className={`p-1.5 rounded-lg transition-colors ${showSettings ? 'bg-cyan-500/20 text-cyan-300' : 'text-slate-400 hover:text-cyan-300 hover:bg-slate-800/60'}`}
+                className={`p-1.5 rounded-lg transition-colors ${showSettings ? 'bg-blue-500/30 text-blue-200 border border-blue-400/40' : 'text-blue-300/70 hover:text-blue-200 hover:bg-blue-800/40'}`}
                 title="Translation Settings"
               >
                 <Settings className="w-4 h-4" />
@@ -378,7 +378,7 @@ export default function LiveTranslationWidget({ isOpen, onClose, onToggleAutoTra
 
               <button
                 onClick={() => setShowHistoryModal(true)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-cyan-300 hover:bg-slate-800/60 transition-colors"
+                className="p-1.5 rounded-lg text-blue-300/70 hover:text-blue-200 hover:bg-blue-800/40 transition-colors"
                 title="View Full History Log"
               >
                 <Languages className="w-4 h-4" />
@@ -386,7 +386,7 @@ export default function LiveTranslationWidget({ isOpen, onClose, onToggleAutoTra
 
               <button
                 onClick={() => setIsMinimized(!isMinimized)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-cyan-300 hover:bg-slate-800/60 transition-colors"
+                className="p-1.5 rounded-lg text-blue-300/70 hover:text-blue-200 hover:bg-blue-800/40 transition-colors"
                 title={isMinimized ? "Expand Caption Box" : "Minimize"}
               >
                 {isMinimized ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -394,7 +394,7 @@ export default function LiveTranslationWidget({ isOpen, onClose, onToggleAutoTra
 
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                className="p-1.5 rounded-lg text-blue-300/70 hover:text-rose-400 hover:bg-rose-500/20 transition-colors"
                 title="Close Live Translation Overlay"
               >
                 <X className="w-4 h-4" />
@@ -404,14 +404,14 @@ export default function LiveTranslationWidget({ isOpen, onClose, onToggleAutoTra
 
           {/* Media Info Bar (If system media is currently detected) */}
           {mediaTrackInfo && (
-            <div className="px-4 py-1.5 bg-cyan-950/20 border-b border-cyan-500/10 flex items-center justify-between text-xs text-cyan-300/80">
+            <div className="px-4 py-1.5 bg-blue-950/40 border-b border-blue-400/20 flex items-center justify-between text-xs text-blue-200">
               <div className="flex items-center space-x-2 truncate">
-                <Radio className="w-3.5 h-3.5 text-cyan-400 animate-pulse shrink-0" />
+                <Radio className="w-3.5 h-3.5 text-blue-400 animate-pulse shrink-0" />
                 <span className="font-medium truncate">{mediaTrackInfo.title}</span>
-                <span className="text-slate-500">•</span>
-                <span className="text-slate-400 truncate">{mediaTrackInfo.artist || 'Device Media'}</span>
+                <span className="text-blue-400/50">•</span>
+                <span className="text-blue-300/80 truncate">{mediaTrackInfo.artist || 'Device Media'}</span>
               </div>
-              <span className="px-1.5 py-0.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded text-[10px]">
+              <span className="px-1.5 py-0.5 bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 rounded text-[10px] font-semibold">
                 MEDIA ACTIVE
               </span>
             </div>
@@ -419,15 +419,15 @@ export default function LiveTranslationWidget({ isOpen, onClose, onToggleAutoTra
 
           {/* Live Translation Settings Drawer */}
           {showSettings && (
-            <div className="p-4 bg-slate-900/90 border-b border-cyan-500/20 space-y-3 text-xs">
+            <div className="p-4 bg-blue-950/70 backdrop-blur-xl border-b border-blue-400/30 space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 {/* Source Language Override */}
                 <div>
-                  <label className="block text-slate-400 font-medium mb-1">Source Spoken Language</label>
+                  <label className="block text-blue-300 font-medium mb-1">Source Spoken Language</label>
                   <select 
                     value={selectedSourceLang}
                     onChange={(e) => setSelectedSourceLang(e.target.value)}
-                    className="w-full bg-slate-950 border border-cyan-500/30 rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-400"
+                    className="w-full bg-blue-950/90 border border-blue-400/40 rounded-lg px-2.5 py-1.5 text-blue-100 focus:outline-none focus:border-blue-300"
                   >
                     {SUPPORTED_LANGUAGES.map(lang => (
                       <option key={lang.code} value={lang.code}>{lang.name}</option>
@@ -437,11 +437,11 @@ export default function LiveTranslationWidget({ isOpen, onClose, onToggleAutoTra
 
                 {/* Target Language */}
                 <div>
-                  <label className="block text-slate-400 font-medium mb-1">Target Caption Language</label>
+                  <label className="block text-blue-300 font-medium mb-1">Target Caption Language</label>
                   <select 
                     value={selectedTargetLang}
                     onChange={(e) => setSelectedTargetLang(e.target.value)}
-                    className="w-full bg-slate-950 border border-cyan-500/30 rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-400"
+                    className="w-full bg-blue-950/90 border border-blue-400/40 rounded-lg px-2.5 py-1.5 text-blue-100 focus:outline-none focus:border-blue-300"
                   >
                     {TARGET_LANGUAGES.map(lang => (
                       <option key={lang.code} value={lang.code}>{lang.name}</option>
@@ -450,7 +450,7 @@ export default function LiveTranslationWidget({ isOpen, onClose, onToggleAutoTra
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+              <div className="flex items-center justify-between pt-2 border-t border-blue-500/20">
                 {/* Auto Translate Toggle */}
                 <div className="flex items-center space-x-2">
                   <input 
@@ -458,21 +458,21 @@ export default function LiveTranslationWidget({ isOpen, onClose, onToggleAutoTra
                     id="autoTranslateCheck"
                     checked={autoTranslateEnabled}
                     onChange={(e) => onToggleAutoTranslate && onToggleAutoTranslate(e.target.checked)}
-                    className="w-4 h-4 accent-cyan-500 rounded cursor-pointer"
+                    className="w-4 h-4 accent-blue-500 rounded cursor-pointer"
                   />
-                  <label htmlFor="autoTranslateCheck" className="text-slate-300 cursor-pointer">
+                  <label htmlFor="autoTranslateCheck" className="text-blue-200 cursor-pointer">
                     Auto-show when non-English media plays
                   </label>
                 </div>
 
                 {/* Font Size controls */}
                 <div className="flex items-center space-x-1">
-                  <span className="text-slate-400 mr-1">Font Size:</span>
+                  <span className="text-blue-300/70 mr-1">Font Size:</span>
                   {['small', 'medium', 'large'].map(size => (
                     <button
                       key={size}
                       onClick={() => setFontSize(size)}
-                      className={`px-2 py-0.5 rounded capitalize ${fontSize === size ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-500/40' : 'text-slate-400 hover:text-slate-200'}`}
+                      className={`px-2 py-0.5 rounded capitalize ${fontSize === size ? 'bg-blue-500/30 text-blue-200 border border-blue-400/50 font-bold' : 'text-blue-300/70 hover:text-blue-100'}`}
                     >
                       {size}
                     </button>
@@ -481,14 +481,14 @@ export default function LiveTranslationWidget({ isOpen, onClose, onToggleAutoTra
               </div>
 
               {/* Demo Mode Audio Simulation */}
-              <div className="pt-2 border-t border-slate-800 flex items-center justify-between">
-                <span className="text-slate-400">Test Non-English Playback:</span>
+              <div className="pt-2 border-t border-blue-500/20 flex items-center justify-between">
+                <span className="text-blue-300/80">Test Non-English Playback:</span>
                 <button
                   onClick={toggleDemoPlayback}
                   className={`flex items-center space-x-1.5 px-3 py-1 rounded-lg font-medium transition-colors ${
                     isPlayingDemo 
                       ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                      : 'bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 border border-cyan-500/40'
+                      : 'bg-blue-500/30 text-blue-200 hover:bg-blue-500/40 border border-blue-400/50 shadow-[0_0_10px_rgba(59,130,246,0.3)]'
                   }`}
                 >
                   {isPlayingDemo ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
@@ -500,17 +500,17 @@ export default function LiveTranslationWidget({ isOpen, onClose, onToggleAutoTra
 
           {/* Caption Box Content Area */}
           {!isMinimized && (
-            <div className="p-4 space-y-3 bg-slate-950/70">
+            <div className="p-4 space-y-3 bg-blue-950/30 backdrop-blur-md">
               
               {/* Original Recognized Speech (Source Language) */}
               <div className="space-y-1">
-                <div className="flex items-center justify-between text-[11px] text-cyan-400/70 uppercase tracking-widest font-mono">
+                <div className="flex items-center justify-between text-[11px] text-blue-300/80 uppercase tracking-widest font-mono">
                   <span>SPEECH IN {detectedLangInfo.name}</span>
-                  {currentOriginal && <span className="text-slate-500">Live Capturing</span>}
+                  {currentOriginal && <span className="text-blue-400/70">Live Capturing</span>}
                 </div>
-                <p className="text-cyan-200/80 italic font-mono text-sm min-h-[1.5rem] bg-cyan-950/20 p-2 rounded-lg border border-cyan-500/10">
+                <p className="text-blue-100/90 italic font-mono text-sm min-h-[1.5rem] bg-blue-950/60 backdrop-blur-md p-2.5 rounded-lg border border-blue-400/30 shadow-inner">
                   {currentOriginal || (
-                    <span className="text-slate-500 not-italic">
+                    <span className="text-blue-300/50 not-italic">
                       {isTranslating ? 'Listening for non-English speech audio...' : 'Live translation paused.'}
                     </span>
                   )}
@@ -519,17 +519,17 @@ export default function LiveTranslationWidget({ isOpen, onClose, onToggleAutoTra
 
               {/* Live Translated Subtitles (Target Language) */}
               <div className="space-y-1">
-                <div className="flex items-center justify-between text-[11px] text-amber-400/80 uppercase tracking-widest font-mono">
+                <div className="flex items-center justify-between text-[11px] text-blue-300 uppercase tracking-widest font-mono">
                   <span className="flex items-center space-x-1">
-                    <Sparkles className="w-3 h-3 text-amber-400" />
-                    <span>ENGLISH LIVE TRANSLATION</span>
+                    <Sparkles className="w-3.5 h-3.5 text-blue-400 animate-pulse" />
+                    <span className="font-bold text-blue-200">ENGLISH LIVE TRANSLATION</span>
                   </span>
-                  <span className="text-xs text-amber-300/80 font-sans">Chrome Live Translate</span>
+                  <span className="text-xs text-blue-300/80 font-sans">Chrome Live Translate</span>
                 </div>
-                <div className={`p-3 rounded-xl bg-slate-900/90 border border-cyan-500/30 shadow-inner font-sans ${fontClasses[fontSize]}`}>
-                  <p className="text-cyan-100 font-semibold tracking-wide leading-relaxed drop-shadow-[0_0_8px_rgba(6,182,212,0.3)]">
+                <div className={`p-3.5 rounded-xl bg-blue-900/40 backdrop-blur-xl border border-blue-400/60 shadow-[0_0_20px_rgba(59,130,246,0.35)] font-sans ${fontClasses[fontSize]}`}>
+                  <p className="text-blue-100 font-semibold tracking-wide leading-relaxed drop-shadow-[0_0_12px_rgba(59,130,246,0.6)]">
                     {currentTranslation || (
-                      <span className="text-slate-500 font-normal">
+                      <span className="text-blue-300/60 font-normal">
                         Translations will stream here live as soon as non-English audio plays.
                       </span>
                     )}
@@ -538,13 +538,13 @@ export default function LiveTranslationWidget({ isOpen, onClose, onToggleAutoTra
               </div>
 
               {/* Bottom Quick Footer Controls */}
-              <div className="flex items-center justify-between pt-1 text-xs text-slate-400">
+              <div className="flex items-center justify-between pt-1 text-xs text-blue-200/80">
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={() => setIsTranslating(!isTranslating)}
                     className={`flex items-center space-x-1 px-2.5 py-1 rounded-lg border transition-colors ${
                       isTranslating 
-                        ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300' 
+                        ? 'bg-emerald-500/20 border-emerald-400/50 text-emerald-300' 
                         : 'bg-rose-500/20 border-rose-500/40 text-rose-300'
                     }`}
                   >
@@ -552,10 +552,10 @@ export default function LiveTranslationWidget({ isOpen, onClose, onToggleAutoTra
                     <span>{isTranslating ? 'Listening Active' : 'Paused'}</span>
                   </button>
 
-                  <span className="text-slate-600">|</span>
+                  <span className="text-blue-500/40">|</span>
 
-                  <span className="text-[11px] text-slate-400">
-                    Captions logged: <strong className="text-cyan-300 font-mono">{captionHistory.length}</strong>
+                  <span className="text-[11px] text-blue-300/80">
+                    Captions logged: <strong className="text-blue-200 font-mono">{captionHistory.length}</strong>
                   </span>
                 </div>
 
@@ -566,7 +566,7 @@ export default function LiveTranslationWidget({ isOpen, onClose, onToggleAutoTra
                         navigator.clipboard.writeText(`${currentOriginal}\n${currentTranslation}`);
                       }
                     }}
-                    className="flex items-center space-x-1 px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md transition-colors text-xs"
+                    className="flex items-center space-x-1 px-2.5 py-1 bg-blue-900/60 hover:bg-blue-800/80 border border-blue-400/40 text-blue-200 rounded-md transition-colors text-xs font-medium"
                     title="Copy Current Caption"
                   >
                     <Copy className="w-3.5 h-3.5" />
@@ -583,18 +583,18 @@ export default function LiveTranslationWidget({ isOpen, onClose, onToggleAutoTra
 
       {/* Full Transcript History Drawer / Modal */}
       {showHistoryModal && (
-        <div className="fixed inset-0 z-[60] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-cyan-500/40 rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl overflow-hidden">
+        <div className="fixed inset-0 z-[60] bg-blue-950/70 backdrop-blur-xl flex items-center justify-center p-4">
+          <div className="bg-blue-950/90 backdrop-blur-2xl border border-blue-400/60 rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-[0_0_40px_rgba(37,99,235,0.5)] overflow-hidden">
             
             {/* Modal Header */}
-            <div className="px-6 py-4 bg-gradient-to-r from-slate-900 via-cyan-950/40 to-slate-900 border-b border-cyan-500/20 flex items-center justify-between">
+            <div className="px-6 py-4 bg-gradient-to-r from-blue-950 via-blue-900/60 to-blue-950 border-b border-blue-400/30 flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <Globe className="w-5 h-5 text-cyan-400" />
-                <h3 className="text-lg font-bold text-slate-100">Live Translation Session History</h3>
+                <Globe className="w-5 h-5 text-blue-400" />
+                <h3 className="text-lg font-bold text-blue-100">Live Translation Session History</h3>
               </div>
               <button
                 onClick={() => setShowHistoryModal(false)}
-                className="p-1 text-slate-400 hover:text-slate-200 rounded-lg"
+                className="p-1 text-blue-300/70 hover:text-blue-100 rounded-lg"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -603,31 +603,31 @@ export default function LiveTranslationWidget({ isOpen, onClose, onToggleAutoTra
             {/* History List */}
             <div className="p-6 overflow-y-auto flex-1 space-y-4 font-sans">
               {captionHistory.length === 0 ? (
-                <div className="text-center py-12 text-slate-500 space-y-2">
-                  <Languages className="w-12 h-12 mx-auto text-slate-600 animate-pulse" />
+                <div className="text-center py-12 text-blue-300/60 space-y-2">
+                  <Languages className="w-12 h-12 mx-auto text-blue-400/50 animate-pulse" />
                   <p>No translation logs recorded yet in this session.</p>
                 </div>
               ) : (
                 captionHistory.map((item) => (
-                  <div key={item.id} className="p-3.5 bg-slate-950/80 border border-cyan-500/20 rounded-xl space-y-1.5">
-                    <div className="flex items-center justify-between text-xs text-slate-400">
-                      <span className="font-mono text-cyan-400">{item.time}</span>
-                      <span className="px-2 py-0.5 bg-cyan-500/10 text-cyan-300 rounded font-semibold uppercase text-[10px]">
+                  <div key={item.id} className="p-3.5 bg-blue-950/60 backdrop-blur-md border border-blue-400/30 rounded-xl space-y-1.5">
+                    <div className="flex items-center justify-between text-xs text-blue-300/80">
+                      <span className="font-mono text-blue-300">{item.time}</span>
+                      <span className="px-2 py-0.5 bg-blue-500/20 text-blue-200 border border-blue-400/40 rounded font-semibold uppercase text-[10px]">
                         {item.langName} ({item.langCode})
                       </span>
                     </div>
-                    <p className="text-slate-400 italic text-sm">{item.original}</p>
-                    <p className="text-cyan-200 font-semibold text-base">{item.translation}</p>
+                    <p className="text-blue-200/80 italic text-sm">{item.original}</p>
+                    <p className="text-blue-100 font-semibold text-base">{item.translation}</p>
                   </div>
                 ))
               )}
             </div>
 
             {/* Modal Footer */}
-            <div className="px-6 py-3 bg-slate-950 border-t border-cyan-500/20 flex items-center justify-between">
+            <div className="px-6 py-3 bg-blue-950/90 border-t border-blue-400/30 flex items-center justify-between">
               <button
                 onClick={() => setCaptionHistory([])}
-                className="flex items-center space-x-1.5 px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 rounded-lg text-xs font-medium border border-rose-500/30 transition-colors"
+                className="flex items-center space-x-1.5 px-3 py-1.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 rounded-lg text-xs font-medium border border-rose-500/40 transition-colors"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>Clear History</span>
@@ -643,7 +643,7 @@ export default function LiveTranslationWidget({ isOpen, onClose, onToggleAutoTra
                   a.download = `jasper-live-translation-${Date.now()}.txt`;
                   a.click();
                 }}
-                className="flex items-center space-x-1.5 px-3 py-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 rounded-lg text-xs font-medium border border-cyan-500/40 transition-colors"
+                className="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-500/30 hover:bg-blue-500/40 text-blue-200 rounded-lg text-xs font-medium border border-blue-400/50 shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-colors"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Export Log File</span>
