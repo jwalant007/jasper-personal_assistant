@@ -415,6 +415,194 @@ function createStarkSpatialTelemetryGroup() {
   return group;
 }
 
+/**
+ * HYPER-REALISTIC ANATOMICAL STARK MARK LXXXV / MARK VII ARMOR GEOMETRY
+ * Sculpted mechanical armor plates, pectoral armor, V-taper abs, angular shoulder pauldrons,
+ * helmet facial contours, arc reactor housing, and repulsor gauntlets.
+ */
+function createPhotorealisticIronManSuitGroup(isBlueprint, primaryMat, secondaryMat, bootMat, isCrouch, expOffset) {
+  const figureGroup = new THREE.Group();
+  figureGroup.position.set(0, isCrouch ? -0.4 : 0, 0);
+
+  // 1. HELMET (STARK MARK 85 FACIAL CONTOURS & VISOR)
+  const headGroup = new THREE.Group();
+  headGroup.position.set(0, (isCrouch ? 1.35 : 1.65) + expOffset * 0.9, (isCrouch ? 0.25 : 0) + expOffset * 0.3);
+  if (isCrouch) headGroup.rotation.x = -0.22;
+
+  const headGeo = new THREE.SphereGeometry(0.38, 64, 64);
+  headGeo.scale(0.85, 1.15, 0.95);
+  const headMesh = new THREE.Mesh(headGeo, primaryMat);
+  headGroup.add(headMesh);
+
+  const jawShape = new THREE.Shape();
+  jawShape.moveTo(-0.25, 0);
+  jawShape.lineTo(-0.28, -0.25);
+  jawShape.lineTo(-0.15, -0.38);
+  jawShape.lineTo(0, -0.42);
+  jawShape.lineTo(0.15, -0.38);
+  jawShape.lineTo(0.28, -0.25);
+  jawShape.lineTo(0.25, 0);
+  const jawGeo = new THREE.ExtrudeGeometry(jawShape, { depth: 0.18, bevelEnabled: true, bevelSize: 0.02, bevelThickness: 0.02, bevelSegments: 3 });
+  jawGeo.scale(0.9, 0.9, 0.9);
+  const jawMesh = new THREE.Mesh(jawGeo, secondaryMat);
+  jawMesh.position.set(-0.02, 0.02, 0.08);
+  headGroup.add(jawMesh);
+
+  const browGeo = new THREE.BoxGeometry(0.52, 0.16, 0.22);
+  const browMesh = new THREE.Mesh(browGeo, primaryMat);
+  browMesh.position.set(0, 0.24, 0.22);
+  browMesh.rotation.x = 0.2;
+  headGroup.add(browMesh);
+
+  [-0.13, 0.13].forEach((xOffset) => {
+    const eyeShape = new THREE.Shape();
+    eyeShape.moveTo(0, 0.06);
+    eyeShape.lineTo(0.12, 0.02);
+    eyeShape.lineTo(0.10, -0.04);
+    eyeShape.lineTo(-0.02, -0.05);
+    eyeShape.lineTo(-0.10, 0.02);
+
+    const eyeGeo = new THREE.ExtrudeGeometry(eyeShape, { depth: 0.04, bevelEnabled: true, bevelSize: 0.01 });
+    eyeGeo.scale(0.8, 0.8, 0.8);
+    const eyeMat = isBlueprint
+      ? new THREE.MeshBasicMaterial({ color: 0x00ffff, blending: THREE.AdditiveBlending })
+      : new THREE.MeshPhysicalMaterial({ color: 0x00f3ff, emissive: 0x00f3ff, emissiveIntensity: 2.0 });
+    const eyeMesh = new THREE.Mesh(eyeGeo, eyeMat);
+    eyeMesh.position.set(xOffset, 0.08, 0.32);
+    eyeMesh.rotation.y = xOffset * -0.4;
+    headGroup.add(eyeMesh);
+  });
+
+  figureGroup.add(headGroup);
+
+  // 2. TORSO (CHEST PECTORAL ARMOR & ARC REACTOR INSET)
+  const torsoGroup = new THREE.Group();
+  torsoGroup.position.set(0, isCrouch ? 0.45 : 0.65, isCrouch ? 0.15 : 0);
+  if (isCrouch) torsoGroup.rotation.x = 0.45;
+
+  const chestPecGeo = new THREE.BoxGeometry(0.95, 0.55, 0.45, 12, 8, 8);
+  const chestPecMesh = new THREE.Mesh(chestPecGeo, primaryMat);
+  chestPecMesh.position.set(0, 0.32, 0.05);
+  torsoGroup.add(chestPecMesh);
+
+  const arcHousingGeo = new THREE.CylinderGeometry(0.22, 0.22, 0.08, 32);
+  arcHousingGeo.rotateX(Math.PI / 2);
+  const arcHousingMat = isBlueprint
+    ? new THREE.MeshBasicMaterial({ color: 0x00ffff, wireframe: true, blending: THREE.AdditiveBlending })
+    : new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.95 });
+  const arcHousing = new THREE.Mesh(arcHousingGeo, arcHousingMat);
+  arcHousing.position.set(0, 0.32, 0.26);
+  torsoGroup.add(arcHousing);
+
+  const arcCoreGeo = new THREE.SphereGeometry(0.14, 32, 32);
+  const arcCoreMat = isBlueprint
+    ? new THREE.MeshBasicMaterial({ color: 0xffffff, blending: THREE.AdditiveBlending })
+    : new THREE.MeshPhysicalMaterial({ color: 0x00f3ff, emissive: 0x00f3ff, emissiveIntensity: 3.0 });
+  const arcCore = new THREE.Mesh(arcCoreGeo, arcCoreMat);
+  arcCore.position.set(0, 0.32, 0.27);
+  torsoGroup.add(arcCore);
+
+  for (let a = 0; a < 4; a++) {
+    const abRibGeo = new THREE.BoxGeometry(0.72 - a * 0.06, 0.14, 0.40 - a * 0.03, 8, 4, 4);
+    const abRibMesh = new THREE.Mesh(abRibGeo, a % 2 === 0 ? secondaryMat : primaryMat);
+    abRibMesh.position.set(0, -0.05 - a * 0.16, 0.04);
+    torsoGroup.add(abRibMesh);
+  }
+
+  const spineGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.9, 16);
+  const spineMesh = new THREE.Mesh(spineGeo, secondaryMat);
+  spineMesh.position.set(0, 0.1, -0.18);
+  torsoGroup.add(spineMesh);
+
+  figureGroup.add(torsoGroup);
+
+  // 3. ARMS (SHOULDER PAULDRONS, BICEP PLATES & GAUNTLETS)
+  const rArmGroup = new THREE.Group();
+  rArmGroup.position.set(0.62 + expOffset * 0.8, (isCrouch ? 0.75 : 0.92) + expOffset * 0.2, (isCrouch ? 0.2 : 0) + expOffset * 0.5);
+  if (isCrouch) {
+    rArmGroup.rotation.x = -1.15;
+    rArmGroup.rotation.y = 0.25;
+    rArmGroup.rotation.z = -0.25;
+  }
+
+  const shoulderPauldronGeo = new THREE.SphereGeometry(0.32, 32, 32, 0, Math.PI * 2, 0, Math.PI * 0.6);
+  const shoulderPauldron = new THREE.Mesh(shoulderPauldronGeo, primaryMat);
+  shoulderPauldron.position.set(0.08, 0.05, 0);
+  rArmGroup.add(shoulderPauldron);
+
+  const rBicepGeo = new THREE.CylinderGeometry(0.18, 0.15, 0.42, 16);
+  const rBicep = new THREE.Mesh(rBicepGeo, secondaryMat);
+  rBicep.position.set(0.14, -0.32, 0.04);
+  rArmGroup.add(rBicep);
+
+  const rGauntletGeo = new THREE.BoxGeometry(0.24, 0.48, 0.24, 8, 8, 8);
+  const rGauntlet = new THREE.Mesh(rGauntletGeo, primaryMat);
+  rGauntlet.position.set(0.25, -0.76, 0.12);
+  rArmGroup.add(rGauntlet);
+
+  const rRepulsorGeo = new THREE.CylinderGeometry(0.06, 0.06, 0.05, 16);
+  rRepulsorGeo.rotateX(Math.PI / 2);
+  const rRepulsor = new THREE.Mesh(rRepulsorGeo, isBlueprint ? new THREE.MeshBasicMaterial({ color: 0x00ffff, blending: THREE.AdditiveBlending }) : new THREE.MeshPhysicalMaterial({ color: 0x00f3ff, emissive: 0x00f3ff, emissiveIntensity: 2.0 }));
+  rRepulsor.position.set(0.25, -1.02, 0.15);
+  rArmGroup.add(rRepulsor);
+
+  figureGroup.add(rArmGroup);
+
+  const lArmGroup = new THREE.Group();
+  lArmGroup.position.set(-0.62 - expOffset * 0.8, (isCrouch ? 0.75 : 0.92) + expOffset * 0.2, (isCrouch ? 0.1 : 0) + expOffset * 0.5);
+  if (isCrouch) {
+    lArmGroup.rotation.x = 0.85;
+    lArmGroup.rotation.y = -0.45;
+    lArmGroup.rotation.z = 0.45;
+  }
+
+  const lShoulderPauldron = new THREE.Mesh(shoulderPauldronGeo, primaryMat);
+  lShoulderPauldron.position.set(-0.08, 0.05, 0);
+  lArmGroup.add(lShoulderPauldron);
+
+  const lBicep = new THREE.Mesh(rBicepGeo, secondaryMat);
+  lBicep.position.set(-0.14, -0.32, 0.04);
+  lArmGroup.add(lBicep);
+
+  const lGauntlet = new THREE.Mesh(rGauntletGeo, primaryMat);
+  lGauntlet.position.set(-0.25, -0.76, 0.12);
+  lArmGroup.add(lGauntlet);
+
+  const lRepulsor = new THREE.Mesh(rRepulsorGeo, isBlueprint ? new THREE.MeshBasicMaterial({ color: 0x00ffff, blending: THREE.AdditiveBlending }) : new THREE.MeshPhysicalMaterial({ color: 0x00f3ff, emissive: 0x00f3ff, emissiveIntensity: 2.0 }));
+  lRepulsor.position.set(-0.25, -1.02, 0.15);
+  lArmGroup.add(lRepulsor);
+
+  figureGroup.add(lArmGroup);
+
+  // 4. LEGS (THIGH ARMOR PLATES, KNEE GUARDS & MECHANICAL BOOTS)
+  [-0.28, 0.28].forEach((xPos, idx) => {
+    const sideMult = idx === 0 ? -1 : 1;
+    const legGroup = new THREE.Group();
+    legGroup.position.set(xPos + sideMult * expOffset * 0.6, (isCrouch ? 0.0 : 0.12) - expOffset * 0.6, 0);
+
+    if (isCrouch) legGroup.rotation.x = -0.75;
+
+    const thighGeo = new THREE.CylinderGeometry(0.24, 0.18, 0.64, 16, 8);
+    const thighMesh = new THREE.Mesh(thighGeo, secondaryMat);
+    thighMesh.position.set(0, -0.32, 0);
+    legGroup.add(thighMesh);
+
+    const kneeCapGeo = new THREE.BoxGeometry(0.18, 0.18, 0.12);
+    const kneeCap = new THREE.Mesh(kneeCapGeo, primaryMat);
+    kneeCap.position.set(0, -0.68, 0.14);
+    legGroup.add(kneeCap);
+
+    const bootGeo = new THREE.BoxGeometry(0.22, 0.62, 0.28, 8, 8, 8);
+    const bootMesh = new THREE.Mesh(bootGeo, bootMat);
+    bootMesh.position.set(0, -1.15, isCrouch ? -0.22 : 0.04);
+    legGroup.add(bootMesh);
+
+    figureGroup.add(legGroup);
+  });
+
+  return figureGroup;
+}
+
 const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
   {
     mode = 'spiderman',
@@ -556,9 +744,6 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
     let animateCallback = () => {};
 
     if (mode === 'spiderman') {
-      const figureGroup = new THREE.Group();
-      hologramGroup.add(figureGroup);
-
       let primaryHex = '#e60026';
       let secondaryHex = '#111318';
       let primaryColor = 0xe60026;
@@ -662,128 +847,10 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
           });
 
       const isCrouch = poseMode === 'crouch';
-      figureGroup.position.set(0, isCrouch ? -0.4 : 0, 0);
-
-      // --- EXPLODED BLUEPRINT VIEW OFFSET FACTORS ---
       const expOffset = explodedView ? 0.85 : 0.0;
 
-      // 1. HEAD
-      const headGroup = new THREE.Group();
-      headGroup.position.set(0, (isCrouch ? 1.35 : 1.65) + expOffset * 0.9, (isCrouch ? 0.25 : 0) + expOffset * 0.3);
-      if (isCrouch) headGroup.rotation.x = -0.22;
-
-      const headGeo = new THREE.SphereGeometry(0.38, 128, 128);
-      headGeo.scale(0.88, 1.18, 0.95);
-      headGeo.computeVertexNormals();
-      const headMesh = new THREE.Mesh(headGeo, primaryMat);
-      headGroup.add(headMesh);
-
-      // Lenses
-      [-0.145, 0.145].forEach((xOffset) => {
-        const eyeShape = new THREE.Shape();
-        eyeShape.moveTo(0, 0.19);
-        eyeShape.quadraticCurveTo(0.15, 0.14, 0.16, -0.04);
-        eyeShape.quadraticCurveTo(0.10, -0.18, 0, -0.22);
-        eyeShape.quadraticCurveTo(-0.10, -0.18, -0.16, -0.04);
-        eyeShape.quadraticCurveTo(-0.15, 0.14, 0, 0.19);
-
-        const eyeExtrudeSettings = { depth: 0.035, bevelEnabled: true, bevelSegments: 6, bevelSize: 0.015, bevelThickness: 0.015 };
-        const eyeGeo = new THREE.ExtrudeGeometry(eyeShape, eyeExtrudeSettings);
-        eyeGeo.scale(0.72, 0.85, 0.7);
-
-        const eyeMat = new THREE.MeshPhysicalMaterial({
-          color: eyeColor,
-          emissive: eyeColor,
-          emissiveIntensity: 1.2,
-          clearcoat: 1.0
-        });
-
-        const eyeMesh = new THREE.Mesh(eyeGeo, eyeMat);
-        eyeMesh.position.set(xOffset, 0.05, 0.33);
-        eyeMesh.rotation.y = xOffset * -0.45;
-        eyeMesh.rotation.z = xOffset * 0.22;
-        headGroup.add(eyeMesh);
-      });
-
-      figureGroup.add(headGroup);
-
-      // 2. TORSO
-      const torsoGroup = new THREE.Group();
-      torsoGroup.position.set(0, isCrouch ? 0.45 : 0.65, isCrouch ? 0.15 : 0);
-      if (isCrouch) torsoGroup.rotation.x = 0.45;
-
-      const chestGeo = new THREE.SphereGeometry(0.55, 96, 96);
-      chestGeo.scale(1.05, 0.82, 0.72);
-      chestGeo.computeVertexNormals();
-      const chestMesh = new THREE.Mesh(chestGeo, primaryMat);
-      chestMesh.position.set(0, 0.28, 0);
-      torsoGroup.add(chestMesh);
-
-      const abdomenGeo = new THREE.CylinderGeometry(0.48, 0.40, 0.75, 64);
-      abdomenGeo.computeVertexNormals();
-      const abdomenMesh = new THREE.Mesh(abdomenGeo, spidermanSuit === 'upgraded' ? secondaryMat : primaryMat);
-      abdomenMesh.position.set(0, -0.22, 0);
-      torsoGroup.add(abdomenMesh);
-
-      figureGroup.add(torsoGroup);
-
-      // 3. ARMS
-      const rArmGroup = new THREE.Group();
-      rArmGroup.position.set(0.58 + expOffset * 0.8, (isCrouch ? 0.75 : 0.92) + expOffset * 0.2, (isCrouch ? 0.2 : 0) + expOffset * 0.5);
-      if (isCrouch) {
-        rArmGroup.rotation.x = -1.15;
-        rArmGroup.rotation.y = 0.25;
-        rArmGroup.rotation.z = -0.25;
-      }
-
-      const rShoulderGeo = new THREE.SphereGeometry(0.24, 48, 48);
-      const rShoulder = new THREE.Mesh(rShoulderGeo, primaryMat);
-      rArmGroup.add(rShoulder);
-
-      const rForearmGeo = new THREE.CapsuleGeometry(0.13, 0.42, 24, 48);
-      const rForearm = new THREE.Mesh(rForearmGeo, primaryMat);
-      rForearm.position.set(0.25, -0.72, 0.12);
-      rArmGroup.add(rForearm);
-
-      figureGroup.add(rArmGroup);
-
-      const lArmGroup = new THREE.Group();
-      lArmGroup.position.set(-0.58 - expOffset * 0.8, (isCrouch ? 0.75 : 0.92) + expOffset * 0.2, (isCrouch ? 0.1 : 0) + expOffset * 0.5);
-      if (isCrouch) {
-        lArmGroup.rotation.x = 0.85;
-        lArmGroup.rotation.y = -0.45;
-        lArmGroup.rotation.z = 0.45;
-      }
-
-      const lShoulder = new THREE.Mesh(rShoulderGeo, secondaryMat);
-      lArmGroup.add(lShoulder);
-
-      const lForearm = new THREE.Mesh(rForearmGeo, primaryMat);
-      lForearm.position.set(-0.25, -0.72, 0.12);
-      lArmGroup.add(lForearm);
-
-      figureGroup.add(lArmGroup);
-
-      // 4. LEGS
-      [-0.26, 0.26].forEach((xPos, idx) => {
-        const sideMult = idx === 0 ? -1 : 1;
-        const legGroup = new THREE.Group();
-        legGroup.position.set(xPos + sideMult * expOffset * 0.6, (isCrouch ? 0.0 : 0.12) - expOffset * 0.6, 0);
-
-        if (isCrouch) legGroup.rotation.x = -0.75;
-
-        const thighGeo = new THREE.CapsuleGeometry(0.19, 0.58, 24, 48);
-        const thighMesh = new THREE.Mesh(thighGeo, secondaryMat);
-        thighMesh.position.set(0, -0.32, 0);
-        legGroup.add(thighMesh);
-
-        const bootGeo = new THREE.CapsuleGeometry(0.155, 0.45, 24, 48);
-        const bootMesh = new THREE.Mesh(bootGeo, bootMat);
-        bootMesh.position.set(0, -1.25, isCrouch ? -0.3 : 0.04);
-        legGroup.add(bootMesh);
-
-        figureGroup.add(legGroup);
-      });
+      const figureGroup = createPhotorealisticIronManSuitGroup(isBlueprint, primaryMat, secondaryMat, bootMat, isCrouch, expOffset);
+      hologramGroup.add(figureGroup);
 
       // --- EXPLODED BLUEPRINT TELEMETRY CONNECTING LINES ---
       if (explodedView) {
