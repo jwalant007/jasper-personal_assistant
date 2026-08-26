@@ -18,12 +18,17 @@ import {
   ZoomIn,
   Maximize2,
   Sliders,
-  Layers
+  Layers,
+  Flame,
+  Sun
 } from 'lucide-react';
 
 export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
   const [query, setQuery] = useState(initialQuery || 'Explain Spider-Man suit engineering & web tech');
   const [active3dMode, setActive3dMode] = useState('spiderman');
+  const [poseMode, setPoseMode] = useState('crouch'); // 'crouch' or 'standing'
+  const [bloomEnabled, setBloomEnabled] = useState(true);
+  const [webFiring, setWebFiring] = useState(true);
   const [autoRotate, setAutoRotate] = useState(true);
   const [hudOverlay, setHudOverlay] = useState(true);
   const [cameraPreset, setCameraPresetState] = useState('full'); // full, texture, lens, shooter
@@ -125,13 +130,26 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
           </div>
           <div>
             <h2 className="text-xl font-extrabold tracking-wider text-cyan-300 uppercase font-orbitron flex items-center gap-2">
-              J.A.S.P.E.R. 4K Ultra 3D Hologram Visualizer
+              J.A.S.P.E.R. Movie CGI 3D Hologram Visualizer
             </h2>
-            <p className="text-xs text-slate-400 font-mono">4096px Procedural PBR Textures • WebGL 3D Studio Physics</p>
+            <p className="text-xs text-slate-400 font-mono">UnrealBloomPass Post-Processing • GLSL Fresnel Edge Shaders</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setBloomEnabled(!bloomEnabled)}
+            className={`p-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
+              bloomEnabled 
+                ? 'bg-amber-500/20 border-amber-400 text-amber-200' 
+                : 'bg-slate-900 border-slate-800 text-slate-400'
+            }`}
+            title="Toggle UnrealBloomPass Sci-Fi Holographic Glow"
+          >
+            <Sun className="w-4 h-4" />
+            Bloom
+          </button>
+
           <button
             onClick={() => setHudOverlay(!hudOverlay)}
             className={`p-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
@@ -185,28 +203,58 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
         })}
       </div>
 
-      {/* Spider-Man Suit Variants Selector Bar */}
+      {/* Spider-Man Suit & Superhero Pose Controls Bar */}
       {active3dMode === 'spiderman' && (
-        <div className="flex flex-wrap items-center gap-2 mb-4 bg-purple-950/30 p-2 rounded-xl border border-purple-500/30 text-xs">
-          <span className="text-[10px] font-orbitron font-bold text-purple-300 uppercase tracking-wider mr-1">
-            🕷️ SPIDER-MAN ARMORY SUITS:
-          </span>
-          {suitPresets.map(suit => (
+        <div className="space-y-2 mb-4">
+          <div className="flex flex-wrap items-center gap-2 bg-purple-950/30 p-2 rounded-xl border border-purple-500/30 text-xs">
+            <span className="text-[10px] font-orbitron font-bold text-purple-300 uppercase tracking-wider mr-1">
+              🕷️ SPIDER-MAN ARMORY SUITS:
+            </span>
+            {suitPresets.map(suit => (
+              <button
+                key={suit.id}
+                onClick={() => {
+                  setSpidermanSuit(suit.id);
+                  setResponseText(`Sir, loaded Spider-Man ${suit.label} 3D Holographic Model into view.`);
+                }}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                  spidermanSuit === suit.id
+                    ? 'bg-purple-500/30 border border-purple-400 text-purple-200 shadow-md shadow-purple-500/20'
+                    : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                {suit.badge}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 bg-rose-950/20 p-2 rounded-xl border border-rose-500/30 text-xs">
+            <span className="text-[10px] font-orbitron font-bold text-rose-300 uppercase tracking-wider mr-1">
+              🦸 ACTION POSING & WEB CANNON:
+            </span>
             <button
-              key={suit.id}
-              onClick={() => {
-                setSpidermanSuit(suit.id);
-                setResponseText(`Sir, loaded Spider-Man ${suit.label} 3D Holographic Model into view.`);
-              }}
-              className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
-                spidermanSuit === suit.id
-                  ? 'bg-purple-500/30 border border-purple-400 text-purple-200 shadow-md shadow-purple-500/20'
-                  : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200'
+              onClick={() => setPoseMode(poseMode === 'crouch' ? 'standing' : 'crouch')}
+              className={`px-3 py-1 rounded-lg text-[10px] font-bold transition-all border ${
+                poseMode === 'crouch'
+                  ? 'bg-rose-500/30 border-rose-400 text-rose-200'
+                  : 'bg-slate-900 border-slate-800 text-slate-400'
               }`}
             >
-              {suit.badge}
+              {poseMode === 'crouch' ? '🦸 Crouch Action Pose' : '🚶 Standing Hero Stance'}
             </button>
-          ))}
+
+            <button
+              onClick={() => setWebFiring(!webFiring)}
+              className={`px-3 py-1 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 border ${
+                webFiring
+                  ? 'bg-cyan-500/30 border-cyan-400 text-cyan-200'
+                  : 'bg-slate-900 border-slate-800 text-slate-400'
+              }`}
+            >
+              <Flame className="w-3 h-3 text-cyan-400" />
+              {webFiring ? '🕸️ 3D Web Cannon Stream ON' : '🕸️ Web Stream OFF'}
+            </button>
+          </div>
         </div>
       )}
 
@@ -243,8 +291,11 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
             ref={canvasRef}
             mode={active3dMode}
             spidermanSuit={spidermanSuit}
+            poseMode={poseMode}
             autoRotate={autoRotate}
             hudOverlay={hudOverlay}
+            bloomEnabled={bloomEnabled}
+            webFiring={webFiring}
           />
         </div>
 
