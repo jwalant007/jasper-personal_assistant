@@ -29,6 +29,7 @@ import HealthFitbandWidget from './components/HealthFitbandWidget';
 import LaptopConnectModal from './components/LaptopConnectModal';
 import LiveTranslationWidget from './components/LiveTranslationWidget';
 import HolographicAnswerModal from './components/HolographicAnswerModal';
+import JasperOsDesktop from './components/JasperOsDesktop';
 import geminiClient from './utils/geminiClient';
 import { getServerIp, setServerIp } from './utils/apiConfig.js';
 import { getPhoneBrainMode, setPhoneBrainMode, togglePhoneBrainMode } from './utils/mobileBrain.js';
@@ -1098,6 +1099,12 @@ export default function App() {
     }
   };
 
+  const [isOsMode, setIsOsMode] = useState(true);
+
+  if (isOsMode) {
+    return <JasperOsDesktop onToggleClassicMode={() => setIsOsMode(false)} />;
+  }
+
   return (
     <div className={`relative flex flex-col overflow-hidden bg-slate-950 text-cyan-50 select-none ${viewMode === 'mobile' && !isMobileScreen ? 'w-[360px] h-[800px] max-w-[100vw] max-h-[100dvh] mx-auto my-auto rounded-2xl border border-cyan-500/40 shadow-[0_0_50px_rgba(0,240,255,0.25)]' : 'w-full h-screen'}`}>
       
@@ -1448,6 +1455,13 @@ export default function App() {
                   🚀 {isMobileLayout ? 'APK UPDATE' : 'APK UPDATE READY'}
                 </a>
               )}
+              <button 
+                onClick={() => setIsOsMode(true)}
+                className="btn-hdr-action text-[10px] py-1 px-2.5 font-mono font-extrabold text-cyan-300 border-cyan-400/80 bg-cyan-950/80 hover:bg-cyan-800/90 transition-all flex items-center gap-1 cursor-pointer shadow-[0_0_15px_rgba(0,240,255,0.4)] animate-pulse"
+                title="Switch to JASPER OS Spatial Desktop Environment"
+              >
+                🖥️ {isMobileLayout ? 'OS MODE' : 'OS DESKTOP MODE'}
+              </button>
               <button 
                 onClick={() => {
                   setSelectedChatId(null);
