@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Hologram3dCanvas from './Hologram3dCanvas';
 import { speakMessage } from '../utils/speakDeviceAudio';
 import { getApiBase } from '../utils/apiConfig';
@@ -14,18 +14,27 @@ import {
   Globe, 
   Zap, 
   Atom, 
-  Eye
+  Eye,
+  ZoomIn,
+  Maximize2,
+  Sliders,
+  Layers
 } from 'lucide-react';
 
 export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
   const [query, setQuery] = useState(initialQuery || 'Explain Spider-Man suit engineering & web tech');
   const [active3dMode, setActive3dMode] = useState('spiderman');
   const [autoRotate, setAutoRotate] = useState(true);
+  const [hudOverlay, setHudOverlay] = useState(true);
+  const [cameraPreset, setCameraPresetState] = useState('full'); // full, texture, lens, shooter
   const [responseText, setResponseText] = useState(
     'Sir, the Spider-Man suit integrates a high-tensile carbon-nanotube weave, micro-actuator artificial muscles, and a high-frequency fluid dispenser capable of emitting synthetic web fluid at 450 PSI.'
   );
   const [isLoading, setIsLoading] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [spidermanSuit, setSpidermanSuit] = useState('upgraded');
+
+  const canvasRef = useRef(null);
 
   useEffect(() => {
     if (initialQuery) {
@@ -41,6 +50,15 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
     { id: 'planet', label: 'Solar & Planetary Globe', emoji: '🪐', icon: Globe },
     { id: 'reactor', label: 'Stark Arc Reactor', emoji: '⚡', icon: Zap },
     { id: 'chassis', label: 'Engineering Wireframe', emoji: '⚙️', icon: Cpu }
+  ];
+
+  const suitPresets = [
+    { id: 'upgraded', label: 'Upgraded Red & Black', color: 'text-rose-400', badge: '🕷️ Red & Black (Far From Home)' },
+    { id: 'classic', label: 'Classic Red & Blue', color: 'text-cyan-400', badge: '🔴 Peter Parker' },
+    { id: 'ironspider', label: 'Iron Spider Nanotech', color: 'text-amber-400', badge: '⚡ Gold Nanotech' },
+    { id: 'symbiote', label: 'Symbiote Black', color: 'text-slate-300', badge: '🖤 Black Suit' },
+    { id: 'miles', label: 'Miles Morales', color: 'text-rose-400', badge: '🕷️ Red/Black Web' },
+    { id: '2099', label: 'Spider-Man 2099', color: 'text-purple-400', badge: '🤖 Miguel O\'Hara' }
   ];
 
   const handleAskQuery = async (queryText) => {
@@ -86,20 +104,16 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
     }
   };
 
-  const [spidermanSuit, setSpidermanSuit] = useState('upgraded');
-
-  const suitPresets = [
-    { id: 'upgraded', label: 'Upgraded Red & Black', color: 'text-rose-400', badge: '🕷️ Red & Black (Far From Home)' },
-    { id: 'classic', label: 'Classic Red & Blue', color: 'text-cyan-400', badge: '🔴 Peter Parker' },
-    { id: 'ironspider', label: 'Iron Spider Nanotech', color: 'text-amber-400', badge: '⚡ Gold Nanotech' },
-    { id: 'symbiote', label: 'Symbiote Black', color: 'text-slate-300', badge: '🖤 Black Suit' },
-    { id: 'miles', label: 'Miles Morales', color: 'text-rose-400', badge: '🕷️ Red/Black Web' },
-    { id: '2099', label: 'Spider-Man 2099', color: 'text-purple-400', badge: '🤖 Miguel O\'Hara' }
-  ];
+  const switchCameraView = (preset) => {
+    setCameraPresetState(preset);
+    if (canvasRef.current && canvasRef.current.setCameraPreset) {
+      canvasRef.current.setCameraPreset(preset);
+    }
+  };
 
   return (
     <div className="bg-slate-950/95 border border-cyan-500/50 rounded-2xl p-6 text-slate-100 backdrop-blur-2xl shadow-2xl max-w-5xl w-full mx-auto relative overflow-hidden font-sans">
-      {/* Background Holographic Ambient Glow */}
+      {/* Ambient Background Glow */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -111,13 +125,26 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
           </div>
           <div>
             <h2 className="text-xl font-extrabold tracking-wider text-cyan-300 uppercase font-orbitron flex items-center gap-2">
-              J.A.S.P.E.R. 3D Holographic Visualizer
+              J.A.S.P.E.R. 4K Ultra 3D Hologram Visualizer
             </h2>
-            <p className="text-xs text-slate-400 font-mono">Interactive WebGL 3D Holographic Rendering Engine</p>
+            <p className="text-xs text-slate-400 font-mono">4096px Procedural PBR Textures • WebGL 3D Studio Physics</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setHudOverlay(!hudOverlay)}
+            className={`p-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
+              hudOverlay 
+                ? 'bg-purple-500/20 border-purple-400 text-purple-200' 
+                : 'bg-slate-900 border-slate-800 text-slate-400'
+            }`}
+            title="Toggle Hologram HUD Telemetry Overlay"
+          >
+            <Layers className="w-4 h-4" />
+            HUD
+          </button>
+
           <button
             onClick={() => setAutoRotate(!autoRotate)}
             className={`p-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
@@ -183,11 +210,42 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
         </div>
       )}
 
+      {/* 4K Camera Inspection Presets Bar */}
+      <div className="flex flex-wrap items-center gap-2 mb-3 bg-slate-900/60 p-2 rounded-xl border border-cyan-500/20 text-xs">
+        <span className="text-[10px] font-mono font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1">
+          <ZoomIn className="w-3.5 h-3.5 text-cyan-400" /> 4K CAMERA INSPECTOR:
+        </span>
+        {[
+          { id: 'full', label: 'Full Body Model', icon: Maximize2 },
+          { id: 'texture', label: '🔍 4K Suit Micro-Texture Zoom', icon: ZoomIn },
+          { id: 'lens', label: '👁️ Eye Lens Shutter Close-up', icon: Eye },
+          { id: 'shooter', label: '⚙️ Wrist Web-Shooter Close-up', icon: Sliders }
+        ].map(cam => (
+          <button
+            key={cam.id}
+            onClick={() => switchCameraView(cam.id)}
+            className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all ${
+              cameraPreset === cam.id
+                ? 'bg-cyan-500/30 border border-cyan-400 text-cyan-100 shadow-sm'
+                : 'bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            {cam.label}
+          </button>
+        ))}
+      </div>
+
       {/* Main Grid Section: Left 3D Model, Right AI Answer */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
         {/* Left: 3D Hologram Canvas */}
         <div>
-          <Hologram3dCanvas mode={active3dMode} spidermanSuit={spidermanSuit} autoRotate={autoRotate} />
+          <Hologram3dCanvas
+            ref={canvasRef}
+            mode={active3dMode}
+            spidermanSuit={spidermanSuit}
+            autoRotate={autoRotate}
+            hudOverlay={hudOverlay}
+          />
         </div>
 
         {/* Right: AI Answer & Audio Controls */}
