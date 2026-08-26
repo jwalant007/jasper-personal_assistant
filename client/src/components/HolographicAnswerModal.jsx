@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Hologram3dCanvas from './Hologram3dCanvas';
 import { speakMessage } from '../utils/speakDeviceAudio';
 import { getApiBase } from '../utils/apiConfig';
+import { playJarvisBeep, playJarvisScan } from '../utils/jarvisAudioSynth';
 import { 
   Box, 
   Sparkles, 
@@ -25,7 +26,11 @@ import {
   Sun,
   RefreshCcw,
   Bot,
-  Activity
+  Activity,
+  Volume2,
+  VolumeX,
+  Target,
+  Hand
 } from 'lucide-react';
 
 export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
@@ -40,11 +45,14 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
   const [hudOverlay, setHudOverlay] = useState(true);
   const [cameraPreset, setCameraPresetState] = useState('full');
   
-  // 4D TEMPORAL DYNAMICS STATES
+  // STARK & 4D TEMPORAL DYNAMICS STATES
   const [is4dEnabled, setIs4dEnabled] = useState(true);
   const [time4d, setTime4d] = useState(0.0);
   const [timeSpeed4d, setTimeSpeed4d] = useState(1.0);
   const [is4dPlaying, setIs4dPlaying] = useState(true);
+  const [starkReticles, setStarkReticles] = useState(true);
+  const [sfxEnabled, setSfxEnabled] = useState(true);
+  const [gestureMode, setGestureMode] = useState(false);
 
   const [responseText, setResponseText] = useState(
     'Sir, the Spider-Man suit integrates a high-tensile carbon-nanotube weave, micro-actuator artificial muscles, and a high-frequency fluid dispenser capable of emitting synthetic web fluid at 450 PSI.'
@@ -172,9 +180,61 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
-            onClick={() => setIs4dEnabled(!is4dEnabled)}
+            onClick={() => {
+              if (sfxEnabled) playJarvisBeep('click');
+              setStarkReticles(!starkReticles);
+            }}
+            className={`p-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
+              starkReticles 
+                ? 'bg-cyan-500/25 border-cyan-400 text-cyan-200' 
+                : 'bg-slate-900 border-slate-800 text-slate-400'
+            }`}
+            title="Toggle Stark HUD Targeting Lock Reticles"
+          >
+            <Target className="w-4 h-4 text-cyan-400" />
+            Stark Reticles
+          </button>
+
+          <button
+            onClick={() => {
+              if (sfxEnabled) playJarvisBeep('click');
+              setGestureMode(!gestureMode);
+            }}
+            className={`p-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
+              gestureMode 
+                ? 'bg-amber-500/25 border-amber-400 text-amber-200 animate-pulse' 
+                : 'bg-slate-900 border-slate-800 text-slate-400'
+            }`}
+            title="Toggle Virtual Air-Gesture Simulation Controls"
+          >
+            <Hand className="w-4 h-4 text-amber-400" />
+            Air Gestures
+          </button>
+
+          <button
+            onClick={() => {
+              const next = !sfxEnabled;
+              setSfxEnabled(next);
+              if (next) playJarvisBeep('click');
+            }}
+            className={`p-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
+              sfxEnabled 
+                ? 'bg-purple-500/25 border-purple-400 text-purple-200' 
+                : 'bg-slate-900 border-slate-800 text-slate-400'
+            }`}
+            title="Toggle J.A.R.V.I.S. Web Audio SFX Sound Effects"
+          >
+            {sfxEnabled ? <Volume2 className="w-4 h-4 text-purple-400" /> : <VolumeX className="w-4 h-4 text-slate-500" />}
+            SFX
+          </button>
+
+          <button
+            onClick={() => {
+              if (sfxEnabled) playJarvisBeep('click');
+              setIs4dEnabled(!is4dEnabled);
+            }}
             className={`p-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
               is4dEnabled 
                 ? 'bg-purple-500/30 border-purple-400 text-purple-200 animate-pulse shadow-lg shadow-purple-500/30' 
@@ -187,7 +247,10 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
           </button>
 
           <button
-            onClick={() => setExplodedView(!explodedView)}
+            onClick={() => {
+              if (sfxEnabled) playJarvisBeep('click');
+              setExplodedView(!explodedView);
+            }}
             className={`p-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
               explodedView 
                 ? 'bg-cyan-500/25 border-cyan-400 text-cyan-200 animate-pulse' 
@@ -200,7 +263,10 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
           </button>
 
           <button
-            onClick={triggerNanotechReassembly}
+            onClick={() => {
+              if (sfxEnabled) playJarvisBeep('click');
+              triggerNanotechReassembly();
+            }}
             className="p-2 bg-amber-500/20 border border-amber-400 text-amber-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-500/30 transition-all"
             title="Trigger Nanotech Suit Reassembly Particles"
           >
@@ -209,7 +275,10 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
           </button>
 
           <button
-            onClick={() => setBloomEnabled(!bloomEnabled)}
+            onClick={() => {
+              if (sfxEnabled) playJarvisBeep('click');
+              setBloomEnabled(!bloomEnabled);
+            }}
             className={`p-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
               bloomEnabled 
                 ? 'bg-amber-500/20 border-amber-400 text-amber-200' 
@@ -389,7 +458,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
 
       {/* Main Grid Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-        <div>
+        <div className="relative">
           <Hologram3dCanvas
             ref={canvasRef}
             mode={active3dMode}
@@ -405,7 +474,24 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
             time4d={time4d}
             timeSpeed4d={timeSpeed4d}
             is4dPlaying={is4dPlaying}
+            starkReticles={starkReticles}
+            sfxEnabled={sfxEnabled}
           />
+
+          {/* VIRTUAL AIR-GESTURE CONTROL OVERLAY */}
+          {gestureMode && (
+            <div className="absolute inset-0 border-2 border-dashed border-amber-400/40 rounded-xl pointer-events-none p-3 flex flex-col justify-between backdrop-blur-[1px] animate-pulse">
+              <div className="flex justify-between items-center text-[10px] font-mono text-amber-300 bg-amber-950/80 px-2.5 py-1 rounded-md border border-amber-500/40">
+                <span className="flex items-center gap-1">✋ AIR-GESTURE CONTROL ACTIVE: PINCH TO SCALE // SWIPE TO SLICE</span>
+                <span className="font-bold text-amber-400">STARK HUD v9.2</span>
+              </div>
+              <div className="flex justify-around items-center text-[9px] font-mono text-amber-200/90 bg-slate-950/80 p-2 rounded-lg border border-amber-500/30">
+                <span className="px-2 py-1 bg-amber-500/20 rounded">🖐️ Open Hand: Rotate 360°</span>
+                <span className="px-2 py-1 bg-amber-500/20 rounded">🤏 Pinch: Zoom Component</span>
+                <span className="px-2 py-1 bg-amber-500/20 rounded">✌️ Slice: Explode View</span>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col justify-between p-5 bg-slate-900/70 border border-slate-800 rounded-xl space-y-4">

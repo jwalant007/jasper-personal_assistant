@@ -4,6 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { playJarvisPowerUp, setJarvisPlasmaHum } from '../utils/jarvisAudioSynth';
 
 /**
  * 4K ULTRA-HIGH RESOLUTION PBR TEXTURE GENERATOR (4096 x 4096)
@@ -297,6 +298,40 @@ function create4dTesseractGroup(timeVal) {
   return group;
 }
 
+/**
+ * STARK TARGET LOCK RETICLES (J.A.R.V.I.S. HUD RINGS)
+ */
+function createStarkTargetLockReticleGroup() {
+  const group = new THREE.Group();
+
+  // Primary Outer Ring
+  const ring1Geo = new THREE.RingGeometry(1.8, 1.84, 64);
+  const ring1Mat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, side: THREE.DoubleSide, transparent: true, opacity: 0.65 });
+  const ring1 = new THREE.Mesh(ring1Geo, ring1Mat);
+  group.add(ring1);
+
+  // Inner Segmented Reticle Ring
+  const ring2Geo = new THREE.RingGeometry(1.2, 1.25, 32, 1, 0, Math.PI * 1.5);
+  const ring2Mat = new THREE.MeshBasicMaterial({ color: 0xffa500, side: THREE.DoubleSide, transparent: true, opacity: 0.8 });
+  const ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
+  group.add(ring2);
+
+  // Target Crosshairs
+  const lineMat = new THREE.LineBasicMaterial({ color: 0x00f3ff, transparent: true, opacity: 0.5 });
+  const points = [
+    [new THREE.Vector3(-2.1, 0, 0), new THREE.Vector3(-1.4, 0, 0)],
+    [new THREE.Vector3(1.4, 0, 0), new THREE.Vector3(2.1, 0, 0)],
+    [new THREE.Vector3(0, -2.1, 0), new THREE.Vector3(0, -1.4, 0)],
+    [new THREE.Vector3(0, 1.4, 0), new THREE.Vector3(0, 2.1, 0)]
+  ];
+  points.forEach(pts => {
+    const lineGeo = new THREE.BufferGeometry().setFromPoints(pts);
+    group.add(new THREE.Line(lineGeo, lineMat));
+  });
+
+  return { group, ring1, ring2 };
+}
+
 const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
   {
     mode = 'spiderman',
@@ -311,7 +346,9 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
     is4dEnabled = false,
     time4d = 0,
     timeSpeed4d = 1.0,
-    is4dPlaying = true
+    is4dPlaying = true,
+    starkReticles = true,
+    sfxEnabled = true
   },
   ref
 ) {
@@ -394,6 +431,20 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
 
     const hologramGroup = new THREE.Group();
     scene.add(hologramGroup);
+
+    // STARK TARGET LOCK RETICLES (J.A.R.V.I.S. HUD RINGS)
+    let starkReticleObj = null;
+    if (starkReticles) {
+      starkReticleObj = createStarkTargetLockReticleGroup();
+      starkReticleObj.group.position.set(0, 0, 0);
+      scene.add(starkReticleObj.group);
+    }
+
+    // AUDIO SFX POWER UP & AMBIENT HUM
+    if (sfxEnabled) {
+      playJarvisPowerUp();
+      setJarvisPlasmaHum(true);
+    }
 
     // 4D TEMPORAL DYNAMICS: TESSERACT HYPERCUBE MESH
     let tesseractGroup = null;
@@ -931,6 +982,11 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
       controls.update();
       animateCallback(time);
 
+      if (starkReticleObj) {
+        starkReticleObj.ring1.rotation.z += 0.01;
+        starkReticleObj.ring2.rotation.z -= 0.015;
+      }
+
       if (is4dEnabled && tesseractGroup) {
         const effective4dTime = is4dPlaying ? time * timeSpeed4d + time4d : time4d;
         tesseractGroup.rotation.y = effective4dTime * 0.4;
@@ -955,12 +1011,13 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
       window.removeEventListener('resize', handleResize);
       if (resizeObserver) resizeObserver.disconnect();
       controls.dispose();
+      setJarvisPlasmaHum(false);
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
       renderer.dispose();
     };
-  }, [mode, spidermanSuit, poseMode, autoRotate, bloomEnabled, webFiring, explodedView, nanotechReassembling, is4dEnabled, time4d, timeSpeed4d, is4dPlaying]);
+  }, [mode, spidermanSuit, poseMode, autoRotate, bloomEnabled, webFiring, explodedView, nanotechReassembling, is4dEnabled, time4d, timeSpeed4d, is4dPlaying, starkReticles, sfxEnabled]);
 
   return (
     <div
