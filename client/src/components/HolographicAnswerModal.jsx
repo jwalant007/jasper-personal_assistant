@@ -161,7 +161,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
   };
 
   return (
-    <div className="bg-slate-950/95 border border-cyan-500/50 rounded-2xl p-6 text-slate-100 backdrop-blur-2xl shadow-2xl max-w-5xl w-full mx-auto relative overflow-hidden font-sans">
+    <div className="bg-cyan-950/30 border border-cyan-400/50 rounded-2xl p-6 text-slate-100 backdrop-blur-3xl shadow-[0_0_50px_rgba(0,240,255,0.25)] max-w-5xl w-full mx-auto relative overflow-hidden font-sans">
       {/* Ambient Background Glow */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -494,9 +494,9 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
           )}
         </div>
 
-        <div className="flex flex-col justify-between p-5 bg-slate-900/70 border border-slate-800 rounded-xl space-y-4">
+        <div className="flex flex-col justify-between p-5 bg-cyan-950/25 border border-cyan-500/30 rounded-xl space-y-4 backdrop-blur-xl shadow-lg">
           <div>
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+            <div className="flex items-center justify-between border-b border-cyan-500/20 pb-3 mb-3">
               <span className="text-xs font-bold font-mono text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-cyan-400" /> J.A.S.P.E.R. 3D Synthesis
               </span>
@@ -514,8 +514,8 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
             </p>
           </div>
 
-          <div className="pt-3 border-t border-slate-800/80 space-y-1.5">
-            <span className="text-[10px] text-slate-500 font-mono uppercase">Quick 3D Hologram Prompts:</span>
+          <div className="pt-3 border-t border-cyan-500/20 space-y-1.5">
+            <span className="text-[10px] text-slate-400 font-mono uppercase">Quick 3D Hologram Prompts:</span>
             <div className="flex flex-wrap gap-1.5">
               {[
                 'Spider-Man suit web tech',
@@ -530,7 +530,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
                     setQuery(sample);
                     handleAskQuery(sample);
                   }}
-                  className="text-[10px] px-2.5 py-1 bg-slate-950 hover:bg-cyan-500/20 border border-slate-800 hover:border-cyan-500/40 rounded-lg text-slate-300 hover:text-cyan-300 transition-colors"
+                  className="text-[10px] px-2.5 py-1 bg-cyan-950/40 hover:bg-cyan-500/25 border border-cyan-500/30 hover:border-cyan-400 rounded-lg text-cyan-200 transition-all font-mono"
                 >
                   {sample}
                 </button>
@@ -547,7 +547,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
           placeholder="Ask any question to generate a 3D Holographic Model (e.g. Iron Man core, V8 engine, Cyber drone)..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="flex-1 bg-slate-900 border border-slate-800 focus:border-cyan-500/60 rounded-xl px-4 py-2.5 text-xs text-slate-100 focus:outline-none"
+          className="flex-1 bg-cyan-950/30 border border-cyan-500/40 focus:border-cyan-400 rounded-xl px-4 py-2.5 text-xs text-slate-100 focus:outline-none backdrop-blur-md shadow-inner"
         />
         <button
           type="submit"

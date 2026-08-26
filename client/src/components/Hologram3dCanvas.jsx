@@ -1022,11 +1022,11 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
   return (
     <div
       ref={mountRef}
-      className="w-full h-80 sm:h-[420px] cursor-grab active:cursor-grabbing rounded-xl bg-slate-950/95 border border-cyan-500/40 relative overflow-hidden flex items-center justify-center shadow-[0_0_40px_rgba(0,243,255,0.25)]"
+      className="w-full h-80 sm:h-[420px] cursor-grab active:cursor-grabbing rounded-xl bg-cyan-950/20 border border-cyan-500/40 relative overflow-hidden flex items-center justify-center backdrop-blur-xl shadow-[0_0_40px_rgba(0,243,255,0.2)]"
     >
       {hudOverlay && (
         <>
-          <div className="absolute top-3 left-3 text-[10px] font-mono text-cyan-400 uppercase tracking-widest bg-cyan-950/80 border border-cyan-500/50 px-3 py-1.5 rounded-lg pointer-events-none flex items-center gap-2 backdrop-blur-md shadow-lg">
+          <div className="absolute top-3 left-3 text-[10px] font-mono text-cyan-300 uppercase tracking-widest bg-cyan-950/50 border border-cyan-500/50 px-3 py-1.5 rounded-lg pointer-events-none flex items-center gap-2 backdrop-blur-xl shadow-lg">
             <span className={`w-2 h-2 rounded-full ${is4dEnabled ? 'bg-purple-400 animate-ping' : 'bg-cyan-400 animate-ping'}`} />
             <span>
               {is4dEnabled
@@ -1037,11 +1037,11 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
             </span>
           </div>
 
-          <div className="absolute top-3 right-3 text-[9px] font-mono text-cyan-400/80 bg-slate-900/80 border border-cyan-500/30 px-2.5 py-1.5 rounded-md pointer-events-none hidden sm:block">
+          <div className="absolute top-3 right-3 text-[9px] font-mono text-cyan-300 bg-cyan-950/50 border border-cyan-500/40 px-2.5 py-1.5 rounded-md pointer-events-none hidden sm:block backdrop-blur-md">
             {is4dEnabled ? `4D PHASE: ${((time4d * 36) % 360).toFixed(0)}° | ` : ''}MODE: {mode.toUpperCase()} | BLOOM: {bloomEnabled ? 'ACTIVE' : 'OFF'}
           </div>
 
-          <div className="absolute bottom-3 left-3 pointer-events-none hidden sm:flex items-center gap-2 text-[9px] font-mono text-slate-400 bg-slate-900/80 border border-slate-800 px-2.5 py-1 rounded-md">
+          <div className="absolute bottom-3 left-3 pointer-events-none hidden sm:flex items-center gap-2 text-[9px] font-mono text-slate-300 bg-cyan-950/50 border border-cyan-500/30 px-2.5 py-1 rounded-md backdrop-blur-md">
             <span className="text-cyan-400 font-bold">TARGET:</span> {mode.toUpperCase()} {is4dEnabled ? '(4D TEMPORAL)' : explodedView ? '(EXPLODED)' : ''}
           </div>
         </>
