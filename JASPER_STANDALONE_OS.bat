@@ -18,7 +18,7 @@ if %errorlevel% equ 0 (
     start chrome.exe --kiosk --app=http://localhost:5000 || start msedge.exe --kiosk --app=http://localhost:5000 || start "" "http://localhost:5000"
 ) else (
     echo [SYSTEM INFO] Node.js not detected on this PC. Connecting to Laptop 1 Master Node...
-    start chrome.exe --kiosk --app=http://192.168.29.132:5000 || start msedge.exe --kiosk --app=http://192.168.29.132:5000 || start "" "http://192.168.29.132:5000"
+    start chrome.exe --kiosk --app=http://192.168.29.132:5173 || start chrome.exe --kiosk --app=http://192.168.29.132:5000 || start msedge.exe --kiosk --app=http://192.168.29.132:5173 || start "" "http://192.168.29.132:5173"
 )
 
 exit

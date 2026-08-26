@@ -22,7 +22,7 @@ if %errorlevel% equ 0 (
 ) else (
     echo [SYSTEM INFO] Node.js not installed on this PC. Connecting to Laptop 1 Master Server...
     echo [SUCCESS] Opening JASPER OS from Master Node (192.168.29.132)...
-    start "" "http://192.168.29.132:5000"
+    start "" "http://192.168.29.132:5173" || start "" "http://192.168.29.132:5000"
 )
 
 cls
