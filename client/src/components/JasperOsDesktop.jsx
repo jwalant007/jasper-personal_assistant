@@ -13,7 +13,7 @@ import SecurityCenterWidget from './SecurityCenterWidget';
 import AgenticActionsWidget from './AgenticActionsWidget';
 
 /**
- * DRAGGABLE & RESIZABLE STARK GLASS OS WINDOW COMPONENT
+ * DRAGGABLE & RESIZABLE JWALANT BHATT CREATION GLASS OS WINDOW COMPONENT
  */
 function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFocus, onClose, onMinimize, isMinimized, children }) {
   const [pos, setPos] = useState(defaultPos || { x: 50, y: 70 });
@@ -287,7 +287,7 @@ export default function JasperOsDesktop({ onToggleClassicMode }) {
             </div>
             <div>
               <h3 className="font-orbitron font-extrabold text-sm text-cyan-200 uppercase">J.A.S.P.E.R. OS v4.2</h3>
-              <p className="text-[10px] text-slate-400 font-mono">Stark Spatial OS Environment</p>
+              <p className="text-[10px] text-slate-400 font-mono">JWALANT BHATT CREATION OS Environment</p>
             </div>
           </div>
 
@@ -327,7 +327,7 @@ export default function JasperOsDesktop({ onToggleClassicMode }) {
         {openWindows.hologram && (
           <OsWindow
             id="hologram"
-            title="🌌 3D/4D Stark Hologram Blueprint Suite"
+            title="🌌 3D/4D JWALANT BHATT CREATION Blueprint Suite"
             icon={Box}
             defaultPos={{ x: 340, y: 20 }}
             defaultSize={{ w: 780, h: 560 }}

@@ -192,10 +192,10 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
                 ? 'bg-cyan-500/25 border-cyan-400 text-cyan-200' 
                 : 'bg-slate-900 border-slate-800 text-slate-400'
             }`}
-            title="Toggle Stark HUD Targeting Lock Reticles"
+            title="Toggle JWALANT BHATT CREATION HUD Targeting Lock Reticles"
           >
             <Target className="w-4 h-4 text-cyan-400" />
-            Stark Reticles
+            JWALANT BHATT CREATION Reticles
           </button>
 
           <button

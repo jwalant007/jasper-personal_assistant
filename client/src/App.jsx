@@ -1411,7 +1411,7 @@ export default function App() {
 
             {/* Footer details in sidebar */}
             <div className="border-t border-cyan-500/10 pt-3 flex items-center justify-between text-[8px] font-mono text-sky-600/60 uppercase">
-              <span>STARK CORE v4.1</span>
+              <span>JWALANT BHATT CREATION v4.1</span>
               <span>SECURE HUD</span>
             </div>
           </aside>
