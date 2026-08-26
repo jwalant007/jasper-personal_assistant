@@ -332,6 +332,89 @@ function createStarkTargetLockReticleGroup() {
   return { group, ring1, ring2 };
 }
 
+/**
+ * 3D SPATIAL TELEMETRY PLANES & NODE CONSTELLATIONS (MATCHING STARK WORKSHOP IMAGE)
+ */
+function createStarkSpatialTelemetryGroup() {
+  const group = new THREE.Group();
+
+  const createSpatialTextSprite = (textString, colorHex = '#00f3ff') => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+    ctx.font = 'bold 36px "Share Tech Mono", monospace';
+    ctx.fillStyle = colorHex;
+    ctx.shadowColor = '#00f3ff';
+    ctx.shadowBlur = 12;
+    ctx.fillText(textString, 10, 60);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending });
+    const sprite = new THREE.Sprite(spriteMat);
+    sprite.scale.set(1.6, 0.4, 1.0);
+    return sprite;
+  };
+
+  const text1 = createSpatialTextSprite('-502', '#00f3ff');
+  text1.position.set(1.4, 1.2, 0.5);
+  group.add(text1);
+
+  const text2 = createSpatialTextSprite('MARK_VII // SPEC', '#00f3ff');
+  text2.position.set(-1.6, 1.8, -0.2);
+  group.add(text2);
+
+  const text3 = createSpatialTextSprite('NEURAL_SYNC: 99.8%', '#00ffff');
+  text3.position.set(1.5, 0.4, -0.4);
+  group.add(text3);
+
+  const text4 = createSpatialTextSprite('NODAL_PRESSURE', '#00f3ff');
+  text4.position.set(-1.8, -0.5, 0.3);
+  group.add(text4);
+
+  const boxMat = new THREE.LineBasicMaterial({ color: 0x00f3ff, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending });
+  const bboxPoints = [
+    new THREE.Vector3(-1.2, -1.8, 0.8),
+    new THREE.Vector3(1.2, -1.8, 0.8),
+    new THREE.Vector3(1.2, 2.2, 0.8),
+    new THREE.Vector3(-1.2, 2.2, 0.8),
+    new THREE.Vector3(-1.2, -1.8, 0.8)
+  ];
+  const bboxGeo = new THREE.BufferGeometry().setFromPoints(bboxPoints);
+  group.add(new THREE.Line(bboxGeo, boxMat));
+
+  const nodeCount = 18;
+  const nodePositions = [];
+  for (let i = 0; i < nodeCount; i++) {
+    const pt = new THREE.Vector3(
+      (Math.random() - 0.5) * 3.8,
+      (Math.random() - 0.5) * 4.2 + 0.2,
+      (Math.random() - 0.5) * 1.5 - 0.5
+    );
+    nodePositions.push(pt);
+  }
+
+  const netLineMat = new THREE.LineBasicMaterial({ color: 0x00f3ff, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending });
+  for (let i = 0; i < nodeCount; i++) {
+    for (let j = i + 1; j < nodeCount; j++) {
+      if (nodePositions[i].distanceTo(nodePositions[j]) < 1.8) {
+        const lineGeo = new THREE.BufferGeometry().setFromPoints([nodePositions[i], nodePositions[j]]);
+        group.add(new THREE.Line(lineGeo, netLineMat));
+      }
+    }
+  }
+
+  const nodeDotGeo = new THREE.SphereGeometry(0.04, 16, 16);
+  const nodeDotMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, blending: THREE.AdditiveBlending });
+  nodePositions.forEach(pos => {
+    const dot = new THREE.Mesh(nodeDotGeo, nodeDotMat);
+    dot.position.copy(pos);
+    group.add(dot);
+  });
+
+  return group;
+}
+
 const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
   {
     mode = 'spiderman',
@@ -522,6 +605,14 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
         eyeColor = 0xff0055;
         emblemColor = 0xff0044;
         particleColor = 0x00d2ff;
+      } else if (spidermanSuit === 'stark_blueprint') {
+        primaryHex = '#00f3ff';
+        secondaryHex = '#00f3ff';
+        primaryColor = 0x00f3ff;
+        secondaryColor = 0x00f3ff;
+        eyeColor = 0x00ffff;
+        emblemColor = 0x00ffff;
+        particleColor = 0x00f3ff;
       }
 
       const { mapTexture, normalTexture, roughnessTexture, metalnessTexture } = createPhotorealistic4kSuitTextures(
@@ -530,37 +621,45 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
         secondaryHex
       );
 
-      const primaryMat = new THREE.MeshPhysicalMaterial({
-        color: primaryColor,
-        map: mapTexture,
-        normalMap: normalTexture,
-        normalScale: new THREE.Vector2(0.6, 0.6),
-        roughnessMap: roughnessTexture,
-        metalnessMap: metalnessTexture,
-        clearcoat: 1.0,
-        clearcoatRoughness: 0.05,
-        roughness: 0.22,
-        metalness: isIronSpider ? 0.9 : 0.25,
-        emissive: primaryColor,
-        emissiveIntensity: 0.15
-      });
+      const isBlueprint = spidermanSuit === 'stark_blueprint';
 
-      const secondaryMat = new THREE.MeshPhysicalMaterial({
-        color: secondaryColor,
-        normalMap: normalTexture,
-        roughness: 0.35,
-        metalness: isIronSpider ? 0.85 : 0.3,
-        clearcoat: 0.8
-      });
+      const primaryMat = isBlueprint
+        ? new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending })
+        : new THREE.MeshPhysicalMaterial({
+            color: primaryColor,
+            map: mapTexture,
+            normalMap: normalTexture,
+            normalScale: new THREE.Vector2(0.6, 0.6),
+            roughnessMap: roughnessTexture,
+            metalnessMap: metalnessTexture,
+            clearcoat: 1.0,
+            clearcoatRoughness: 0.05,
+            roughness: 0.22,
+            metalness: isIronSpider ? 0.9 : 0.25,
+            emissive: primaryColor,
+            emissiveIntensity: 0.15
+          });
 
-      const bootMat = new THREE.MeshPhysicalMaterial({
-        color: primaryColor,
-        map: mapTexture,
-        normalMap: normalTexture,
-        clearcoat: 1.0,
-        roughness: 0.18,
-        metalness: isIronSpider ? 0.9 : 0.25
-      });
+      const secondaryMat = isBlueprint
+        ? new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending })
+        : new THREE.MeshPhysicalMaterial({
+            color: secondaryColor,
+            normalMap: normalTexture,
+            roughness: 0.35,
+            metalness: isIronSpider ? 0.85 : 0.3,
+            clearcoat: 0.8
+          });
+
+      const bootMat = isBlueprint
+        ? new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending })
+        : new THREE.MeshPhysicalMaterial({
+            color: primaryColor,
+            map: mapTexture,
+            normalMap: normalTexture,
+            clearcoat: 1.0,
+            roughness: 0.18,
+            metalness: isIronSpider ? 0.9 : 0.25
+          });
 
       const isCrouch = poseMode === 'crouch';
       figureGroup.position.set(0, isCrouch ? -0.4 : 0, 0);
@@ -699,6 +798,38 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
           const lineGeo = new THREE.BufferGeometry().setFromPoints(pts);
           const lineMesh = new THREE.Line(lineGeo, lineMat);
           figureGroup.add(lineMesh);
+        });
+      }
+
+      // --- STARK WORKFRAME GLOWING JOINT NODES & 3D SPATIAL TELEMETRY ---
+      if (isBlueprint) {
+        const spatialGroup = createStarkSpatialTelemetryGroup();
+        figureGroup.add(spatialGroup);
+
+        const nodeMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, blending: THREE.AdditiveBlending });
+        const nodePositions = [
+          new THREE.Vector3(0, 0.72, 0.38), // Chest Arc Core
+          new THREE.Vector3(0, 1.45, 0.26), // Visor
+          new THREE.Vector3(0.58, 0.92, 0.1), // R Shoulder
+          new THREE.Vector3(-0.58, 0.92, 0.1), // L Shoulder
+          new THREE.Vector3(0.83, 0.2, 0.22), // R Wrist
+          new THREE.Vector3(-0.83, 0.2, 0.22), // L Wrist
+          new THREE.Vector3(0.26, -0.32, 0), // R Hip/Knee
+          new THREE.Vector3(-0.26, -0.32, 0) // L Hip/Knee
+        ];
+
+        nodePositions.forEach(pos => {
+          const sphereGeo = new THREE.SphereGeometry(0.08, 24, 24);
+          const sphere = new THREE.Mesh(sphereGeo, nodeMat);
+          sphere.position.copy(pos);
+          figureGroup.add(sphere);
+
+          const ringGeo = new THREE.TorusGeometry(0.14, 0.015, 16, 32);
+          const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, blending: THREE.AdditiveBlending });
+          const ring = new THREE.Mesh(ringGeo, ringMat);
+          ring.position.copy(pos);
+          ring.rotation.x = Math.PI / 2;
+          figureGroup.add(ring);
         });
       }
 

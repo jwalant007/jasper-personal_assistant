@@ -59,7 +59,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
   );
   const [isLoading, setIsLoading] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [spidermanSuit, setSpidermanSuit] = useState('upgraded');
+  const [spidermanSuit, setSpidermanSuit] = useState('stark_blueprint');
 
   const canvasRef = useRef(null);
 
@@ -93,6 +93,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
   ];
 
   const suitPresets = [
+    { id: 'stark_blueprint', label: 'Stark Workshop Wireframe', color: 'text-cyan-300', badge: '⚡ Stark Workshop Wireframe' },
     { id: 'upgraded', label: 'Upgraded Red & Black', color: 'text-rose-400', badge: '🕷️ Red & Black (Far From Home)' },
     { id: 'classic', label: 'Classic Red & Blue', color: 'text-cyan-400', badge: '🔴 Peter Parker' },
     { id: 'ironspider', label: 'Iron Spider Nanotech', color: 'text-amber-400', badge: '⚡ Gold Nanotech' },
