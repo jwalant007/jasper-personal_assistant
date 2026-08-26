@@ -705,8 +705,6 @@ export default function PhoneControlWidget() {
             ))}
           </div>
         )}
-          </div>
-        )}
       </div>
 
       {/* Wireless ADB Auto-Sync & Remote Touch HUD Section */}

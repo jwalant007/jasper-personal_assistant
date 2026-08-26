@@ -21,7 +21,6 @@ import {
   Layers,
   Flame,
   Sun,
-  LayersSelect,
   RefreshCcw,
   Bot
 } from 'lucide-react';
@@ -159,7 +158,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
             }`}
             title="Toggle 3D Exploded Blueprint View"
           >
-            <LayersSelect className="w-4 h-4 text-cyan-400" />
+            <Layers className="w-4 h-4 text-cyan-400" />
             Exploded View
           </button>
 
