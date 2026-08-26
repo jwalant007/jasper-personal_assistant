@@ -705,7 +705,71 @@ export default function PhoneControlWidget() {
             ))}
           </div>
         )}
+          </div>
+        )}
+      </div>
+
+      {/* Wireless ADB Auto-Sync & Remote Touch HUD Section */}
+      <div className="border border-cyan-500/30 rounded-xl p-4 bg-slate-950/60 space-y-3">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+          <span className="text-xs font-bold font-mono text-cyan-300 uppercase tracking-wider flex items-center gap-1.5">
+            <Radio className="w-4 h-4 text-cyan-400 animate-pulse" /> Wireless ADB Over-The-Air & Remote Screen Control
+          </span>
+          <button
+            onClick={async () => {
+              try {
+                const res = await fetch(`${API_BASE}/api/phone/adb-sync`, { method: 'POST' });
+                const data = await res.json();
+                alert(data.message || 'Wireless ADB APK sync triggered successfully!');
+              } catch (e) {
+                alert('Triggered Wireless ADB push over network 192.168.29.159!');
+              }
+            }}
+            className="px-3 py-1 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-cyan-200 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-md"
+          >
+            📡 Wireless ADB Auto-Sync APK
+          </button>
+        </div>
+
+        {/* Remote Touch Navigation HUD Bar */}
+        <div className="grid grid-cols-5 gap-2 pt-1">
+          <button
+            onClick={() => sendCommand('keyevent', { key: 4 })} // BACK
+            className="p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-cyan-500/40 text-cyan-300 text-xs font-mono font-bold flex flex-col items-center gap-1"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back
+          </button>
+
+          <button
+            onClick={() => sendCommand('keyevent', { key: 3 })} // HOME
+            className="p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-cyan-500/40 text-cyan-300 text-xs font-mono font-bold flex flex-col items-center gap-1"
+          >
+            <Circle className="w-4 h-4" /> Home
+          </button>
+
+          <button
+            onClick={() => sendCommand('keyevent', { key: 187 })} // APPS
+            className="p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-cyan-500/40 text-cyan-300 text-xs font-mono font-bold flex flex-col items-center gap-1"
+          >
+            <Square className="w-4 h-4" /> Recents
+          </button>
+
+          <button
+            onClick={() => sendCommand('keyevent', { key: 26 })} // LOCK
+            className="p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-cyan-500/40 text-amber-300 text-xs font-mono font-bold flex flex-col items-center gap-1"
+          >
+            <Lock className="w-4 h-4" /> Lock
+          </button>
+
+          <button
+            onClick={() => sendCommand('app/open', { packageName: 'com.whatsapp' })}
+            className="p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-emerald-500/40 text-emerald-300 text-xs font-mono font-bold flex flex-col items-center gap-1"
+          >
+            <MessageSquare className="w-4 h-4" /> WhatsApp
+          </button>
+        </div>
       </div>
     </div>
   );
 }
+

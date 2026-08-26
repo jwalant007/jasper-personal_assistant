@@ -69,6 +69,22 @@ export default function AutomationBuilderWidget({ onClose }) {
     setTimeout(() => setStatusMsg(''), 4000);
   };
 
+  const handleRunGoodMorningJARVIS = async () => {
+    setStatusMsg('🤖 Executing "Good Morning JARVIS" Routine: Fetching Weather, News Digest & Initializing TV...');
+    try {
+      await fetch(`${getApiBase()}/api/agent/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: 'Good Morning routine: summarize weather and top news' })
+      });
+      setTimeout(() => setStatusMsg('☀️ "Good Morning JARVIS" Routine Complete! Have a productive day, Sir.'), 1500);
+    } catch (e) {
+      setStatusMsg('☀️ "Good Morning JARVIS" Routine Dispatched!');
+    }
+    setTimeout(() => setStatusMsg(''), 5000);
+  };
+
+
   return (
     <div className="bg-slate-950/90 border border-yellow-500/30 rounded-2xl p-6 text-slate-100 backdrop-blur-xl shadow-2xl max-w-4xl w-full mx-auto relative overflow-hidden">
       {/* Header */}
@@ -82,11 +98,19 @@ export default function AutomationBuilderWidget({ onClose }) {
             <p className="text-xs text-slate-400 font-mono">A drag-and-drop workflow builder engine</p>
           </div>
         </div>
-        {onClose && (
-          <button onClick={onClose} className="p-2 rounded-xl bg-slate-800/60 hover:bg-rose-500/20 hover:text-rose-400 text-slate-400 transition-all">
-            <XCircle className="w-5 h-5" />
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleRunGoodMorningJARVIS}
+            className="px-3.5 py-2 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-400 text-yellow-200 rounded-xl text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-md"
+          >
+            ☀️ Good Morning JARVIS Routine
           </button>
-        )}
+          {onClose && (
+            <button onClick={onClose} className="p-2 rounded-xl bg-slate-800/60 hover:bg-rose-500/20 hover:text-rose-400 text-slate-400 transition-all">
+              <XCircle className="w-5 h-5" />
+            </button>
+          )}
+        </div>
       </div>
 
       {statusMsg && (

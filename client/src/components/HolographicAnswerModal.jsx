@@ -20,18 +20,23 @@ import {
   Sliders,
   Layers,
   Flame,
-  Sun
+  Sun,
+  LayersSelect,
+  RefreshCcw,
+  Bot
 } from 'lucide-react';
 
 export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
   const [query, setQuery] = useState(initialQuery || 'Explain Spider-Man suit engineering & web tech');
   const [active3dMode, setActive3dMode] = useState('spiderman');
-  const [poseMode, setPoseMode] = useState('crouch'); // 'crouch' or 'standing'
+  const [poseMode, setPoseMode] = useState('crouch');
   const [bloomEnabled, setBloomEnabled] = useState(true);
   const [webFiring, setWebFiring] = useState(true);
+  const [explodedView, setExplodedView] = useState(false);
+  const [nanotechReassembling, setNanotechReassembling] = useState(false);
   const [autoRotate, setAutoRotate] = useState(true);
   const [hudOverlay, setHudOverlay] = useState(true);
-  const [cameraPreset, setCameraPresetState] = useState('full'); // full, texture, lens, shooter
+  const [cameraPreset, setCameraPresetState] = useState('full');
   const [responseText, setResponseText] = useState(
     'Sir, the Spider-Man suit integrates a high-tensile carbon-nanotube weave, micro-actuator artificial muscles, and a high-frequency fluid dispenser capable of emitting synthetic web fluid at 450 PSI.'
   );
@@ -50,11 +55,13 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
 
   const modePresets = [
     { id: 'spiderman', label: 'Spider-Man Cyber Web', emoji: '🕸️', icon: Eye },
-    { id: 'atom', label: 'Atomic & Quantum Core', emoji: '⚛️', icon: Atom },
+    { id: 'ironman', label: 'Iron Man Arc Core', emoji: '⚡', icon: Zap },
+    { id: 'v8engine', label: 'V8 Engine Blueprint', emoji: '⚙️', icon: Cpu },
+    { id: 'cyberdrone', label: 'Autonomous Cyber Drone', emoji: '🚁', icon: Bot },
+    { id: 'quantumvortex', label: 'Quantum Particle Vortex', emoji: '🌀', icon: Sparkles },
+    { id: 'atom', label: 'Atomic Core', emoji: '⚛️', icon: Atom },
     { id: 'dna', label: 'DNA Genetic Sequence', emoji: '🧬', icon: Sparkles },
-    { id: 'planet', label: 'Solar & Planetary Globe', emoji: '🪐', icon: Globe },
-    { id: 'reactor', label: 'Stark Arc Reactor', emoji: '⚡', icon: Zap },
-    { id: 'chassis', label: 'Engineering Wireframe', emoji: '⚙️', icon: Cpu }
+    { id: 'planet', label: 'Planetary Globe', emoji: '🪐', icon: Globe }
   ];
 
   const suitPresets = [
@@ -73,14 +80,15 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
     setIsLoading(true);
     setResponseText('Processing neural analysis and running 3D simulation...');
 
-    // Auto-detect topic for 3D simulation mode
     const lower = q.toLowerCase();
     if (lower.includes('spider') || lower.includes('web') || lower.includes('suit')) setActive3dMode('spiderman');
-    else if (lower.includes('atom') || lower.includes('nuclear') || lower.includes('quantum') || lower.includes('molecule') || lower.includes('physics')) setActive3dMode('atom');
-    else if (lower.includes('dna') || lower.includes('gene') || lower.includes('biology') || lower.includes('genetics') || lower.includes('cell')) setActive3dMode('dna');
-    else if (lower.includes('planet') || lower.includes('solar') || lower.includes('earth') || lower.includes('space') || lower.includes('gravity') || lower.includes('globe')) setActive3dMode('planet');
-    else if (lower.includes('reactor') || lower.includes('stark') || lower.includes('iron') || lower.includes('energy') || lower.includes('fusion')) setActive3dMode('reactor');
-    else if (lower.includes('engine') || lower.includes('car') || lower.includes('wireframe') || lower.includes('chassis') || lower.includes('mechanical')) setActive3dMode('chassis');
+    else if (lower.includes('iron') || lower.includes('stark') || lower.includes('arc')) setActive3dMode('ironman');
+    else if (lower.includes('engine') || lower.includes('v8') || lower.includes('motor') || lower.includes('piston')) setActive3dMode('v8engine');
+    else if (lower.includes('drone') || lower.includes('quad') || lower.includes('uav')) setActive3dMode('cyberdrone');
+    else if (lower.includes('vortex') || lower.includes('swirl') || lower.includes('wormhole')) setActive3dMode('quantumvortex');
+    else if (lower.includes('atom') || lower.includes('nuclear') || lower.includes('quantum') || lower.includes('physics')) setActive3dMode('atom');
+    else if (lower.includes('dna') || lower.includes('gene') || lower.includes('biology')) setActive3dMode('dna');
+    else if (lower.includes('planet') || lower.includes('earth') || lower.includes('globe')) setActive3dMode('planet');
 
     try {
       const res = await fetch(`${getApiBase()}/api/agent/chat`, {
@@ -97,6 +105,11 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const triggerNanotechReassembly = () => {
+    setNanotechReassembling(true);
+    setTimeout(() => setNanotechReassembling(false), 2500);
   };
 
   const toggleAudioReadout = () => {
@@ -130,13 +143,35 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
           </div>
           <div>
             <h2 className="text-xl font-extrabold tracking-wider text-cyan-300 uppercase font-orbitron flex items-center gap-2">
-              J.A.S.P.E.R. Movie CGI 3D Hologram Visualizer
+              J.A.S.P.E.R. 3D Hologram & Nanotech Suite
             </h2>
-            <p className="text-xs text-slate-400 font-mono">UnrealBloomPass Post-Processing • GLSL Fresnel Edge Shaders</p>
+            <p className="text-xs text-slate-400 font-mono">Exploded 3D Blueprint • Nanotech Reassembly • Multi-Mode Visuals</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setExplodedView(!explodedView)}
+            className={`p-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
+              explodedView 
+                ? 'bg-cyan-500/25 border-cyan-400 text-cyan-200 animate-pulse' 
+                : 'bg-slate-900 border-slate-800 text-slate-400'
+            }`}
+            title="Toggle 3D Exploded Blueprint View"
+          >
+            <LayersSelect className="w-4 h-4 text-cyan-400" />
+            Exploded View
+          </button>
+
+          <button
+            onClick={triggerNanotechReassembly}
+            className="p-2 bg-amber-500/20 border border-amber-400 text-amber-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-500/30 transition-all"
+            title="Trigger Nanotech Suit Reassembly Particles"
+          >
+            <RefreshCcw className="w-4 h-4 text-amber-400" />
+            Reassemble
+          </button>
+
           <button
             onClick={() => setBloomEnabled(!bloomEnabled)}
             className={`p-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
@@ -144,35 +179,9 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
                 ? 'bg-amber-500/20 border-amber-400 text-amber-200' 
                 : 'bg-slate-900 border-slate-800 text-slate-400'
             }`}
-            title="Toggle UnrealBloomPass Sci-Fi Holographic Glow"
           >
             <Sun className="w-4 h-4" />
             Bloom
-          </button>
-
-          <button
-            onClick={() => setHudOverlay(!hudOverlay)}
-            className={`p-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
-              hudOverlay 
-                ? 'bg-purple-500/20 border-purple-400 text-purple-200' 
-                : 'bg-slate-900 border-slate-800 text-slate-400'
-            }`}
-            title="Toggle Hologram HUD Telemetry Overlay"
-          >
-            <Layers className="w-4 h-4" />
-            HUD
-          </button>
-
-          <button
-            onClick={() => setAutoRotate(!autoRotate)}
-            className={`p-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
-              autoRotate 
-                ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200' 
-                : 'bg-slate-900 border-slate-800 text-slate-400'
-            }`}
-          >
-            <RotateCw className={`w-4 h-4 ${autoRotate ? 'animate-spin' : ''}`} style={{ animationDuration: '6s' }} />
-            Auto-Rotate
           </button>
 
           {onClose && (
@@ -191,7 +200,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
             <button
               key={preset.id}
               onClick={() => setActive3dMode(preset.id)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                 isSelected
                   ? 'bg-cyan-500/25 border border-cyan-400 text-cyan-200 shadow-lg shadow-cyan-500/20'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
@@ -203,7 +212,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
         })}
       </div>
 
-      {/* Spider-Man Suit & Superhero Pose Controls Bar */}
+      {/* Spider-Man Suit & Action Controls Bar */}
       {active3dMode === 'spiderman' && (
         <div className="space-y-2 mb-4">
           <div className="flex flex-wrap items-center gap-2 bg-purple-950/30 p-2 rounded-xl border border-purple-500/30 text-xs">
@@ -215,6 +224,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
                 key={suit.id}
                 onClick={() => {
                   setSpidermanSuit(suit.id);
+                  triggerNanotechReassembly();
                   setResponseText(`Sir, loaded Spider-Man ${suit.label} 3D Holographic Model into view.`);
                 }}
                 className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
@@ -252,7 +262,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
               }`}
             >
               <Flame className="w-3 h-3 text-cyan-400" />
-              {webFiring ? '🕸️ 3D Web Cannon Stream ON' : '🕸️ Web Stream OFF'}
+              {webFiring ? '🕸️ 3D Web Stream ON' : '🕸️ Web Stream OFF'}
             </button>
           </div>
         </div>
@@ -283,9 +293,8 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
         ))}
       </div>
 
-      {/* Main Grid Section: Left 3D Model, Right AI Answer */}
+      {/* Main Grid Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-        {/* Left: 3D Hologram Canvas */}
         <div>
           <Hologram3dCanvas
             ref={canvasRef}
@@ -296,10 +305,11 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
             hudOverlay={hudOverlay}
             bloomEnabled={bloomEnabled}
             webFiring={webFiring}
+            explodedView={explodedView}
+            nanotechReassembling={nanotechReassembling}
           />
         </div>
 
-        {/* Right: AI Answer & Audio Controls */}
         <div className="flex flex-col justify-between p-5 bg-slate-900/70 border border-slate-800 rounded-xl space-y-4">
           <div>
             <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
@@ -320,15 +330,15 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
             </p>
           </div>
 
-          {/* Quick 3D Demo Prompts */}
           <div className="pt-3 border-t border-slate-800/80 space-y-1.5">
             <span className="text-[10px] text-slate-500 font-mono uppercase">Quick 3D Hologram Prompts:</span>
             <div className="flex flex-wrap gap-1.5">
               {[
                 'Spider-Man suit web tech',
-                'Quantum nuclear fusion atom',
-                'Solar system planetary orbits',
-                'Stark Arc Reactor energy core'
+                'Iron Man Arc Reactor core',
+                'V8 Internal combustion engine',
+                'Autonomous cyber drone recon',
+                'Quantum particle swirl vortex'
               ].map((sample, idx) => (
                 <button
                   key={idx}
@@ -350,7 +360,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
       <form onSubmit={(e) => { e.preventDefault(); handleAskQuery(); }} className="flex gap-2">
         <input
           type="text"
-          placeholder="Ask any question to generate a 3D Holographic Model (e.g. Spider-Man suit, nuclear physics)..."
+          placeholder="Ask any question to generate a 3D Holographic Model (e.g. Iron Man core, V8 engine, Cyber drone)..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="flex-1 bg-slate-900 border border-slate-800 focus:border-cyan-500/60 rounded-xl px-4 py-2.5 text-xs text-slate-100 focus:outline-none"
