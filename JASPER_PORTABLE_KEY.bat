@@ -5,31 +5,30 @@ cls
 echo ===============================================================================
 echo            ⚡ JWALANT BHATT CREATION - JASPER OS PORTABLE KEY ⚡
 echo ===============================================================================
-echo [SYSTEM INFO] Authenticating JWALANT BHATT CREATION USB Security Key...
-echo [SYSTEM INFO] Starting JASPER Assistant Portable Node.js Server & OS Desktop...
+echo [SYSTEM INFO] Authenticating JWALANT BHATT CREATION Security Key...
 echo.
 
 set PORTABLE_DIR=%~dp0
 cd /d "%PORTABLE_DIR%"
 
-:: Create USB Security Key Marker File
-echo JWALANT_BHATT_CREATION_SECURE_KEY_AUTHENTICATED > "%PORTABLE_DIR%.jasper_security_key"
-
-:: Start Node.js Server
-start /b node server/index.js
-
-:: Wait 3 seconds for server initialization
-timeout /t 3 /nobreak >nul
-
-:: Launch Full-Screen Browser to JASPER OS
-echo [SUCCESS] Opening JASPER OS Spatial Desktop...
-start "" "http://localhost:5000"
+:: Check if Node.js is installed locally on this machine
+where node >nul 2>nul
+if %errorlevel% equ 0 (
+    echo [SYSTEM INFO] Starting Local Node.js Server...
+    start /b node server/index.js 2>nul || start /b node server/server.js 2>nul
+    timeout /t 3 /nobreak >nul
+    echo [SUCCESS] Opening JASPER OS Local Server...
+    start "" "http://localhost:5000"
+) else (
+    echo [SYSTEM INFO] Node.js not installed on this PC. Connecting to Laptop 1 Master Server...
+    echo [SUCCESS] Opening JASPER OS from Master Node (192.168.29.132)...
+    start "" "http://192.168.29.132:5000"
+)
 
 cls
 echo ===============================================================================
-echo      ⚡ JWALANT BHATT CREATION OS IS RUNNING IN PORTABLE USB MODE ⚡
+echo      ⚡ JWALANT BHATT CREATION OS IS RUNNING ON THIS COMPUTER ⚡
 echo ===============================================================================
-echo Keep this window open while using JASPER OS.
-echo Unplugging USB key or closing this window will safely stop the portable session.
+echo JASPER OS is now active in your browser.
 echo.
 pause
