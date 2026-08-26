@@ -233,6 +233,70 @@ function createHologramFresnelMaterial(baseColorHex, rimColorHex) {
   });
 }
 
+/**
+ * 4D TESSERACT HYPERCUBE GEOMETRY & ROTATION MATRIX
+ * Projects 4D vertices (x,y,z,w) into 3D Euclidean space (X,Y,Z) using perspective 4D projection
+ */
+function create4dTesseractGroup(timeVal) {
+  const group = new THREE.Group();
+
+  const vertices4D = [];
+  for (let i = 0; i < 16; i++) {
+    vertices4D.push([
+      (i & 1) ? 1 : -1,
+      (i & 2) ? 1 : -1,
+      (i & 4) ? 1 : -1,
+      (i & 8) ? 1 : -1
+    ]);
+  }
+
+  const angleXW = timeVal * 0.9;
+  const angleZW = timeVal * 0.7;
+
+  const cosXW = Math.cos(angleXW), sinXW = Math.sin(angleXW);
+  const cosZW = Math.cos(angleZW), sinZW = Math.sin(angleZW);
+
+  const projected3D = vertices4D.map(([x, y, z, w]) => {
+    let x1 = x * cosXW - w * sinXW;
+    let w1 = x * sinXW + w * cosXW;
+
+    let z2 = z * cosZW - w1 * sinZW;
+    let w2 = z * sinZW + w1 * cosZW;
+
+    const distance4D = 2.8;
+    const factor = 1.6 / (distance4D - w2);
+
+    return new THREE.Vector3(x1 * factor * 1.5, y * factor * 1.5, z2 * factor * 1.5);
+  });
+
+  const lineMat = new THREE.LineBasicMaterial({
+    color: 0x00f3ff,
+    transparent: true,
+    opacity: 0.85
+  });
+
+  for (let i = 0; i < 16; i++) {
+    for (let j = i + 1; j < 16; j++) {
+      const diff = (i ^ j);
+      if ((diff & (diff - 1)) === 0) {
+        const lineGeo = new THREE.BufferGeometry().setFromPoints([projected3D[i], projected3D[j]]);
+        const lineMesh = new THREE.Line(lineGeo, lineMat);
+        group.add(lineMesh);
+      }
+    }
+  }
+
+  const nodeGeo = new THREE.SphereGeometry(0.06, 16, 16);
+  const nodeMat = new THREE.MeshBasicMaterial({ color: 0xff00ff });
+  projected3D.forEach(pt => {
+    const node = new THREE.Mesh(nodeGeo, nodeMat);
+    node.position.copy(pt);
+    group.add(node);
+  });
+
+  return group;
+}
+
 const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
   {
     mode = 'spiderman',
@@ -243,7 +307,11 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
     bloomEnabled = true,
     webFiring = true,
     explodedView = false,
-    nanotechReassembling = false
+    nanotechReassembling = false,
+    is4dEnabled = false,
+    time4d = 0,
+    timeSpeed4d = 1.0,
+    is4dPlaying = true
   },
   ref
 ) {
@@ -326,6 +394,14 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
 
     const hologramGroup = new THREE.Group();
     scene.add(hologramGroup);
+
+    // 4D TEMPORAL DYNAMICS: TESSERACT HYPERCUBE MESH
+    let tesseractGroup = null;
+    if (is4dEnabled) {
+      tesseractGroup = create4dTesseractGroup(time4d);
+      tesseractGroup.position.set(0, 0, 0);
+      scene.add(tesseractGroup);
+    }
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 1.1);
     scene.add(ambientLight);
@@ -855,6 +931,15 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
       controls.update();
       animateCallback(time);
 
+      if (is4dEnabled && tesseractGroup) {
+        const effective4dTime = is4dPlaying ? time * timeSpeed4d + time4d : time4d;
+        tesseractGroup.rotation.y = effective4dTime * 0.4;
+        tesseractGroup.rotation.x = effective4dTime * 0.25;
+        tesseractGroup.rotation.z = Math.sin(effective4dTime * 0.5) * 0.2;
+        
+        hologramGroup.position.y = Math.sin(effective4dTime * 1.5) * 0.08;
+      }
+
       if (bloomEnabled) {
         composer.render();
       } else {
@@ -875,7 +960,7 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
       }
       renderer.dispose();
     };
-  }, [mode, spidermanSuit, poseMode, autoRotate, bloomEnabled, webFiring, explodedView, nanotechReassembling]);
+  }, [mode, spidermanSuit, poseMode, autoRotate, bloomEnabled, webFiring, explodedView, nanotechReassembling, is4dEnabled, time4d, timeSpeed4d, is4dPlaying]);
 
   return (
     <div
@@ -885,16 +970,22 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
       {hudOverlay && (
         <>
           <div className="absolute top-3 left-3 text-[10px] font-mono text-cyan-400 uppercase tracking-widest bg-cyan-950/80 border border-cyan-500/50 px-3 py-1.5 rounded-lg pointer-events-none flex items-center gap-2 backdrop-blur-md shadow-lg">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-            <span>{explodedView ? '💥 3D EXPLODED BLUEPRINT ACTIVE' : 'Movie GLSL Shaders • Orbit 360°'}</span>
+            <span className={`w-2 h-2 rounded-full ${is4dEnabled ? 'bg-purple-400 animate-ping' : 'bg-cyan-400 animate-ping'}`} />
+            <span>
+              {is4dEnabled
+                ? `🌌 4D TEMPORAL DYNAMICS: T=${time4d.toFixed(1)}s (4D HYPERCUBE ACTIVE)`
+                : explodedView
+                ? '💥 3D EXPLODED BLUEPRINT ACTIVE'
+                : 'Movie GLSL Shaders • Orbit 360°'}
+            </span>
           </div>
 
           <div className="absolute top-3 right-3 text-[9px] font-mono text-cyan-400/80 bg-slate-900/80 border border-cyan-500/30 px-2.5 py-1.5 rounded-md pointer-events-none hidden sm:block">
-            LAT: 34.0522 N | MODE: {mode.toUpperCase()} | BLOOM: {bloomEnabled ? 'ACTIVE' : 'OFF'}
+            {is4dEnabled ? `4D PHASE: ${((time4d * 36) % 360).toFixed(0)}° | ` : ''}MODE: {mode.toUpperCase()} | BLOOM: {bloomEnabled ? 'ACTIVE' : 'OFF'}
           </div>
 
           <div className="absolute bottom-3 left-3 pointer-events-none hidden sm:flex items-center gap-2 text-[9px] font-mono text-slate-400 bg-slate-900/80 border border-slate-800 px-2.5 py-1 rounded-md">
-            <span className="text-cyan-400 font-bold">TARGET:</span> {mode.toUpperCase()} {explodedView ? '(EXPLODED)' : ''}
+            <span className="text-cyan-400 font-bold">TARGET:</span> {mode.toUpperCase()} {is4dEnabled ? '(4D TEMPORAL)' : explodedView ? '(EXPLODED)' : ''}
           </div>
         </>
       )}

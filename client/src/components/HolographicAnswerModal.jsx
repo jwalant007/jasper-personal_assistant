@@ -9,7 +9,9 @@ import {
   Pause, 
   XCircle, 
   Send, 
-  RotateCw, 
+  RotateCw,
+  RotateCcw,
+  Clock, 
   Cpu, 
   Globe, 
   Zap, 
@@ -22,7 +24,8 @@ import {
   Flame,
   Sun,
   RefreshCcw,
-  Bot
+  Bot,
+  Activity
 } from 'lucide-react';
 
 export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
@@ -36,6 +39,13 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
   const [autoRotate, setAutoRotate] = useState(true);
   const [hudOverlay, setHudOverlay] = useState(true);
   const [cameraPreset, setCameraPresetState] = useState('full');
+  
+  // 4D TEMPORAL DYNAMICS STATES
+  const [is4dEnabled, setIs4dEnabled] = useState(true);
+  const [time4d, setTime4d] = useState(0.0);
+  const [timeSpeed4d, setTimeSpeed4d] = useState(1.0);
+  const [is4dPlaying, setIs4dPlaying] = useState(true);
+
   const [responseText, setResponseText] = useState(
     'Sir, the Spider-Man suit integrates a high-tensile carbon-nanotube weave, micro-actuator artificial muscles, and a high-frequency fluid dispenser capable of emitting synthetic web fluid at 450 PSI.'
   );
@@ -51,6 +61,17 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
       handleAskQuery(initialQuery);
     }
   }, [initialQuery]);
+
+  // 4D Temporal Time Slider Loop
+  useEffect(() => {
+    let interval;
+    if (is4dEnabled && is4dPlaying) {
+      interval = setInterval(() => {
+        setTime4d(prev => (prev >= 10.0 ? 0 : prev + 0.1 * timeSpeed4d));
+      }, 100);
+    }
+    return () => clearInterval(interval);
+  }, [is4dEnabled, is4dPlaying, timeSpeed4d]);
 
   const modePresets = [
     { id: 'spiderman', label: 'Spider-Man Cyber Web', emoji: '🕸️', icon: Eye },
@@ -77,9 +98,12 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
     if (!q.trim() || isLoading) return;
 
     setIsLoading(true);
-    setResponseText('Processing neural analysis and running 3D simulation...');
+    setResponseText('Processing neural analysis and running 3D/4D simulation...');
 
     const lower = q.toLowerCase();
+    if (lower.includes('4d') || lower.includes('fourth dimension') || lower.includes('temporal') || lower.includes('time warp') || lower.includes('tesseract')) {
+      setIs4dEnabled(true);
+    }
     if (lower.includes('spider') || lower.includes('web') || lower.includes('suit')) setActive3dMode('spiderman');
     else if (lower.includes('iron') || lower.includes('stark') || lower.includes('arc')) setActive3dMode('ironman');
     else if (lower.includes('engine') || lower.includes('v8') || lower.includes('motor') || lower.includes('piston')) setActive3dMode('v8engine');
@@ -100,7 +124,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
         setResponseText(data.response);
       }
     } catch (err) {
-      setResponseText(`At your service, Sir. Analyzed "${q}". 3D Holographic model loaded.`);
+      setResponseText(`At your service, Sir. Analyzed "${q}". 3D/4D Holographic model loaded.`);
     } finally {
       setIsLoading(false);
     }
@@ -142,13 +166,26 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
           </div>
           <div>
             <h2 className="text-xl font-extrabold tracking-wider text-cyan-300 uppercase font-orbitron flex items-center gap-2">
-              J.A.S.P.E.R. 3D Hologram & Nanotech Suite
+              J.A.S.P.E.R. 4D Hologram & Nanotech Suite
             </h2>
-            <p className="text-xs text-slate-400 font-mono">Exploded 3D Blueprint • Nanotech Reassembly • Multi-Mode Visuals</p>
+            <p className="text-xs text-slate-400 font-mono">4D Temporal Dynamics • Exploded 3D Blueprint • Tesseract Projection</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIs4dEnabled(!is4dEnabled)}
+            className={`p-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
+              is4dEnabled 
+                ? 'bg-purple-500/30 border-purple-400 text-purple-200 animate-pulse shadow-lg shadow-purple-500/30' 
+                : 'bg-slate-900 border-slate-800 text-slate-400'
+            }`}
+            title="Toggle 4D Temporal Dynamics & Tesseract Projection"
+          >
+            <Clock className="w-4 h-4 text-purple-400" />
+            4D Temporal {is4dEnabled ? 'ON' : 'OFF'}
+          </button>
+
           <button
             onClick={() => setExplodedView(!explodedView)}
             className={`p-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
@@ -190,6 +227,64 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
           )}
         </div>
       </div>
+
+      {/* 4D Temporal Control Timeline Bar */}
+      {is4dEnabled && (
+        <div className="mb-3 bg-purple-950/40 border border-purple-500/40 rounded-xl p-3 space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold text-purple-300">
+              <Clock className="w-4 h-4 text-purple-400 animate-spin" />
+              <span>🌌 4D TEMPORAL DYNAMICS TIMELINE (T = {time4d.toFixed(2)}s)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIs4dPlaying(!is4dPlaying)}
+                className="px-2.5 py-1 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/50 rounded-lg text-xs font-semibold text-purple-200 flex items-center gap-1"
+              >
+                {is4dPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                {is4dPlaying ? 'Pause Time' : 'Play Time'}
+              </button>
+
+              <button
+                onClick={() => setTime4d(0.0)}
+                className="px-2 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-300"
+                title="Reset Time t = 0"
+              >
+                <RotateCcw className="w-3.5 h-3.5 text-slate-400" />
+              </button>
+
+              <span className="text-[10px] font-mono text-purple-300 bg-slate-900 border border-slate-800 px-2 py-1 rounded">
+                Speed: {timeSpeed4d}x
+              </span>
+              {[0.5, 1.0, 2.0, 4.0].map(s => (
+                <button
+                  key={s}
+                  onClick={() => setTimeSpeed4d(s)}
+                  className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                    timeSpeed4d === s ? 'bg-purple-500 text-white' : 'bg-slate-900 text-slate-400 border border-slate-800'
+                  }`}
+                >
+                  {s}x
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] font-mono text-slate-400">t = 0s</span>
+            <input
+              type="range"
+              min="0"
+              max="10"
+              step="0.05"
+              value={time4d}
+              onChange={(e) => setTime4d(parseFloat(e.target.value))}
+              className="flex-1 accent-purple-400 bg-slate-900 h-2 rounded-lg cursor-pointer"
+            />
+            <span className="text-[10px] font-mono text-purple-400 font-bold">t = 10s</span>
+          </div>
+        </div>
+      )}
 
       {/* 3D Mode Selector Pills */}
       <div className="flex flex-wrap gap-2 mb-3 bg-slate-900/80 p-1.5 rounded-xl border border-slate-800">
@@ -306,6 +401,10 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
             webFiring={webFiring}
             explodedView={explodedView}
             nanotechReassembling={nanotechReassembling}
+            is4dEnabled={is4dEnabled}
+            time4d={time4d}
+            timeSpeed4d={timeSpeed4d}
+            is4dPlaying={is4dPlaying}
           />
         </div>
 
