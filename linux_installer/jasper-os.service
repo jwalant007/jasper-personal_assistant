@@ -1,0 +1,16 @@
+[Unit]
+Description=JWALANT BHATT CREATION - JASPER OS Spatial Desktop Shell
+After=network.target sound.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/jasper-os
+ExecStart=/usr/bin/node server/server.js
+Restart=always
+RestartSec=3
+Environment=NODE_ENV=production
+Environment=PORT=3001
+
+[Install]
+WantedBy=multi-user.target
