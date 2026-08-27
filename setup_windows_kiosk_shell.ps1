@@ -31,7 +31,7 @@ timeout /t 3 /nobreak >nul
 
 :: Launch Full-Screen Kiosk Mode in Chrome/Edge
 echo Opening JASPER OS Kiosk Shell...
-start chrome.exe --kiosk --app=http://localhost:5000 || start msedge.exe --kiosk --app=http://localhost:5000 --edge-kiosk-type=fullscreen
+start chrome.exe --kiosk --app=http://localhost:3001 || start msedge.exe --kiosk --app=http://localhost:3001 --edge-kiosk-type=fullscreen
 
 exit
 "@
