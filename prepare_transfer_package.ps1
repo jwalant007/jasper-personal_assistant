@@ -27,10 +27,9 @@ Write-Host "   ✅ TRANSFER PACKAGE READY AT: $packageDir" -ForegroundColor Gree
 Write-Host "===============================================================================" -ForegroundColor Green
 Write-Host ""
 Write-Host "Files Included in Package:" -ForegroundColor Yellow
-Write-Host "  📁 client/        (React frontend and production build)" -ForegroundColor White
-Write-Host "  📁 server/        (Node.js AI backend and USB watcher)" -ForegroundColor White
-Write-Host "  ⚡ JASPER_PORTABLE_KEY.bat" -ForegroundColor White
-Write-Host "  ⚡ JASPER_STANDALONE_OS.bat" -ForegroundColor White
-Write-Host "  ⚡ setup_windows_kiosk_shell.ps1" -ForegroundColor White
-Write-Host "  ⚡ connect_laptops.ps1" -ForegroundColor White
+Write-Host '  ⚡ INSTALL_PRIMARY_OS_LAPTOP2.bat' -ForegroundColor White
+Write-Host '  ⚡ JASPER_PORTABLE_KEY.bat' -ForegroundColor White
+Write-Host '  ⚡ JASPER_STANDALONE_OS.bat' -ForegroundColor White
+Write-Host '  ⚡ setup_windows_kiosk_shell.ps1' -ForegroundColor White
+Write-Host '  ⚡ connect_laptops.ps1' -ForegroundColor White
 Write-Host ""

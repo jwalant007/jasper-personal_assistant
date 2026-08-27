@@ -36,12 +36,17 @@ start chrome.exe --kiosk --app=http://localhost:5000 || start msedge.exe --kiosk
 exit
 "@
 
-Set-Content -Path $kioskBat -Value $batContent -Force
+# Automatically install into Windows Startup folder
+$startupFolder = [System.Environment]::GetFolderPath([System.Environment+SpecialFolder]::Startup)
+$targetStartupBat = Join-Path $startupFolder "JASPER_STANDALONE_OS.bat"
+
+Copy-Item -Path $kioskBat -Destination $targetStartupBat -Force
 
 Write-Host "✅ Standalone Kiosk OS launcher generated: $kioskBat" -ForegroundColor Green
+Write-Host "✅ INSTALLED TO STARTUP FOLDER: $targetStartupBat" -ForegroundColor Green
 Write-Host ""
-Write-Host "To Boot Laptop 2 Directly Into JASPER OS Like Windows:" -ForegroundColor Yellow
-Write-Host "1. Copy JASPER_STANDALONE_OS.bat to Laptop 2's Windows Startup Folder:" -ForegroundColor White
-Write-Host "   shell:startup" -ForegroundColor BrightCyan
-Write-Host "2. Whenever Laptop 2 powers on, it will boot directly into JASPER OS!" -ForegroundColor White
+Write-Host "JASPER OS is now registered to boot automatically on startup!" -ForegroundColor Yellow
+Write-Host "Whenever this PC turns on, it will boot directly into JASPER OS!" -ForegroundColor White
 Write-Host ""
+Read-Host -Prompt "Press Enter to exit..."
+
