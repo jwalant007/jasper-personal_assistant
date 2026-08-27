@@ -629,6 +629,7 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
   const uniformsListRef = useRef([]);
 
   const [activeCameraPreset, setActiveCameraPreset] = useState('full');
+  const [webglError, setWebglError] = useState(false);
 
   useImperativeHandle(ref, () => ({
     setCameraPreset: (preset) => {
@@ -663,19 +664,40 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
     camera.position.set(0, 0.2, 5.8);
     cameraRef.current = camera;
 
-    const renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: true,
-      powerPreference: 'high-performance',
-      logarithmicDepthBuffer: true
-    });
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.35;
-    container.appendChild(renderer.domElement);
+    let renderer = null;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true,
+        powerPreference: 'default'
+      });
+    } catch (e1) {
+      try {
+        renderer = new THREE.WebGLRenderer({
+          antialias: false,
+          alpha: true,
+          failIfMajorPerformanceCaveat: false
+        });
+      } catch (e2) {
+        console.warn('[JASPER 3D] WebGL not supported or disabled on this hardware/browser. Switching to 2D Fallback Mode.');
+        setWebglError(true);
+        return;
+      }
+    }
+
+    try {
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.35;
+      container.appendChild(renderer.domElement);
+    } catch (err) {
+      console.warn('[JASPER 3D] Error setting up WebGL container element:', err);
+      setWebglError(true);
+      return;
+    }
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -1208,14 +1230,35 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', handleResize);
       if (resizeObserver) resizeObserver.disconnect();
-      controls.dispose();
+      if (controls) controls.dispose();
       setJarvisPlasmaHum(false);
-      if (container.contains(renderer.domElement)) {
+      if (renderer && renderer.domElement && container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
-      renderer.dispose();
+      if (renderer) renderer.dispose();
     };
   }, [mode, spidermanSuit, poseMode, autoRotate, bloomEnabled, webFiring, explodedView, nanotechReassembling, is4dEnabled, time4d, timeSpeed4d, is4dPlaying, starkReticles, sfxEnabled]);
+
+  if (webglError) {
+    return (
+      <div className="w-full h-80 sm:h-[420px] rounded-xl bg-cyan-950/30 border border-cyan-500/40 relative overflow-hidden flex flex-col items-center justify-center backdrop-blur-xl shadow-[0_0_40px_rgba(0,243,255,0.2)] p-6 text-center">
+        <div className="relative w-32 h-32 flex items-center justify-center mb-3">
+          <div className="absolute inset-0 rounded-full border-2 border-dashed border-cyan-400/60 animate-[spin_10s_linear_infinite]" />
+          <div className="absolute inset-2 rounded-full border border-cyan-300/40 animate-[spin_6s_linear_infinite_reverse]" />
+          <div className="absolute inset-5 rounded-full border-2 border-cyan-500/80 animate-ping opacity-30" />
+          <div className="w-14 h-14 rounded-full bg-cyan-400/20 border border-cyan-300 flex items-center justify-center shadow-[0_0_25px_rgba(0,243,255,0.8)]">
+            <span className="text-xl animate-pulse">💎</span>
+          </div>
+        </div>
+        <div className="text-cyan-300 font-mono text-xs font-bold tracking-wider uppercase mb-1">
+          JASPER 2D Hologram HUD Active
+        </div>
+        <div className="text-[11px] text-slate-400 font-mono max-w-sm">
+          WebGL hardware acceleration is limited on this display. System operating in 2D Hologram HUD compatibility mode.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
