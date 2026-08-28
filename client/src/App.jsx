@@ -30,6 +30,7 @@ import LaptopConnectModal from './components/LaptopConnectModal';
 import LiveTranslationWidget from './components/LiveTranslationWidget';
 import JasperOsDesktop from './components/JasperOsDesktop';
 import JasperSearchApp from './components/JasperSearchApp';
+import JasperBrowserApp from './components/JasperBrowserApp';
 import JasperFileManagerApp from './components/JasperFileManagerApp';
 import JasperCodeStudioApp from './components/JasperCodeStudioApp';
 import JasperNotesPlannerApp from './components/JasperNotesPlannerApp';
@@ -77,6 +78,7 @@ export default function App() {
   const [showLiveTranslation, setShowLiveTranslation] = useState(false);
   const [autoTranslateEnabled, setAutoTranslateEnabled] = useState(true);
   const [showSearchEngine, setShowSearchEngine] = useState(false);
+  const [showBrowser, setShowBrowser] = useState(false);
   const [showFileManager, setShowFileManager] = useState(false);
   const [showCodeStudio, setShowCodeStudio] = useState(false);
   const [showNotesPlanner, setShowNotesPlanner] = useState(false);
@@ -934,7 +936,7 @@ export default function App() {
       else if (targetApp.includes('phone') || targetApp.includes('android')) { setShowPhoneControl(true); openedAppName = 'Android Device Link'; }
       else if (targetApp.includes('pc')) { setShowPcMasterHub(true); openedAppName = 'PC Command Center'; }
       else if (targetApp.includes('security') || targetApp.includes('biometric')) { setShowSecurity(true); openedAppName = 'Biometric Security Center'; }
-      else if (targetApp.includes('browser') || targetApp.includes('web')) { setShowBrowserAgent(true); openedAppName = 'Autonomous Web Browser'; }
+      else if (targetApp.includes('browser') || targetApp.includes('chrome') || targetApp.includes('web')) { setShowBrowser(true); openedAppName = 'JASPER Browser'; }
       else if (targetApp.includes('sport')) { setShowSportsHub(true); openedAppName = 'Sports Live Score Hub'; }
       else if (targetApp.includes('map') || targetApp.includes('nav')) { setShowMaps(true); openedAppName = 'Spatial Maps & GPS'; }
       else if (targetApp.includes('health') || targetApp.includes('fit')) { setShowHealthHub(true); openedAppName = 'Health & Fitband Tracker'; }
@@ -2619,6 +2621,15 @@ export default function App() {
           <div className="w-full max-w-4xl h-[640px] relative">
             <button onClick={() => setShowSearchEngine(false)} className="absolute top-2 right-2 text-cyan-400 hover:text-white font-mono text-xs z-10 bg-cyan-950/80 px-2 py-1 rounded">✕ Close</button>
             <JasperSearchApp />
+          </div>
+        </div>
+      )}
+
+      {showBrowser && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="w-full max-w-5xl h-[680px] relative">
+            <button onClick={() => setShowBrowser(false)} className="absolute top-2 right-2 text-cyan-400 hover:text-white font-mono text-xs z-10 bg-cyan-950/80 px-2 py-1 rounded">✕ Close</button>
+            <JasperBrowserApp />
           </div>
         </div>
       )}

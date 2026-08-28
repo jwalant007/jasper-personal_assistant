@@ -30,16 +30,18 @@ import HealthFitbandWidget from './HealthFitbandWidget';
 import LiveTranslationWidget from './LiveTranslationWidget';
 import UserManualWidget from './UserManualWidget';
 import JasperSearchApp from './JasperSearchApp';
+import JasperBrowserApp from './JasperBrowserApp';
 import JasperFileManagerApp from './JasperFileManagerApp';
 import JasperCodeStudioApp from './JasperCodeStudioApp';
 import JasperNotesPlannerApp from './JasperNotesPlannerApp';
 import JasperCalculatorApp from './JasperCalculatorApp';
-import { Calculator, FileCode } from 'lucide-react';
+import { Calculator, FileCode, Compass } from 'lucide-react';
 
 /**
- * ALL NATIVE JASPER OS APPLICATIONS REGISTRY (28 NATIVE APPS)
+ * ALL NATIVE JASPER OS APPLICATIONS REGISTRY (29 NATIVE APPS)
  */
 const JASPER_OS_APPS_REGISTRY = [
+  { id: 'jasperBrowser', title: 'JASPER Browser App', category: 'Productivity & Tools', icon: Compass, component: JasperBrowserApp, defaultSize: { w: 820, h: 580 } },
   { id: 'searchEngine', title: 'JASPER AI Search Engine App', category: 'Productivity & Tools', icon: Search, component: JasperSearchApp, defaultSize: { w: 760, h: 560 } },
   { id: 'fileManager', title: 'JASPER OS File Explorer & Disk App', category: 'System & Hardware', icon: HardDrive, component: JasperFileManagerApp, defaultSize: { w: 680, h: 500 } },
   { id: 'codeStudio', title: 'JASPER Code Studio & Terminal App', category: 'Productivity & Tools', icon: FileCode, component: JasperCodeStudioApp, defaultSize: { w: 780, h: 540 } },
