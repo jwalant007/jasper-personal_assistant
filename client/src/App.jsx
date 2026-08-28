@@ -1203,12 +1203,20 @@ export default function App() {
                 )}
               </div>
 
-              {/* Sidebar Action Buttons */}
+              {/* Switch Back to OS Spatial Desktop Mode */}
+              <button 
+                onClick={() => setIsOsMode(true)}
+                className="w-full py-2.5 px-3 bg-gradient-to-r from-cyan-500/30 to-blue-600/30 hover:from-cyan-500/40 hover:to-blue-600/40 border border-cyan-400 text-cyan-100 rounded-xl font-orbitron font-extrabold text-xs tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(0,240,255,0.25)] mt-1"
+              >
+                <Monitor className="w-4 h-4 text-cyan-300 animate-pulse" />
+                <span>JASPER OS DESKTOP</span>
+              </button>
+
               <button 
                 onClick={() => {
                   handleNewChat();
                 }}
-                className="btn-sidebar w-full mt-2 sm:mt-4"
+                className="btn-sidebar w-full mt-2"
               >
                 NEW CHAT
               </button>
