@@ -29,11 +29,22 @@ import MapsWidget from './MapsWidget';
 import HealthFitbandWidget from './HealthFitbandWidget';
 import LiveTranslationWidget from './LiveTranslationWidget';
 import UserManualWidget from './UserManualWidget';
+import JasperSearchApp from './JasperSearchApp';
+import JasperFileManagerApp from './JasperFileManagerApp';
+import JasperCodeStudioApp from './JasperCodeStudioApp';
+import JasperNotesPlannerApp from './JasperNotesPlannerApp';
+import JasperCalculatorApp from './JasperCalculatorApp';
+import { Calculator, FileCode } from 'lucide-react';
 
 /**
- * ALL NATIVE JASPER OS APPLICATIONS REGISTRY
+ * ALL NATIVE JASPER OS APPLICATIONS REGISTRY (28 NATIVE APPS)
  */
 const JASPER_OS_APPS_REGISTRY = [
+  { id: 'searchEngine', title: 'JASPER AI Search Engine App', category: 'Productivity & Tools', icon: Search, component: JasperSearchApp, defaultSize: { w: 760, h: 560 } },
+  { id: 'fileManager', title: 'JASPER OS File Explorer & Disk App', category: 'System & Hardware', icon: HardDrive, component: JasperFileManagerApp, defaultSize: { w: 680, h: 500 } },
+  { id: 'codeStudio', title: 'JASPER Code Studio & Terminal App', category: 'Productivity & Tools', icon: FileCode, component: JasperCodeStudioApp, defaultSize: { w: 780, h: 540 } },
+  { id: 'notesPlanner', title: 'JASPER AI Notes & Task Planner App', category: 'Productivity & Tools', icon: BookOpen, component: JasperNotesPlannerApp, defaultSize: { w: 720, h: 520 } },
+  { id: 'calculator', title: 'JASPER Scientific Calculator App', category: 'Productivity & Tools', icon: Calculator, component: JasperCalculatorApp, defaultSize: { w: 640, h: 500 } },
   { id: 'hologram', title: '3D/4D Blueprint Studio App', category: 'Creative & AI', icon: Box, component: HolographicAnswerModal, defaultSize: { w: 800, h: 560 } },
   { id: 'diagnostics', title: 'System Diagnostics & Telemetry App', category: 'System & Hardware', icon: Activity, component: DiagnosticWidget, defaultSize: { w: 450, h: 500 } },
   { id: 'tvRemote', title: 'Smart TV Controller App', category: 'Hardware Control', icon: Tv, component: TvRemoteWidget, defaultSize: { w: 400, h: 480 } },
