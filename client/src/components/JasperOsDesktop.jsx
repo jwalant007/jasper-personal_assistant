@@ -464,17 +464,17 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
 
       {/* DESKTOP WORKSPACE AREA WITH APP SHORTCUTS GRID AND WINDOWS */}
       <div className="relative w-full h-[calc(100vh-105px)] top-12 overflow-hidden">
-        {/* Native Desktop App Shortcuts Grid (Wallpaper Icons) */}
-        <div className="absolute top-4 left-4 z-0 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 p-2 max-w-5xl">
-          {JASPER_OS_APPS_REGISTRY.slice(0, 12).map((app) => {
+        {/* Native Desktop App Shortcuts Grid (Wallpaper Icons for ALL 29 APPS) */}
+        <div className="absolute top-4 left-4 z-0 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 p-2 max-w-6xl max-h-[calc(100vh-140px)] overflow-y-auto custom-scrollbar pointer-events-auto pr-3">
+          {JASPER_OS_APPS_REGISTRY.map((app) => {
             const AppIcon = app.icon;
             const isRunning = openWindows[app.id];
             return (
               <button
                 key={app.id}
                 onClick={() => launchApp(app.id)}
-                className={`p-3 rounded-2xl bg-cyan-950/30 hover:bg-cyan-500/20 border border-cyan-500/20 hover:border-cyan-400/60 backdrop-blur-md flex flex-col items-center justify-center gap-2 transition-all group hover:scale-105 hover:shadow-[0_0_20px_rgba(0,240,255,0.25)] ${
-                  isRunning ? 'border-cyan-400/80 bg-cyan-500/15' : ''
+                className={`p-3 rounded-2xl bg-cyan-950/40 hover:bg-cyan-500/25 border border-cyan-500/25 hover:border-cyan-400/70 backdrop-blur-md flex flex-col items-center justify-center gap-2 transition-all group hover:scale-105 hover:shadow-[0_0_20px_rgba(0,240,255,0.25)] ${
+                  isRunning ? 'border-cyan-400/80 bg-cyan-500/20 shadow-[0_0_15px_rgba(0,240,255,0.2)]' : ''
                 }`}
               >
                 <div className="p-3 rounded-xl bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 group-hover:text-cyan-100 group-hover:border-cyan-300 transition-all shadow-[0_0_10px_rgba(0,240,255,0.15)] relative">
