@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getApiBase } from '../utils/apiConfig.js';
-import { BarChart3, MessageSquare, Mic, Image, Zap, Smartphone, Clock, RefreshCw, XCircle } from 'lucide-react';
+import { BarChart3, MessageSquare, Mic, Image as ImageIcon, Zap, Smartphone, Clock, RefreshCw, XCircle } from 'lucide-react';
 
 export default function AnalyticsWidget({ onClose }) {
   const [stats, setStats] = useState({
@@ -64,7 +64,7 @@ export default function AnalyticsWidget({ onClose }) {
         {[
           { label: 'Total Conversations', val: stats.conversations, icon: MessageSquare, color: 'text-blue-400', border: 'border-blue-500/30' },
           { label: 'Voice Commands', val: stats.voiceCommands, icon: Mic, color: 'text-emerald-400', border: 'border-emerald-500/30' },
-          { label: 'Images Generated', val: stats.imagesGenerated, icon: Image, color: 'text-purple-400', border: 'border-purple-500/30' },
+          { label: 'Images Generated', val: stats.imagesGenerated, icon: ImageIcon, color: 'text-purple-400', border: 'border-purple-500/30' },
           { label: 'Automation Runs', val: stats.automationRuns, icon: Zap, color: 'text-amber-400', border: 'border-amber-500/30' },
           { label: 'Connected Devices', val: stats.connectedDevices, icon: Smartphone, color: 'text-cyan-400', border: 'border-cyan-500/30' },
           { label: 'System Uptime', val: formatUptime(stats.uptimeSeconds || 0), icon: Clock, color: 'text-rose-400', border: 'border-rose-500/30' }

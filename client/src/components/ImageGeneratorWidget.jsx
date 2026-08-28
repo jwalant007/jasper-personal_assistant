@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Sparkles, Download, X, Loader, Image, Wand2, RotateCcw, ZoomIn, Maximize2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Sparkles, Download, X, Loader, Image as ImageIcon, Wand2, RotateCcw, ZoomIn, Maximize2, ChevronLeft, ChevronRight } from 'lucide-react';
 import geminiClient from '../utils/geminiClient';
 
 const STYLE_PRESETS = [

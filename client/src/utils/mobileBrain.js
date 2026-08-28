@@ -19,7 +19,9 @@ export function getPhoneBrainMode() {
 export function setPhoneBrainMode(enabled) {
   if (typeof window === 'undefined') return;
   localStorage.setItem(STORAGE_KEY, enabled ? 'true' : 'false');
-  window.dispatchEvent(new CustomEvent('jasper_phone_brain_change', { detail: { enabled } }));
+  try {
+    window.dispatchEvent(new CustomEvent('jasper_phone_brain_change', { detail: { enabled } }));
+  } catch (e) {}
 }
 
 export function isDualBrainMeshActive() {
@@ -31,7 +33,9 @@ export function isDualBrainMeshActive() {
 export function setDualBrainMeshMode(enabled) {
   if (typeof window === 'undefined') return;
   localStorage.setItem(DUAL_MESH_KEY, enabled ? 'true' : 'false');
-  window.dispatchEvent(new CustomEvent('jasper_dual_mesh_change', { detail: { enabled } }));
+  try {
+    window.dispatchEvent(new CustomEvent('jasper_dual_mesh_change', { detail: { enabled } }));
+  } catch (e) {}
 }
 
 export function togglePhoneBrainMode() {
