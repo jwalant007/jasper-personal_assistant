@@ -210,12 +210,13 @@ function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFo
 /**
  * MAIN JASPER OS SPATIAL DESKTOP APPLICATION ENVIRONMENT
  */
-export default function JasperOsDesktop({ onToggleClassicMode }) {
+export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'idle', onMicClick }) {
   const [activeWorkspace, setActiveWorkspace] = useState('all');
   const [appSearchQuery, setAppSearchQuery] = useState('');
   const [openWindows, setOpenWindows] = useState({
-    hologram: true,
-    diagnostics: true,
+    searchEngine: true,
+    hologram: false,
+    diagnostics: false,
     tvRemote: false,
     pcHub: false,
     phoneControl: false,
@@ -285,7 +286,7 @@ export default function JasperOsDesktop({ onToggleClassicMode }) {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-950/20 via-slate-950 to-black pointer-events-none" />
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#00f0ff08_1px,transparent_1px),linear-gradient(to_bottom,#00f0ff08_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none" />
 
-      {/* TOP STARK OS TASKBAR */}
+      {/* TOP STARK OS TASKBAR WITH AI AVATAR LISTENER HUD */}
       <div className="absolute top-0 left-0 right-0 h-12 bg-cyan-950/60 border-b border-cyan-500/30 backdrop-blur-2xl z-50 flex items-center justify-between px-4">
         {/* Left: Start Launcher & App Categories */}
         <div className="flex items-center gap-3">
@@ -329,24 +330,62 @@ export default function JasperOsDesktop({ onToggleClassicMode }) {
           </div>
         </div>
 
-        {/* Right: Live System Telemetry & Clock */}
-        <div className="flex items-center gap-3 font-mono text-[11px]">
-          <div className="hidden lg:flex items-center gap-3 text-slate-300 bg-cyan-950/40 border border-cyan-500/30 px-3 py-1 rounded-lg backdrop-blur-md">
+        {/* Center/Right: Glowing AI Avatar Voice Listener HUD */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onMicClick}
+            className={`px-3 py-1 rounded-xl border flex items-center gap-2.5 transition-all shadow-lg ${
+              jasperState === 'listening'
+                ? 'bg-cyan-500/30 border-cyan-300 text-cyan-100 shadow-[0_0_20px_rgba(0,240,255,0.4)] animate-pulse'
+                : jasperState === 'processing'
+                ? 'bg-purple-500/30 border-purple-300 text-purple-100 shadow-[0_0_20px_rgba(168,85,247,0.4)]'
+                : jasperState === 'speaking'
+                ? 'bg-emerald-500/30 border-emerald-300 text-emerald-100 shadow-[0_0_20px_rgba(16,185,129,0.4)]'
+                : 'bg-cyan-950/50 border-cyan-500/30 text-cyan-300 hover:border-cyan-400'
+            }`}
+            title="Click to speak to JASPER AI Assistant"
+          >
+            {/* Animated AI Orb Arc Reactor Avatar */}
+            <div className="relative w-5 h-5 flex items-center justify-center">
+              <div className={`absolute inset-0 rounded-full border border-cyan-400 ${jasperState === 'listening' ? 'animate-ping opacity-75' : ''}`} />
+              <div className={`w-3 h-3 rounded-full ${
+                jasperState === 'listening' ? 'bg-cyan-400 shadow-[0_0_10px_#00f0ff]' :
+                jasperState === 'processing' ? 'bg-purple-400 shadow-[0_0_10px_#a855f7]' :
+                jasperState === 'speaking' ? 'bg-emerald-400 shadow-[0_0_10px_#10b981]' :
+                'bg-cyan-400/80 shadow-[0_0_5px_#00f0ff]'
+              }`} />
+            </div>
+
+            <div className="text-left font-mono text-[11px]">
+              <div className="font-bold flex items-center gap-1">
+                <span>AI VOICE AVATAR</span>
+                {jasperState === 'listening' && <span className="text-[9px] text-cyan-300 animate-pulse">● REC</span>}
+              </div>
+              <div className="text-[9px] text-cyan-400/80">
+                {jasperState === 'listening' ? 'LISTENING TO VOICE COMMAND...' :
+                 jasperState === 'processing' ? 'PROCESSING INTENT...' :
+                 jasperState === 'speaking' ? 'SPEAKING RESPONSE...' :
+                 'WAKE WORD: "HEY JASPER" ACTIVE'}
+              </div>
+            </div>
+          </button>
+
+          {/* Live System Telemetry & Clock */}
+          <div className="hidden lg:flex items-center gap-3 text-slate-300 bg-cyan-950/40 border border-cyan-500/30 px-3 py-1 rounded-lg backdrop-blur-md font-mono text-[11px]">
             <span className="flex items-center gap-1 text-cyan-400"><Cpu className="w-3.5 h-3.5" /> CPU: 12%</span>
             <span className="flex items-center gap-1 text-cyan-400"><HardDrive className="w-3.5 h-3.5" /> RAM: 3.8GB</span>
-            <span className="flex items-center gap-1 text-cyan-400"><Wifi className="w-3.5 h-3.5" /> NET: 1.4G</span>
           </div>
 
           <button
             onClick={onToggleClassicMode}
-            className="px-3 py-1 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-cyan-300 rounded-lg font-semibold flex items-center gap-1.5 transition-all text-xs"
+            className="px-3 py-1 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-cyan-300 rounded-lg font-semibold flex items-center gap-1.5 transition-all text-xs font-mono"
             title="Switch to Grid Layout View"
           >
-            <Grid className="w-3.5 h-3.5 text-cyan-400" /> Classic View
+            <Grid className="w-3.5 h-3.5 text-cyan-400" /> Classic
           </button>
 
-          <div className="text-cyan-200 font-bold px-2.5 py-1 bg-cyan-950/50 border border-cyan-500/30 rounded-lg">
-            {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+          <div className="text-cyan-200 font-mono font-bold text-[11px] px-2.5 py-1 bg-cyan-950/50 border border-cyan-500/30 rounded-lg">
+            {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </div>
         </div>
       </div>
@@ -362,7 +401,7 @@ export default function JasperOsDesktop({ onToggleClassicMode }) {
               </div>
               <div>
                 <h3 className="font-orbitron font-extrabold text-sm text-cyan-200 uppercase tracking-wider">JASPER OS App Center</h3>
-                <p className="text-[10px] text-slate-400 font-mono">23 Native System Applications Available</p>
+                <p className="text-[10px] text-slate-400 font-mono">28 Native System Applications Available</p>
               </div>
             </div>
             <button
@@ -421,8 +460,35 @@ export default function JasperOsDesktop({ onToggleClassicMode }) {
         </div>
       )}
 
-      {/* DESKTOP WORKSPACE AREA WITH OPEN APP WINDOWS */}
-      <div className="relative w-full h-[calc(100vh-105px)] top-12">
+      {/* DESKTOP WORKSPACE AREA WITH APP SHORTCUTS GRID AND WINDOWS */}
+      <div className="relative w-full h-[calc(100vh-105px)] top-12 overflow-hidden">
+        {/* Native Desktop App Shortcuts Grid (Wallpaper Icons) */}
+        <div className="absolute top-4 left-4 z-0 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 p-2 max-w-5xl">
+          {JASPER_OS_APPS_REGISTRY.slice(0, 12).map((app) => {
+            const AppIcon = app.icon;
+            const isRunning = openWindows[app.id];
+            return (
+              <button
+                key={app.id}
+                onClick={() => launchApp(app.id)}
+                className={`p-3 rounded-2xl bg-cyan-950/30 hover:bg-cyan-500/20 border border-cyan-500/20 hover:border-cyan-400/60 backdrop-blur-md flex flex-col items-center justify-center gap-2 transition-all group hover:scale-105 hover:shadow-[0_0_20px_rgba(0,240,255,0.25)] ${
+                  isRunning ? 'border-cyan-400/80 bg-cyan-500/15' : ''
+                }`}
+              >
+                <div className="p-3 rounded-xl bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 group-hover:text-cyan-100 group-hover:border-cyan-300 transition-all shadow-[0_0_10px_rgba(0,240,255,0.15)] relative">
+                  <AppIcon className="w-6 h-6" />
+                  {isRunning && (
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-cyan-400 border border-black shadow-[0_0_8px_#00f0ff]" />
+                  )}
+                </div>
+                <span className="text-[11px] font-mono font-semibold text-slate-200 group-hover:text-cyan-200 text-center line-clamp-1">
+                  {app.title.replace(' App', '').replace('JASPER ', '')}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
         {/* Render Open App Windows */}
         {JASPER_OS_APPS_REGISTRY.map((app) => {
           if (!openWindows[app.id]) return null;

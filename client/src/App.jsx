@@ -1147,7 +1147,17 @@ export default function App() {
   const [isOsMode, setIsOsMode] = useState(true);
 
   if (isOsMode) {
-    return <JasperOsDesktop onToggleClassicMode={() => setIsOsMode(false)} />;
+    return (
+      <JasperOsDesktop 
+        onToggleClassicMode={() => setIsOsMode(false)} 
+        jasperState={jasperState}
+        onMicClick={() => {
+          if (voiceControllerRef.current) {
+            voiceControllerRef.current.startListening();
+          }
+        }}
+      />
+    );
   }
 
   return (
