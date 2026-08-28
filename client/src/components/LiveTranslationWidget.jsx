@@ -140,13 +140,14 @@ export default function LiveTranslationWidget({ isOpen, onClose, onToggleAutoTra
 
   // 2. Initialize Web Speech Recognition for Audio Stream Capture
   useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      console.warn('[LiveTranslationWidget] SpeechRecognition not supported natively.');
-      return;
-    }
+    try {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition || typeof SpeechRecognition !== 'function') {
+        console.warn('[LiveTranslationWidget] SpeechRecognition not supported natively.');
+        return;
+      }
 
-    const rec = new SpeechRecognition();
+      const rec = new SpeechRecognition();
     rec.continuous = true;
     rec.interimResults = true;
     rec.lang = selectedSourceLang === 'auto' ? 'es-ES' : selectedSourceLang;
@@ -199,6 +200,9 @@ export default function LiveTranslationWidget({ isOpen, onClose, onToggleAutoTra
         rec.stop();
       } catch (e) {}
     };
+    } catch (err) {
+      console.warn('[LiveTranslationWidget] init caught:', err);
+    }
   }, [isTranslating, audioSource, selectedSourceLang]);
 
   // 3. API Translation Engine Call

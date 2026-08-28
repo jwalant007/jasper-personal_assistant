@@ -74,13 +74,14 @@ const VoiceController = forwardRef(({
 
   // Initialize Speech Recognition
   useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      console.warn('Speech recognition not supported in this browser. Use Chrome.');
-      return;
-    }
+    try {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition || typeof SpeechRecognition !== 'function') {
+        console.warn('Speech recognition not supported in this browser.');
+        return;
+      }
 
-    const rec = new SpeechRecognition();
+      const rec = new SpeechRecognition();
     rec.continuous = false;
     rec.interimResults = false;
     rec.lang = 'en-US';
@@ -124,6 +125,9 @@ const VoiceController = forwardRef(({
     return () => {
       if (speechTimeoutRef.current) clearTimeout(speechTimeoutRef.current);
     };
+    } catch (err) {
+      console.warn('[VoiceController] SpeechRecognition init caught:', err);
+    }
   }, []);
 
   // Connect to Backend WebSocket for Background Wake-Word Events with pre-flight bypass & resilient reconnect

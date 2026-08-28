@@ -29,7 +29,7 @@ export const playCallChime = (type = 'dialing') => {
   try {
     unlockDeviceAudio();
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContextClass) return;
+    if (!AudioContextClass || typeof AudioContextClass !== 'function') return;
     const ctx = audioContextInstance || new AudioContextClass();
 
     if (type === 'dialing') {
