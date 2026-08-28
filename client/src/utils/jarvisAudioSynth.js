@@ -3,11 +3,21 @@
  * Pure Web Audio API procedural sound engine for Stark UI audio effects
  */
 
-let audioCtx = null;
-let humOscillator = null;
-let humGain = null;
+let isMuted = true; // SILENCE ALL BACKGROUND CLICK & HUM SOUND EFFECTS BY DEFAULT
+
+export function setJarvisAudioMuted(muted) {
+  isMuted = muted;
+  if (muted) {
+    setJarvisPlasmaHum(false);
+  }
+}
+
+export function isJarvisAudioMuted() {
+  return isMuted;
+}
 
 function getAudioContext() {
+  if (isMuted) return null;
   if (!audioCtx) {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (AudioContext) {
@@ -24,6 +34,7 @@ function getAudioContext() {
  * Play futuristic Stark Glass Beep / Click Sound
  */
 export function playJarvisBeep(type = 'click') {
+  if (isMuted) return;
   try {
     const ctx = getAudioContext();
     if (!ctx) return;
@@ -62,6 +73,7 @@ export function playJarvisBeep(type = 'click') {
  * Play Hologram Power-Up Sweep Sound
  */
 export function playJarvisPowerUp() {
+  if (isMuted) return;
   try {
     const ctx = getAudioContext();
     if (!ctx) return;
@@ -90,6 +102,7 @@ export function playJarvisPowerUp() {
  * Play High-Frequency Holographic Sonar Scan Sweep
  */
 export function playJarvisScan() {
+  if (isMuted) return;
   try {
     const ctx = getAudioContext();
     if (!ctx) return;
@@ -118,6 +131,7 @@ export function playJarvisScan() {
  * Toggle Low Ambient Plasma Hum Loop
  */
 export function setJarvisPlasmaHum(enable) {
+  if (isMuted) return;
   try {
     const ctx = getAudioContext();
     if (!ctx) return;

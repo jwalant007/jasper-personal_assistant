@@ -28,8 +28,12 @@ import UserManualWidget from './components/UserManualWidget';
 import HealthFitbandWidget from './components/HealthFitbandWidget';
 import LaptopConnectModal from './components/LaptopConnectModal';
 import LiveTranslationWidget from './components/LiveTranslationWidget';
-import HolographicAnswerModal from './components/HolographicAnswerModal';
 import JasperOsDesktop from './components/JasperOsDesktop';
+import JasperSearchApp from './components/JasperSearchApp';
+import JasperFileManagerApp from './components/JasperFileManagerApp';
+import JasperCodeStudioApp from './components/JasperCodeStudioApp';
+import JasperNotesPlannerApp from './components/JasperNotesPlannerApp';
+import JasperCalculatorApp from './components/JasperCalculatorApp';
 import geminiClient from './utils/geminiClient';
 import { getServerIp, setServerIp } from './utils/apiConfig.js';
 import { getPhoneBrainMode, setPhoneBrainMode, togglePhoneBrainMode } from './utils/mobileBrain.js';
@@ -70,9 +74,13 @@ export default function App() {
   const [showMaps, setShowMaps] = useState(false);
   const [showAgenticActions, setShowAgenticActions] = useState(false);
   const [showHealthHub, setShowHealthHub] = useState(false);
-  const [showLaptopConnect, setShowLaptopConnect] = useState(false);
-  const [showLiveTranslation, setShowLiveTranslation] = useState(true);
+  const [showLiveTranslation, setShowLiveTranslation] = useState(false);
   const [autoTranslateEnabled, setAutoTranslateEnabled] = useState(true);
+  const [showSearchEngine, setShowSearchEngine] = useState(false);
+  const [showFileManager, setShowFileManager] = useState(false);
+  const [showCodeStudio, setShowCodeStudio] = useState(false);
+  const [showNotesPlanner, setShowNotesPlanner] = useState(false);
+  const [showCalculator, setShowCalculator] = useState(false);
 
   const [isPhoneBrainMode, setIsPhoneBrainModeState] = useState(() => getPhoneBrainMode());
   const [agenticQuery, setAgenticQuery] = useState('');
@@ -907,6 +915,43 @@ export default function App() {
       if (voiceControllerRef.current) {
         voiceControllerRef.current.playSuccess();
       }
+      return;
+    }
+
+    // Intercept Voice App Open Commands (e.g. "Jasper open search", "open calculator", "open files")
+    const appOpenRegex = /(open|launch|start|show|run)\s+(search|search engine|files|file manager|explorer|code|code studio|terminal|notes|planner|tasks|calculator|calc|tv|tv remote|phone|android|pc|pc hub|pc command|security|biometrics|browser|web agent|sports|maps|navigation|health|fitband|translator|translation|manual|guide)/i;
+    const appMatch = queryText.match(appOpenRegex);
+    if (appMatch) {
+      const targetApp = appMatch[2].toLowerCase();
+      let openedAppName = 'App';
+
+      if (targetApp.includes('search')) { setShowSearchEngine(true); openedAppName = 'JASPER AI Search Engine'; }
+      else if (targetApp.includes('file') || targetApp.includes('explorer')) { setShowFileManager(true); openedAppName = 'JASPER File Explorer'; }
+      else if (targetApp.includes('code') || targetApp.includes('terminal')) { setShowCodeStudio(true); openedAppName = 'JASPER Code Studio'; }
+      else if (targetApp.includes('note') || targetApp.includes('plan') || targetApp.includes('task')) { setShowNotesPlanner(true); openedAppName = 'JASPER Notes & Task Planner'; }
+      else if (targetApp.includes('calc')) { setShowCalculator(true); openedAppName = 'JASPER Scientific Calculator'; }
+      else if (targetApp.includes('tv')) { setShowTvRemote(true); openedAppName = 'Smart TV Remote Hub'; }
+      else if (targetApp.includes('phone') || targetApp.includes('android')) { setShowPhoneControl(true); openedAppName = 'Android Device Link'; }
+      else if (targetApp.includes('pc')) { setShowPcMasterHub(true); openedAppName = 'PC Command Center'; }
+      else if (targetApp.includes('security') || targetApp.includes('biometric')) { setShowSecurity(true); openedAppName = 'Biometric Security Center'; }
+      else if (targetApp.includes('browser') || targetApp.includes('web')) { setShowBrowserAgent(true); openedAppName = 'Autonomous Web Browser'; }
+      else if (targetApp.includes('sport')) { setShowSportsHub(true); openedAppName = 'Sports Live Score Hub'; }
+      else if (targetApp.includes('map') || targetApp.includes('nav')) { setShowMaps(true); openedAppName = 'Spatial Maps & GPS'; }
+      else if (targetApp.includes('health') || targetApp.includes('fit')) { setShowHealthHub(true); openedAppName = 'Health & Fitband Tracker'; }
+      else if (targetApp.includes('translat')) { setShowLiveTranslation(true); openedAppName = 'Universal Live Translator'; }
+      else if (targetApp.includes('manual') || targetApp.includes('guide')) { setShowManual(true); openedAppName = 'JASPER OS Master Guide'; }
+
+      const response = `Opening ${openedAppName} for you, Sir.`;
+      setSpeakingText(response);
+      const newChat = {
+        id: Date.now(),
+        query: queryText,
+        attachments: attachments,
+        response: response,
+        timestamp: new Date().toLocaleString()
+      };
+      setPastChats((prev) => [newChat, ...prev]);
+      setSelectedChatId(newChat.id);
       return;
     }
 
@@ -2555,6 +2600,52 @@ export default function App() {
               setHologramQuery('');
             }} 
           />
+        </div>
+      )}
+
+      {/* Voice Triggered Standalone App Overlay Windows */}
+      {showSearchEngine && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="w-full max-w-4xl h-[640px] relative">
+            <button onClick={() => setShowSearchEngine(false)} className="absolute top-2 right-2 text-cyan-400 hover:text-white font-mono text-xs z-10 bg-cyan-950/80 px-2 py-1 rounded">✕ Close</button>
+            <JasperSearchApp />
+          </div>
+        </div>
+      )}
+
+      {showFileManager && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="w-full max-w-4xl h-[600px] relative">
+            <button onClick={() => setShowFileManager(false)} className="absolute top-2 right-2 text-cyan-400 hover:text-white font-mono text-xs z-10 bg-cyan-950/80 px-2 py-1 rounded">✕ Close</button>
+            <JasperFileManagerApp />
+          </div>
+        </div>
+      )}
+
+      {showCodeStudio && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="w-full max-w-5xl h-[660px] relative">
+            <button onClick={() => setShowCodeStudio(false)} className="absolute top-2 right-2 text-cyan-400 hover:text-white font-mono text-xs z-10 bg-cyan-950/80 px-2 py-1 rounded">✕ Close</button>
+            <JasperCodeStudioApp />
+          </div>
+        </div>
+      )}
+
+      {showNotesPlanner && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="w-full max-w-4xl h-[620px] relative">
+            <button onClick={() => setShowNotesPlanner(false)} className="absolute top-2 right-2 text-cyan-400 hover:text-white font-mono text-xs z-10 bg-cyan-950/80 px-2 py-1 rounded">✕ Close</button>
+            <JasperNotesPlannerApp />
+          </div>
+        </div>
+      )}
+
+      {showCalculator && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="w-full max-w-3xl h-[560px] relative">
+            <button onClick={() => setShowCalculator(false)} className="absolute top-2 right-2 text-cyan-400 hover:text-white font-mono text-xs z-10 bg-cyan-950/80 px-2 py-1 rounded">✕ Close</button>
+            <JasperCalculatorApp />
+          </div>
         </div>
       )}
 
