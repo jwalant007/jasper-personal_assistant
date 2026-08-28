@@ -1150,21 +1150,6 @@ export default function App() {
 
   const [isOsMode, setIsOsMode] = useState(true);
 
-  if (isOsMode) {
-    return (
-      <JasperOsDesktop 
-        onToggleClassicMode={() => setIsOsMode(false)} 
-        jasperState={jasperState}
-        onMicClick={() => {
-          if (voiceControllerRef.current) {
-            voiceControllerRef.current.startListening();
-          }
-        }}
-        onLockSystem={() => setIsLocked(true)}
-      />
-    );
-  }
-
   return (
     <div className={`relative flex flex-col overflow-hidden bg-slate-950 text-cyan-50 select-none ${viewMode === 'mobile' && !isMobileScreen ? 'w-[360px] h-[800px] max-w-[100vw] max-h-[100dvh] mx-auto my-auto rounded-2xl border border-cyan-500/40 shadow-[0_0_50px_rgba(0,240,255,0.25)]' : 'w-full h-screen'}`}>
       
@@ -1595,16 +1580,29 @@ export default function App() {
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className={`flex-1 overflow-hidden flex flex-col relative ${isMobileLayout ? 'p-2 sm:p-4' : 'p-6'}`}
+            className={`flex-1 overflow-hidden flex flex-col relative ${isOsMode ? 'p-0' : (isMobileLayout ? 'p-2 sm:p-4' : 'p-6')}`}
           >
-            {/* Drag & Drop Sci-Fi Overlay */}
-            {isDraggingOver && (
-              <div className="drag-drop-overlay">
-                <div className="text-4xl animate-bounce">📥</div>
-                <div className="text-lg font-bold tracking-widest text-cyan-300">DROP FILES TO UPLOAD TO J.A.S.P.E.R.</div>
-                <div className="text-xs font-mono text-cyan-400">Images, Code, PDFs, Text Documents & Audio supported</div>
-              </div>
-            )}
+            {isOsMode ? (
+              <JasperOsDesktop 
+                onToggleClassicMode={() => setIsOsMode(false)} 
+                jasperState={jasperState}
+                onMicClick={() => {
+                  if (voiceControllerRef.current) {
+                    voiceControllerRef.current.startListening();
+                  }
+                }}
+                onLockSystem={() => setIsLocked(true)}
+              />
+            ) : (
+              <>
+                {/* Drag & Drop Sci-Fi Overlay */}
+                {isDraggingOver && (
+                  <div className="drag-drop-overlay">
+                    <div className="text-4xl animate-bounce">📥</div>
+                    <div className="text-lg font-bold tracking-widest text-cyan-300">DROP FILES TO UPLOAD TO J.A.S.P.E.R.</div>
+                    <div className="text-xs font-mono text-cyan-400">Images, Code, PDFs, Text Documents & Audio supported</div>
+                  </div>
+                )}
 
             <div 
               ref={hudPanelRef}
@@ -1821,6 +1819,8 @@ export default function App() {
               >
                 ⬆️ TOP
               </button>
+            )}
+              </>
             )}
           </main>
         </div>
