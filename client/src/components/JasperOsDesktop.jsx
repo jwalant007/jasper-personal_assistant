@@ -283,7 +283,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
   });
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-[#020612] text-slate-100 font-sans selection:bg-cyan-500/30">
+    <div className="relative w-full h-full overflow-hidden bg-[#020612] text-slate-100 font-sans selection:bg-cyan-500/30">
       {/* Dynamic Ambient Background Grid */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-950/20 via-slate-950 to-black pointer-events-none" />
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#00f0ff08_1px,transparent_1px),linear-gradient(to_bottom,#00f0ff08_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none" />

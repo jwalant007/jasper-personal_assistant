@@ -1474,107 +1474,109 @@ export default function App() {
         {/* Right Workspace */}
         <div className="flex-1 flex flex-col h-full w-full overflow-hidden relative">
           
-          {/* Header Panel */}
-          <header className={`flex items-center justify-between border-b border-cyan-500/15 bg-black/40 backdrop-blur-md shrink-0 ${isMobileLayout ? 'px-3 py-2.5 gap-2' : 'px-6 py-4'}`}>
-            <div className="flex items-center gap-2.5">
-              <button 
-                onClick={() => setShowSidebar(prev => !prev)}
-                className="btn-hdr-action py-1.5 px-3 font-bold text-xs text-cyan-400 border-cyan-500/40 bg-cyan-950/40 hover:bg-cyan-900/60 transition-all flex items-center gap-1.5 cursor-pointer shrink-0 z-30 shadow-[0_0_10px_rgba(0,240,255,0.2)]"
-                title="Toggle Navigation Menu"
-              >
-                <span className="text-sm font-extrabold leading-none">☰</span>
-                <span className="text-[10px] font-mono uppercase tracking-wider">{showSidebar ? 'Hide Menu' : 'Menu'}</span>
-              </button>
-              <div className="flex flex-col shrink-0">
-                <h1 className={`font-orbitron font-extrabold tracking-[0.2em] text-cyan-400 glow-cyan leading-none ${isMobileLayout ? 'text-xs sm:text-sm' : 'text-lg'}`}>
-                  J.A.S.P.E.R
-                </h1>
-                {!isMobileLayout && (
-                  <span className="font-mono text-[9px] text-sky-500 tracking-wider mt-1.5 uppercase font-semibold">
-                    Futuristic AI assistant interface
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Actions list */}
-            <div className={`flex items-center gap-1.5 ${isMobileLayout ? 'justify-end' : 'gap-2'}`}>
-              {updateAvailable && (
-                <a
-                  href={apkDownloadUrl || '/api/apk/download'}
-                  download="JASPER_Assistant.apk"
-                  className="bg-green-950/90 text-green-300 border border-green-400/80 px-2 py-1 rounded text-[10px] font-mono font-extrabold flex items-center gap-1 hover:bg-green-900 transition-all animate-pulse shadow-[0_0_12px_rgba(34,197,94,0.4)]"
-                  title="New APK build compiled! Tap to download & update your phone."
+          {/* Header Panel (Only shown in Classic mode) */}
+          {!isOsMode && (
+            <header className={`flex items-center justify-between border-b border-cyan-500/15 bg-black/40 backdrop-blur-md shrink-0 ${isMobileLayout ? 'px-3 py-2.5 gap-2' : 'px-6 py-4'}`}>
+              <div className="flex items-center gap-2.5">
+                <button 
+                  onClick={() => setShowSidebar(prev => !prev)}
+                  className="btn-hdr-action py-1.5 px-3 font-bold text-xs text-cyan-400 border-cyan-500/40 bg-cyan-950/40 hover:bg-cyan-900/60 transition-all flex items-center gap-1.5 cursor-pointer shrink-0 z-30 shadow-[0_0_10px_rgba(0,240,255,0.2)]"
+                  title="Toggle Navigation Menu"
                 >
-                  🚀 {isMobileLayout ? 'APK UPDATE' : 'APK UPDATE READY'}
-                </a>
-              )}
-              <button 
-                onClick={() => setIsOsMode(true)}
-                className="btn-hdr-action text-[10px] py-1 px-2.5 font-mono font-extrabold text-cyan-300 border-cyan-400/80 bg-cyan-950/80 hover:bg-cyan-800/90 transition-all flex items-center gap-1 cursor-pointer shadow-[0_0_15px_rgba(0,240,255,0.4)] animate-pulse"
-                title="Switch to JASPER OS Spatial Desktop Environment"
-              >
-                🖥️ {isMobileLayout ? 'OS MODE' : 'OS DESKTOP MODE'}
-              </button>
-              <button 
-                onClick={() => {
-                  setSelectedChatId(null);
-                  scrollToTop();
-                }}
-                className="btn-hdr-action text-[10px] py-1 px-2.5 font-mono font-extrabold text-cyan-300 border-cyan-400/60 bg-cyan-950/70 hover:bg-cyan-800/80 transition-all flex items-center gap-1 cursor-pointer shadow-[0_0_12px_rgba(0,240,255,0.3)]"
-                title="Return to Main J.A.R.V.I.S. Home HUD"
-              >
-                🏠 {isMobileLayout ? 'HOME' : 'HOME HUD'}
-              </button>
-              <button 
-                onClick={() => setViewMode(prev => prev === 'mobile' ? 'pc' : 'mobile')}
-                className="btn-hdr-action text-[10px] py-1 px-2 font-mono font-bold text-amber-300 border-amber-500/50 bg-amber-950/40 hover:bg-amber-900/60 transition-all flex items-center gap-1 cursor-pointer"
-                title="Switch UI Layout between Mobile Touch & Full PC HUD"
-              >
-                {viewMode === 'mobile' ? '🖥️ PC Layout' : '📱 Mobile Layout'}
-              </button>
+                  <span className="text-sm font-extrabold leading-none">☰</span>
+                  <span className="text-[10px] font-mono uppercase tracking-wider">{showSidebar ? 'Hide Menu' : 'Menu'}</span>
+                </button>
+                <div className="flex flex-col shrink-0">
+                  <h1 className={`font-orbitron font-extrabold tracking-[0.2em] text-cyan-400 glow-cyan leading-none ${isMobileLayout ? 'text-xs sm:text-sm' : 'text-lg'}`}>
+                    J.A.S.P.E.R
+                  </h1>
+                  {!isMobileLayout && (
+                    <span className="font-mono text-[9px] text-sky-500 tracking-wider mt-1.5 uppercase font-semibold">
+                      Futuristic AI assistant interface
+                    </span>
+                  )}
+                </div>
+              </div>
 
-              <button 
-                onClick={() => setShowLaptopConnect(true)}
-                className="btn-hdr-action text-[10px] py-1 px-2 font-mono font-bold text-cyan-300 border-cyan-500/50 bg-cyan-950/60 hover:bg-cyan-900/80 transition-all flex items-center gap-1 cursor-pointer shadow-[0_0_10px_rgba(0,240,255,0.2)]"
-                title="Connect to Laptop Mode"
-              >
-                <Laptop size={12} className="text-cyan-400" />
-                {isMobileLayout ? '💻 Laptop' : '💻 Connect Laptop'}
-              </button>
+              {/* Actions list */}
+              <div className={`flex items-center gap-1.5 ${isMobileLayout ? 'justify-end' : 'gap-2'}`}>
+                {updateAvailable && (
+                  <a
+                    href={apkDownloadUrl || '/api/apk/download'}
+                    download="JASPER_Assistant.apk"
+                    className="bg-green-950/90 text-green-300 border border-green-400/80 px-2 py-1 rounded text-[10px] font-mono font-extrabold flex items-center gap-1 hover:bg-green-900 transition-all animate-pulse shadow-[0_0_12px_rgba(34,197,94,0.4)]"
+                    title="New APK build compiled! Tap to download & update your phone."
+                  >
+                    🚀 {isMobileLayout ? 'APK UPDATE' : 'APK UPDATE READY'}
+                  </a>
+                )}
+                <button 
+                  onClick={() => setIsOsMode(true)}
+                  className="btn-hdr-action text-[10px] py-1 px-2.5 font-mono font-extrabold text-cyan-300 border-cyan-400/80 bg-cyan-950/80 hover:bg-cyan-800/90 transition-all flex items-center gap-1 cursor-pointer shadow-[0_0_15px_rgba(0,240,255,0.4)] animate-pulse"
+                  title="Switch to JASPER OS Spatial Desktop Environment"
+                >
+                  🖥️ {isMobileLayout ? 'OS MODE' : 'OS DESKTOP MODE'}
+                </button>
+                <button 
+                  onClick={() => {
+                    setSelectedChatId(null);
+                    scrollToTop();
+                  }}
+                  className="btn-hdr-action text-[10px] py-1 px-2.5 font-mono font-extrabold text-cyan-300 border-cyan-400/60 bg-cyan-950/70 hover:bg-cyan-800/80 transition-all flex items-center gap-1 cursor-pointer shadow-[0_0_12px_rgba(0,240,255,0.3)]"
+                  title="Return to Main J.A.R.V.I.S. Home HUD"
+                >
+                  🏠 {isMobileLayout ? 'HOME' : 'HOME HUD'}
+                </button>
+                <button 
+                  onClick={() => setViewMode(prev => prev === 'mobile' ? 'pc' : 'mobile')}
+                  className="btn-hdr-action text-[10px] py-1 px-2 font-mono font-bold text-amber-300 border-amber-500/50 bg-amber-950/40 hover:bg-amber-900/60 transition-all flex items-center gap-1 cursor-pointer"
+                  title="Switch UI Layout between Mobile Touch & Full PC HUD"
+                >
+                  {viewMode === 'mobile' ? '🖥️ PC Layout' : '📱 Mobile Layout'}
+                </button>
 
-              <button 
-                onClick={() => {
-                  const updated = togglePhoneBrainMode();
-                  setIsPhoneBrainModeState(updated);
-                }}
-                className={`btn-hdr-action text-[10px] py-1 px-2 font-mono font-bold transition-all flex items-center gap-1 ${
-                  isPhoneBrainMode 
-                    ? 'bg-purple-500/20 text-purple-300 border-purple-500/50 shadow-[0_0_10px_rgba(168,85,247,0.3)]' 
-                    : 'text-cyan-400 hover:text-cyan-200'
-                }`}
-                title="Toggle Mobile Master Brain Mode"
-              >
-                {isPhoneBrainMode ? (isMobileLayout ? '📱 MOBILE CORE' : '📱 PHONE IS BRAIN') : (isMobileLayout ? '🧠 PC CORE' : '🧠 PC IS CORE')}
-              </button>
-              <button 
-                onClick={() => setIsLocked(true)}
-                className="btn-hdr-action text-[10px] py-1 px-2"
-              >
-                {isMobileLayout ? 'Lock' : 'Back to login'}
-              </button>
-              <button 
-                onClick={() => setShowSettings(true)}
-                className="btn-hdr-status glow-cyan cursor-pointer text-[10px] py-1 px-2 flex items-center gap-1 font-mono font-bold"
-                title="Configure AI Engine & Provider"
-              >
-                {aiProvider === 'ollama' 
-                  ? (isMobileLayout ? '🦙 Ollama' : `🦙 Ollama (${ollamaModel})`)
-                  : (apiKey ? (isMobileLayout ? '☁️ Gemini' : '☁️ Gemini Cloud') : (isMobileLayout ? '○ Offline' : 'Core Offline'))
-                }
-              </button>
-            </div>
-          </header>
+                <button 
+                  onClick={() => setShowLaptopConnect(true)}
+                  className="btn-hdr-action text-[10px] py-1 px-2 font-mono font-bold text-cyan-300 border-cyan-500/50 bg-cyan-950/60 hover:bg-cyan-900/80 transition-all flex items-center gap-1 cursor-pointer shadow-[0_0_10px_rgba(0,240,255,0.2)]"
+                  title="Connect to Laptop Mode"
+                >
+                  <Laptop size={12} className="text-cyan-400" />
+                  {isMobileLayout ? '💻 Laptop' : '💻 Connect Laptop'}
+                </button>
+
+                <button 
+                  onClick={() => {
+                    const updated = togglePhoneBrainMode();
+                    setIsPhoneBrainModeState(updated);
+                  }}
+                  className={`btn-hdr-action text-[10px] py-1 px-2 font-mono font-bold transition-all flex items-center gap-1 ${
+                    isPhoneBrainMode 
+                      ? 'bg-purple-500/20 text-purple-300 border-purple-500/50 shadow-[0_0_10px_rgba(168,85,247,0.3)]' 
+                      : 'text-cyan-400 hover:text-cyan-200'
+                  }`}
+                  title="Toggle Mobile Master Brain Mode"
+                >
+                  {isPhoneBrainMode ? (isMobileLayout ? '📱 MOBILE CORE' : '📱 PHONE IS BRAIN') : (isMobileLayout ? '🧠 PC CORE' : '🧠 PC IS CORE')}
+                </button>
+                <button 
+                  onClick={() => setIsLocked(true)}
+                  className="btn-hdr-action text-[10px] py-1 px-2"
+                >
+                  {isMobileLayout ? 'Lock' : 'Back to login'}
+                </button>
+                <button 
+                  onClick={() => setShowSettings(true)}
+                  className="btn-hdr-status glow-cyan cursor-pointer text-[10px] py-1 px-2 flex items-center gap-1 font-mono font-bold"
+                  title="Configure AI Engine & Provider"
+                >
+                  {aiProvider === 'ollama' 
+                    ? (isMobileLayout ? '🦙 Ollama' : `🦙 Ollama (${ollamaModel})`)
+                    : (apiKey ? (isMobileLayout ? '☁️ Gemini' : '☁️ Gemini Cloud') : (isMobileLayout ? '○ Offline' : 'Core Offline'))
+                  }
+                </button>
+              </div>
+            </header>
+          )}
 
           {/* Main Response Area */}
           <main 
