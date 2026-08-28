@@ -10,10 +10,10 @@ echo    [1] Launch JASPER OS (Full Screen Standalone AI OS)
 echo    [2] Continue to Standard Windows 11 Desktop
 echo.
 echo ===============================================================================
-echo Choice will auto-select [1] JASPER OS in 5 seconds...
+echo Choice will auto-select [2] Windows 11 Desktop in 5 seconds...
 echo.
 
-choice /c 12 /t 5 /d 1 /m "Select Operating System Environment:"
+choice /c 12 /t 5 /d 2 /m "Select Operating System Environment:"
 
 if errorlevel 2 goto WINDOWS_DESKTOP
 if errorlevel 1 goto JASPER_OS

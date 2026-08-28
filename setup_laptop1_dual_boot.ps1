@@ -27,6 +27,6 @@ Write-Host ""
 Write-Host "How Dual-Boot works on Laptop 1 when turning on:" -ForegroundColor Yellow
 Write-Host "1. Whenever Laptop 1 turns on, a 5-second Boot Menu will pop up." -ForegroundColor White
 Write-Host "2. Press [1] for JASPER OS or [2] for Standard Windows Desktop." -ForegroundColor White
-Write-Host "3. If no key is pressed in 5 seconds, it automatically boots into JASPER OS!" -ForegroundColor White
+Write-Host "3. If no key is pressed in 5 seconds, it automatically boots into Windows 11 Desktop!" -ForegroundColor White
 Write-Host ""
 Read-Host -Prompt "Press Enter to exit..."
