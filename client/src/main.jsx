@@ -11,13 +11,12 @@ class ErrorBoundary extends React.Component {
 
   static getDerivedStateFromError(error) {
     const errStr = error?.toString() || '';
-    if (errStr.includes('WebSocket') || errStr.includes('SecurityError') || errStr.includes('Failed to fetch')) {
-      console.warn('[ErrorBoundary] Suppressed non-fatal network/security error:', errStr);
+    if (errStr.includes('WebSocket') || errStr.includes('SecurityError') || errStr.includes('Failed to fetch') || errStr.includes('Illegal constructor')) {
+      console.warn('[ErrorBoundary] Suppressed non-fatal browser constructor error:', errStr);
       return { hasError: false, error: null };
     }
     return { hasError: true, error };
   }
-
 
   componentDidCatch(error, errorInfo) {
     console.error("Uncaught error in Jasper Client:", error, errorInfo);
@@ -31,8 +30,10 @@ class ErrorBoundary extends React.Component {
           <p style={{ fontSize: '12px', color: '#94a3b8', maxWidth: '320px' }}>
             An unexpected client runtime exception occurred:
           </p>
-          <div style={{ background: 'rgba(255, 85, 0, 0.1)', border: '1px solid rgba(255, 85, 0, 0.3)', padding: '12px', borderRadius: '6px', fontSize: '11px', fontFamily: 'monospace', color: '#fca5a5', maxWidth: '90vw', overflowX: 'auto' }}>
+          <div style={{ background: 'rgba(255, 85, 0, 0.1)', border: '1px solid rgba(255, 85, 0, 0.3)', padding: '12px', borderRadius: '6px', fontSize: '11px', fontFamily: 'monospace', color: '#fca5a5', maxWidth: '90vw', overflowX: 'auto', textAlign: 'left', whiteSpace: 'pre-wrap' }}>
             {this.state.error?.toString()}
+            {'\n'}
+            {this.state.error?.stack}
           </div>
           <button 
             onClick={() => {
