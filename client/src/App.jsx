@@ -83,6 +83,7 @@ export default function App() {
   const [showCodeStudio, setShowCodeStudio] = useState(false);
   const [showNotesPlanner, setShowNotesPlanner] = useState(false);
   const [showCalculator, setShowCalculator] = useState(false);
+  const [showLaptopConnect, setShowLaptopConnect] = useState(false);
 
   const [isPhoneBrainMode, setIsPhoneBrainModeState] = useState(() => getPhoneBrainMode());
   const [agenticQuery, setAgenticQuery] = useState('');
