@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HardDrive, Folder, File, Search, RefreshCw, Eye, Download, Server, Cpu, CheckCircle2, FileText, Image as ImageIcon, Code, Film } from 'lucide-react';
+import { HardDrive, Folder, File as FileIcon, Search, RefreshCw, Eye, Download, Server, Cpu, CheckCircle2, FileText, Image as ImageIcon, Code, Film } from 'lucide-react';
 import { getServerIp } from '../utils/apiConfig';
 
 export default function JasperFileManagerApp() {
