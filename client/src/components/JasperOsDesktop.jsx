@@ -71,8 +71,6 @@ function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFo
   const dragStartRef = useRef({ x: 0, y: 0, posX: 0, posY: 0 });
   const resizeStartRef = useRef({ x: 0, y: 0, w: 0, h: 0 });
 
-  if (isMinimized) return null;
-
   const handleHeaderMouseDown = (e) => {
     if (e.target.closest('.window-control-btn') || isMaximized) return;
     onFocus(id);
@@ -120,6 +118,8 @@ function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFo
       window.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isDragging, isResizing]);
+
+  if (isMinimized) return null;
 
   const windowStyle = isMaximized ? {
     top: '48px',
