@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Box, Terminal, Tv, Cpu, Shield, Sparkles, Smartphone, Monitor, Globe, 
   Activity, X, Minus, Square, Maximize2, RefreshCw, Layout, Layers, Volume2, 
-  Zap, Radio, Settings, HelpCircle, HardDrive, Wifi, BatteryCharging
+  Zap, Radio, Settings, HelpCircle, HardDrive, Wifi, BatteryCharging, Search,
+  Bot, Palette, Music, Workflow, BarChart3, Brain, Store, Trophy, MapPin, Heart, Languages, BookOpen, Laptop, Grid, AppWindow
 } from 'lucide-react';
+
 import HolographicAnswerModal from './HolographicAnswerModal';
 import TvRemoteWidget from './TvRemoteWidget';
 import DiagnosticWidget from './DiagnosticWidget';
@@ -11,9 +13,54 @@ import PcMasterHubWidget from './PcMasterHubWidget';
 import PhoneControlWidget from './PhoneControlWidget';
 import SecurityCenterWidget from './SecurityCenterWidget';
 import AgenticActionsWidget from './AgenticActionsWidget';
+import BrowserAgentWidget from './BrowserAgentWidget';
+import AiMasterHubWidget from './AiMasterHubWidget';
+import ImageGeneratorWidget from './ImageGeneratorWidget';
+import MusicMasterHubWidget from './MusicMasterHubWidget';
+import DevicesMasterHubWidget from './DevicesMasterHubWidget';
+import PersonalAssistantWidget from './PersonalAssistantWidget';
+import MemoryDashboardWidget from './MemoryDashboardWidget';
+import SkillsStoreWidget from './SkillsStoreWidget';
+import AnalyticsWidget from './AnalyticsWidget';
+import AutomationBuilderWidget from './AutomationBuilderWidget';
+import MissionControlWidget from './MissionControlWidget';
+import SportsHubWidget from './SportsHubWidget';
+import MapsWidget from './MapsWidget';
+import HealthFitbandWidget from './HealthFitbandWidget';
+import LiveTranslationWidget from './LiveTranslationWidget';
+import UserManualWidget from './UserManualWidget';
 
 /**
- * DRAGGABLE & RESIZABLE JWALANT BHATT CREATION GLASS OS WINDOW COMPONENT
+ * ALL NATIVE JASPER OS APPLICATIONS REGISTRY
+ */
+const JASPER_OS_APPS_REGISTRY = [
+  { id: 'hologram', title: '3D/4D Blueprint Studio App', category: 'Creative & AI', icon: Box, component: HolographicAnswerModal, defaultSize: { w: 800, h: 560 } },
+  { id: 'diagnostics', title: 'System Diagnostics & Telemetry App', category: 'System & Hardware', icon: Activity, component: DiagnosticWidget, defaultSize: { w: 450, h: 500 } },
+  { id: 'tvRemote', title: 'Smart TV Controller App', category: 'Hardware Control', icon: Tv, component: TvRemoteWidget, defaultSize: { w: 400, h: 480 } },
+  { id: 'pcHub', title: 'PC Command Center App', category: 'Hardware Control', icon: Monitor, component: PcMasterHubWidget, defaultSize: { w: 640, h: 500 } },
+  { id: 'phoneControl', title: 'Android Device Link App', category: 'Hardware Control', icon: Smartphone, component: PhoneControlWidget, defaultSize: { w: 440, h: 480 } },
+  { id: 'security', title: 'Biometric Security & Firewall App', category: 'System & Hardware', icon: Shield, component: SecurityCenterWidget, defaultSize: { w: 480, h: 500 } },
+  { id: 'agentic', title: 'Agentic Shell Actions App', category: 'AI & Intelligence', icon: Terminal, component: AgenticActionsWidget, defaultSize: { w: 580, h: 480 } },
+  { id: 'browserAgent', title: 'Autonomous Web Browser App', category: 'AI & Intelligence', icon: Globe, component: BrowserAgentWidget, defaultSize: { w: 720, h: 540 } },
+  { id: 'aiMasterHub', title: 'AI Swarm & Intelligence Hub App', category: 'AI & Intelligence', icon: Brain, component: AiMasterHubWidget, defaultSize: { w: 680, h: 520 } },
+  { id: 'imageStudio', title: 'AI Image Generator Studio App', category: 'Creative & AI', icon: Palette, component: ImageGeneratorWidget, defaultSize: { w: 620, h: 520 } },
+  { id: 'musicHub', title: 'Music & Audio Master App', category: 'Media & Life', icon: Music, component: MusicMasterHubWidget, defaultSize: { w: 540, h: 480 } },
+  { id: 'devicesHub', title: 'Smart Devices Hub App', category: 'Hardware Control', icon: Laptop, component: DevicesMasterHubWidget, defaultSize: { w: 580, h: 480 } },
+  { id: 'personalAssistant', title: 'Personal AI Assistant App', category: 'AI & Intelligence', icon: Bot, component: PersonalAssistantWidget, defaultSize: { w: 640, h: 520 } },
+  { id: 'vectorMemory', title: 'Semantic Vector Memory App', category: 'System & Hardware', icon: HardDrive, component: MemoryDashboardWidget, defaultSize: { w: 560, h: 480 } },
+  { id: 'skillsStore', title: 'JASPER App & Skills Store', category: 'System & Hardware', icon: Store, component: SkillsStoreWidget, defaultSize: { w: 600, h: 500 } },
+  { id: 'analytics', title: 'System Analytics & Insights App', category: 'System & Hardware', icon: BarChart3, component: AnalyticsWidget, defaultSize: { w: 540, h: 480 } },
+  { id: 'automation', title: 'Automation Studio App', category: 'Productivity & Tools', icon: Workflow, component: AutomationBuilderWidget, defaultSize: { w: 640, h: 520 } },
+  { id: 'missionControl', title: 'Mission Control OS Hub App', category: 'System & Hardware', icon: Layout, component: MissionControlWidget, defaultSize: { w: 700, h: 540 } },
+  { id: 'sportsHub', title: 'Sports & Live Score App', category: 'Media & Life', icon: Trophy, component: SportsHubWidget, defaultSize: { w: 580, h: 480 } },
+  { id: 'maps', title: 'Spatial Maps & GPS App', category: 'Productivity & Tools', icon: MapPin, component: MapsWidget, defaultSize: { w: 660, h: 500 } },
+  { id: 'healthHub', title: 'Health & Fitband Tracker App', category: 'Media & Life', icon: Heart, component: HealthFitbandWidget, defaultSize: { w: 580, h: 500 } },
+  { id: 'liveTranslation', title: 'Universal Live Translator App', category: 'Productivity & Tools', icon: Languages, component: LiveTranslationWidget, defaultSize: { w: 600, h: 500 } },
+  { id: 'userManual', title: 'JASPER OS Master Guide App', category: 'Productivity & Tools', icon: BookOpen, component: UserManualWidget, defaultSize: { w: 640, h: 520 } }
+];
+
+/**
+ * DRAGGABLE & RESIZABLE GLASS OS APPLICATION WINDOW
  */
 function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFocus, onClose, onMinimize, isMinimized, children }) {
   const [pos, setPos] = useState(defaultPos || { x: 50, y: 70 });
@@ -92,12 +139,12 @@ function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFo
     <div
       onMouseDown={() => onFocus(id)}
       style={windowStyle}
-      className="absolute flex flex-col rounded-xl bg-cyan-950/40 border border-cyan-400/40 backdrop-blur-2xl shadow-[0_10px_40px_rgba(0,0,0,0.6)] overflow-hidden transition-shadow duration-200"
+      className="absolute flex flex-col rounded-xl bg-cyan-950/45 border border-cyan-400/40 backdrop-blur-2xl shadow-[0_10px_40px_rgba(0,0,0,0.7)] overflow-hidden transition-shadow duration-200"
     >
       {/* Window Header Bar */}
       <div
         onMouseDown={handleHeaderMouseDown}
-        className="px-3.5 py-2.5 bg-cyan-950/70 border-b border-cyan-500/30 flex items-center justify-between cursor-move select-none backdrop-blur-xl"
+        className="px-3.5 py-2.5 bg-cyan-950/80 border-b border-cyan-500/30 flex items-center justify-between cursor-move select-none backdrop-blur-xl"
       >
         <div className="flex items-center gap-2 text-cyan-300 font-mono text-xs font-bold uppercase tracking-wider">
           <Icon className="w-4 h-4 text-cyan-400" />
@@ -108,33 +155,33 @@ function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFo
           <button
             onClick={() => onMinimize(id)}
             className="window-control-btn p-1.5 rounded-md text-cyan-400 hover:bg-cyan-500/20 hover:text-cyan-200 transition-colors"
-            title="Minimize"
+            title="Minimize App"
           >
             <Minus className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => setIsMaximized(!isMaximized)}
             className="window-control-btn p-1.5 rounded-md text-cyan-400 hover:bg-cyan-500/20 hover:text-cyan-200 transition-colors"
-            title={isMaximized ? "Restore" : "Maximize"}
+            title={isMaximized ? "Restore App Window" : "Maximize App Window"}
           >
             {isMaximized ? <Square className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
           </button>
           <button
             onClick={() => onClose(id)}
             className="window-control-btn p-1.5 rounded-md text-rose-400 hover:bg-rose-500/20 hover:text-rose-200 transition-colors"
-            title="Close"
+            title="Close App"
           >
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {/* Window Content Body */}
+      {/* App Window Body */}
       <div className="flex-1 overflow-y-auto p-3 text-slate-100 font-sans custom-scrollbar">
         {children}
       </div>
 
-      {/* Resize Handle Grip */}
+      {/* Resize Handle */}
       {!isMaximized && (
         <div
           onMouseDown={handleResizeMouseDown}
@@ -150,10 +197,11 @@ function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFo
 }
 
 /**
- * MAIN JASPER OS SPATIAL DESKTOP MANAGEMENT ENVIRONMENT
+ * MAIN JASPER OS SPATIAL DESKTOP APPLICATION ENVIRONMENT
  */
 export default function JasperOsDesktop({ onToggleClassicMode }) {
-  const [activeWorkspace, setActiveWorkspace] = useState('lab'); // lab, mission, media, security
+  const [activeWorkspace, setActiveWorkspace] = useState('all');
+  const [appSearchQuery, setAppSearchQuery] = useState('');
   const [openWindows, setOpenWindows] = useState({
     hologram: true,
     diagnostics: true,
@@ -164,15 +212,7 @@ export default function JasperOsDesktop({ onToggleClassicMode }) {
     agentic: false
   });
   const [minimizedWindows, setMinimizedWindows] = useState({});
-  const [activeZIndex, setActiveZIndex] = useState({
-    hologram: 10,
-    diagnostics: 5,
-    tvRemote: 2,
-    pcHub: 2,
-    phoneControl: 2,
-    security: 2,
-    agentic: 2
-  });
+  const [activeZIndex, setActiveZIndex] = useState({});
   const [topZ, setTopZ] = useState(20);
   const [showStartMenu, setShowStartMenu] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -189,6 +229,14 @@ export default function JasperOsDesktop({ onToggleClassicMode }) {
     setMinimizedWindows(prev => ({ ...prev, [winId]: false }));
   };
 
+  const launchApp = (appId) => {
+    if (!openWindows[appId]) {
+      setOpenWindows(prev => ({ ...prev, [appId]: true }));
+    }
+    bringToTop(appId);
+    setShowStartMenu(false);
+  };
+
   const toggleWindow = (winId) => {
     if (openWindows[winId]) {
       if (minimizedWindows[winId]) {
@@ -197,8 +245,7 @@ export default function JasperOsDesktop({ onToggleClassicMode }) {
         setMinimizedWindows(prev => ({ ...prev, [winId]: true }));
       }
     } else {
-      setOpenWindows(prev => ({ ...prev, [winId]: true }));
-      bringToTop(winId);
+      launchApp(winId);
     }
   };
 
@@ -210,20 +257,31 @@ export default function JasperOsDesktop({ onToggleClassicMode }) {
     setMinimizedWindows(prev => ({ ...prev, [winId]: true }));
   };
 
+  const filteredApps = JASPER_OS_APPS_REGISTRY.filter(app => {
+    const matchesSearch = app.title.toLowerCase().includes(appSearchQuery.toLowerCase()) || 
+                          app.category.toLowerCase().includes(appSearchQuery.toLowerCase());
+    const matchesCategory = activeWorkspace === 'all' || 
+                            (activeWorkspace === 'ai' && app.category.includes('AI')) ||
+                            (activeWorkspace === 'control' && app.category.includes('Control')) ||
+                            (activeWorkspace === 'system' && app.category.includes('System')) ||
+                            (activeWorkspace === 'tools' && app.category.includes('Tools'));
+    return matchesSearch && matchesCategory;
+  });
+
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-[#020612] text-slate-100 font-sans selection:bg-cyan-500/30">
-      {/* Dynamic Ambient Background Grid & Stars */}
+      {/* Dynamic Ambient Background Grid */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-950/20 via-slate-950 to-black pointer-events-none" />
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#00f0ff08_1px,transparent_1px),linear-gradient(to_bottom,#00f0ff08_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none" />
 
-      {/* TOP STARK TASKBAR */}
-      <div className="absolute top-0 left-0 right-0 h-12 bg-cyan-950/50 border-b border-cyan-500/30 backdrop-blur-2xl z-50 flex items-center justify-between px-4">
-        {/* Left: Start Launcher & Workspace Tabs */}
+      {/* TOP STARK OS TASKBAR */}
+      <div className="absolute top-0 left-0 right-0 h-12 bg-cyan-950/60 border-b border-cyan-500/30 backdrop-blur-2xl z-50 flex items-center justify-between px-4">
+        {/* Left: Start Launcher & App Categories */}
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowStartMenu(!showStartMenu)}
             className="p-1.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/50 text-cyan-300 flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(0,240,255,0.3)]"
-            title="J.A.S.P.E.R. Arc Core Start Menu"
+            title="JASPER OS App Center & Start Launcher"
           >
             <div className="w-5 h-5 rounded-full border border-cyan-300 flex items-center justify-center animate-pulse">
               <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#00f0ff]" />
@@ -233,17 +291,21 @@ export default function JasperOsDesktop({ onToggleClassicMode }) {
 
           <div className="h-4 w-px bg-cyan-500/30 mx-1 hidden sm:block" />
 
-          {/* Workspace Tabs */}
+          {/* Quick App Categories */}
           <div className="hidden md:flex items-center gap-1">
             {[
-              { id: 'lab', label: '🌌 3D Hologram Lab' },
-              { id: 'mission', label: '📊 Mission Control' },
-              { id: 'media', label: '📺 Media Hub' },
-              { id: 'security', label: '🛡️ Security & AI' }
+              { id: 'all', label: '📱 All Apps' },
+              { id: 'ai', label: '🧠 AI & Intelligence' },
+              { id: 'control', label: '🔌 Device Link' },
+              { id: 'system', label: '🛡️ System & Security' },
+              { id: 'tools', label: '🛠️ Productivity Tools' }
             ].map((ws) => (
               <button
                 key={ws.id}
-                onClick={() => setActiveWorkspace(ws.id)}
+                onClick={() => {
+                  setActiveWorkspace(ws.id);
+                  setShowStartMenu(true);
+                }}
                 className={`px-3 py-1 rounded-lg text-xs font-mono transition-all ${
                   activeWorkspace === ws.id
                     ? 'bg-cyan-500/25 border border-cyan-400/60 text-cyan-200 shadow-[0_0_10px_rgba(0,240,255,0.2)]'
@@ -256,20 +318,20 @@ export default function JasperOsDesktop({ onToggleClassicMode }) {
           </div>
         </div>
 
-        {/* Right: Live Telemetry Badges & Mode Switcher */}
+        {/* Right: Live System Telemetry & Clock */}
         <div className="flex items-center gap-3 font-mono text-[11px]">
           <div className="hidden lg:flex items-center gap-3 text-slate-300 bg-cyan-950/40 border border-cyan-500/30 px-3 py-1 rounded-lg backdrop-blur-md">
-            <span className="flex items-center gap-1 text-cyan-400"><Cpu className="w-3.5 h-3.5" /> CPU: 14%</span>
-            <span className="flex items-center gap-1 text-cyan-400"><HardDrive className="w-3.5 h-3.5" /> RAM: 4.1GB</span>
-            <span className="flex items-center gap-1 text-cyan-400"><Wifi className="w-3.5 h-3.5" /> NET: 1.2G</span>
+            <span className="flex items-center gap-1 text-cyan-400"><Cpu className="w-3.5 h-3.5" /> CPU: 12%</span>
+            <span className="flex items-center gap-1 text-cyan-400"><HardDrive className="w-3.5 h-3.5" /> RAM: 3.8GB</span>
+            <span className="flex items-center gap-1 text-cyan-400"><Wifi className="w-3.5 h-3.5" /> NET: 1.4G</span>
           </div>
 
           <button
             onClick={onToggleClassicMode}
             className="px-3 py-1 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-cyan-300 rounded-lg font-semibold flex items-center gap-1.5 transition-all text-xs"
-            title="Switch to Classic Grid Layout"
+            title="Switch to Grid Layout View"
           >
-            <Layout className="w-3.5 h-3.5 text-cyan-400" /> Classic View
+            <Grid className="w-3.5 h-3.5 text-cyan-400" /> Classic View
           </button>
 
           <div className="text-cyan-200 font-bold px-2.5 py-1 bg-cyan-950/50 border border-cyan-500/30 rounded-lg">
@@ -278,205 +340,140 @@ export default function JasperOsDesktop({ onToggleClassicMode }) {
         </div>
       </div>
 
-      {/* ARC CORE START LAUNCHER MENU DROPDOWN */}
+      {/* OS APP CENTER & START LAUNCHER DRAWER */}
       {showStartMenu && (
-        <div className="absolute top-14 left-4 w-72 bg-cyan-950/90 border border-cyan-400/60 rounded-2xl p-4 shadow-[0_0_40px_rgba(0,240,255,0.3)] backdrop-blur-3xl z-50 animate-in fade-in slide-in-from-top-2">
-          <div className="flex items-center gap-3 border-b border-cyan-500/30 pb-3 mb-3">
-            <div className="p-2 bg-cyan-500/20 border border-cyan-400 rounded-xl text-cyan-300">
-              <Zap className="w-5 h-5 animate-pulse" />
+        <div className="absolute top-14 left-4 w-96 bg-cyan-950/95 border border-cyan-400/60 rounded-2xl p-4 shadow-[0_0_50px_rgba(0,240,255,0.35)] backdrop-blur-3xl z-50 animate-in fade-in slide-in-from-top-2 max-h-[82vh] flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-cyan-500/30 pb-3 mb-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-cyan-500/20 border border-cyan-400 rounded-xl text-cyan-300">
+                <Zap className="w-5 h-5 animate-pulse" />
+              </div>
+              <div>
+                <h3 className="font-orbitron font-extrabold text-sm text-cyan-200 uppercase tracking-wider">JASPER OS App Center</h3>
+                <p className="text-[10px] text-slate-400 font-mono">23 Native System Applications Available</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-orbitron font-extrabold text-sm text-cyan-200 uppercase">J.A.S.P.E.R. OS v4.2</h3>
-              <p className="text-[10px] text-slate-400 font-mono">JWALANT BHATT CREATION OS Environment</p>
-            </div>
+            <button
+              onClick={() => setShowStartMenu(false)}
+              className="p-1 rounded-lg text-slate-400 hover:text-cyan-300 hover:bg-cyan-500/20"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
 
-          <div className="space-y-1">
-            {[
-              { id: 'hologram', label: '3D/4D Hologram Blueprint Lab', icon: Box },
-              { id: 'diagnostics', label: 'System Diagnostics Telemetry', icon: Activity },
-              { id: 'tvRemote', label: 'Smart TV Control Hub', icon: Tv },
-              { id: 'pcHub', label: 'PC Master Command Center', icon: Monitor },
-              { id: 'phoneControl', label: 'Mobile Android Bridge', icon: Smartphone },
-              { id: 'security', label: 'Security & Biometrics', icon: Shield },
-              { id: 'agentic', label: 'Agentic Shell Actions', icon: Terminal }
-            ].map((app) => (
-              <button
-                key={app.id}
-                onClick={() => {
-                  toggleWindow(app.id);
-                  setShowStartMenu(false);
-                }}
-                className="w-full px-3 py-2 rounded-xl text-xs font-mono flex items-center justify-between text-slate-200 hover:bg-cyan-500/25 hover:text-cyan-200 transition-all border border-transparent hover:border-cyan-500/40"
-              >
-                <span className="flex items-center gap-2">
-                  <app.icon className="w-4 h-4 text-cyan-400" /> {app.label}
-                </span>
-                {openWindows[app.id] && !minimizedWindows[app.id] && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_6px_#00f0ff]" />
-                )}
-              </button>
-            ))}
+          {/* App Search Bar */}
+          <div className="relative mb-3">
+            <Search className="w-4 h-4 absolute left-3 top-2.5 text-cyan-400/70" />
+            <input
+              type="text"
+              value={appSearchQuery}
+              onChange={(e) => setAppSearchQuery(e.target.value)}
+              placeholder="Search JASPER OS Native Apps..."
+              className="w-full pl-9 pr-3 py-1.5 bg-cyan-950/70 border border-cyan-500/40 rounded-xl text-xs font-mono text-cyan-200 placeholder-cyan-500/50 focus:outline-none focus:border-cyan-400"
+            />
+          </div>
+
+          {/* App Registry Grid */}
+          <div className="flex-1 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+            {filteredApps.map((app) => {
+              const AppIcon = app.icon;
+              const isRunning = openWindows[app.id] && !minimizedWindows[app.id];
+              return (
+                <button
+                  key={app.id}
+                  onClick={() => launchApp(app.id)}
+                  className={`w-full px-3 py-2 rounded-xl text-xs font-mono flex items-center justify-between transition-all border ${
+                    isRunning 
+                      ? 'bg-cyan-500/25 border-cyan-400/60 text-cyan-100 shadow-[0_0_10px_rgba(0,240,255,0.2)]'
+                      : 'text-slate-200 hover:bg-cyan-500/20 hover:text-cyan-200 border-transparent hover:border-cyan-500/30'
+                  }`}
+                >
+                  <span className="flex items-center gap-2.5">
+                    <div className="p-1.5 rounded-lg bg-cyan-950/80 border border-cyan-500/30 text-cyan-400">
+                      <AppIcon className="w-4 h-4" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold text-slate-100">{app.title}</div>
+                      <div className="text-[10px] text-cyan-400/70">{app.category}</div>
+                    </div>
+                  </span>
+                  {isRunning && (
+                    <span className="px-2 py-0.5 rounded-full text-[9px] bg-cyan-400/20 border border-cyan-400/50 text-cyan-300 font-bold">
+                      ACTIVE
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
 
-      {/* DESKTOP DESK AREA WITH FLOATING WINDOWS */}
+      {/* DESKTOP WORKSPACE AREA WITH OPEN APP WINDOWS */}
       <div className="relative w-full h-[calc(100vh-105px)] top-12">
-        {/* 1. Hologram 3D/4D Lab Window */}
-        {openWindows.hologram && (
-          <OsWindow
-            id="hologram"
-            title="🌌 3D/4D JWALANT BHATT CREATION Blueprint Suite"
-            icon={Box}
-            defaultPos={{ x: 340, y: 20 }}
-            defaultSize={{ w: 780, h: 560 }}
-            zIndex={activeZIndex.hologram}
-            onFocus={bringToTop}
-            onClose={closeWindow}
-            onMinimize={minimizeWindow}
-            isMinimized={minimizedWindows.hologram}
-          >
-            <HolographicAnswerModal initialQuery="Iron Man Arc Reactor core" />
-          </OsWindow>
-        )}
-
-        {/* 2. System Diagnostics Window */}
-        {openWindows.diagnostics && (
-          <OsWindow
-            id="diagnostics"
-            title="📊 PC System Telemetry & Health"
-            icon={Activity}
-            defaultPos={{ x: 20, y: 20 }}
-            defaultSize={{ w: 420, h: 480 }}
-            zIndex={activeZIndex.diagnostics}
-            onFocus={bringToTop}
-            onClose={closeWindow}
-            onMinimize={minimizeWindow}
-            isMinimized={minimizedWindows.diagnostics}
-          >
-            <DiagnosticWidget />
-          </OsWindow>
-        )}
-
-        {/* 3. TV Remote Control Window */}
-        {openWindows.tvRemote && (
-          <OsWindow
-            id="tvRemote"
-            title="📺 Smart TV Remote Hub"
-            icon={Tv}
-            defaultPos={{ x: 40, y: 180 }}
-            defaultSize={{ w: 380, h: 460 }}
-            zIndex={activeZIndex.tvRemote}
-            onFocus={bringToTop}
-            onClose={closeWindow}
-            onMinimize={minimizeWindow}
-            isMinimized={minimizedWindows.tvRemote}
-          >
-            <TvRemoteWidget />
-          </OsWindow>
-        )}
-
-        {/* 4. PC Master Command Window */}
-        {openWindows.pcHub && (
-          <OsWindow
-            id="pcHub"
-            title="💻 PC Master Command Center"
-            icon={Monitor}
-            defaultPos={{ x: 440, y: 80 }}
-            defaultSize={{ w: 580, h: 460 }}
-            zIndex={activeZIndex.pcHub}
-            onFocus={bringToTop}
-            onClose={closeWindow}
-            onMinimize={minimizeWindow}
-            isMinimized={minimizedWindows.pcHub}
-          >
-            <PcMasterHubWidget />
-          </OsWindow>
-        )}
-
-        {/* 5. Mobile Phone Control Window */}
-        {openWindows.phoneControl && (
-          <OsWindow
-            id="phoneControl"
-            title="📱 Android Phone Bridge"
-            icon={Smartphone}
-            defaultPos={{ x: 120, y: 120 }}
-            defaultSize={{ w: 420, h: 440 }}
-            zIndex={activeZIndex.phoneControl}
-            onFocus={bringToTop}
-            onClose={closeWindow}
-            onMinimize={minimizeWindow}
-            isMinimized={minimizedWindows.phoneControl}
-          >
-            <PhoneControlWidget />
-          </OsWindow>
-        )}
-
-        {/* 6. Security Center Window */}
-        {openWindows.security && (
-          <OsWindow
-            id="security"
-            title="🛡️ Biometric Security Suite"
-            icon={Shield}
-            defaultPos={{ x: 220, y: 140 }}
-            defaultSize={{ w: 460, h: 480 }}
-            zIndex={activeZIndex.security}
-            onFocus={bringToTop}
-            onClose={closeWindow}
-            onMinimize={minimizeWindow}
-            isMinimized={minimizedWindows.security}
-          >
-            <SecurityCenterWidget />
-          </OsWindow>
-        )}
-
-        {/* 7. Agentic Actions Shell Window */}
-        {openWindows.agentic && (
-          <OsWindow
-            id="agentic"
-            title="⚡ Agentic Shell Actions"
-            icon={Terminal}
-            defaultPos={{ x: 300, y: 160 }}
-            defaultSize={{ w: 540, h: 460 }}
-            zIndex={activeZIndex.agentic}
-            onFocus={bringToTop}
-            onClose={closeWindow}
-            onMinimize={minimizeWindow}
-            isMinimized={minimizedWindows.agentic}
-          >
-            <AgenticActionsWidget />
-          </OsWindow>
-        )}
+        {/* Render Open App Windows */}
+        {JASPER_OS_APPS_REGISTRY.map((app) => {
+          if (!openWindows[app.id]) return null;
+          const AppComponent = app.component;
+          const AppIcon = app.icon;
+          return (
+            <OsWindow
+              key={app.id}
+              id={app.id}
+              title={app.title}
+              icon={AppIcon}
+              defaultPos={{ x: 60 + (JASPER_OS_APPS_REGISTRY.findIndex(a => a.id === app.id) % 5) * 40, y: 30 + (JASPER_OS_APPS_REGISTRY.findIndex(a => a.id === app.id) % 4) * 35 }}
+              defaultSize={app.defaultSize}
+              zIndex={activeZIndex[app.id] || 5}
+              onFocus={bringToTop}
+              onClose={closeWindow}
+              onMinimize={minimizeWindow}
+              isMinimized={minimizedWindows[app.id]}
+            >
+              <AppComponent />
+            </OsWindow>
+          );
+        })}
       </div>
 
-      {/* BOTTOM FLOATING DOCK & LAUNCHER BAR */}
-      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 h-14 bg-cyan-950/60 border border-cyan-500/40 rounded-2xl px-4 flex items-center gap-2 backdrop-blur-2xl shadow-[0_10px_35px_rgba(0,240,255,0.25)] z-50">
-        {[
-          { id: 'hologram', label: '3D Hologram', icon: Box },
-          { id: 'diagnostics', label: 'Diagnostics', icon: Activity },
-          { id: 'tvRemote', label: 'TV Remote', icon: Tv },
-          { id: 'pcHub', label: 'PC Hub', icon: Monitor },
-          { id: 'phoneControl', label: 'Phone', icon: Smartphone },
-          { id: 'security', label: 'Security', icon: Shield },
-          { id: 'agentic', label: 'Agentic Shell', icon: Terminal }
-        ].map((app) => (
-          <button
-            key={app.id}
-            onClick={() => toggleWindow(app.id)}
-            className={`relative p-2.5 rounded-xl flex items-center justify-center transition-all ${
-              openWindows[app.id] && !minimizedWindows[app.id]
-                ? 'bg-cyan-500/30 border border-cyan-400 text-cyan-200 shadow-[0_0_15px_rgba(0,240,255,0.3)] scale-105'
-                : 'text-slate-400 hover:text-cyan-300 hover:bg-cyan-950/50 border border-transparent'
-            }`}
-            title={app.label}
-          >
-            <app.icon className="w-5 h-5" />
-            {openWindows[app.id] && (
-              <span className="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#00f0ff]" />
-            )}
-          </button>
-        ))}
+      {/* BOTTOM OS NATIVE APP DOCK */}
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 h-14 bg-cyan-950/70 border border-cyan-500/40 rounded-2xl px-4 flex items-center gap-2 backdrop-blur-2xl shadow-[0_10px_35px_rgba(0,240,255,0.25)] z-50 max-w-[90vw] overflow-x-auto custom-scrollbar">
+        {JASPER_OS_APPS_REGISTRY.slice(0, 10).map((app) => {
+          const AppIcon = app.icon;
+          const isRunning = openWindows[app.id];
+          const isMinimized = minimizedWindows[app.id];
+          return (
+            <button
+              key={app.id}
+              onClick={() => toggleWindow(app.id)}
+              className={`relative p-2.5 rounded-xl flex items-center justify-center transition-all ${
+                isRunning && !isMinimized
+                  ? 'bg-cyan-500/30 border border-cyan-400 text-cyan-200 shadow-[0_0_15px_rgba(0,240,255,0.3)] scale-105'
+                  : isRunning && isMinimized
+                  ? 'bg-cyan-950/80 border border-cyan-500/40 text-cyan-400 opacity-80'
+                  : 'text-slate-400 hover:text-cyan-300 hover:bg-cyan-950/50 border border-transparent'
+              }`}
+              title={app.title}
+            >
+              <AppIcon className="w-5 h-5" />
+              {isRunning && (
+                <span className={`absolute -bottom-1 w-1.5 h-1.5 rounded-full ${isMinimized ? 'bg-amber-400' : 'bg-cyan-400 shadow-[0_0_8px_#00f0ff]'}`} />
+              )}
+            </button>
+          );
+        })}
+
+        <div className="h-6 w-px bg-cyan-500/30 mx-1" />
+
+        <button
+          onClick={() => setShowStartMenu(true)}
+          className="p-2.5 rounded-xl text-cyan-300 hover:bg-cyan-500/20 border border-cyan-500/40 flex items-center gap-1 text-xs font-mono"
+          title="Open JASPER OS App Center"
+        >
+          <AppWindow className="w-5 h-5 text-cyan-400" />
+          <span className="hidden xl:inline">More Apps ({JASPER_OS_APPS_REGISTRY.length})</span>
+        </button>
       </div>
     </div>
   );
