@@ -607,9 +607,10 @@ export default function App() {
     setVoiceTranscript('');
     setScanStatusText('LISTENING FOR OVERRIDE PHRASE...');
     
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      const rec = new SpeechRecognition();
+    try {
+      const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognitionClass && typeof SpeechRecognitionClass === 'function') {
+        const rec = new SpeechRecognitionClass();
       rec.continuous = false;
       rec.interimResults = false;
       rec.lang = 'en-US';
@@ -643,18 +644,11 @@ export default function App() {
         setBiometricMode('failed');
       };
 
-      recognitionRef.current = rec;
-      rec.start();
-    } else {
-      console.warn("SpeechRecognition not supported in this browser. Mocking voice scan...");
-      setTimeout(() => {
-        setScanStatusText('MOCK VOICE RECOGNITION: SPEAK NOW...');
-        setTimeout(() => {
-          setVoiceTranscript("Authorization Delta-Nine, unlock system");
-          setScanStatusText('VOICEPRINT MATCHED (DEVELOPER OVERRIDE)');
-          handleUnlockSuccess();
-        }, 1500);
-      }, 800);
+        recognitionRef.current = rec;
+        rec.start();
+      }
+    } catch (e) {
+      console.warn("SpeechRecognition init error in this browser:", e);
     }
 
     startWaveformAnimation();
@@ -710,9 +704,9 @@ export default function App() {
 
   const playFuturisticChime = () => {
     try {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContext) return;
-      const ctx = new AudioContext();
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass || typeof AudioContextClass !== 'function') return;
+      const ctx = new AudioContextClass();
       
       const osc1 = ctx.createOscillator();
       const osc2 = ctx.createOscillator();

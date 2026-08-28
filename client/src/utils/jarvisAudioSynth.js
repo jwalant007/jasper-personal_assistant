@@ -19,9 +19,13 @@ export function isJarvisAudioMuted() {
 function getAudioContext() {
   if (isMuted) return null;
   if (!audioCtx) {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    if (AudioContext) {
-      audioCtx = new AudioContext();
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (AudioContextClass && typeof AudioContextClass === 'function') {
+        audioCtx = new AudioContextClass();
+      }
+    } catch (e) {
+      return null;
     }
   }
   if (audioCtx && audioCtx.state === 'suspended') {

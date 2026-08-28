@@ -5,9 +5,9 @@ import { speakDeviceAudio, unlockDeviceAudio } from '../utils/speakDeviceAudio.j
 // Web Audio API Sound Generator helper
 const playChime = (type = 'wake') => {
   try {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContext) return;
-    const ctx = new AudioContext();
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass || typeof AudioContextClass !== 'function') return;
+    const ctx = new AudioContextClass();
     
     if (type === 'wake') {
       // Stark Tech rising arpeggio: 3 quick notes
@@ -75,13 +75,13 @@ const VoiceController = forwardRef(({
   // Initialize Speech Recognition
   useEffect(() => {
     try {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition || typeof SpeechRecognition !== 'function') {
+      const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognitionClass || typeof SpeechRecognitionClass !== 'function') {
         console.warn('Speech recognition not supported in this browser.');
         return;
       }
 
-      const rec = new SpeechRecognition();
+      const rec = new SpeechRecognitionClass();
     rec.continuous = false;
     rec.interimResults = false;
     rec.lang = 'en-US';

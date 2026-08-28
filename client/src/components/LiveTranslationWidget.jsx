@@ -141,13 +141,13 @@ export default function LiveTranslationWidget({ isOpen, onClose, onToggleAutoTra
   // 2. Initialize Web Speech Recognition for Audio Stream Capture
   useEffect(() => {
     try {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition || typeof SpeechRecognition !== 'function') {
+      const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognitionClass || typeof SpeechRecognitionClass !== 'function') {
         console.warn('[LiveTranslationWidget] SpeechRecognition not supported natively.');
         return;
       }
 
-      const rec = new SpeechRecognition();
+      const rec = new SpeechRecognitionClass();
     rec.continuous = true;
     rec.interimResults = true;
     rec.lang = selectedSourceLang === 'auto' ? 'es-ES' : selectedSourceLang;
