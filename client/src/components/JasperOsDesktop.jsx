@@ -212,7 +212,7 @@ function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFo
 /**
  * MAIN JASPER OS SPATIAL DESKTOP APPLICATION ENVIRONMENT
  */
-export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'idle', onMicClick }) {
+export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'idle', onMicClick, onLockSystem }) {
   const [activeWorkspace, setActiveWorkspace] = useState('all');
   const [appSearchQuery, setAppSearchQuery] = useState('');
   const [openWindows, setOpenWindows] = useState({
@@ -385,6 +385,17 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
           >
             <Grid className="w-3.5 h-3.5 text-cyan-400" /> Classic
           </button>
+
+          {onLockSystem && (
+            <button
+              onClick={onLockSystem}
+              className="px-2.5 py-1 bg-rose-500/20 hover:bg-rose-500/35 border border-rose-400/60 text-rose-300 hover:text-rose-100 rounded-lg font-mono text-xs flex items-center gap-1 transition-all"
+              title="Lock JASPER OS with Biometrics"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              <span>Lock</span>
+            </button>
+          )}
 
           <div className="text-cyan-200 font-mono font-bold text-[11px] px-2.5 py-1 bg-cyan-950/50 border border-cyan-500/30 rounded-lg">
             {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

@@ -280,7 +280,7 @@ export default function App() {
   const [showHologramModal, setShowHologramModal] = useState(false);
   const [hologramQuery, setHologramQuery] = useState('');
 
-  // Auto-detect mobile screen on load & window resize
+  // Auto-detect mobile screen & Sync Biometric Owner Profile from Server Database
   useEffect(() => {
     const handleResize = () => {
       const isMob = checkIsMobileDevice();
@@ -288,6 +288,14 @@ export default function App() {
     };
     handleResize();
     window.addEventListener('resize', handleResize);
+
+    // Sync Biometric Face Profile from server database jasper.db.json
+    syncOwnerProfileFromServer().then(prof => {
+      if (prof && prof.vector) {
+        console.log('[Biometric DB] Enrolled owner face profile active and verified from database.');
+      }
+    });
+
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
@@ -1158,6 +1166,7 @@ export default function App() {
             voiceControllerRef.current.startListening();
           }
         }}
+        onLockSystem={() => setIsLocked(true)}
       />
     );
   }

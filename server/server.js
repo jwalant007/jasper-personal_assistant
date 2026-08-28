@@ -1968,6 +1968,27 @@ app.post('/api/fetch-page', async (req, res) => {
   }
 });
 
+// --- BIOMETRIC FACE PROFILE DATABASE ENDPOINTS ---
+app.get('/api/face-profile', (req, res) => {
+  try {
+    const profile = db.getFaceProfile();
+    res.json({ success: true, profile });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/face-profile', (req, res) => {
+  try {
+    const profile = req.body;
+    const saved = db.saveFaceProfile(profile);
+    console.log('[Biometric DB] Owner Face Profile permanently saved to jasper.db.json!');
+    res.json({ success: true, profile: saved });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // -------------------------------------------------------------
 // PC REMOTE DESKTOP & FULL INTERACTIVE INPUT ENDPOINTS
 // -------------------------------------------------------------
