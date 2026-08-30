@@ -15,6 +15,79 @@ const swarmEngine = require('./swarmEngine');
 const sportsEngine = require('./sportsEngine');
 const pcRemoteController = require('./pcRemoteController');
 
+// Optional WhatsApp Web Client (whatsapp-web.js) for laptop WhatsApp Web auto-send
+let Client, LocalAuth, WAStatus;
+let waClient = null;
+let waClientStatus = 'not_initialized'; // 'not_initialized' | 'qr_pending' | 'authenticated' | 'ready' | 'error'
+let waQrCode = null;
+
+try {
+  const wajs = require('whatsapp-web.js');
+  Client = wajs.Client;
+  LocalAuth = wajs.LocalAuth;
+  WAStatus = wajs;
+  console.log('[WhatsApp Web] whatsapp-web.js loaded successfully');
+} catch(e) {
+  console.log('[WhatsApp Web] whatsapp-web.js not installed — phone ADB mode only. Run: npm install whatsapp-web.js');
+}
+
+function initWhatsAppWebClient() {
+  if (!Client) return;
+  if (waClient) return; // Already initialized
+  
+  console.log('[WhatsApp Web] Initializing WhatsApp Web client...');
+  waClientStatus = 'initializing';
+
+  waClient = new Client({
+    authStrategy: new LocalAuth({ clientId: 'jasper-assistant' }),
+    puppeteer: {
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu', '--disable-dev-shm-usage']
+    }
+  });
+
+  waClient.on('qr', (qr) => {
+    waQrCode = qr;
+    waClientStatus = 'qr_pending';
+    console.log('[WhatsApp Web] QR Code received — scan in the app');
+    broadcastToClients({ type: 'WA_QR_CODE', qr });
+  });
+
+  waClient.on('authenticated', () => {
+    waClientStatus = 'authenticated';
+    waQrCode = null;
+    console.log('[WhatsApp Web] Authenticated successfully!');
+    broadcastToClients({ type: 'WA_STATUS', status: 'authenticated' });
+  });
+
+  waClient.on('ready', () => {
+    waClientStatus = 'ready';
+    waQrCode = null;
+    global.jasperWAClient = waClient;
+    global.jasperWAClientReady = true;
+    console.log('[WhatsApp Web] Client READY! Auto-send active via WhatsApp Web.');
+    broadcastToClients({ type: 'WA_STATUS', status: 'ready', message: 'WhatsApp Web connected! Auto-send active.' });
+  });
+
+  waClient.on('disconnected', (reason) => {
+    waClientStatus = 'disconnected';
+    global.jasperWAClientReady = false;
+    console.log('[WhatsApp Web] Disconnected:', reason);
+    broadcastToClients({ type: 'WA_STATUS', status: 'disconnected' });
+    waClient = null;
+  });
+
+  waClient.initialize().catch(e => {
+    waClientStatus = 'error';
+    console.log('[WhatsApp Web] Init error:', e.message);
+  });
+}
+
+// Auto-start WhatsApp Web client when server launches (if library exists)
+setTimeout(() => {
+  try { initWhatsAppWebClient(); } catch(e) {}
+}, 3000);
+
 // Helper to resolve PowerShell script paths correctly in production (from unpacked extraResources)
 function getScriptPath(scriptName) {
   if (process.env.JASPER_RESOURCES_PATH) {
@@ -1352,6 +1425,46 @@ setInterval(async () => {
     }
   } catch (e) {}
 }, 45000);
+
+// --- WhatsApp Web Client Routes ---
+
+// Get WA Web connection status + QR
+app.get('/api/social/wa-status', (req, res) => {
+  res.json({ status: waClientStatus, hasQr: !!waQrCode, qr: waQrCode });
+});
+
+// Initialize / connect WhatsApp Web client (triggers QR)
+app.post('/api/social/wa-connect', (req, res) => {
+  try {
+    if (!Client) {
+      return res.status(503).json({ error: 'whatsapp-web.js not installed. Run: npm install whatsapp-web.js in server/' });
+    }
+    if (waClientStatus === 'ready') {
+      return res.json({ success: true, status: 'ready', message: 'WhatsApp Web already connected!' });
+    }
+    waClient = null;
+    waClientStatus = 'not_initialized';
+    initWhatsAppWebClient();
+    res.json({ success: true, status: waClientStatus, message: 'WhatsApp Web initializing — scan QR code in the app' });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Disconnect WA Web
+app.post('/api/social/wa-disconnect', async (req, res) => {
+  try {
+    if (waClient) {
+      await waClient.destroy();
+      waClient = null;
+      waClientStatus = 'not_initialized';
+      global.jasperWAClientReady = false;
+    }
+    res.json({ success: true, message: 'WhatsApp Web disconnected' });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 
 // Direct Automated Message Dispatch (WhatsApp / Instagram)
 app.post('/api/social/send', async (req, res) => {

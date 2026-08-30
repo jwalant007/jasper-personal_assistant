@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-08-30T18:37:10.396Z",
+  "lastUpdated": "2026-08-30T19:35:16.435Z",
   "memories": [
     {
       "id": 1,
@@ -187,30 +187,30 @@
   },
   "social_logs": [
     {
-      "id": "LOG-1788113727897-457",
+      "id": "LOG-1788118516433-436",
       "platform": "whatsapp",
       "type": "direct_send",
-      "recipient": "+91 98200 12345",
-      "recipientName": "Mom",
-      "incomingTextOrCall": "Direct Automated Dispatch (from +91 98200 12345)",
-      "actionTaken": "Automated WhatsApp Message Sent via +91 98200 12345",
-      "messageSent": "Hey Mom! Automated test message sent from Jwalant's connected WhatsApp number!",
+      "recipient": "+91 79841 73128",
+      "recipientName": "Jwalant Jignesh Bhatt",
+      "incomingTextOrCall": "Direct Automated Dispatch (from +91 7984173128)",
+      "actionTaken": "Automated WhatsApp Message Sent via +91 7984173128",
+      "messageSent": "Hey! Jwalant is currently occupied in meeting mode. JASPER AI has recorded your message.",
       "status": "Delivered",
-      "timestamp": "11:45 pm",
-      "date": "2026-08-30T18:15:27.898Z"
+      "timestamp": "01:05 am",
+      "date": "2026-08-30T19:35:16.435Z"
     },
     {
-      "id": "LOG-1788113720142-253",
-      "platform": "instagram",
+      "id": "LOG-1788118505679-807",
+      "platform": "whatsapp",
       "type": "direct_send",
-      "recipient": "@fatihmakes",
-      "recipientName": "@fatihmakes",
-      "incomingTextOrCall": "Direct Automated Dispatch (from @jwalant)",
-      "actionTaken": "Automated Instagram DM Sent via @jwalant",
-      "messageSent": "Hey Fatih! Automated test DM sent from Jwalant's connected Instagram account!",
+      "recipient": "+91 79841 73128",
+      "recipientName": "Jwalant Jignesh Bhatt",
+      "incomingTextOrCall": "Direct Automated Dispatch (from +91 7984173128)",
+      "actionTaken": "Automated WhatsApp Message Sent via +91 7984173128",
+      "messageSent": "Hey! Jwalant is currently occupied in meeting mode. JASPER AI has recorded your message.",
       "status": "Delivered",
-      "timestamp": "11:45 pm",
-      "date": "2026-08-30T18:15:20.142Z"
+      "timestamp": "01:05 am",
+      "date": "2026-08-30T19:35:05.751Z"
     }
   ],
   "social_accounts": {
@@ -227,5 +227,1777 @@
       "status": "connected",
       "lastLinked": "2026-08-30T18:14:58.791Z"
     }
-  }
+  },
+  "social_contacts": [
+    {
+      "id": "c_adb_1788118427092_276",
+      "name": "JA-JioPay-S",
+      "phone": "JA-JioPay-S",
+      "ig": "@jajiopays",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427092_275",
+      "name": "Dhariya CN",
+      "phone": "9978070115",
+      "ig": "@dhariyacn",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427092_273",
+      "name": "Radhe",
+      "phone": "99240 00504",
+      "ig": "@radhe",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427092_271",
+      "name": "Kushal Jwalant",
+      "phone": "99136 19340",
+      "ig": "@kushaljwalant",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427092_269",
+      "name": "Aarush Ghandhi",
+      "phone": "99134 44756",
+      "ig": "@aarushghandhi",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427092_267",
+      "name": "Krisha Pujara (Chichu)",
+      "phone": "98988 36044",
+      "ig": "@krishapujarachichu",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427092_265",
+      "name": "Adarsh Ke Papa",
+      "phone": "98987 10047",
+      "ig": "@adarshkepapa",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427092_263",
+      "name": "Mukesh Uncle",
+      "phone": "98798 16616",
+      "ig": "@mukeshuncle",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_261",
+      "name": "Kum Kum Xerox",
+      "phone": "97243 26764",
+      "ig": "@kumkumxerox",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_259",
+      "name": "Darshan Sir CTF",
+      "phone": "97127 92689",
+      "ig": "@darshansirctf",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_257",
+      "name": "Plumber Maheshbhai",
+      "phone": "95868 00046",
+      "ig": "@plumbermaheshbhai",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_255",
+      "name": "Watchman Prakash",
+      "phone": "95121 41029",
+      "ig": "@watchmanprakash",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_253",
+      "name": "Ashish LJ Football",
+      "phone": "94286 58949",
+      "ig": "@ashishljfootball",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_251",
+      "name": "Tanvi Soni",
+      "phone": "94280 18468",
+      "ig": "@tanvisoni",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_246",
+      "name": "Rudra Desai",
+      "phone": "92658 62703",
+      "ig": "@rudradesai",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_245",
+      "name": "Krish Bhatt",
+      "phone": "92658 40351",
+      "ig": "@krishbhatt",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_243",
+      "name": "Prakshal Football",
+      "phone": "92288 18881",
+      "ig": "@prakshalfootball",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_242",
+      "name": "Chur Chur Naan Gloria",
+      "phone": "918849144071",
+      "ig": "@churchurnaangloria",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_240",
+      "name": "Jai Hind Pharmacy",
+      "phone": "91731 02987",
+      "ig": "@jaihindpharmacy",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_238",
+      "name": "Kahaan Bhatt",
+      "phone": "91042 01601",
+      "ig": "@kahaanbhatt",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_236",
+      "name": "Mihir (Dumbo)",
+      "phone": "90237 71348",
+      "ig": "@mihirdumbo",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_234",
+      "name": "Mahi",
+      "phone": "90235 94007",
+      "ig": "@mahi",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_232",
+      "name": "Dharmik Bhavsar",
+      "phone": "90233 70369",
+      "ig": "@dharmikbhavsar",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_231",
+      "name": "Arihant Xerox",
+      "phone": "88667 92299",
+      "ig": "@arihantxerox",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_229",
+      "name": "Jiya Mistry",
+      "phone": "88666 77975",
+      "ig": "@jiyamistry",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_227",
+      "name": "Anshul",
+      "phone": "87994 37481",
+      "ig": "@anshul",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_225",
+      "name": "Mrunal Football",
+      "phone": "87586 93368",
+      "ig": "@mrunalfootball",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_223",
+      "name": "Sanket DDCET",
+      "phone": "84888 80676",
+      "ig": "@sanketddcet",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_221",
+      "name": "Dairy Bot",
+      "phone": "83207 17440",
+      "ig": "@dairybot",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_219",
+      "name": "Drashti",
+      "phone": "82000 10881",
+      "ig": "@drashti",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_218",
+      "name": "Arpit Sir",
+      "phone": "81470 2121",
+      "ig": "@arpitsir",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_216",
+      "name": "Xerox Outside Lj",
+      "phone": "79905 98550",
+      "ig": "@xeroxoutsidelj",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_214",
+      "name": "Prakshal",
+      "phone": "79844 30121",
+      "ig": "@prakshal",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_210",
+      "name": "Harsh CN",
+      "phone": "78599 96739",
+      "ig": "@harshcn",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_209",
+      "name": "Maitri Didi",
+      "phone": "75750 64453",
+      "ig": "@maitrididi",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_208",
+      "name": "Jeet Mishra Jwalant",
+      "phone": "73838 78535",
+      "ig": "@jeetmishrajwalant",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_205",
+      "name": "Sangita Aunty",
+      "phone": "72269 53799",
+      "ig": "@sangitaaunty",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_204",
+      "name": "Rishi LJ",
+      "phone": "72269 37250",
+      "ig": "@rishilj",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_201",
+      "name": "Nandini",
+      "phone": "70695 38879",
+      "ig": "@nandini",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_199",
+      "name": "Lj Xerox",
+      "phone": "70465 29861",
+      "ig": "@ljxerox",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_197",
+      "name": "Devam LJ",
+      "phone": "70167 92907",
+      "ig": "@devamlj",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_195",
+      "name": "Khemendra Singh Jaisalmer",
+      "phone": "70145 99427",
+      "ig": "@khemendrasinghjaisalmer",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427091_193",
+      "name": "Bsnl",
+      "phone": "6355 932 360",
+      "ig": "@bsnl",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427090_191",
+      "name": "Rahil Lj",
+      "phone": "63548 49889",
+      "ig": "@rahillj",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427090_189",
+      "name": "Shubham Lj Football",
+      "phone": "63532 48656",
+      "ig": "@shubhamljfootball",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427090_187",
+      "name": "Chaitanya Internship",
+      "phone": "63517 24552",
+      "ig": "@chaitanyainternship",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427090_186",
+      "name": "JioHelpline",
+      "phone": "1991",
+      "ig": "@jiohelpline",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427090_185",
+      "name": "Jio-Tele-verification Helpline",
+      "phone": "1977",
+      "ig": "@jioteleverificationhelpline",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427090_183",
+      "name": "vivo Customer Care",
+      "phone": "18001023388",
+      "ig": "@vivocustomercare",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427090_182",
+      "name": "Yash Jiju",
+      "phone": "+919998679318",
+      "ig": "@yashjiju",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427090_181",
+      "name": "Rajesh Sir Cn",
+      "phone": "+919979977232",
+      "ig": "@rajeshsircn",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427090_174",
+      "name": "Hindi Bhasi",
+      "phone": "+919925508588",
+      "ig": "@hindibhasi",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427089_172",
+      "name": "Krishna Sevak",
+      "phone": "+919925315075",
+      "ig": "@krishnasevak",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427088_168",
+      "name": "Bhavesh Masa",
+      "phone": "+919924620410",
+      "ig": "@bhaveshmasa",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427088_167",
+      "name": "Pranshav Dave",
+      "phone": "+919909211608",
+      "ig": "@pranshavdave",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427088_164",
+      "name": "Prachi Aunty",
+      "phone": "+919898678914",
+      "ig": "@prachiaunty",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427088_162",
+      "name": "Somaya",
+      "phone": "+919898063027",
+      "ig": "@somaya",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427088_159",
+      "name": "Ranna Sevak",
+      "phone": "+919825393458",
+      "ig": "@rannasevak",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427088_156",
+      "name": "Dharati Gandhi Parikh E603",
+      "phone": "+919824603667",
+      "ig": "@dharatigandhiparikhe603",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427088_154",
+      "name": "Hitarth LJ",
+      "phone": "+919773015189",
+      "ig": "@hitarthlj",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427088_153",
+      "name": "Hardi Bhatt",
+      "phone": "+919737577222",
+      "ig": "@hardibhatt",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427088_148",
+      "name": "Pagal",
+      "phone": "+919687496964",
+      "ig": "@pagal",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427088_146",
+      "name": "Meet Bhatt",
+      "phone": "+919664539634",
+      "ig": "@meetbhatt",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427088_145",
+      "name": "Chitral Uncle",
+      "phone": "+919662927748",
+      "ig": "@chitraluncle",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427087_143",
+      "name": "Aarav Faldu",
+      "phone": "+919586954944",
+      "ig": "@aaravfaldu",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427087_142",
+      "name": "Priyanka Mam Lj",
+      "phone": "+919558836857",
+      "ig": "@priyankamamlj",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427087_140",
+      "name": "Deergh Shah",
+      "phone": "+919537172075",
+      "ig": "@deerghshah",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427087_138",
+      "name": "Sujal Chaudhari",
+      "phone": "+919510079437",
+      "ig": "@sujalchaudhari",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427087_134",
+      "name": "Pooja Didi",
+      "phone": "+919428460393",
+      "ig": "@poojadidi",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427087_133",
+      "name": "Yash Bhatt",
+      "phone": "+919428043137",
+      "ig": "@yashbhatt",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427087_131",
+      "name": "Hiren Bhatt",
+      "phone": "+919427011012",
+      "ig": "@hirenbhatt",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427087_127",
+      "name": "Alpa Hirenkunar Bhatt",
+      "phone": "+919426059764",
+      "ig": "@alpahirenkunarbhatt",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427087_125",
+      "name": "Devanshi Jignesh Bhatt",
+      "phone": "+9194091 41042",
+      "ig": "@devanshijigneshbhatt",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427087_124",
+      "name": "Ankita Jignesh Bhatt",
+      "phone": "+919408686187",
+      "ig": "@ankitajigneshbhatt",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427087_123",
+      "name": "Ansh Patel",
+      "phone": "+919408208200",
+      "ig": "@anshpatel",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427087_121",
+      "name": "FEWSA TECHNOLOGIES",
+      "phone": "+919377334404",
+      "ig": "@fewsatechnologies",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427087_118",
+      "name": "Yash Akbari",
+      "phone": "+919327221431",
+      "ig": "@yashakbari",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427087_116",
+      "name": "Daksh Gadhavi Lj",
+      "phone": "+919313984504",
+      "ig": "@dakshgadhavilj",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427087_115",
+      "name": "Harsh vardhan",
+      "phone": "+919313192703",
+      "ig": "@harshvardhan",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427087_113",
+      "name": "Rishit Bhai",
+      "phone": "+919265817857",
+      "ig": "@rishitbhai",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427087_112",
+      "name": "Hardi Mam Internship",
+      "phone": "+919227778181",
+      "ig": "@hardimaminternship",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427087_111",
+      "name": "Aryan Shah",
+      "phone": "+919157128857",
+      "ig": "@aryanshah",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427087_110",
+      "name": "Aaryan",
+      "phone": "+919104183808",
+      "ig": "@aaryan",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427086_108",
+      "name": "Bhut Tirth",
+      "phone": "+919054586876",
+      "ig": "@bhuttirth",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427086_105",
+      "name": "Dhyanam",
+      "phone": "+919016731838",
+      "ig": "@dhyanam",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427086_104",
+      "name": "Space bar Parv",
+      "phone": "+919016199287",
+      "ig": "@spacebarparv",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427086_103",
+      "name": "Nancy Didi  Ni Friend",
+      "phone": "+919016083928",
+      "ig": "@nancydidinifriend",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427086_99",
+      "name": "Pappa Dipakbhai Bhatt",
+      "phone": "+9187808 14849",
+      "ig": "@pappadipakbhaibhatt",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427086_98",
+      "name": "Brigadier Jhangiyo",
+      "phone": "+918780338477",
+      "ig": "@brigadierjhangiyo",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427086_97",
+      "name": "I shit a",
+      "phone": "+918780132121",
+      "ig": "@ishita",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427086_96",
+      "name": "Annabelle LJ 2",
+      "phone": "+918692957887",
+      "ig": "@annabellelj2",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427086_92",
+      "name": "Aanu Don",
+      "phone": "+918359877145",
+      "ig": "@aanudon",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427086_91",
+      "name": "Bhavsar Rudra. 🚩 🇮🇳 🚩",
+      "phone": "+918320732979",
+      "ig": "@bhavsarrudra",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_89",
+      "name": "Aditi Bhatt",
+      "phone": "+918160356370",
+      "ig": "@aditibhatt",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_88",
+      "name": "Harsh Chauhan",
+      "phone": "+918128523381",
+      "ig": "@harshchauhan",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_87",
+      "name": "Habibi",
+      "phone": "+918017547179",
+      "ig": "@habibi",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_83",
+      "name": "Bailo Mann",
+      "phone": "+917863832966",
+      "ig": "@bailomann",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_82",
+      "name": "Annabelle LJ",
+      "phone": "+917862927930",
+      "ig": "@annabellelj",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_81",
+      "name": "Dhariya Lj",
+      "phone": "+917859908889",
+      "ig": "@dhariyalj",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_80",
+      "name": "Raj Jiju",
+      "phone": "+917708903567",
+      "ig": "@rajjiju",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_79",
+      "name": "Neel LJ",
+      "phone": "+917600897539",
+      "ig": "@neellj",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_78",
+      "name": "Aanchal Shah",
+      "phone": "+917600844076",
+      "ig": "@aanchalshah",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_76",
+      "name": "Urvi Gogna",
+      "phone": "+917575819996",
+      "ig": "@urvigogna",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_74",
+      "name": "Kadir CN Mustakbhai",
+      "phone": "+917265038011",
+      "ig": "@kadircnmustakbhai",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_71",
+      "name": "Narendra Dantani Lj",
+      "phone": "+917016712298",
+      "ig": "@narendradantanilj",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_70",
+      "name": "tirth shah[Football]",
+      "phone": "+917016312822",
+      "ig": "@tirthshahfootball",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_67",
+      "name": "Mrunal Football Personal",
+      "phone": "+916356980897",
+      "ig": "@mrunalfootballpersonal",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_65",
+      "name": "Panthi Serashiya",
+      "phone": "+91 99790 20939",
+      "ig": "@panthiserashiya",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_64",
+      "name": "Dogbite Aryan",
+      "phone": "+91 99744 35653",
+      "ig": "@dogbitearyan",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_63",
+      "name": "Kathan Mom",
+      "phone": "+91 99742 45045",
+      "ig": "@kathanmom",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_62",
+      "name": "Ben Stokes",
+      "phone": "+91 99741 72619",
+      "ig": "@benstokes",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_61",
+      "name": "SBI Card Manager Bharat Solanki",
+      "phone": "+91 99740 26524",
+      "ig": "@sbicardmanagerbharatsolanki",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_60",
+      "name": "Wireman-Kanubhai",
+      "phone": "+91 99259 70647",
+      "ig": "@wiremankanubhai",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_59",
+      "name": "Jainel Lj",
+      "phone": "+91 99254 11150",
+      "ig": "@jainellj",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_58",
+      "name": "Panthi Dad",
+      "phone": "+91 99252 36490",
+      "ig": "@panthidad",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_57",
+      "name": "Panthi Mom",
+      "phone": "+91 99251 28552",
+      "ig": "@panthimom",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_56",
+      "name": "Aarush",
+      "phone": "+91 99250 44756",
+      "ig": "@aarush",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_55",
+      "name": "Darsh",
+      "phone": "+91 99099 07202",
+      "ig": "@darsh",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_54",
+      "name": "Jiten Jayeshbhai Trivedi",
+      "phone": "+91 99090 16848",
+      "ig": "@jitenjayeshbhaitrivedi",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_53",
+      "name": "Siddhashila Renuka Shreyans Aunty Contractor",
+      "phone": "+91 98989 92111",
+      "ig": "@siddhashilarenukashreyansauntycontractor",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_52",
+      "name": "Rajvi Rathod'mother",
+      "phone": "+91 98798 57371",
+      "ig": "@rajvirathodmother",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_51",
+      "name": "Vaishnavi Bhatt",
+      "phone": "+91 98796 77724",
+      "ig": "@vaishnavibhatt",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_50",
+      "name": "Dr. Binjan Tripathi Jwalant's Dr",
+      "phone": "+91 98250 05688",
+      "ig": "@drbinjantripathijwalantsdr",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_49",
+      "name": "Hiral Mam",
+      "phone": "+91 98247 40071",
+      "ig": "@hiralmam",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_48",
+      "name": "Leena Patel (Khushi. mother)",
+      "phone": "+91 98247 39392",
+      "ig": "@leenapatelkhushimother",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_47",
+      "name": "Taral Shah",
+      "phone": "+91 98243 58366",
+      "ig": "@taralshah",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_46",
+      "name": "Ishita Mom",
+      "phone": "+91 97260 96677",
+      "ig": "@ishitamom",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_45",
+      "name": "Harshit Society",
+      "phone": "+91 97260 65992",
+      "ig": "@harshitsociety",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_44",
+      "name": "Hiren D. Bhatt",
+      "phone": "+91 97233 22277",
+      "ig": "@hirendbhatt",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_43",
+      "name": "Mahi DDCET",
+      "phone": "+91 97120 81587",
+      "ig": "@mahiddcet",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_42",
+      "name": "Trupti Mam",
+      "phone": "+91 96870 90500",
+      "ig": "@truptimam",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_41",
+      "name": "Aishwarya 3",
+      "phone": "+91 96626 26907",
+      "ig": "@aishwarya3",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_40",
+      "name": "Prince",
+      "phone": "+91 95585 34556",
+      "ig": "@prince",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427085_39",
+      "name": "Shloka DDCET",
+      "phone": "+91 95121 00508",
+      "ig": "@shlokaddcet",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_38",
+      "name": "Mummy Minaxiben Bhatt",
+      "phone": "+91 94295 21399",
+      "ig": "@mummyminaxibenbhatt",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_37",
+      "name": "Maharshri Rao",
+      "phone": "+91 94293 00195",
+      "ig": "@maharshrirao",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_36",
+      "name": "Taral Ni Mummy",
+      "phone": "+91 94290 00120",
+      "ig": "@taralnimummy",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_35",
+      "name": "Pappa Gaurangbhai Bhatt",
+      "phone": "+91 94267 09399",
+      "ig": "@pappagaurangbhaibhatt",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_34",
+      "name": "Dr. Jignesh G. Bhatt",
+      "phone": "+91 94267 03566",
+      "ig": "@drjigneshgbhatt",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_33",
+      "name": "Parth Jiju",
+      "phone": "+91 94266 24372",
+      "ig": "@parthjiju",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_32",
+      "name": "Parth School",
+      "phone": "+91 94092 67608",
+      "ig": "@parthschool",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_31",
+      "name": "Harsh Barot",
+      "phone": "+91 94080 93492",
+      "ig": "@harshbarot",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_30",
+      "name": "Tirthesh",
+      "phone": "+91 93289 93934",
+      "ig": "@tirthesh",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_29",
+      "name": "Jinal Pandya",
+      "phone": "+91 93283 85138",
+      "ig": "@jinalpandya",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_28",
+      "name": "Aryan",
+      "phone": "+91 93164 01669",
+      "ig": "@aryan",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_27",
+      "name": "yug",
+      "phone": "+91 93131 12983",
+      "ig": "@yug",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_26",
+      "name": "Byju Mahesh Sir",
+      "phone": "+91 90798 79785",
+      "ig": "@byjumaheshsir",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_25",
+      "name": "Aryan Bhatt",
+      "phone": "+91 90540 73146",
+      "ig": "@aryanbhatt",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_24",
+      "name": "Rudri Desai",
+      "phone": "+91 90239 64298",
+      "ig": "@rudridesai",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_23",
+      "name": "Urvi",
+      "phone": "+91 90092 33211",
+      "ig": "@urvi",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_22",
+      "name": "Lj Xerox Vara Kaka (2)",
+      "phone": "+91 88497 13866",
+      "ig": "@ljxeroxvarakaka2",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_21",
+      "name": "Aagam LJ",
+      "phone": "+91 87994 12603",
+      "ig": "@aagamlj",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_20",
+      "name": "Tata Study",
+      "phone": "+91 86579 14846",
+      "ig": "@tatastudy",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_19",
+      "name": "CTF",
+      "phone": "+91 84607 77404",
+      "ig": "@ctf",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_18",
+      "name": "Way To Web",
+      "phone": "+91 84600 71515",
+      "ig": "@waytoweb",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_17",
+      "name": "Soham Korat",
+      "phone": "+91 84019 76468",
+      "ig": "@sohamkorat",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_16",
+      "name": "Parth",
+      "phone": "+91 82004 39715",
+      "ig": "@parth",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_15",
+      "name": "desairudraLJ",
+      "phone": "+91 82001 43690",
+      "ig": "@desairudralj",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_14",
+      "name": "Mummy Niruben Bhatt",
+      "phone": "+91 79906 63054",
+      "ig": "@mummynirubenbhatt",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_13",
+      "name": "Jwalant Jignesh Bhatt",
+      "phone": "+91 79841 73128",
+      "ig": "@jwalantjigneshbhatt",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_12",
+      "name": "Keyursir",
+      "phone": "+91 78744 18128",
+      "ig": "@keyursir",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_11",
+      "name": "Rudra's Mom",
+      "phone": "+91 76001 70630",
+      "ig": "@rudrasmom",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_10",
+      "name": "Jay LJ",
+      "phone": "+91 75671 57157",
+      "ig": "@jaylj",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_9",
+      "name": "Aastha",
+      "phone": "+91 74058 18275",
+      "ig": "@aastha",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_8",
+      "name": "Kavya Dalwadi",
+      "phone": "+91 70419 34425",
+      "ig": "@kavyadalwadi",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_7",
+      "name": "Renny",
+      "phone": "+91 70414 57118",
+      "ig": "@renny",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_6",
+      "name": "Tirth Lj",
+      "phone": "+91 70161 59993",
+      "ig": "@tirthlj",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_5",
+      "name": "Jatin LJ LJ",
+      "phone": "+91 70160 41857",
+      "ig": "@jatinljlj",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_4",
+      "name": "Tanay Parikh",
+      "phone": "+91 6353431085",
+      "ig": "@tanayparikh",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_3",
+      "name": "Barot Atul",
+      "phone": "+91 63524 38313",
+      "ig": "@barotatul",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427084_2",
+      "name": "SBI Credit Card Closure NoC",
+      "phone": "+91 265 350 0981",
+      "ig": "@sbicreditcardclosurenoc",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c_adb_1788118427075_0",
+      "name": "Krish Hiren Bhatt",
+      "phone": "+1 317-664-1136",
+      "ig": "@krishhirenbhatt",
+      "platform": "whatsapp",
+      "lastMessage": "Synced from Android Device Contacts",
+      "lastTimestamp": "Just now",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
+    {
+      "id": "c1",
+      "name": "Mom",
+      "phone": "+91 98200 12345",
+      "ig": "@mom_family",
+      "platform": "whatsapp",
+      "lastMessage": "🚗 Drive Mode: I'm currently driving...",
+      "lastTimestamp": "10:42 PM",
+      "avatarColor": "from-pink-500 to-rose-500"
+    },
+    {
+      "id": "c2",
+      "name": "Fatih Makes",
+      "phone": "+1 555 382 9901",
+      "ig": "@fatihmakes",
+      "platform": "instagram",
+      "lastMessage": "Automated test DM sent from Jwalant's connected Instagram account!",
+      "lastTimestamp": "11:45 PM",
+      "avatarColor": "from-purple-500 to-indigo-500"
+    },
+    {
+      "id": "c3",
+      "name": "Sarah (Office Boss)",
+      "phone": "+91 98233 45678",
+      "ig": "@sarah_lead",
+      "platform": "whatsapp",
+      "lastMessage": "💼 Deep Work Mode: I am currently in a meeting.",
+      "lastTimestamp": "08:15 PM",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c4",
+      "name": "Alex (Auto Mechanic)",
+      "phone": "+91 98222 34567",
+      "ig": "@alex_mechanic",
+      "platform": "instagram",
+      "lastMessage": "Car inspection report ready for pickup!",
+      "lastTimestamp": "Yesterday",
+      "avatarColor": "from-amber-500 to-orange-500"
+    },
+    {
+      "id": "c5",
+      "name": "Dr. Mehta (Dentist)",
+      "phone": "+91 98211 23456",
+      "ig": "@mehta_clinic",
+      "platform": "whatsapp",
+      "lastMessage": "Appointment scheduled for Tuesday at 4:00 PM",
+      "lastTimestamp": "Aug 28",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    }
+  ]
 }

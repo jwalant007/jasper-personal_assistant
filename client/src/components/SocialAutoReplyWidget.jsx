@@ -46,7 +46,63 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
     phoneConnected: true
   });
 
-  const [logs, setLogs] = useState([]);
+  const [waWebStatus, setWaWebStatus] = useState('not_initialized'); // 'not_initialized' | 'initializing' | 'qr_pending' | 'authenticated' | 'ready' | 'error'
+  const [waWebQr, setWaWebQr] = useState(null);
+  const [showWaQrModal, setShowWaQrModal] = useState(false);
+
+  const handleWaWebConnect = async () => {
+    setWaWebStatus('initializing');
+    showBanner('Starting WhatsApp Web connection... Generating QR Code...', 'info');
+    setShowWaQrModal(true);
+    try {
+      const res = await fetch('http://localhost:3001/api/social/wa-connect', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        setWaWebStatus(data.status);
+        if (data.status === 'ready') {
+          showBanner('✅ WhatsApp Web connected! All messages will auto-send instantly!', 'success');
+        } else {
+          showBanner('QR Code generated — scan it with your WhatsApp camera!', 'info');
+        }
+      } else {
+        showBanner(`WhatsApp Web: ${data.error}`, 'error');
+        setWaWebStatus('error');
+      }
+    } catch (e) {
+      showBanner('Connecting to WhatsApp Web...', 'info');
+    }
+  };
+
+  // Poll WA Web status
+  useEffect(() => {
+    const pollWaStatus = async () => {
+      try {
+        const res = await fetch('http://localhost:3001/api/social/wa-status');
+        const data = await res.json();
+        setWaWebStatus(data.status);
+        if (data.qr) setWaWebQr(data.qr);
+        if (data.status === 'ready') {
+          setWaWebQr(null);
+          setShowWaQrModal(false);
+        }
+      } catch(e) {}
+    };
+    const interval = setInterval(pollWaStatus, 3000);
+    pollWaStatus();
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleWaWebDisconnect = async () => {
+    try {
+      await fetch('http://localhost:3001/api/social/wa-disconnect', { method: 'POST' });
+      setWaWebStatus('not_initialized');
+      setWaWebQr(null);
+      setShowWaQrModal(false);
+      showBanner('WhatsApp Web disconnected.', 'info');
+    } catch(e) {}
+  };
+
+
   // Recent Messaged Contacts & Chats State
   const [contactSearch, setContactSearch] = useState('');
   const [contactFilter, setContactFilter] = useState('all'); // 'all' | 'whatsapp' | 'instagram'
@@ -534,18 +590,53 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
               </div>
               <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-200 text-xs font-mono shrink-0">
                 <span className="text-xs font-bold text-emerald-400">WA:</span>
-                <span className="font-bold">{accountConfig.senderNumber || '+91 98200 12345'}</span>
+                <span className="font-bold">{accountConfig.senderNumber || '+91 7984173128'}</span>
               </div>
+
+              {/* WhatsApp Web Status Badge */}
+              {waWebStatus === 'ready' ? (
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-600/20 border border-emerald-400/50 text-emerald-200 text-xs font-mono shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                  <span className="font-bold">WA Web: LIVE AUTO-SEND</span>
+                </div>
+              ) : waWebStatus === 'qr_pending' ? (
+                <button
+                  type="button"
+                  onClick={() => setShowWaQrModal(true)}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-600/20 border border-amber-400/50 text-amber-200 text-xs font-mono shrink-0 hover:bg-amber-600/40 transition-all animate-pulse"
+                >
+                  <span className="text-[10px] font-bold">📱 Scan QR to Connect WA Web</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleWaWebConnect}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-600/50 text-slate-300 hover:text-white hover:border-emerald-400/50 text-xs font-mono shrink-0 transition-all"
+                >
+                  <span className="text-[10px] font-bold">🌐 Connect WA Web (Auto-Send)</span>
+                </button>
+              )}
             </div>
 
-            <button
-              type="button"
-              onClick={() => setShowAccountModal(true)}
-              className="w-full sm:w-auto px-3 py-1 bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400/50 text-purple-200 text-xs font-mono font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all shrink-0"
-            >
-              <Key className="w-3.5 h-3.5 text-purple-300" />
-              <span>Configure Credentials</span>
-            </button>
+            <div className="flex items-center gap-2">
+              {waWebStatus === 'ready' && (
+                <button
+                  type="button"
+                  onClick={handleWaWebDisconnect}
+                  className="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-red-300 text-xs font-mono"
+                >
+                  Disconnect
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setShowAccountModal(true)}
+                className="w-full sm:w-auto px-3 py-1 bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400/50 text-purple-200 text-xs font-mono font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all shrink-0"
+              >
+                <Key className="w-3.5 h-3.5 text-purple-300" />
+                <span>Configure Credentials</span>
+              </button>
+            </div>
           </div>
           
           {/* Master Toggles Bar */}
@@ -1641,6 +1732,75 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
               >
                 Close
               </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+      {/* WhatsApp Web QR Code Connection Modal */}
+      {showWaQrModal && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-950 border border-emerald-500/50 rounded-2xl p-6 max-w-sm w-full shadow-[0_0_60px_rgba(16,185,129,0.3)] flex flex-col gap-4 font-sans">
+            
+            <div className="flex items-center justify-between border-b border-emerald-500/30 pb-3">
+              <div>
+                <h3 className="font-orbitron font-bold text-sm text-emerald-200 uppercase tracking-wider flex items-center gap-2">
+                  <span>🌐</span> Connect WhatsApp Web
+                </h3>
+                <p className="text-[10px] text-slate-400 font-mono mt-0.5">Auto-send messages from your WhatsApp Web account</p>
+              </div>
+              <button type="button" onClick={() => setShowWaQrModal(false)} className="text-slate-400 hover:text-white">✕</button>
+            </div>
+
+            {waWebStatus === 'ready' ? (
+              <div className="flex flex-col items-center gap-3 py-4">
+                <div className="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center text-3xl">✅</div>
+                <div className="text-center">
+                  <p className="text-sm font-bold text-emerald-300">WhatsApp Web Connected!</p>
+                  <p className="text-xs text-slate-400 font-mono mt-1">All messages will auto-send instantly without any clicks.</p>
+                </div>
+                <button type="button" onClick={handleWaWebDisconnect} className="px-4 py-1.5 rounded-xl bg-red-900/40 text-red-300 text-xs font-mono border border-red-500/40">
+                  Disconnect
+                </button>
+              </div>
+            ) : waWebQr ? (
+              <div className="flex flex-col items-center gap-3">
+                <div className="p-3 rounded-xl bg-white">
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(waWebQr)}`}
+                    alt="WhatsApp Web QR Code"
+                    className="w-56 h-56 rounded-lg"
+                  />
+                </div>
+                <div className="text-center space-y-1">
+                  <p className="text-sm font-bold text-amber-300">📱 Open WhatsApp on your phone</p>
+                  <p className="text-xs text-slate-300 font-mono">Tap <strong className="text-white">⋮ Menu</strong> → <strong className="text-white">Linked Devices</strong> → <strong className="text-white">Link a Device</strong></p>
+                  <p className="text-xs text-slate-300 font-mono">Point your phone camera at this QR code</p>
+                </div>
+                <div className="flex items-center gap-1.5 text-[10px] text-amber-400 font-mono animate-pulse">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                  <span>Waiting for scan...</span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-4 py-4">
+                <div className="text-4xl animate-bounce">📱</div>
+                <div className="text-center space-y-1">
+                  <p className="text-sm font-bold text-emerald-300">Connect WhatsApp Web</p>
+                  <p className="text-xs text-slate-400 font-mono">Click below to generate a QR code. Scan it with WhatsApp on your phone to enable <strong className="text-white">full auto-send</strong> without tapping anything!</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleWaWebConnect}
+                  className="px-6 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-sm font-mono shadow-lg flex items-center gap-2"
+                >
+                  🌐 Generate QR Code
+                </button>
+              </div>
+            )}
+
+            <div className="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/30 text-[10px] text-slate-400 font-mono leading-relaxed">
+              <strong className="text-emerald-300">How it works:</strong> Once connected, JASPER uses your WhatsApp Web session to automatically send messages — no clicking required. Works even when your phone screen is off!
             </div>
 
           </div>

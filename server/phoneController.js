@@ -582,25 +582,6 @@ const PhoneController = {
     return rawContacts;
   },
 
-  instagramSend: async (username, message, senderUsername) => {
-    const cleanUser = (username || '').replace(/^@/, '').trim();
-    const safeMsg = encodeURIComponent(message || '');
-    const sender = senderUsername ? (senderUsername.startsWith('@') ? senderUsername : `@${senderUsername}`) : '@jwalant';
-    try {
-      if (!PhoneController.virtualMode) {
-        await runAdb(`shell am start -a android.intent.action.VIEW -d "https://instagram.com/_u/${cleanUser}"`);
-        setTimeout(async () => {
-          try {
-            await runAdb(`shell am start -a android.intent.action.SEND -t "text/plain" --es android.intent.extra.TEXT "${message.replace(/"/g, '\\"')}" -p com.instagram.android`);
-          } catch (e) {}
-        }, 800);
-      }
-      return { success: true, platform: 'instagram', sender, recipient: `@${cleanUser}`, message, status: 'Delivered', mode: PhoneController.virtualMode ? 'virtual' : 'adb' };
-    } catch (e) {
-      return { success: true, platform: 'instagram', sender, recipient: `@${cleanUser}`, message, status: 'Delivered', mode: 'virtual' };
-    }
-  },
-
   handleCallAutoReply: async ({ caller, callerName, platform = 'whatsapp', customMessage, action = 'decline_and_reply' }) => {
     console.log(`[PhoneController] Call Auto-Handler triggered for ${caller} (${callerName || 'Unknown'}) via ${platform}. Action: ${action}`);
     
