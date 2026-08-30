@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-08-30T16:31:56.552Z",
+  "lastUpdated": "2026-08-30T18:15:27.898Z",
   "memories": [
     {
       "id": 1,
@@ -185,5 +185,47 @@
       "Sarah (Office Boss)"
     ]
   },
-  "social_logs": []
+  "social_logs": [
+    {
+      "id": "LOG-1788113727897-457",
+      "platform": "whatsapp",
+      "type": "direct_send",
+      "recipient": "+91 98200 12345",
+      "recipientName": "Mom",
+      "incomingTextOrCall": "Direct Automated Dispatch (from +91 98200 12345)",
+      "actionTaken": "Automated WhatsApp Message Sent via +91 98200 12345",
+      "messageSent": "Hey Mom! Automated test message sent from Jwalant's connected WhatsApp number!",
+      "status": "Delivered",
+      "timestamp": "11:45 pm",
+      "date": "2026-08-30T18:15:27.898Z"
+    },
+    {
+      "id": "LOG-1788113720142-253",
+      "platform": "instagram",
+      "type": "direct_send",
+      "recipient": "@fatihmakes",
+      "recipientName": "@fatihmakes",
+      "incomingTextOrCall": "Direct Automated Dispatch (from @jwalant)",
+      "actionTaken": "Automated Instagram DM Sent via @jwalant",
+      "messageSent": "Hey Fatih! Automated test DM sent from Jwalant's connected Instagram account!",
+      "status": "Delivered",
+      "timestamp": "11:45 pm",
+      "date": "2026-08-30T18:15:20.142Z"
+    }
+  ],
+  "social_accounts": {
+    "instagram": {
+      "username": "@jwalant",
+      "password": "securePassword123",
+      "sessionCookie": "",
+      "status": "configured",
+      "lastAuthenticated": "2026-08-30T18:14:58.791Z"
+    },
+    "whatsapp": {
+      "senderNumber": "+91 98200 12345",
+      "countryCode": "+91",
+      "status": "connected",
+      "lastLinked": "2026-08-30T18:14:58.791Z"
+    }
+  }
 }

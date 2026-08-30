@@ -93,6 +93,21 @@ const DEFAULT_SCHEMA = {
       timestamp: new Date().toLocaleTimeString()
     }
   ],
+  social_accounts: {
+    instagram: {
+      username: '@jwalant',
+      password: '',
+      sessionCookie: '',
+      status: 'configured',
+      lastAuthenticated: new Date().toISOString()
+    },
+    whatsapp: {
+      senderNumber: '+91 98200 12345',
+      countryCode: '+91',
+      status: 'connected',
+      lastLinked: new Date().toISOString()
+    }
+  },
   social_auto_reply: {
     whatsappEnabled: true,
     instagramEnabled: true,
@@ -430,7 +445,29 @@ class DatabaseManager {
     return this.data.settings.ownerFaceProfile;
   }
 
-  // --- SOCIAL AUTO REPLY ---
+  // --- SOCIAL CHANNELS & CREDENTIALS ---
+  getSocialAccounts() {
+    if (!this.data.social_accounts) {
+      this.data.social_accounts = {
+        instagram: { username: '@jwalant', password: '', sessionCookie: '', status: 'configured', lastAuthenticated: new Date().toISOString() },
+        whatsapp: { senderNumber: '+91 98200 12345', countryCode: '+91', status: 'connected', lastLinked: new Date().toISOString() }
+      };
+      this.save();
+    }
+    return this.data.social_accounts;
+  }
+
+  saveSocialAccounts(accounts) {
+    const current = this.getSocialAccounts();
+    this.data.social_accounts = {
+      instagram: { ...current.instagram, ...(accounts.instagram || {}) },
+      whatsapp: { ...current.whatsapp, ...(accounts.whatsapp || {}) }
+    };
+    this.save();
+    return this.data.social_accounts;
+  }
+
+  // --- SOCIAL AUTO-REPLY & AUTOMATED MESSAGING ---
   getSocialAutoReplyConfig() {
     if (!this.data.social_auto_reply) {
       this.data.social_auto_reply = JSON.parse(JSON.stringify(DEFAULT_SCHEMA.social_auto_reply));

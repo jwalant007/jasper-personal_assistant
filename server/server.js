@@ -1230,19 +1230,60 @@ app.post('/api/social/config', (req, res) => {
   }
 });
 
+// Get Connected Social Accounts (Instagram & WhatsApp)
+app.get('/api/social/accounts', (req, res) => {
+  try {
+    const accounts = dbManager.getSocialAccounts();
+    const safeAccounts = {
+      instagram: {
+        username: accounts.instagram?.username || '@jwalant',
+        hasPassword: !!accounts.instagram?.password,
+        sessionCookie: accounts.instagram?.sessionCookie ? '••••••••' : '',
+        status: accounts.instagram?.status || 'configured',
+        lastAuthenticated: accounts.instagram?.lastAuthenticated || new Date().toISOString()
+      },
+      whatsapp: {
+        senderNumber: accounts.whatsapp?.senderNumber || '+91 98200 12345',
+        countryCode: accounts.whatsapp?.countryCode || '+91',
+        status: accounts.whatsapp?.status || 'connected',
+        lastLinked: accounts.whatsapp?.lastLinked || new Date().toISOString()
+      }
+    };
+    res.json({ success: true, accounts: safeAccounts });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Save / Update Connected Social Accounts
+app.post('/api/social/accounts', (req, res) => {
+  try {
+    const updated = dbManager.saveSocialAccounts(req.body);
+    broadcastToClients({ type: 'SOCIAL_ACCOUNTS_UPDATED', accounts: updated });
+    res.json({ success: true, accounts: updated });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Direct Automated Message Dispatch (WhatsApp / Instagram)
 app.post('/api/social/send', async (req, res) => {
-  const { platform, recipient, recipientName, message } = req.body;
+  const { platform, recipient, recipientName, message, senderOverride } = req.body;
   if (!recipient || !message) {
     return res.status(400).json({ error: 'Recipient and message are required' });
   }
 
   try {
+    const accounts = dbManager.getSocialAccounts();
     let result;
+    let senderId = '';
+
     if (platform === 'instagram') {
-      result = await phoneController.instagramSend(recipient, message);
+      senderId = senderOverride || accounts.instagram?.username || '@jwalant';
+      result = await phoneController.instagramSend(recipient, message, senderId);
     } else {
-      result = await phoneController.whatsappSend(recipient, message);
+      senderId = senderOverride || accounts.whatsapp?.senderNumber || '+91 98200 12345';
+      result = await phoneController.whatsappSend(recipient, message, senderId);
     }
 
     const log = dbManager.addSocialLog({
@@ -1250,8 +1291,8 @@ app.post('/api/social/send', async (req, res) => {
       type: 'direct_send',
       recipient,
       recipientName: recipientName || recipient,
-      incomingTextOrCall: 'Direct Automated Dispatch',
-      actionTaken: `Automated ${platform === 'instagram' ? 'Instagram DM' : 'WhatsApp Message'} Sent`,
+      incomingTextOrCall: `Direct Automated Dispatch (from ${senderId})`,
+      actionTaken: `Automated ${platform === 'instagram' ? 'Instagram DM' : 'WhatsApp Message'} Sent via ${senderId}`,
       messageSent: message,
       status: 'Delivered'
     });

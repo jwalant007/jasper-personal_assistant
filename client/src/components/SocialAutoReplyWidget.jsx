@@ -3,7 +3,7 @@ import {
   MessageSquare, Phone, PhoneOff, PhoneCall, Send, Sparkles, Shield, 
   Car, Briefcase, Moon, Bot, Zap, RefreshCw, CheckCircle2, AlertTriangle, 
   Clock, Smartphone, ArrowRight, X, ChevronRight, User, Trash2, Radio,
-  Link2, ExternalLink, Key, Check
+  Link2, ExternalLink, Key, Check, Eye, EyeOff, Lock, AtSign
 } from 'lucide-react';
 import geminiClient from '../utils/geminiClient';
 
@@ -30,11 +30,15 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
   const [isSending, setIsSending] = useState(false);
   const [statusBanner, setStatusBanner] = useState(null);
 
-  // Account Linking & Instagram Setup State
+  // Account Linking & Credentials State
   const [showAccountModal, setShowAccountModal] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [accountConfig, setAccountConfig] = useState({
     igUsername: '@jwalant',
-    igMethod: 'phone_link', // 'phone_link' | 'meta_graph' | 'session'
+    igPassword: '',
+    igMethod: 'phone_link', // 'phone_link' | 'direct_login' | 'meta_graph'
+    senderNumber: '+91 98200 12345',
+    countryCode: '+91',
     metaAccessToken: '',
     metaAccountId: '',
     igSessionId: '',
@@ -50,7 +54,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
     { name: 'Fatih Makes', phone: '+1 555 382 9901', ig: '@fatihmakes' }
   ]);
 
-  // Load config & logs from backend
+  // Load config, accounts & logs from backend
   const fetchConfigAndLogs = async () => {
     try {
       const resConfig = await fetch('http://localhost:3001/api/social/config');
@@ -62,6 +66,17 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
         if (dataConfig.config.activePreset) setActivePreset(dataConfig.config.activePreset);
         if (dataConfig.config.presets) setPresets(dataConfig.config.presets);
         if (dataConfig.config.emergencyKeyword) setEmergencyKeyword(dataConfig.config.emergencyKeyword);
+      }
+
+      const resAcc = await fetch('http://localhost:3001/api/social/accounts');
+      const dataAcc = await resAcc.json();
+      if (dataAcc.success && dataAcc.accounts) {
+        setAccountConfig(prev => ({
+          ...prev,
+          igUsername: dataAcc.accounts.instagram?.username || prev.igUsername,
+          senderNumber: dataAcc.accounts.whatsapp?.senderNumber || prev.senderNumber,
+          countryCode: dataAcc.accounts.whatsapp?.countryCode || prev.countryCode
+        }));
       }
 
       const resLogs = await fetch('http://localhost:3001/api/social/logs');
@@ -77,6 +92,29 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
   useEffect(() => {
     fetchConfigAndLogs();
   }, []);
+
+  const saveAccountsToServer = async (updatedAcc) => {
+    try {
+      await fetch('http://localhost:3001/api/social/accounts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          instagram: {
+            username: updatedAcc.igUsername,
+            password: updatedAcc.igPassword,
+            sessionCookie: updatedAcc.igSessionId
+          },
+          whatsapp: {
+            senderNumber: updatedAcc.senderNumber,
+            countryCode: updatedAcc.countryCode
+          }
+        })
+      });
+      showBanner('Instagram credentials and WhatsApp phone number saved to JASPER core!', 'success');
+    } catch (e) {
+      showBanner('Saved locally (server sync offline).', 'info');
+    }
+  };
 
   const saveConfig = async (updated) => {
     try {
@@ -139,12 +177,13 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
           platform,
           recipient,
           recipientName: recipientName || recipient,
-          message: directMessage
+          message: directMessage,
+          senderOverride: platform === 'instagram' ? accountConfig.igUsername : accountConfig.senderNumber
         })
       });
       const data = await res.json();
       if (data.success) {
-        showBanner(`Automated ${platform.toUpperCase()} message dispatched to ${recipientName || recipient}!`, 'success');
+        showBanner(`Automated ${platform.toUpperCase()} message dispatched to ${recipientName || recipient} (via ${platform === 'instagram' ? accountConfig.igUsername : accountConfig.senderNumber})!`, 'success');
         setDirectMessage('');
         fetchConfigAndLogs();
       } else {
@@ -158,26 +197,24 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
         type: 'direct_send',
         recipient,
         recipientName: recipientName || recipient,
-        incomingTextOrCall: 'Direct Automated Dispatch',
-        actionTaken: `Automated ${platform === 'instagram' ? 'Instagram DM' : 'WhatsApp Message'} Sent`,
+        incomingTextOrCall: `Direct Dispatch (from ${platform === 'instagram' ? accountConfig.igUsername : accountConfig.senderNumber})`,
+        actionTaken: `Automated ${platform.toUpperCase()} Message Dispatched`,
         messageSent: directMessage,
         status: 'Delivered',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setLogs(prev => [newLog, ...prev]);
-      showBanner(`Dispatched automated message to ${recipient}!`, 'success');
       setDirectMessage('');
+      showBanner(`Dispatched via ${platform.toUpperCase()}!`, 'success');
     } finally {
       setIsSending(false);
     }
   };
 
-  // Test Simulation for Call Auto-Decline + Auto-Reply
-  const handleSimulateIncomingCall = async (simPlatform = 'whatsapp') => {
-    showBanner(`Simulating incoming ${simPlatform.toUpperCase()} Call...`, 'info');
-    const simCaller = simPlatform === 'instagram' ? '@fatihmakes' : '+91 98200 12345';
-    const simName = simPlatform === 'instagram' ? 'Fatih Makes' : 'Mom';
-    const messageToSend = presets[activePreset] || presets.drive;
+  // Trigger simulated incoming call or message
+  const handleSimulateIncoming = async (simPlatform, simAction = 'decline_and_reply') => {
+    const simCaller = simPlatform === 'instagram' ? '@alex_mechanic' : '+91 98200 12345';
+    const simName = simPlatform === 'instagram' ? 'Alex (Mechanic)' : 'Mom';
 
     try {
       const res = await fetch('http://localhost:3001/api/social/call-handler', {
@@ -187,16 +224,16 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
           caller: simCaller,
           callerName: simName,
           platform: simPlatform,
-          action: callAutoDecline ? 'decline_and_reply' : 'reply_only',
-          customMessage: messageToSend
+          action: simAction
         })
       });
       const data = await res.json();
       if (data.success) {
-        showBanner(`Auto-declined call from ${simName} & sent ${simPlatform.toUpperCase()} auto-reply!`, 'success');
+        showBanner(`Auto-handled incoming ${simPlatform} call from ${simName}!`, 'success');
         fetchConfigAndLogs();
       }
     } catch (e) {
+      const activeMsg = presets[activePreset] || presets.drive;
       const newLog = {
         id: `LOG-${Date.now()}`,
         platform: simPlatform,
@@ -205,7 +242,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
         recipientName: simName,
         incomingTextOrCall: `Incoming ${simPlatform === 'instagram' ? 'Instagram' : 'WhatsApp'} Call`,
         actionTaken: `Declined Call & Auto-Replied with ${activePreset.toUpperCase()} Mode Preset`,
-        messageSent: messageToSend,
+        messageSent: activeMsg,
         status: 'Delivered',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
@@ -275,7 +312,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
             ? 'bg-rose-950/80 border-rose-500/50 text-rose-200' 
             : statusBanner.type === 'info'
             ? 'bg-blue-950/80 border-blue-500/50 text-blue-200'
-            : 'bg-emerald-950/80 border-emerald-500/50 text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.3)]'
+            : 'bg-emerald-950/80 border-emerald-500/50 text-emerald-200 shadow-[0_0_15px_rgba(168,85,247,0.25)]'
         }`}>
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4" />
@@ -290,6 +327,29 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
         
         {/* Left Column (7 cols): Presets & Triggers */}
         <div className="lg:col-span-7 flex flex-col gap-4">
+          
+          {/* Active Sender Accounts Bar */}
+          <div className="p-3 bg-gradient-to-r from-purple-950/40 via-slate-900/60 to-cyan-950/40 border border-purple-500/40 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-2.5 shadow-md">
+            <div className="flex items-center gap-2.5 w-full sm:w-auto overflow-x-auto">
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-pink-500/20 border border-pink-500/40 text-pink-200 text-xs font-mono shrink-0">
+                <span className="text-xs font-bold text-pink-400">IG:</span>
+                <span className="font-bold">{accountConfig.igUsername || '@jwalant'}</span>
+              </div>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-200 text-xs font-mono shrink-0">
+                <span className="text-xs font-bold text-emerald-400">WA:</span>
+                <span className="font-bold">{accountConfig.senderNumber || '+91 98200 12345'}</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowAccountModal(true)}
+              className="w-full sm:w-auto px-3 py-1 bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400/50 text-purple-200 text-xs font-mono font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all shrink-0"
+            >
+              <Key className="w-3.5 h-3.5 text-purple-300" />
+              <span>Configure Credentials</span>
+            </button>
+          </div>
           
           {/* Master Toggles Bar */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 bg-cyan-950/30 border border-cyan-500/30 p-3 rounded-xl">
@@ -757,120 +817,137 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
             </div>
 
             {/* Mode Details & Inputs */}
-            {accountConfig.igMethod === 'phone_link' && (
-              <div className="p-4 rounded-xl bg-purple-950/20 border border-purple-500/30 flex flex-col gap-3">
-                <div className="flex items-start gap-2.5">
-                  <div className="p-2 rounded-lg bg-emerald-500/20 border border-emerald-400/50 text-emerald-400 shrink-0">
-                    <CheckCircle2 className="w-4 h-4" />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs font-bold text-purple-200">
-                      How Native Phone Link Works (Fastest &amp; Easiest)
-                    </span>
-                    <p className="text-[11px] text-slate-300 leading-relaxed">
-                      1. Keep your Android phone connected to JASPER via Wireless ADB (<span className="text-cyan-300 font-mono">192.168.29.159</span>) or USB.<br />
-                      2. Make sure your Instagram and WhatsApp apps are installed and logged into your account on the phone.<br />
-                      3. When you tell Jasper <span className="text-purple-300 italic">"Send Instagram DM to @username"</span> or receive an incoming call, JASPER dispatches the message directly through your phone's active session!
-                    </p>
-                  </div>
-                </div>
+            <div className="p-4 rounded-xl bg-purple-950/20 border border-purple-500/30 flex flex-col gap-3">
+              <span className="text-xs font-bold text-pink-300 uppercase tracking-wider flex items-center gap-1.5">
+                <AtSign className="w-3.5 h-3.5 text-pink-400" />
+                <span>Instagram Account Credentials</span>
+              </span>
 
-                <div className="flex items-center gap-2 pt-2 border-t border-purple-500/20">
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      showBanner('Testing Phone Link: Opening Instagram Direct thread on phone...', 'info');
-                      try {
-                        await fetch('http://localhost:3001/api/social/send', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            platform: 'instagram',
-                            recipient: accountConfig.igUsername || '@jwalant',
-                            recipientName: 'My Account Test',
-                            message: '⚡ JASPER Assistant Phone Link Connection Test: OK!'
-                          })
-                        });
-                        showBanner('Instagram Phone Link Test Triggered Successfully!', 'success');
-                      } catch (e) {
-                        showBanner('Test completed (virtual mode fallback ready).', 'info');
-                      }
-                    }}
-                    className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-md"
-                  >
-                    <Smartphone className="w-3.5 h-3.5" />
-                    <span>Test Instagram Link on Phone</span>
-                  </button>
-                  <span className="text-[10px] text-emerald-400 font-mono">● Phone ADB Ready</span>
-                </div>
-              </div>
-            )}
-
-            {accountConfig.igMethod === 'meta_graph' && (
-              <div className="p-4 rounded-xl bg-pink-950/20 border border-pink-500/30 flex flex-col gap-3">
-                <div className="flex flex-col gap-2">
-                  <span className="text-xs font-bold text-pink-200">
-                    Meta Graph API Configuration (Cloud Automation)
-                  </span>
-                  <p className="text-[11px] text-slate-300 leading-relaxed">
-                    Enter your Meta Developer App Token to send and receive Instagram DMs directly through Meta's Official Cloud API without needing the phone screen active.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-[10px] text-slate-400 font-mono">Instagram Username / Handle</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <label className="text-[10px] text-slate-400 font-mono">Instagram Username / Handle</label>
+                  <div className="relative mt-0.5">
                     <input
                       type="text"
                       value={accountConfig.igUsername}
                       onChange={(e) => setAccountConfig(prev => ({ ...prev, igUsername: e.target.value }))}
                       placeholder="@your_username"
-                      className="w-full bg-slate-900 border border-pink-500/30 rounded-lg px-2.5 py-1.5 text-xs text-pink-200 font-mono"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] text-slate-400 font-mono">Meta Account ID</label>
-                    <input
-                      type="text"
-                      value={accountConfig.metaAccountId}
-                      onChange={(e) => setAccountConfig(prev => ({ ...prev, metaAccountId: e.target.value }))}
-                      placeholder="e.g. 17841400000000"
-                      className="w-full bg-slate-900 border border-pink-500/30 rounded-lg px-2.5 py-1.5 text-xs text-pink-200 font-mono"
+                      className="w-full bg-slate-900 border border-pink-500/40 rounded-lg px-2.5 py-1.5 text-xs text-pink-200 font-mono focus:outline-none focus:border-pink-400"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-[10px] text-slate-400 font-mono">Page Access Token (Permanent / Long-Lived)</label>
+                  <label className="text-[10px] text-slate-400 font-mono">Instagram Password (Optional / For Direct Login)</label>
+                  <div className="relative mt-0.5 flex items-center">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={accountConfig.igPassword}
+                      onChange={(e) => setAccountConfig(prev => ({ ...prev, igPassword: e.target.value }))}
+                      placeholder="Enter account password"
+                      className="w-full bg-slate-900 border border-pink-500/40 rounded-lg px-2.5 py-1.5 pr-8 text-xs text-pink-200 font-mono focus:outline-none focus:border-pink-400"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-2 text-slate-400 hover:text-pink-300"
+                    >
+                      {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* WhatsApp Phone Number Configuration */}
+            <div className="p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/30 flex flex-col gap-3">
+              <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
+                <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
+                <span>WhatsApp Phone Number &amp; Line</span>
+              </span>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <label className="text-[10px] text-slate-400 font-mono">My WhatsApp Phone Number</label>
                   <input
-                    type="password"
-                    value={accountConfig.metaAccessToken}
-                    onChange={(e) => setAccountConfig(prev => ({ ...prev, metaAccessToken: e.target.value }))}
-                    placeholder="EAAG... (Paste token from developers.facebook.com)"
-                    className="w-full bg-slate-900 border border-pink-500/30 rounded-lg px-2.5 py-1.5 text-xs text-pink-200 font-mono"
+                    type="text"
+                    value={accountConfig.senderNumber}
+                    onChange={(e) => setAccountConfig(prev => ({ ...prev, senderNumber: e.target.value }))}
+                    placeholder="+91 98200 12345"
+                    className="w-full bg-slate-900 border border-emerald-500/40 rounded-lg px-2.5 py-1.5 text-xs text-emerald-200 font-mono focus:outline-none focus:border-emerald-400 mt-0.5"
                   />
                 </div>
+
+                <div>
+                  <label className="text-[10px] text-slate-400 font-mono">Default Country Code</label>
+                  <input
+                    type="text"
+                    value={accountConfig.countryCode}
+                    onChange={(e) => setAccountConfig(prev => ({ ...prev, countryCode: e.target.value }))}
+                    placeholder="+91 (India)"
+                    className="w-full bg-slate-900 border border-emerald-500/40 rounded-lg px-2.5 py-1.5 text-xs text-emerald-200 font-mono focus:outline-none focus:border-emerald-400 mt-0.5"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Mode-Specific Extras */}
+            {accountConfig.igMethod === 'phone_link' && (
+              <div className="p-3 rounded-xl bg-purple-950/20 border border-purple-500/30 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs text-purple-200">
+                  <Smartphone className="w-4 h-4 text-purple-400" />
+                  <span>Uses Instagram &amp; WhatsApp on connected Android phone (<span className="text-cyan-300 font-mono">192.168.29.159</span>)</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    showBanner('Testing Phone Link: Launching Instagram on phone...', 'info');
+                    try {
+                      await fetch('http://localhost:3001/api/social/send', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          platform: 'instagram',
+                          recipient: accountConfig.igUsername || '@jwalant',
+                          recipientName: 'My Account Test',
+                          message: '⚡ JASPER Assistant Phone Link Connection Test: OK!'
+                        })
+                      });
+                      showBanner('Instagram Phone Link Test Triggered Successfully!', 'success');
+                    } catch (e) {
+                      showBanner('Test completed (virtual mode fallback ready).', 'info');
+                    }
+                  }}
+                  className="px-2.5 py-1 rounded-lg bg-pink-600/30 hover:bg-pink-600/50 border border-pink-500/40 text-pink-200 text-xs font-mono font-bold"
+                >
+                  Test Link on Phone
+                </button>
+              </div>
+            )}
+
+            {accountConfig.igMethod === 'meta_graph' && (
+              <div className="p-3 rounded-xl bg-pink-950/20 border border-pink-500/30 flex flex-col gap-2">
+                <label className="text-[10px] text-slate-400 font-mono">Meta Graph Page Access Token</label>
+                <input
+                  type="password"
+                  value={accountConfig.metaAccessToken}
+                  onChange={(e) => setAccountConfig(prev => ({ ...prev, metaAccessToken: e.target.value }))}
+                  placeholder="EAAG... (Paste token from developers.facebook.com)"
+                  className="w-full bg-slate-900 border border-pink-500/30 rounded-lg px-2.5 py-1.5 text-xs text-pink-200 font-mono"
+                />
               </div>
             )}
 
             {accountConfig.igMethod === 'session' && (
-              <div className="p-4 rounded-xl bg-cyan-950/20 border border-cyan-500/30 flex flex-col gap-3">
-                <span className="text-xs font-bold text-cyan-200">
-                  Instagram Web Session ID Bridge
-                </span>
-                <p className="text-[11px] text-slate-300 leading-relaxed">
-                  Log in to instagram.com on your browser, inspect cookies, and copy the <code className="text-cyan-300 font-mono">sessionid</code> cookie value into JASPER.
-                </p>
-                <div>
-                  <label className="text-[10px] text-slate-400 font-mono">Session ID Cookie</label>
-                  <input
-                    type="password"
-                    value={accountConfig.igSessionId}
-                    onChange={(e) => setAccountConfig(prev => ({ ...prev, igSessionId: e.target.value }))}
-                    placeholder="Paste your instagram.com sessionid cookie"
-                    className="w-full bg-slate-900 border border-cyan-500/30 rounded-lg px-2.5 py-1.5 text-xs text-cyan-200 font-mono"
-                  />
-                </div>
+              <div className="p-3 rounded-xl bg-cyan-950/20 border border-cyan-500/30 flex flex-col gap-2">
+                <label className="text-[10px] text-slate-400 font-mono">Instagram sessionid cookie</label>
+                <input
+                  type="password"
+                  value={accountConfig.igSessionId}
+                  onChange={(e) => setAccountConfig(prev => ({ ...prev, igSessionId: e.target.value }))}
+                  placeholder="Paste your instagram.com sessionid cookie"
+                  className="w-full bg-slate-900 border border-cyan-500/30 rounded-lg px-2.5 py-1.5 text-xs text-cyan-200 font-mono"
+                />
               </div>
             )}
 
@@ -886,13 +963,14 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
               <button
                 type="button"
                 onClick={() => {
+                  saveAccountsToServer(accountConfig);
                   setShowAccountModal(false);
-                  showBanner(`Instagram Account Link Configured via ${accountConfig.igMethod.toUpperCase()}`, 'success');
+                  showBanner(`Account details updated for ${accountConfig.igUsername} & ${accountConfig.senderNumber}!`, 'success');
                 }}
                 className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white font-bold text-xs font-mono transition-all shadow-[0_0_15px_rgba(236,72,153,0.3)] flex items-center gap-1.5"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Save Account Settings</span>
+                <span>Save Account Credentials</span>
               </button>
             </div>
 
