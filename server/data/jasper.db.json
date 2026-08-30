@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-08-30T18:15:27.898Z",
+  "lastUpdated": "2026-08-30T18:37:10.396Z",
   "memories": [
     {
       "id": 1,
@@ -215,14 +215,14 @@
   ],
   "social_accounts": {
     "instagram": {
-      "username": "@jwalant",
+      "username": "@jwalantbhatt_07",
       "password": "securePassword123",
       "sessionCookie": "",
       "status": "configured",
       "lastAuthenticated": "2026-08-30T18:14:58.791Z"
     },
     "whatsapp": {
-      "senderNumber": "+91 98200 12345",
+      "senderNumber": "+91 7984173128",
       "countryCode": "+91",
       "status": "connected",
       "lastLinked": "2026-08-30T18:14:58.791Z"

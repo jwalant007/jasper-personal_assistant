@@ -34,10 +34,10 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [accountConfig, setAccountConfig] = useState({
-    igUsername: '@jwalant',
+    igUsername: '@jwalantbhatt_07',
     igPassword: '',
     igMethod: 'phone_link', // 'phone_link' | 'direct_login' | 'meta_graph'
-    senderNumber: '+91 98200 12345',
+    senderNumber: '+91 7984173128',
     countryCode: '+91',
     metaAccessToken: '',
     metaAccountId: '',
