@@ -12,6 +12,7 @@ $desktopFolder = [System.Environment]::GetFolderPath([System.Environment+Special
 
 $sourceChooser = "$PSScriptRoot\JASPER_BOOT_CHOOSER.bat"
 $targetStartup = Join-Path $startupFolder "JASPER_BOOT_CHOOSER.bat"
+$targetDesktop = Join-Path $desktopFolder "JASPER_BOOT_CHOOSER.bat"
 
 # Remove old standalone bat from startup if exists
 $oldStartupBat = Join-Path $startupFolder "JASPER_STANDALONE_OS.bat"
@@ -19,10 +20,12 @@ if (Test-Path $oldStartupBat) {
     Remove-Item -Path $oldStartupBat -Force
 }
 
-# Copy Boot Chooser into Startup folder
+# Copy Boot Chooser into Startup folder and Desktop
 Copy-Item -Path $sourceChooser -Destination $targetStartup -Force
+Copy-Item -Path $sourceChooser -Destination $targetDesktop -Force
 
 Write-Host "✅ INSTALLED DUAL BOOT SELECTOR TO STARTUP: $targetStartup" -ForegroundColor Green
+Write-Host "✅ INSTALLED DUAL BOOT SELECTOR TO DESKTOP: $targetDesktop" -ForegroundColor Green
 Write-Host ""
 Write-Host "How Dual-Boot works on Laptop 1 when turning on:" -ForegroundColor Yellow
 Write-Host "1. Whenever Laptop 1 turns on, a 5-second Boot Menu will pop up." -ForegroundColor White

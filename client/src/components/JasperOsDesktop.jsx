@@ -3,7 +3,7 @@ import {
   Box, Terminal, Tv, Cpu, Shield, Sparkles, Smartphone, Monitor, Globe, 
   Activity, X, Minus, Square, Maximize2, RefreshCw, Layout, Layers, Volume2, 
   Zap, Radio, Settings, HelpCircle, HardDrive, Wifi, BatteryCharging, Search,
-  Bot, Palette, Music, Workflow, BarChart3, Brain, Store, Trophy, MapPin, Heart, Languages, BookOpen, Laptop, Grid, AppWindow
+  Bot, Palette, Music, Workflow, BarChart3, Brain, Store, Trophy, MapPin, Heart, Languages, BookOpen, Laptop, Grid, AppWindow, Lock
 } from 'lucide-react';
 
 import HolographicAnswerModal from './HolographicAnswerModal';
@@ -81,14 +81,31 @@ function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFo
   const [isMaximized, setIsMaximized] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
+  const [isMobileScreen, setIsMobileScreen] = useState(typeof window !== 'undefined' ? window.innerWidth <= 768 : false);
   const dragStartRef = useRef({ x: 0, y: 0, posX: 0, posY: 0 });
   const resizeStartRef = useRef({ x: 0, y: 0, w: 0, h: 0 });
 
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileScreen(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const handleHeaderMouseDown = (e) => {
-    if (e.target.closest('.window-control-btn') || isMaximized) return;
+    if (e.target.closest('.window-control-btn') || isMaximized || isMobileScreen) return;
     onFocus(id);
     setIsDragging(true);
     dragStartRef.current = { x: e.clientX, y: e.clientY, posX: pos.x, posY: pos.y };
+  };
+
+  const handleHeaderTouchStart = (e) => {
+    if (e.target.closest('.window-control-btn') || isMaximized || isMobileScreen) return;
+    onFocus(id);
+    setIsDragging(true);
+    const touch = e.touches[0];
+    dragStartRef.current = { x: touch.clientX, y: touch.clientY, posX: pos.x, posY: pos.y };
   };
 
   const handleResizeMouseDown = (e) => {
@@ -98,90 +115,118 @@ function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFo
     resizeStartRef.current = { x: e.clientX, y: e.clientY, w: size.w, h: size.h };
   };
 
+  const handleResizeTouchStart = (e) => {
+    e.stopPropagation();
+    onFocus(id);
+    setIsResizing(true);
+    const touch = e.touches[0];
+    resizeStartRef.current = { x: touch.clientX, y: touch.clientY, w: size.w, h: size.h };
+  };
+
   useEffect(() => {
-    const handleMouseMove = (e) => {
+    const handleMove = (clientX, clientY) => {
       if (isDragging) {
-        const dx = e.clientX - dragStartRef.current.x;
-        const dy = e.clientY - dragStartRef.current.y;
+        const dx = clientX - dragStartRef.current.x;
+        const dy = clientY - dragStartRef.current.y;
         setPos({
-          x: Math.max(10, Math.min(window.innerWidth - 100, dragStartRef.current.posX + dx)),
-          y: Math.max(50, Math.min(window.innerHeight - 80, dragStartRef.current.posY + dy))
+          x: Math.max(8, Math.min(window.innerWidth - 100, dragStartRef.current.posX + dx)),
+          y: Math.max(48, Math.min(window.innerHeight - 80, dragStartRef.current.posY + dy))
         });
       } else if (isResizing) {
-        const dw = e.clientX - resizeStartRef.current.x;
-        const dh = e.clientY - resizeStartRef.current.y;
+        const dw = clientX - resizeStartRef.current.x;
+        const dh = clientY - resizeStartRef.current.y;
         setSize({
-          w: Math.max(380, resizeStartRef.current.w + dw),
-          h: Math.max(280, resizeStartRef.current.h + dh)
+          w: Math.max(300, resizeStartRef.current.w + dw),
+          h: Math.max(240, resizeStartRef.current.h + dh)
         });
       }
     };
 
-    const handleMouseUp = () => {
+    const handleMouseMove = (e) => handleMove(e.clientX, e.clientY);
+    const handleTouchMove = (e) => {
+      if (e.touches && e.touches.length > 0) {
+        handleMove(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    };
+
+    const handleEnd = () => {
       setIsDragging(false);
       setIsResizing(false);
     };
 
     if (isDragging || isResizing) {
       window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
+      window.addEventListener('mouseup', handleEnd);
+      window.addEventListener('touchmove', handleTouchMove);
+      window.addEventListener('touchend', handleEnd);
     }
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('mouseup', handleEnd);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleEnd);
     };
   }, [isDragging, isResizing]);
 
   if (isMinimized) return null;
 
-  const windowStyle = isMaximized ? {
-    top: '48px',
-    left: '0px',
-    width: '100vw',
-    height: 'calc(100vh - 105px)',
+  const isMobile = isMobileScreen;
+  const windowStyle = (isMaximized || isMobile) ? {
+    top: isMobile ? '52px' : '48px',
+    left: isMobile ? '8px' : '0px',
+    width: isMobile ? 'calc(100vw - 16px)' : '100vw',
+    height: isMobile ? 'calc(100vh - 115px)' : 'calc(100vh - 105px)',
+    maxWidth: isMobile ? 'calc(100vw - 16px)' : '100vw',
+    maxHeight: isMobile ? 'calc(100vh - 115px)' : '100vh',
     zIndex: zIndex + 10
   } : {
-    top: `${pos.y}px`,
-    left: `${pos.x}px`,
-    width: `${size.w}px`,
-    height: `${size.h}px`,
+    top: `${Math.max(50, Math.min(pos.y, (window.innerHeight || 800) - 80))}px`,
+    left: `${Math.max(8, Math.min(pos.x, (window.innerWidth || 1200) - (size.w || 400) - 8))}px`,
+    width: `${Math.min(size.w, (window.innerWidth || 1200) - 16)}px`,
+    height: `${Math.min(size.h, (window.innerHeight || 800) - 100)}px`,
+    maxWidth: 'calc(100vw - 16px)',
+    maxHeight: 'calc(100vh - 105px)',
     zIndex
   };
 
   return (
     <div
       onMouseDown={() => onFocus(id)}
+      onTouchStart={() => onFocus(id)}
       style={windowStyle}
-      className="absolute flex flex-col rounded-xl bg-cyan-950/45 border border-cyan-400/40 backdrop-blur-2xl shadow-[0_10px_40px_rgba(0,0,0,0.7)] overflow-hidden transition-shadow duration-200"
+      className="absolute flex flex-col rounded-xl bg-cyan-950/90 sm:bg-cyan-950/45 border border-cyan-400/40 backdrop-blur-2xl shadow-[0_10px_40px_rgba(0,0,0,0.7)] overflow-hidden transition-shadow duration-200"
     >
       {/* Window Header Bar */}
       <div
         onMouseDown={handleHeaderMouseDown}
-        className="px-3.5 py-2.5 bg-cyan-950/80 border-b border-cyan-500/30 flex items-center justify-between cursor-move select-none backdrop-blur-xl"
+        onTouchStart={handleHeaderTouchStart}
+        className="px-3 py-2 sm:px-3.5 sm:py-2.5 bg-cyan-950/90 border-b border-cyan-500/30 flex items-center justify-between cursor-move select-none backdrop-blur-xl shrink-0"
       >
-        <div className="flex items-center gap-2 text-cyan-300 font-mono text-xs font-bold uppercase tracking-wider">
-          <Icon className="w-4 h-4 text-cyan-400" />
-          <span>{title}</span>
+        <div className="flex items-center gap-1.5 sm:gap-2 text-cyan-300 font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wider truncate max-w-[60%]">
+          <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400 shrink-0" />
+          <span className="truncate">{title}</span>
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
           <button
             onClick={() => onMinimize(id)}
-            className="window-control-btn p-1.5 rounded-md text-cyan-400 hover:bg-cyan-500/20 hover:text-cyan-200 transition-colors"
+            className="window-control-btn p-1 sm:p-1.5 rounded-md text-cyan-400 hover:bg-cyan-500/20 hover:text-cyan-200 transition-colors"
             title="Minimize App"
           >
             <Minus className="w-3.5 h-3.5" />
           </button>
-          <button
-            onClick={() => setIsMaximized(!isMaximized)}
-            className="window-control-btn p-1.5 rounded-md text-cyan-400 hover:bg-cyan-500/20 hover:text-cyan-200 transition-colors"
-            title={isMaximized ? "Restore App Window" : "Maximize App Window"}
-          >
-            {isMaximized ? <Square className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
-          </button>
+          {!isMobile && (
+            <button
+              onClick={() => setIsMaximized(!isMaximized)}
+              className="window-control-btn p-1 sm:p-1.5 rounded-md text-cyan-400 hover:bg-cyan-500/20 hover:text-cyan-200 transition-colors"
+              title={isMaximized ? "Restore App Window" : "Maximize App Window"}
+            >
+              {isMaximized ? <Square className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+            </button>
+          )}
           <button
             onClick={() => onClose(id)}
-            className="window-control-btn p-1.5 rounded-md text-rose-400 hover:bg-rose-500/20 hover:text-rose-200 transition-colors"
+            className="window-control-btn p-1 sm:p-1.5 rounded-md text-rose-400 hover:bg-rose-500/20 hover:text-rose-200 transition-colors"
             title="Close App"
           >
             <X className="w-3.5 h-3.5" />
@@ -190,14 +235,15 @@ function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFo
       </div>
 
       {/* App Window Body */}
-      <div className="flex-1 overflow-y-auto p-3 text-slate-100 font-sans custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-2 sm:p-3 text-slate-100 font-sans custom-scrollbar">
         {children}
       </div>
 
       {/* Resize Handle */}
-      {!isMaximized && (
+      {!isMaximized && !isMobile && (
         <div
           onMouseDown={handleResizeMouseDown}
+          onTouchStart={handleResizeTouchStart}
           className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize flex items-center justify-center text-cyan-500/60 hover:text-cyan-300"
         >
           <svg className="w-3 h-3" viewBox="0 0 6 6" fill="currentColor">
@@ -405,7 +451,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
 
       {/* OS APP CENTER & START LAUNCHER DRAWER */}
       {showStartMenu && (
-        <div className="absolute top-14 left-4 w-96 bg-cyan-950/95 border border-cyan-400/60 rounded-2xl p-4 shadow-[0_0_50px_rgba(0,240,255,0.35)] backdrop-blur-3xl z-50 animate-in fade-in slide-in-from-top-2 max-h-[82vh] flex flex-col">
+        <div className="absolute top-14 left-2 right-2 sm:left-4 sm:right-auto w-auto sm:w-96 max-w-[calc(100vw-16px)] bg-cyan-950/95 border border-cyan-400/60 rounded-2xl p-3 sm:p-4 shadow-[0_0_50px_rgba(0,240,255,0.35)] backdrop-blur-3xl z-50 animate-in fade-in slide-in-from-top-2 max-h-[82vh] flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-cyan-500/30 pb-3 mb-3">
             <div className="flex items-center gap-3">

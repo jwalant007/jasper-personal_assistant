@@ -11,8 +11,8 @@ class ErrorBoundary extends React.Component {
 
   static getDerivedStateFromError(error) {
     const errStr = error?.toString() || '';
-    if (errStr.includes('WebSocket') || errStr.includes('SecurityError') || errStr.includes('Failed to fetch') || errStr.includes('Illegal constructor')) {
-      console.warn('[ErrorBoundary] Suppressed non-fatal browser constructor error:', errStr);
+    if (errStr.includes('WebSocket') || errStr.includes('SecurityError') || errStr.includes('Failed to fetch')) {
+      console.warn('[ErrorBoundary] Suppressed non-fatal browser network error:', errStr);
       return { hasError: false, error: null };
     }
     return { hasError: true, error };

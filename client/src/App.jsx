@@ -264,7 +264,7 @@ export default function App() {
 
   const [isMobileScreen, setIsMobileScreen] = useState(checkIsMobileDevice);
   const [viewMode, setViewMode] = useState(() => checkIsMobileDevice() ? 'mobile' : 'pc');
-  const [showSidebar, setShowSidebar] = useState(true);
+  const [showSidebar, setShowSidebar] = useState(false);
   const [speakingText, setSpeakingText] = useState('');
   const [triggerWakeOnMount, setTriggerWakeOnMount] = useState(false);
   const [showTvRemote, setShowTvRemote] = useState(false);
@@ -1163,11 +1163,19 @@ export default function App() {
       <div className="hologram-grid" />
       
       {/* Main Container */}
-      <div className="flex-1 flex overflow-hidden z-10 w-full h-full">
+      <div className="flex-1 flex overflow-hidden z-10 w-full h-full relative">
         
+        {/* Mobile Backdrop for Sidebar */}
+        {showSidebar && isMobileLayout && (
+          <div 
+            onClick={() => setShowSidebar(false)} 
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 animate-in fade-in duration-200" 
+          />
+        )}
+
         {/* Left Sidebar */}
         {showSidebar && (
-          <aside className={`sidebar-panel p-3 sm:p-5 flex flex-col justify-between h-full select-none shrink-0 z-20 border-r border-cyan-500/20 bg-slate-950/98 backdrop-blur-2xl transition-all duration-300 ${isMobileLayout ? 'w-[200px] xs:w-[230px] sm:w-[270px] relative' : 'w-[280px] relative'}`}>
+          <aside className={`sidebar-panel p-3 sm:p-5 flex flex-col justify-between h-full select-none shrink-0 border-r border-cyan-500/20 bg-slate-950/98 backdrop-blur-2xl transition-all duration-300 ${isMobileLayout ? 'fixed inset-y-0 left-0 z-50 w-[270px] max-w-[85vw] shadow-2xl' : 'w-[280px] relative z-20'}`}>
             <div className="flex flex-col gap-4 overflow-y-auto">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -1499,7 +1507,7 @@ export default function App() {
               </div>
 
               {/* Actions list */}
-              <div className={`flex items-center gap-1.5 ${isMobileLayout ? 'justify-end' : 'gap-2'}`}>
+              <div className={`flex items-center gap-1 sm:gap-1.5 ${isMobileLayout ? 'justify-end max-w-[calc(100vw-130px)] overflow-x-auto custom-scrollbar flex-nowrap py-0.5 shrink-0' : 'gap-2'}`}>
                 {updateAvailable && (
                   <a
                     href={apkDownloadUrl || '/api/apk/download'}
@@ -2631,54 +2639,54 @@ export default function App() {
 
       {/* Voice Triggered Standalone App Overlay Windows */}
       {showSearchEngine && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="w-full max-w-4xl h-[640px] relative">
-            <button onClick={() => setShowSearchEngine(false)} className="absolute top-2 right-2 text-cyan-400 hover:text-white font-mono text-xs z-10 bg-cyan-950/80 px-2 py-1 rounded">✕ Close</button>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+          <div className="w-[95vw] max-w-4xl h-[85vh] max-h-[640px] relative my-auto flex flex-col">
+            <button onClick={() => setShowSearchEngine(false)} className="absolute top-2 right-2 text-cyan-400 hover:text-white font-mono text-xs z-10 bg-cyan-950/80 px-2 py-1 rounded border border-cyan-500/30">✕ Close</button>
             <JasperSearchApp />
           </div>
         </div>
       )}
 
       {showBrowser && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="w-full max-w-5xl h-[680px] relative">
-            <button onClick={() => setShowBrowser(false)} className="absolute top-2 right-2 text-cyan-400 hover:text-white font-mono text-xs z-10 bg-cyan-950/80 px-2 py-1 rounded">✕ Close</button>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+          <div className="w-[95vw] max-w-5xl h-[85vh] max-h-[680px] relative my-auto flex flex-col">
+            <button onClick={() => setShowBrowser(false)} className="absolute top-2 right-2 text-cyan-400 hover:text-white font-mono text-xs z-10 bg-cyan-950/80 px-2 py-1 rounded border border-cyan-500/30">✕ Close</button>
             <JasperBrowserApp />
           </div>
         </div>
       )}
 
       {showFileManager && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="w-full max-w-4xl h-[600px] relative">
-            <button onClick={() => setShowFileManager(false)} className="absolute top-2 right-2 text-cyan-400 hover:text-white font-mono text-xs z-10 bg-cyan-950/80 px-2 py-1 rounded">✕ Close</button>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+          <div className="w-[95vw] max-w-4xl h-[85vh] max-h-[600px] relative my-auto flex flex-col">
+            <button onClick={() => setShowFileManager(false)} className="absolute top-2 right-2 text-cyan-400 hover:text-white font-mono text-xs z-10 bg-cyan-950/80 px-2 py-1 rounded border border-cyan-500/30">✕ Close</button>
             <JasperFileManagerApp />
           </div>
         </div>
       )}
 
       {showCodeStudio && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="w-full max-w-5xl h-[660px] relative">
-            <button onClick={() => setShowCodeStudio(false)} className="absolute top-2 right-2 text-cyan-400 hover:text-white font-mono text-xs z-10 bg-cyan-950/80 px-2 py-1 rounded">✕ Close</button>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+          <div className="w-[95vw] max-w-5xl h-[85vh] max-h-[660px] relative my-auto flex flex-col">
+            <button onClick={() => setShowCodeStudio(false)} className="absolute top-2 right-2 text-cyan-400 hover:text-white font-mono text-xs z-10 bg-cyan-950/80 px-2 py-1 rounded border border-cyan-500/30">✕ Close</button>
             <JasperCodeStudioApp />
           </div>
         </div>
       )}
 
       {showNotesPlanner && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="w-full max-w-4xl h-[620px] relative">
-            <button onClick={() => setShowNotesPlanner(false)} className="absolute top-2 right-2 text-cyan-400 hover:text-white font-mono text-xs z-10 bg-cyan-950/80 px-2 py-1 rounded">✕ Close</button>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+          <div className="w-[95vw] max-w-4xl h-[85vh] max-h-[620px] relative my-auto flex flex-col">
+            <button onClick={() => setShowNotesPlanner(false)} className="absolute top-2 right-2 text-cyan-400 hover:text-white font-mono text-xs z-10 bg-cyan-950/80 px-2 py-1 rounded border border-cyan-500/30">✕ Close</button>
             <JasperNotesPlannerApp />
           </div>
         </div>
       )}
 
       {showCalculator && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="w-full max-w-3xl h-[560px] relative">
-            <button onClick={() => setShowCalculator(false)} className="absolute top-2 right-2 text-cyan-400 hover:text-white font-mono text-xs z-10 bg-cyan-950/80 px-2 py-1 rounded">✕ Close</button>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+          <div className="w-[95vw] max-w-3xl h-[85vh] max-h-[560px] relative my-auto flex flex-col">
+            <button onClick={() => setShowCalculator(false)} className="absolute top-2 right-2 text-cyan-400 hover:text-white font-mono text-xs z-10 bg-cyan-950/80 px-2 py-1 rounded border border-cyan-500/30">✕ Close</button>
             <JasperCalculatorApp />
           </div>
         </div>

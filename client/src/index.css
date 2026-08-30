@@ -2028,24 +2028,25 @@ input, textarea, select {
 }
 
 /* -------------------------------------------------------------
-   360px x 800px EXACT MOBILE DISPLAY STYLING
+   MOBILE DISPLAY & RESPONSIVE LAYOUT STYLING (<= 768px)
    ------------------------------------------------------------- */
-@media (max-width: 480px), (max-height: 800px) {
-  html, body {
-    overflow-x: hidden;
+@media (max-width: 768px) {
+  html, body, #root {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
     width: 100vw;
-    height: 100vh;
-    height: 100dvh;
     font-size: 13px;
   }
   
   .hud-panel {
-    border-radius: 6px;
+    border-radius: 8px;
     padding: 10px 12px !important;
+    max-width: 100vw !important;
+    box-sizing: border-box;
   }
 
   .btn-control, .btn-sidebar, .btn-hdr-action {
-    min-height: 38px;
+    min-height: 36px;
     font-size: 11px;
     touch-action: manipulation;
   }
@@ -2056,6 +2057,21 @@ input, textarea, select {
 
   .phone-scroll::-webkit-scrollbar {
     width: 3px;
+  }
+
+  /* Force modals and dialog cards to stay within mobile screen width */
+  .glass-card-jarvis, .modal-card, [class*="max-w-"] {
+    max-width: calc(100vw - 16px) !important;
+    box-sizing: border-box;
+  }
+
+  /* Single-column grid fallback on mobile */
+  .health-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .activity-stats-grid {
+    grid-template-columns: 1fr 1fr !important;
   }
 }
 

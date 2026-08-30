@@ -335,9 +335,9 @@ export default function LiveTranslationWidget({ isOpen, onClose, onToggleAutoTra
         className="fixed z-50 transition-all duration-150 ease-out select-none"
         style={{
           bottom: `${Math.max(20, position.y)}px`,
-          left: `${Math.max(20, position.x)}px`,
-          maxWidth: 'min(640px, 92vw)',
-          width: '600px'
+          left: `${Math.max(10, Math.min(position.x, (typeof window !== 'undefined' ? window.innerWidth - 320 : 300)))}px`,
+          maxWidth: 'min(640px, calc(100vw - 20px))',
+          width: 'min(600px, calc(100vw - 20px))'
         }}
       >
         <div className="bg-blue-950/40 backdrop-blur-2xl border border-blue-400/50 rounded-2xl shadow-[0_0_35px_rgba(37,99,235,0.45)] text-blue-100 overflow-hidden group">
