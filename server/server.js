@@ -1266,6 +1266,48 @@ app.post('/api/social/accounts', (req, res) => {
   }
 });
 
+// Get Recent Messaged Contacts (WhatsApp & Instagram)
+app.get('/api/social/contacts', (req, res) => {
+  try {
+    const contacts = dbManager.getSocialContacts();
+    res.json({ success: true, contacts });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Add / Save Social Contact
+app.post('/api/social/contacts', (req, res) => {
+  try {
+    const contact = dbManager.addSocialContact(req.body);
+    broadcastToClients({ type: 'SOCIAL_CONTACT_ADDED', contact });
+    res.json({ success: true, contact });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Sync Live Contacts from Phone (ADB) & WhatsApp / Instagram
+app.post('/api/social/sync-contacts', async (req, res) => {
+  try {
+    const synced = await phoneController.syncPhoneContacts();
+    let current = dbManager.getSocialContacts();
+    if (synced && synced.length > 0) {
+      for (const sc of synced) {
+        if (!current.some(c => c.phone === sc.phone || (c.ig && c.ig === sc.ig))) {
+          current.unshift(sc);
+        }
+      }
+      dbManager.saveSocialContacts(current);
+      broadcastToClients({ type: 'SOCIAL_CONTACTS_SYNCED', contacts: current });
+      return res.json({ success: true, count: synced.length, contacts: current, source: 'phone_adb' });
+    }
+    return res.json({ success: true, count: current.length, contacts: current, source: 'database' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Direct Automated Message Dispatch (WhatsApp / Instagram)
 app.post('/api/social/send', async (req, res) => {
   const { platform, recipient, recipientName, message, senderOverride } = req.body;

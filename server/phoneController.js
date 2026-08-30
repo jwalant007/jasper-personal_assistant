@@ -448,6 +448,41 @@ const PhoneController = {
     }
   },
 
+  syncPhoneContacts: async () => {
+    let rawContacts = [];
+    try {
+      if (!PhoneController.virtualMode) {
+        // Query Android Contacts Content Provider via ADB
+        const output = await runAdb(`shell "content query --uri content://com.android.contacts/data/phones --projection display_name:data1"`);
+        const rows = output.split('\n');
+        for (const row of rows) {
+          const nameMatch = row.match(/display_name=([^,]+)/);
+          const phoneMatch = row.match(/data1=([^\r\n,]+)/);
+          if (nameMatch && phoneMatch) {
+            const name = nameMatch[1].trim();
+            const phone = phoneMatch[1].trim();
+            if (name && phone && !rawContacts.some(c => c.phone === phone)) {
+              rawContacts.push({
+                id: `c_adb_${Date.now()}_${rawContacts.length}`,
+                name,
+                phone,
+                ig: `@${name.toLowerCase().replace(/[^a-z0-9_]/g, '')}`,
+                platform: 'whatsapp',
+                lastMessage: 'Synced from Android Device Contacts',
+                lastTimestamp: 'Just now',
+                avatarColor: 'from-emerald-500 to-teal-500'
+              });
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.log(`[PhoneController] ADB contact sync notice: ${err.message}`);
+    }
+
+    return rawContacts;
+  },
+
   instagramSend: async (username, message, senderUsername) => {
     const cleanUser = (username || '').replace(/^@/, '').trim();
     const safeMsg = encodeURIComponent(message || '');

@@ -3,7 +3,8 @@ import {
   MessageSquare, Phone, PhoneOff, PhoneCall, Send, Sparkles, Shield, 
   Car, Briefcase, Moon, Bot, Zap, RefreshCw, CheckCircle2, AlertTriangle, 
   Clock, Smartphone, ArrowRight, X, ChevronRight, User, Trash2, Radio,
-  Link2, ExternalLink, Key, Check, Eye, EyeOff, Lock, AtSign
+  Link2, ExternalLink, Key, Check, Eye, EyeOff, Lock, AtSign,
+  Search, Plus, Users, MessageCircle
 } from 'lucide-react';
 import geminiClient from '../utils/geminiClient';
 
@@ -46,15 +47,26 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
   });
 
   const [logs, setLogs] = useState([]);
+  // Recent Messaged Contacts & Chats State
+  const [contactSearch, setContactSearch] = useState('');
+  const [contactFilter, setContactFilter] = useState('all'); // 'all' | 'whatsapp' | 'instagram'
+  const [showAddContactModal, setShowAddContactModal] = useState(false);
+  const [newContactForm, setNewContactForm] = useState({
+    name: '',
+    platform: 'whatsapp',
+    phone: '',
+    ig: ''
+  });
+
   const [contacts, setContacts] = useState([
-    { name: 'Mom', phone: '+91 98200 12345', ig: '@mom_family' },
-    { name: 'Sarah (Office Boss)', phone: '+91 98233 45678', ig: '@sarah_lead' },
-    { name: 'Alex (Auto Mechanic)', phone: '+91 98222 34567', ig: '@alex_mechanic' },
-    { name: 'Dr. Mehta (Dentist)', phone: '+91 98211 23456', ig: '@mehta_clinic' },
-    { name: 'Fatih Makes', phone: '+1 555 382 9901', ig: '@fatihmakes' }
+    { id: 'c1', name: 'Mom', phone: '+91 98200 12345', ig: '@mom_family', platform: 'whatsapp', lastMessage: '🚗 Drive Mode: I\'m currently driving...', lastTimestamp: '10:42 PM', avatarColor: 'from-pink-500 to-rose-500' },
+    { id: 'c2', name: 'Fatih Makes', phone: '+1 555 382 9901', ig: '@fatihmakes', platform: 'instagram', lastMessage: 'Automated test DM sent from Jwalant\'s connected Instagram account!', lastTimestamp: '11:45 PM', avatarColor: 'from-purple-500 to-indigo-500' },
+    { id: 'c3', name: 'Sarah (Office Boss)', phone: '+91 98233 45678', ig: '@sarah_lead', platform: 'whatsapp', lastMessage: '💼 Deep Work Mode: I am currently in a meeting.', lastTimestamp: '08:15 PM', avatarColor: 'from-blue-500 to-cyan-500' },
+    { id: 'c4', name: 'Alex (Auto Mechanic)', phone: '+91 98222 34567', ig: '@alex_mechanic', platform: 'instagram', lastMessage: 'Car inspection report ready for pickup!', lastTimestamp: 'Yesterday', avatarColor: 'from-amber-500 to-orange-500' },
+    { id: 'c5', name: 'Dr. Mehta (Dentist)', phone: '+91 98211 23456', ig: '@mehta_clinic', platform: 'whatsapp', lastMessage: 'Appointment scheduled for Tuesday at 4:00 PM', lastTimestamp: 'Aug 28', avatarColor: 'from-emerald-500 to-teal-500' }
   ]);
 
-  // Load config, accounts & logs from backend
+  // Load config, accounts, contacts & logs from backend
   const fetchConfigAndLogs = async () => {
     try {
       const resConfig = await fetch('http://localhost:3001/api/social/config');
@@ -79,6 +91,12 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
         }));
       }
 
+      const resContacts = await fetch('http://localhost:3001/api/social/contacts');
+      const dataContacts = await resContacts.json();
+      if (dataContacts.success && dataContacts.contacts && dataContacts.contacts.length > 0) {
+        setContacts(dataContacts.contacts);
+      }
+
       const resLogs = await fetch('http://localhost:3001/api/social/logs');
       const dataLogs = await resLogs.json();
       if (dataLogs.success && dataLogs.logs) {
@@ -86,6 +104,76 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
       }
     } catch (e) {
       console.warn('[SocialAutoReply] Error loading from server, using local fallback:', e);
+    }
+  };
+
+  const handleAddContact = async () => {
+    if (!newContactForm.name.trim()) {
+      showBanner('Please enter contact name.', 'error');
+      return;
+    }
+
+    try {
+      const res = await fetch('http://localhost:3001/api/social/contacts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newContactForm.name,
+          platform: newContactForm.platform,
+          phone: newContactForm.phone || '+91 98000 00000',
+          ig: newContactForm.ig ? (newContactForm.ig.startsWith('@') ? newContactForm.ig : `@${newContactForm.ig}`) : '@user',
+          lastMessage: 'Contact linked to JASPER',
+          avatarColor: newContactForm.platform === 'instagram' ? 'from-purple-500 to-pink-500' : 'from-emerald-500 to-teal-500'
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.contact) {
+        setContacts(prev => [data.contact, ...prev]);
+        setShowAddContactModal(false);
+        setNewContactForm({ name: '', platform: 'whatsapp', phone: '', ig: '' });
+        showBanner(`Added ${data.contact.name} to Recent Messaged Contacts!`, 'success');
+      }
+    } catch (e) {
+      const localContact = {
+        id: `c_${Date.now()}`,
+        name: newContactForm.name,
+        platform: newContactForm.platform,
+        phone: newContactForm.phone || '+91 98000 00000',
+        ig: newContactForm.ig ? (newContactForm.ig.startsWith('@') ? newContactForm.ig : `@${newContactForm.ig}`) : '@user',
+        lastMessage: 'Contact linked to JASPER',
+        lastTimestamp: 'Just now',
+        avatarColor: newContactForm.platform === 'instagram' ? 'from-purple-500 to-pink-500' : 'from-emerald-500 to-teal-500'
+      };
+      setContacts(prev => [localContact, ...prev]);
+      setShowAddContactModal(false);
+      setNewContactForm({ name: '', platform: 'whatsapp', phone: '', ig: '' });
+      showBanner(`Added ${localContact.name} locally!`, 'success');
+    }
+  };
+
+  const [isSyncingContacts, setIsSyncingContacts] = useState(false);
+
+  const handleSyncPhoneContacts = async () => {
+    setIsSyncingContacts(true);
+    showBanner('Syncing real contacts & WhatsApp chats from connected phone...', 'info');
+    try {
+      const res = await fetch('http://localhost:3001/api/social/sync-contacts', {
+        method: 'POST'
+      });
+      const data = await res.json();
+      if (data.success && data.contacts) {
+        setContacts(data.contacts);
+        showBanner(
+          data.source === 'phone_adb'
+            ? `Successfully synced ${data.count} real contacts from your phone!`
+            : `Synced ${data.count} contacts from your active database!`,
+          'success'
+        );
+      }
+    } catch (e) {
+      showBanner('Contacts synced from local storage.', 'info');
+    } finally {
+      setIsSyncingContacts(false);
     }
   };
 
@@ -587,6 +675,167 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
 
           </div>
 
+          {/* Recent Messaged Contacts & Chat Threads (WhatsApp & Instagram) */}
+          <div className="bg-slate-900/80 border border-cyan-500/30 rounded-xl p-3.5 flex flex-col gap-3 shadow-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-cyan-500/20 pb-2.5">
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-cyan-400" />
+                <span className="font-orbitron font-bold text-xs text-cyan-200 uppercase tracking-wider">
+                  RECENT MESSAGED CONTACTS
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">
+                  {contacts.length} THREADS
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {/* Filter Tabs */}
+                <div className="flex items-center bg-black/50 p-0.5 rounded-lg border border-cyan-500/30">
+                  <button
+                    type="button"
+                    onClick={() => setContactFilter('all')}
+                    className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold transition-all ${
+                      contactFilter === 'all' ? 'bg-cyan-500/30 text-cyan-200 border border-cyan-400/50' : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    All ({contacts.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setContactFilter('whatsapp')}
+                    className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold transition-all ${
+                      contactFilter === 'whatsapp' ? 'bg-emerald-500/30 text-emerald-200 border border-emerald-400/50' : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    📱 WA ({contacts.filter(c => c.platform === 'whatsapp' || (!c.platform && c.phone)).length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setContactFilter('instagram')}
+                    className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold transition-all ${
+                      contactFilter === 'instagram' ? 'bg-purple-500/30 text-purple-200 border border-purple-400/50' : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    📸 IG ({contacts.filter(c => c.platform === 'instagram' || (!c.platform && c.ig)).length})
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleSyncPhoneContacts}
+                  disabled={isSyncingContacts}
+                  className="px-2.5 py-0.5 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-400/40 text-emerald-200 text-[10px] font-mono font-bold flex items-center gap-1 transition-all shadow-sm disabled:opacity-50"
+                  title="Sync real contacts & WhatsApp chats from connected phone"
+                >
+                  <RefreshCw className={`w-3 h-3 text-emerald-300 ${isSyncingContacts ? 'animate-spin' : ''}`} />
+                  <span>{isSyncingContacts ? 'Syncing...' : 'Sync Phone'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowAddContactModal(true)}
+                  className="px-2.5 py-0.5 rounded-lg bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-400/40 text-cyan-200 text-[10px] font-mono font-bold flex items-center gap-1 transition-all shadow-sm"
+                >
+                  <Plus className="w-3 h-3 text-cyan-300" />
+                  <span>Add Contact</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+              <input
+                type="text"
+                value={contactSearch}
+                onChange={(e) => setContactSearch(e.target.value)}
+                placeholder="Search recent chats by name, handle (@...), or phone (+91...)..."
+                className="w-full pl-8 pr-3 py-1.5 bg-black/60 border border-cyan-500/25 rounded-xl text-xs font-mono text-cyan-200 placeholder-slate-500 focus:outline-none focus:border-cyan-400"
+              />
+            </div>
+
+            {/* Contacts Cards Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-52 overflow-y-auto custom-scrollbar pr-1">
+              {contacts
+                .filter(c => {
+                  if (contactFilter === 'whatsapp') return c.platform === 'whatsapp' || (!c.platform && c.phone);
+                  if (contactFilter === 'instagram') return c.platform === 'instagram' || (!c.platform && c.ig);
+                  return true;
+                })
+                .filter(c => {
+                  if (!contactSearch.trim()) return true;
+                  const q = contactSearch.toLowerCase();
+                  return (
+                    c.name.toLowerCase().includes(q) ||
+                    (c.phone && c.phone.toLowerCase().includes(q)) ||
+                    (c.ig && c.ig.toLowerCase().includes(q)) ||
+                    (c.lastMessage && c.lastMessage.toLowerCase().includes(q))
+                  );
+                })
+                .map((c, i) => {
+                  const isIg = c.platform === 'instagram' || (!c.platform && c.ig && !c.phone);
+                  return (
+                    <div
+                      key={c.id || i}
+                      className="p-2.5 rounded-xl bg-cyan-950/25 border border-cyan-500/20 hover:border-cyan-400/50 flex items-center justify-between gap-2 transition-all group hover:bg-cyan-950/40"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {/* Avatar */}
+                        <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${c.avatarColor || (isIg ? 'from-purple-500 to-pink-500' : 'from-emerald-500 to-teal-500')} flex items-center justify-center font-bold text-white text-xs shadow-md shrink-0`}>
+                          {c.name.charAt(0).toUpperCase()}
+                        </div>
+
+                        <div className="flex flex-col min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-bold text-xs text-slate-100 truncate">{c.name}</span>
+                            <span className={`px-1.5 py-0.2 rounded text-[8px] font-mono font-bold ${
+                              isIg ? 'bg-purple-500/20 text-purple-300 border border-purple-400/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30'
+                            }`}>
+                              {isIg ? 'IG' : 'WA'}
+                            </span>
+                          </div>
+
+                          <span className="text-[10px] text-cyan-300/80 font-mono truncate">
+                            {isIg ? (c.ig || '@user') : (c.phone || '+91...')}
+                          </span>
+
+                          {c.lastMessage && (
+                            <span className="text-[9px] text-slate-400 italic truncate max-w-[140px]">
+                              "{c.lastMessage}"
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col items-end gap-1 shrink-0">
+                        <span className="text-[8px] font-mono text-slate-400">{c.lastTimestamp || 'Recent'}</span>
+                        
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const targetPlat = isIg ? 'instagram' : 'whatsapp';
+                            setPlatform(targetPlat);
+                            setRecipient(isIg ? (c.ig || c.name) : (c.phone || c.name));
+                            setRecipientName(c.name);
+                            showBanner(`Selected ${c.name} for ${targetPlat.toUpperCase()} message!`, 'info');
+                          }}
+                          className={`px-2 py-0.5 rounded-lg text-[9px] font-mono font-bold transition-all shadow-sm flex items-center gap-1 ${
+                            isIg 
+                              ? 'bg-purple-600/40 hover:bg-purple-600/70 border border-purple-400/40 text-purple-200' 
+                              : 'bg-emerald-600/40 hover:bg-emerald-600/70 border border-emerald-400/40 text-emerald-200'
+                          }`}
+                          title="Open in Message Composer"
+                        >
+                          <Send className="w-2.5 h-2.5" />
+                          <span>Message</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+
         </div>
 
         {/* Right Column (5 cols): Test Simulator & Live Activity Audit Logs */}
@@ -610,7 +859,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <button
-                onClick={() => handleSimulateIncomingCall('whatsapp')}
+                onClick={() => handleSimulateIncoming('whatsapp')}
                 className="p-2.5 rounded-xl bg-emerald-950/50 hover:bg-emerald-900/60 border border-emerald-500/40 text-emerald-200 font-mono text-xs font-bold flex flex-col items-center gap-1 transition-all shadow-[0_0_12px_rgba(16,185,129,0.2)]"
               >
                 <div className="flex items-center gap-1.5">
@@ -621,7 +870,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
               </button>
 
               <button
-                onClick={() => handleSimulateIncomingCall('instagram')}
+                onClick={() => handleSimulateIncoming('instagram')}
                 className="p-2.5 rounded-xl bg-purple-950/50 hover:bg-purple-900/60 border border-purple-500/40 text-purple-200 font-mono text-xs font-bold flex flex-col items-center gap-1 transition-all shadow-[0_0_12px_rgba(168,85,247,0.2)]"
               >
                 <div className="flex items-center gap-1.5">
@@ -974,6 +1223,112 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
               </button>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* Add Contact Modal */}
+      {showAddContactModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-950 border border-cyan-500/50 rounded-2xl p-5 max-w-md w-full shadow-[0_0_40px_rgba(6,182,212,0.3)] flex flex-col gap-4 font-sans animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between border-b border-cyan-500/30 pb-3">
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-cyan-400" />
+                <h3 className="font-orbitron font-bold text-sm text-cyan-200 uppercase tracking-wider">
+                  Add Recent Contact
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddContactModal(false)}
+                className="text-slate-400 hover:text-white p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <div>
+                <label className="text-[10px] text-slate-400 font-mono">Contact Name</label>
+                <input
+                  type="text"
+                  value={newContactForm.name}
+                  onChange={(e) => setNewContactForm(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="e.g. Alex (Mechanic) or Sarah"
+                  className="w-full bg-slate-900 border border-cyan-500/40 rounded-lg px-2.5 py-1.5 text-xs text-cyan-200 font-mono mt-0.5 focus:outline-none focus:border-cyan-400"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] text-slate-400 font-mono">Platform</label>
+                <div className="grid grid-cols-2 gap-2 mt-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setNewContactForm(prev => ({ ...prev, platform: 'whatsapp' }))}
+                    className={`py-1.5 rounded-lg border text-xs font-mono font-bold flex items-center justify-center gap-1.5 ${
+                      newContactForm.platform === 'whatsapp'
+                        ? 'bg-emerald-600/30 border-emerald-400 text-emerald-200'
+                        : 'bg-slate-900 border-slate-800 text-slate-400'
+                    }`}
+                  >
+                    <span>📱 WhatsApp</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewContactForm(prev => ({ ...prev, platform: 'instagram' }))}
+                    className={`py-1.5 rounded-lg border text-xs font-mono font-bold flex items-center justify-center gap-1.5 ${
+                      newContactForm.platform === 'instagram'
+                        ? 'bg-purple-600/30 border-purple-400 text-purple-200'
+                        : 'bg-slate-900 border-slate-800 text-slate-400'
+                    }`}
+                  >
+                    <span>📸 Instagram</span>
+                  </button>
+                </div>
+              </div>
+
+              {newContactForm.platform === 'whatsapp' ? (
+                <div>
+                  <label className="text-[10px] text-slate-400 font-mono">WhatsApp Phone Number</label>
+                  <input
+                    type="text"
+                    value={newContactForm.phone}
+                    onChange={(e) => setNewContactForm(prev => ({ ...prev, phone: e.target.value }))}
+                    placeholder="+91 98200 00000"
+                    className="w-full bg-slate-900 border border-emerald-500/40 rounded-lg px-2.5 py-1.5 text-xs text-emerald-200 font-mono mt-0.5 focus:outline-none focus:border-emerald-400"
+                  />
+                </div>
+              ) : (
+                <div>
+                  <label className="text-[10px] text-slate-400 font-mono">Instagram Handle</label>
+                  <input
+                    type="text"
+                    value={newContactForm.ig}
+                    onChange={(e) => setNewContactForm(prev => ({ ...prev, ig: e.target.value }))}
+                    placeholder="@username"
+                    className="w-full bg-slate-900 border border-purple-500/40 rounded-lg px-2.5 py-1.5 text-xs text-purple-200 font-mono mt-0.5 focus:outline-none focus:border-purple-400"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-cyan-500/20">
+              <button
+                type="button"
+                onClick={() => setShowAddContactModal(false)}
+                className="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-mono"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleAddContact}
+                className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs font-mono shadow-md flex items-center gap-1.5"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Save Contact</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

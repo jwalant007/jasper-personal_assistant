@@ -124,6 +124,13 @@ const DEFAULT_SCHEMA = {
     emergencyKeyword: "URGENT",
     whitelistContacts: ["Mom", "Sarah (Office Boss)"]
   },
+  social_contacts: [
+    { id: 'c1', name: 'Mom', phone: '+91 98200 12345', ig: '@mom_family', platform: 'whatsapp', lastMessage: '🚗 Drive Mode: I\'m currently driving...', lastTimestamp: '10:42 PM', avatarColor: 'from-pink-500 to-rose-500' },
+    { id: 'c2', name: 'Fatih Makes', phone: '+1 555 382 9901', ig: '@fatihmakes', platform: 'instagram', lastMessage: 'Automated test DM sent from Jwalant\'s connected Instagram account!', lastTimestamp: '11:45 PM', avatarColor: 'from-purple-500 to-indigo-500' },
+    { id: 'c3', name: 'Sarah (Office Boss)', phone: '+91 98233 45678', ig: '@sarah_lead', platform: 'whatsapp', lastMessage: '💼 Deep Work Mode: I am currently in a meeting.', lastTimestamp: '08:15 PM', avatarColor: 'from-blue-500 to-cyan-500' },
+    { id: 'c4', name: 'Alex (Auto Mechanic)', phone: '+91 98222 34567', ig: '@alex_mechanic', platform: 'instagram', lastMessage: 'Car inspection report ready for pickup!', lastTimestamp: 'Yesterday', avatarColor: 'from-amber-500 to-orange-500' },
+    { id: 'c5', name: 'Dr. Mehta (Dentist)', phone: '+91 98211 23456', ig: '@mehta_clinic', platform: 'whatsapp', lastMessage: 'Appointment scheduled for Tuesday at 4:00 PM', lastTimestamp: 'Aug 28', avatarColor: 'from-emerald-500 to-teal-500' }
+  ],
   social_logs: [
     {
       id: "LOG-01",
@@ -465,6 +472,38 @@ class DatabaseManager {
     };
     this.save();
     return this.data.social_accounts;
+  }
+
+  // --- SOCIAL CONTACTS & RECENT CONVERSATIONS ---
+  getSocialContacts() {
+    if (!this.data.social_contacts) {
+      this.data.social_contacts = JSON.parse(JSON.stringify(DEFAULT_SCHEMA.social_contacts));
+      this.save();
+    }
+    return this.data.social_contacts;
+  }
+
+  saveSocialContacts(contacts) {
+    this.data.social_contacts = contacts;
+    this.save();
+    return this.data.social_contacts;
+  }
+
+  addSocialContact(contact) {
+    const contacts = this.getSocialContacts();
+    const newContact = {
+      id: `c_${Date.now()}`,
+      name: contact.name || 'New Contact',
+      phone: contact.phone || '',
+      ig: contact.ig ? (contact.ig.startsWith('@') ? contact.ig : `@${contact.ig}`) : '',
+      platform: contact.platform || 'whatsapp',
+      lastMessage: contact.lastMessage || '',
+      lastTimestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      avatarColor: contact.avatarColor || 'from-cyan-500 to-blue-500'
+    };
+    contacts.unshift(newContact);
+    this.saveSocialContacts(contacts);
+    return newContact;
   }
 
   // --- SOCIAL AUTO-REPLY & AUTOMATED MESSAGING ---
