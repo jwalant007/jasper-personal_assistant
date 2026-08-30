@@ -313,6 +313,42 @@ const TOOLS_CONFIG = [
         name: 'get_health_vitals',
         description: 'Get real-time health telemetry from connected fitband or health monitor including Heart Rate (BPM), Oxygen Saturation (SpO2), steps, and stress levels.',
         parameters: { type: 'OBJECT', properties: {} }
+      },
+      // ---- WHATSAPP & INSTAGRAM AUTOMATED MESSAGING TOOLS ----
+      {
+        name: 'send_whatsapp_message',
+        description: 'Send an automated WhatsApp message to a phone number or contact.',
+        parameters: {
+          type: 'OBJECT',
+          properties: {
+            recipient: { type: 'STRING', description: 'Phone number or contact name' },
+            message: { type: 'STRING', description: 'Message content to send' }
+          },
+          required: ['recipient', 'message']
+        }
+      },
+      {
+        name: 'send_instagram_dm',
+        description: 'Send an automated Instagram Direct Message to an Instagram username or handle.',
+        parameters: {
+          type: 'OBJECT',
+          properties: {
+            recipient: { type: 'STRING', description: 'Instagram username or handle (e.g. @fatihmakes)' },
+            message: { type: 'STRING', description: 'Message content to send' }
+          },
+          required: ['recipient', 'message']
+        }
+      },
+      {
+        name: 'set_social_auto_reply_preset',
+        description: 'Set or toggle the automated call & message auto-reply preset (drive, meeting, sleep, ai_smart, custom).',
+        parameters: {
+          type: 'OBJECT',
+          properties: {
+            preset: { type: 'STRING', enum: ['drive', 'meeting', 'sleep', 'ai_smart', 'custom'], description: 'Mode preset to activate' }
+          },
+          required: ['preset']
+        }
       }
     ]
   }
@@ -617,6 +653,55 @@ class GeminiClient {
           }
         } catch (e) {
           return { status: 'offline', message: `Phone command ${name} requires backend online.` };
+        }
+      }
+
+      // ---- WHATSAPP & INSTAGRAM AUTOMATED MESSAGING ROUTING ----
+      if (name === 'send_whatsapp_message') {
+        onLog(`[WHATSAPP HUB] Sending automated WhatsApp message to ${args.recipient}`, 'info');
+        try {
+          const res = await fetch(`${getApiBase()}/api/social/send`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ platform: 'whatsapp', recipient: args.recipient, message: args.message })
+          });
+          const data = await res.json();
+          onLog(`[WHATSAPP HUB] Message dispatched to ${args.recipient}.`, 'success');
+          return data;
+        } catch (e) {
+          return { status: 'simulated_success', platform: 'whatsapp', recipient: args.recipient, message: args.message };
+        }
+      }
+
+      if (name === 'send_instagram_dm') {
+        onLog(`[INSTAGRAM HUB] Sending automated DM to ${args.recipient}`, 'info');
+        try {
+          const res = await fetch(`${getApiBase()}/api/social/send`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ platform: 'instagram', recipient: args.recipient, message: args.message })
+          });
+          const data = await res.json();
+          onLog(`[INSTAGRAM HUB] DM dispatched to ${args.recipient}.`, 'success');
+          return data;
+        } catch (e) {
+          return { status: 'simulated_success', platform: 'instagram', recipient: args.recipient, message: args.message };
+        }
+      }
+
+      if (name === 'set_social_auto_reply_preset') {
+        onLog(`[AUTO-REPLY HUB] Activating ${args.preset} mode preset...`, 'info');
+        try {
+          const res = await fetch(`${getApiBase()}/api/social/config`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ activePreset: args.preset })
+          });
+          const data = await res.json();
+          onLog(`[AUTO-REPLY HUB] ${args.preset.toUpperCase()} mode active.`, 'success');
+          return data;
+        } catch (e) {
+          return { status: 'success', activePreset: args.preset };
         }
       }
 

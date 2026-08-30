@@ -1189,8 +1189,132 @@ app.post('/api/phone/whatsapp/reply', async (req, res) => {
   const { number, message } = req.body;
   if (!number || !message) return res.status(400).json({ error: 'Number and message are required' });
   try {
-    const result = await phoneController.whatsappReply(number, message);
+    const result = await phoneController.whatsappSend(number, message);
+    dbManager.addSocialLog({
+      platform: 'whatsapp',
+      type: 'direct_send',
+      recipient: number,
+      incomingTextOrCall: 'Manual WhatsApp Trigger',
+      actionTaken: 'Sent WhatsApp Message',
+      messageSent: message,
+      status: 'Delivered'
+    });
     res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// -------------------------------------------------------------
+// WHATSAPP & INSTAGRAM AUTOMATED MESSAGING & CALL HANDLER ROUTES
+// -------------------------------------------------------------
+
+// Get Auto-Reply Config
+app.get('/api/social/config', (req, res) => {
+  try {
+    const config = dbManager.getSocialAutoReplyConfig();
+    res.json({ success: true, config });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update Auto-Reply Config
+app.post('/api/social/config', (req, res) => {
+  try {
+    const updated = dbManager.saveSocialAutoReplyConfig(req.body);
+    broadcastToClients({ type: 'SOCIAL_CONFIG_UPDATED', config: updated });
+    res.json({ success: true, config: updated });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Direct Automated Message Dispatch (WhatsApp / Instagram)
+app.post('/api/social/send', async (req, res) => {
+  const { platform, recipient, recipientName, message } = req.body;
+  if (!recipient || !message) {
+    return res.status(400).json({ error: 'Recipient and message are required' });
+  }
+
+  try {
+    let result;
+    if (platform === 'instagram') {
+      result = await phoneController.instagramSend(recipient, message);
+    } else {
+      result = await phoneController.whatsappSend(recipient, message);
+    }
+
+    const log = dbManager.addSocialLog({
+      platform: platform || 'whatsapp',
+      type: 'direct_send',
+      recipient,
+      recipientName: recipientName || recipient,
+      incomingTextOrCall: 'Direct Automated Dispatch',
+      actionTaken: `Automated ${platform === 'instagram' ? 'Instagram DM' : 'WhatsApp Message'} Sent`,
+      messageSent: message,
+      status: 'Delivered'
+    });
+
+    broadcastToClients({ type: 'SOCIAL_MESSAGE_SENT', log });
+    res.json({ success: true, result, log });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Incoming Call Auto-Handler & Message Auto-Reply (WhatsApp / Instagram / Cellular)
+app.post('/api/social/call-handler', async (req, res) => {
+  const { caller, callerName, platform, action, customMessage } = req.body;
+  if (!caller) return res.status(400).json({ error: 'Caller identifier required' });
+
+  try {
+    const config = dbManager.getSocialAutoReplyConfig();
+    const messageToSend = customMessage || config.presets[config.activePreset] || config.presets.drive;
+
+    const result = await phoneController.handleCallAutoReply({
+      caller,
+      callerName,
+      platform: platform || 'whatsapp',
+      customMessage: messageToSend,
+      action: action || (config.callAutoDeclineAndMsg ? 'decline_and_reply' : 'reply_only')
+    });
+
+    const log = dbManager.addSocialLog({
+      platform: platform || 'whatsapp',
+      type: 'call_auto_reply',
+      recipient: caller,
+      recipientName: callerName || caller,
+      incomingTextOrCall: `Incoming ${platform === 'instagram' ? 'Instagram' : 'WhatsApp'} Call`,
+      actionTaken: action === 'accept_and_speak' 
+        ? 'Accepted Call & Spoke Voice Response' 
+        : `Declined Call & Auto-Replied with ${config.activePreset.toUpperCase()} Mode Preset`,
+      messageSent: messageToSend,
+      status: 'Delivered'
+    });
+
+    broadcastToClients({ type: 'SOCIAL_CALL_HANDLED', log });
+    res.json({ success: true, result, log });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get Auto-Reply Activity Logs
+app.get('/api/social/logs', (req, res) => {
+  try {
+    const logs = dbManager.getSocialLogs();
+    res.json({ success: true, logs });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Clear Auto-Reply Activity Logs
+app.post('/api/social/logs/clear', (req, res) => {
+  try {
+    const cleared = dbManager.clearSocialLogs();
+    res.json({ success: true, logs: cleared });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

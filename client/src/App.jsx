@@ -28,6 +28,8 @@ import UserManualWidget from './components/UserManualWidget';
 import HealthFitbandWidget from './components/HealthFitbandWidget';
 import LaptopConnectModal from './components/LaptopConnectModal';
 import LiveTranslationWidget from './components/LiveTranslationWidget';
+import SocialAutoReplyWidget from './components/SocialAutoReplyWidget';
+import DraggableModalWrapper from './components/DraggableModalWrapper';
 import JasperOsDesktop from './components/JasperOsDesktop';
 import JasperSearchApp from './components/JasperSearchApp';
 import JasperBrowserApp from './components/JasperBrowserApp';
@@ -49,11 +51,12 @@ import {
   captureWebcamFrameAsBase64,
   syncOwnerProfileFromServer
 } from './utils/faceBiometrics.js';
-import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, BookOpen, Activity, Heart, Laptop, Languages, Box } from 'lucide-react';
+import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, BookOpen, Activity, Heart, Laptop, Languages, Box, MessageSquare } from 'lucide-react';
 
 export default function App() {
   const [jasperState, setJasperState] = useState('idle'); // idle, listening, processing, speaking
   const [showDiagnostics, setShowDiagnostics] = useState(false);
+  const [showSocialAutoReply, setShowSocialAutoReply] = useState(false);
   const [reminders, setReminders] = useState([]);
   const [showReminderAlert, setShowReminderAlert] = useState(null);
   const [tick, setTick] = useState(0);
@@ -923,14 +926,15 @@ export default function App() {
       return;
     }
 
-    // Intercept Voice App Open Commands (e.g. "Jasper open search", "open calculator", "open files")
-    const appOpenRegex = /(open|launch|start|show|run)\s+(search|search engine|files|file manager|explorer|code|code studio|terminal|notes|planner|tasks|calculator|calc|tv|tv remote|phone|android|pc|pc hub|pc command|security|biometrics|browser|web agent|sports|maps|navigation|health|fitband|translator|translation|manual|guide)/i;
+    // Intercept Voice App Open Commands (e.g. "Jasper open search", "open calculator", "open files", "open whatsapp auto reply")
+    const appOpenRegex = /(open|launch|start|show|run)\s+(search|search engine|files|file manager|explorer|code|code studio|terminal|notes|planner|tasks|calculator|calc|tv|tv remote|phone|android|pc|pc hub|pc command|security|biometrics|browser|web agent|sports|maps|navigation|health|fitband|translator|translation|manual|guide|whatsapp|instagram|auto reply|call auto|social auto)/i;
     const appMatch = queryText.match(appOpenRegex);
     if (appMatch) {
       const targetApp = appMatch[2].toLowerCase();
       let openedAppName = 'App';
 
       if (targetApp.includes('search')) { setShowSearchEngine(true); openedAppName = 'JASPER AI Search Engine'; }
+      else if (targetApp.includes('whatsapp') || targetApp.includes('instagram') || targetApp.includes('auto reply') || targetApp.includes('social')) { setShowSocialAutoReply(true); openedAppName = 'WhatsApp & Instagram Auto-Reply Hub'; }
       else if (targetApp.includes('file') || targetApp.includes('explorer')) { setShowFileManager(true); openedAppName = 'JASPER File Explorer'; }
       else if (targetApp.includes('code') || targetApp.includes('terminal')) { setShowCodeStudio(true); openedAppName = 'JASPER Code Studio'; }
       else if (targetApp.includes('note') || targetApp.includes('plan') || targetApp.includes('task')) { setShowNotesPlanner(true); openedAppName = 'JASPER Notes & Task Planner'; }
@@ -1290,6 +1294,9 @@ export default function App() {
               <div className="flex flex-col gap-1.5 border-t border-cyan-500/15 pt-2 mt-1">
                 <span className="font-mono text-[9px] text-cyan-400 font-bold uppercase tracking-widest px-1">Feature Suite</span>
                 
+                <button onClick={() => setShowSocialAutoReply(!showSocialAutoReply)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-emerald-400/60 bg-emerald-500/20 text-emerald-300 font-extrabold shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                  <MessageSquare size={12} className="text-emerald-400 animate-pulse" /> WHATSAPP &amp; IG AUTO-REPLY
+                </button>
                 <button onClick={() => setShowLiveTranslation(!showLiveTranslation)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-blue-400/60 bg-blue-500/20 text-blue-300 font-extrabold shadow-[0_0_15px_rgba(59,130,246,0.35)]">
                   <Languages size={12} className="text-blue-400 animate-pulse" /> CHROME LIVE TRANSLATE
                 </button>
@@ -2385,21 +2392,21 @@ export default function App() {
 
       {/* 1. PC Command Center Modal */}
       {showPcCommand && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <DraggableModalWrapper isOpen={showPcCommand} onClose={() => setShowPcCommand(false)} title="PC Command Center">
           <PcCommandCenterWidget onClose={() => setShowPcCommand(false)} />
-        </div>
+        </DraggableModalWrapper>
       )}
 
       {/* 2. Browser Agent Modal */}
       {showBrowserAgent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <DraggableModalWrapper isOpen={showBrowserAgent} onClose={() => setShowBrowserAgent(false)} title="Autonomous Browser Agent">
           <BrowserAgentWidget onClose={() => setShowBrowserAgent(false)} />
-        </div>
+        </DraggableModalWrapper>
       )}
 
       {/* 3. Personal Assistant Modal */}
       {showPersonalAssistant && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <DraggableModalWrapper isOpen={showPersonalAssistant} onClose={() => setShowPersonalAssistant(false)} title="Personal AI Assistant">
           <PersonalAssistantWidget 
             onClose={() => setShowPersonalAssistant(false)} 
             onSpeakBriefing={(text) => {
@@ -2407,44 +2414,44 @@ export default function App() {
               setShowPersonalAssistant(false);
             }}
           />
-        </div>
+        </DraggableModalWrapper>
       )}
 
       {/* 4. Memory Dashboard Modal */}
       {showMemory && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <DraggableModalWrapper isOpen={showMemory} onClose={() => setShowMemory(false)} title="Semantic Vector Memory">
           <MemoryDashboardWidget onClose={() => setShowMemory(false)} />
-        </div>
+        </DraggableModalWrapper>
       )}
 
       {/* 5. Skills Store Modal */}
       {showSkillsStore && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <DraggableModalWrapper isOpen={showSkillsStore} onClose={() => setShowSkillsStore(false)} title="AI Skills & App Store">
           <SkillsStoreWidget onClose={() => setShowSkillsStore(false)} />
-        </div>
+        </DraggableModalWrapper>
       )}
 
       {/* 6. Analytics Modal */}
       {showAnalytics && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <DraggableModalWrapper isOpen={showAnalytics} onClose={() => setShowAnalytics(false)} title="System Analytics & Insights">
           <AnalyticsWidget onClose={() => setShowAnalytics(false)} />
-        </div>
+        </DraggableModalWrapper>
       )}
 
       {/* 7. Live AI Avatar Modal */}
       {showAvatar && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <DraggableModalWrapper isOpen={showAvatar} onClose={() => setShowAvatar(false)} title="Live AI Avatar & Synthesizer">
           <AiAvatarWidget 
             isSpeaking={jasperState === 'speaking'} 
             isListening={jasperState === 'listening'} 
             onClose={() => setShowAvatar(false)} 
           />
-        </div>
+        </DraggableModalWrapper>
       )}
 
       {/* 8. Security Center Modal */}
       {showSecurity && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <DraggableModalWrapper isOpen={showSecurity} onClose={() => setShowSecurity(false)} title="Biometric Security Center">
           <SecurityCenterWidget 
             hasFaceProfile={hasOwnerProfile()} 
             onTriggerFaceEnroll={() => {
@@ -2454,19 +2461,19 @@ export default function App() {
             }} 
             onClose={() => setShowSecurity(false)} 
           />
-        </div>
+        </DraggableModalWrapper>
       )}
 
       {/* 9. Automation Builder Modal */}
       {showAutomation && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <DraggableModalWrapper isOpen={showAutomation} onClose={() => setShowAutomation(false)} title="Automation Studio">
           <AutomationBuilderWidget onClose={() => setShowAutomation(false)} />
-        </div>
+        </DraggableModalWrapper>
       )}
 
       {/* 10. Mission Control Hero Screen Modal */}
       {showMissionControl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+        <DraggableModalWrapper isOpen={showMissionControl} onClose={() => setShowMissionControl(false)} title="Mission Control Master Hub">
           <MissionControlWidget 
             onClose={() => setShowMissionControl(false)} 
             onNavigate={(target) => {
@@ -2477,55 +2484,55 @@ export default function App() {
               if (target === 'sports') setShowSportsHub(true);
             }}
           />
-        </div>
+        </DraggableModalWrapper>
       )}
 
-      {/* 1. PC Master Control Hub */}
+      {/* 11. PC Master Control Hub */}
       {showPcMasterHub && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+        <DraggableModalWrapper isOpen={showPcMasterHub} onClose={() => setShowPcMasterHub(false)} title="PC Master Control Hub">
           <PcMasterHubWidget onClose={() => setShowPcMasterHub(false)} />
-        </div>
+        </DraggableModalWrapper>
       )}
 
-      {/* 2. Music & Media Master Hub */}
+      {/* 12. Music & Media Master Hub */}
       {showMusicMasterHub && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+        <DraggableModalWrapper isOpen={showMusicMasterHub} onClose={() => setShowMusicMasterHub(false)} title="Music & Audio Master Hub">
           <MusicMasterHubWidget onClose={() => setShowMusicMasterHub(false)} />
-        </div>
+        </DraggableModalWrapper>
       )}
 
-      {/* 3. Smart Devices Master Hub */}
+      {/* 13. Smart Devices Master Hub */}
       {showDevicesMasterHub && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+        <DraggableModalWrapper isOpen={showDevicesMasterHub} onClose={() => setShowDevicesMasterHub(false)} title="Smart Devices Hub">
           <DevicesMasterHubWidget onClose={() => setShowDevicesMasterHub(false)} />
-        </div>
+        </DraggableModalWrapper>
       )}
 
-      {/* 4. AI & 3D Intelligence Master Hub */}
+      {/* 14. AI & 3D Intelligence Master Hub */}
       {showAiMasterHub && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+        <DraggableModalWrapper isOpen={showAiMasterHub} onClose={() => setShowAiMasterHub(false)} title="AI Swarm & Intelligence Hub">
           <AiMasterHubWidget onClose={() => setShowAiMasterHub(false)} />
-        </div>
+        </DraggableModalWrapper>
       )}
 
-      {/* 11. Maps & Navigation Modal */}
+      {/* 15. Maps & Navigation Modal */}
       {showMaps && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+        <DraggableModalWrapper isOpen={showMaps} onClose={() => setShowMaps(false)} title="Spatial Maps & GPS Navigation">
           <MapsWidget onClose={() => setShowMaps(false)} />
-        </div>
+        </DraggableModalWrapper>
       )}
 
-      {/* 12. Football Sports Hub Modal */}
+      {/* 16. Football Sports Hub Modal */}
       {showSportsHub && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+        <DraggableModalWrapper isOpen={showSportsHub} onClose={() => setShowSportsHub(false)} title="Sports & Live Score Hub">
           <SportsHubWidget onClose={() => setShowSportsHub(false)} />
-        </div>
+        </DraggableModalWrapper>
       )}
 
-      {/* 13. Custom Themes Selector Modal */}
+      {/* 17. Custom Themes Selector Modal */}
       {showThemes && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="bg-slate-950/90 border border-purple-500/30 rounded-2xl p-6 text-slate-100 max-w-xl w-full mx-auto relative overflow-hidden backdrop-blur-xl shadow-2xl">
+        <DraggableModalWrapper isOpen={showThemes} onClose={() => setShowThemes(false)} title="Custom UI Themes" maxWidth="max-w-xl">
+          <div className="bg-slate-950/90 border border-purple-500/30 rounded-2xl p-6 text-slate-100 w-full mx-auto relative overflow-hidden backdrop-blur-xl shadow-2xl">
             <div className="flex items-center justify-between border-b border-purple-500/20 pb-4 mb-5">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-purple-500/10 border border-purple-500/40 rounded-xl text-purple-400">
@@ -2569,12 +2576,12 @@ export default function App() {
               ))}
             </div>
           </div>
-        </div>
+        </DraggableModalWrapper>
       )}
 
-      {/* 14. J.A.S.P.E.R. Agentic Actions Modal */}
+      {/* 18. J.A.S.P.E.R. Agentic Actions Modal */}
       {showAgenticActions && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+        <DraggableModalWrapper isOpen={showAgenticActions} onClose={() => { setShowAgenticActions(false); setAgenticQuery(''); }} title="Agentic Shell Actions">
           <AgenticActionsWidget 
             initialQuery={agenticQuery}
             onClose={() => {
@@ -2582,20 +2589,22 @@ export default function App() {
               setAgenticQuery('');
             }} 
           />
-        </div>
+        </DraggableModalWrapper>
       )}
 
-      {/* 15. JASPER User Manual & Guide Modal */}
+      {/* 19. JASPER User Manual & Guide Modal */}
       {showManual && (
-        <UserManualWidget 
-          onClose={() => setShowManual(false)} 
-          onExecuteCommand={(cmd) => handleTextSubmit(cmd)} 
-        />
+        <DraggableModalWrapper isOpen={showManual} onClose={() => setShowManual(false)} title="JASPER Master Guide">
+          <UserManualWidget 
+            onClose={() => setShowManual(false)} 
+            onExecuteCommand={(cmd) => handleTextSubmit(cmd)} 
+          />
+        </DraggableModalWrapper>
       )}
 
-      {/* 16. Health & Fitband Hub Modal */}
+      {/* 20. Health & Fitband Hub Modal */}
       {showHealthHub && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+        <DraggableModalWrapper isOpen={showHealthHub} onClose={() => setShowHealthHub(false)} title="Health & Fitband Hub">
           <div className="max-w-4xl w-full">
             <HealthFitbandWidget 
               onClose={() => setShowHealthHub(false)} 
@@ -2605,18 +2614,20 @@ export default function App() {
               }}
             />
           </div>
-        </div>
+        </DraggableModalWrapper>
       )}
 
-      {/* 17. Connect to Laptop Mode Modal */}
+      {/* 21. Connect to Laptop Mode Modal */}
       {showLaptopConnect && (
-        <LaptopConnectModal 
-          onClose={() => setShowLaptopConnect(false)} 
-          onLog={(text, type) => console.log(`[LAPTOP] ${text}`)}
-        />
+        <DraggableModalWrapper isOpen={showLaptopConnect} onClose={() => setShowLaptopConnect(false)} title="Dual Laptop Cluster Link">
+          <LaptopConnectModal 
+            onClose={() => setShowLaptopConnect(false)} 
+            onLog={(text, type) => console.log(`[LAPTOP] ${text}`)}
+          />
+        </DraggableModalWrapper>
       )}
 
-      {/* 18. Chrome-Style Live Translation Overlay */}
+      {/* 22. Chrome-Style Live Translation Overlay */}
       <LiveTranslationWidget 
         isOpen={showLiveTranslation} 
         onClose={() => setShowLiveTranslation(false)} 
@@ -2624,9 +2635,16 @@ export default function App() {
         onToggleAutoTranslate={(val) => setAutoTranslateEnabled(val)}
       />
 
-      {/* 20. 3D Holographic Visualizer Modal */}
+      {/* 23. WhatsApp & Instagram Automated Messaging & Call Hub Modal */}
+      {showSocialAutoReply && (
+        <DraggableModalWrapper isOpen={showSocialAutoReply} onClose={() => setShowSocialAutoReply(false)} title="WhatsApp & Instagram Auto-Reply Hub">
+          <SocialAutoReplyWidget onClose={() => setShowSocialAutoReply(false)} />
+        </DraggableModalWrapper>
+      )}
+
+      {/* 24. 3D Holographic Visualizer Modal */}
       {showHologramModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
+        <DraggableModalWrapper isOpen={showHologramModal} onClose={() => { setShowHologramModal(false); setHologramQuery(''); }} title="3D Hologram Blueprint Studio">
           <HolographicAnswerModal 
             initialQuery={hologramQuery}
             onClose={() => {
@@ -2634,62 +2652,56 @@ export default function App() {
               setHologramQuery('');
             }} 
           />
-        </div>
+        </DraggableModalWrapper>
       )}
 
       {/* Voice Triggered Standalone App Overlay Windows */}
       {showSearchEngine && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+        <DraggableModalWrapper isOpen={showSearchEngine} onClose={() => setShowSearchEngine(false)} title="JASPER AI Search Engine">
           <div className="w-[95vw] max-w-4xl h-[85vh] max-h-[640px] relative my-auto flex flex-col">
-            <button onClick={() => setShowSearchEngine(false)} className="absolute top-2 right-2 text-cyan-400 hover:text-white font-mono text-xs z-10 bg-cyan-950/80 px-2 py-1 rounded border border-cyan-500/30">✕ Close</button>
             <JasperSearchApp />
           </div>
-        </div>
+        </DraggableModalWrapper>
       )}
 
       {showBrowser && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+        <DraggableModalWrapper isOpen={showBrowser} onClose={() => setShowBrowser(false)} title="JASPER Web Browser">
           <div className="w-[95vw] max-w-5xl h-[85vh] max-h-[680px] relative my-auto flex flex-col">
-            <button onClick={() => setShowBrowser(false)} className="absolute top-2 right-2 text-cyan-400 hover:text-white font-mono text-xs z-10 bg-cyan-950/80 px-2 py-1 rounded border border-cyan-500/30">✕ Close</button>
             <JasperBrowserApp />
           </div>
-        </div>
+        </DraggableModalWrapper>
       )}
 
       {showFileManager && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+        <DraggableModalWrapper isOpen={showFileManager} onClose={() => setShowFileManager(false)} title="JASPER File Explorer">
           <div className="w-[95vw] max-w-4xl h-[85vh] max-h-[600px] relative my-auto flex flex-col">
-            <button onClick={() => setShowFileManager(false)} className="absolute top-2 right-2 text-cyan-400 hover:text-white font-mono text-xs z-10 bg-cyan-950/80 px-2 py-1 rounded border border-cyan-500/30">✕ Close</button>
             <JasperFileManagerApp />
           </div>
-        </div>
+        </DraggableModalWrapper>
       )}
 
       {showCodeStudio && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+        <DraggableModalWrapper isOpen={showCodeStudio} onClose={() => setShowCodeStudio(false)} title="JASPER Code Studio">
           <div className="w-[95vw] max-w-5xl h-[85vh] max-h-[660px] relative my-auto flex flex-col">
-            <button onClick={() => setShowCodeStudio(false)} className="absolute top-2 right-2 text-cyan-400 hover:text-white font-mono text-xs z-10 bg-cyan-950/80 px-2 py-1 rounded border border-cyan-500/30">✕ Close</button>
             <JasperCodeStudioApp />
           </div>
-        </div>
+        </DraggableModalWrapper>
       )}
 
       {showNotesPlanner && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+        <DraggableModalWrapper isOpen={showNotesPlanner} onClose={() => setShowNotesPlanner(false)} title="JASPER Notes & Task Planner">
           <div className="w-[95vw] max-w-4xl h-[85vh] max-h-[620px] relative my-auto flex flex-col">
-            <button onClick={() => setShowNotesPlanner(false)} className="absolute top-2 right-2 text-cyan-400 hover:text-white font-mono text-xs z-10 bg-cyan-950/80 px-2 py-1 rounded border border-cyan-500/30">✕ Close</button>
             <JasperNotesPlannerApp />
           </div>
-        </div>
+        </DraggableModalWrapper>
       )}
 
       {showCalculator && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+        <DraggableModalWrapper isOpen={showCalculator} onClose={() => setShowCalculator(false)} title="JASPER Scientific Calculator">
           <div className="w-[95vw] max-w-3xl h-[85vh] max-h-[560px] relative my-auto flex flex-col">
-            <button onClick={() => setShowCalculator(false)} className="absolute top-2 right-2 text-cyan-400 hover:text-white font-mono text-xs z-10 bg-cyan-950/80 px-2 py-1 rounded border border-cyan-500/30">✕ Close</button>
             <JasperCalculatorApp />
           </div>
-        </div>
+        </DraggableModalWrapper>
       )}
 
       {/* 19. Lightbox Image Preview Modal */}

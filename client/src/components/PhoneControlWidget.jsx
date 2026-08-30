@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import { API_BASE } from '../utils/apiConfig.js';
 import { getPhoneBrainMode, setPhoneBrainMode, togglePhoneBrainMode } from '../utils/mobileBrain.js';
+import SocialAutoReplyWidget from './SocialAutoReplyWidget';
 
 function AppIcon({ packageName, cleanName }) {
   const [iconUrl, setIconUrl] = useState(null);
@@ -152,6 +153,7 @@ export default function PhoneControlWidget() {
   const [screenImg, setScreenImg] = useState(null);
   const [isLiveMirroring, setIsLiveMirroring] = useState(true);
   const [isCapturingScreen, setIsCapturingScreen] = useState(false);
+  const [showSocialModal, setShowSocialModal] = useState(false);
 
   // Group apps by category
   const categorizedApps = {
@@ -585,6 +587,31 @@ export default function PhoneControlWidget() {
         <span className="text-[9px] font-mono text-cyan-300 w-6">{brightness}%</span>
       </div>
 
+      {/* WhatsApp & Instagram Automated Message & Call Hub Quick Launcher */}
+      <div className="border border-emerald-500/40 rounded-xl p-3 bg-gradient-to-r from-emerald-950/40 via-cyan-950/30 to-purple-950/40 flex items-center justify-between shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 rounded-lg bg-emerald-500/20 border border-emerald-400/50 text-emerald-300">
+            <MessageSquare size={16} className="animate-pulse" />
+          </div>
+          <div>
+            <div className="text-xs font-mono font-bold text-cyan-200 uppercase tracking-wider flex items-center gap-1.5">
+              <span>WhatsApp &amp; IG Auto-Reply</span>
+              <span className="px-1.5 py-0.2 rounded text-[8px] bg-emerald-500/30 text-emerald-300 font-extrabold border border-emerald-500/40">PRO</span>
+            </div>
+            <div className="text-[10px] text-slate-400 font-mono">
+              Hands-free call handling, auto-replies &amp; AI DMs
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={() => setShowSocialModal(true)}
+          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-mono font-bold flex items-center gap-1 shadow-[0_0_12px_rgba(16,185,129,0.3)] transition-all"
+        >
+          <span>Open Hub</span>
+          <ChevronRight size={14} />
+        </button>
+      </div>
+
       {/* CATEGORIZED APP FOLDERS & LAUNCHER SECTION */}
       <div className="border border-cyan-500/30 rounded-xl p-3 bg-slate-950/60 shadow-xl flex flex-col gap-3">
         <div className="flex justify-between items-center border-b border-cyan-500/20 pb-2">
@@ -767,6 +794,13 @@ export default function PhoneControlWidget() {
           </button>
         </div>
       </div>
+
+      {/* WhatsApp & Instagram Auto-Reply Modal */}
+      {showSocialModal && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 bg-black/85 backdrop-blur-md overflow-y-auto">
+          <SocialAutoReplyWidget onClose={() => setShowSocialModal(false)} />
+        </div>
+      )}
     </div>
   );
 }

@@ -29,18 +29,20 @@ import MapsWidget from './MapsWidget';
 import HealthFitbandWidget from './HealthFitbandWidget';
 import LiveTranslationWidget from './LiveTranslationWidget';
 import UserManualWidget from './UserManualWidget';
+import SocialAutoReplyWidget from './SocialAutoReplyWidget';
 import JasperSearchApp from './JasperSearchApp';
 import JasperBrowserApp from './JasperBrowserApp';
 import JasperFileManagerApp from './JasperFileManagerApp';
 import JasperCodeStudioApp from './JasperCodeStudioApp';
 import JasperNotesPlannerApp from './JasperNotesPlannerApp';
 import JasperCalculatorApp from './JasperCalculatorApp';
-import { Calculator, FileCode, Compass } from 'lucide-react';
+import { Calculator, FileCode, Compass, MessageSquare } from 'lucide-react';
 
 /**
- * ALL NATIVE JASPER OS APPLICATIONS REGISTRY (29 NATIVE APPS)
+ * ALL NATIVE JASPER OS APPLICATIONS REGISTRY (30 NATIVE APPS)
  */
 const JASPER_OS_APPS_REGISTRY = [
+  { id: 'socialAutoReply', title: 'WhatsApp & IG Auto-Reply App', category: 'Hardware Control', icon: MessageSquare, component: SocialAutoReplyWidget, defaultSize: { w: 720, h: 540 } },
   { id: 'jasperBrowser', title: 'JASPER Browser App', category: 'Productivity & Tools', icon: Compass, component: JasperBrowserApp, defaultSize: { w: 820, h: 580 } },
   { id: 'searchEngine', title: 'JASPER AI Search Engine App', category: 'Productivity & Tools', icon: Search, component: JasperSearchApp, defaultSize: { w: 760, h: 560 } },
   { id: 'fileManager', title: 'JASPER OS File Explorer & Disk App', category: 'System & Hardware', icon: HardDrive, component: JasperFileManagerApp, defaultSize: { w: 680, h: 500 } },
@@ -81,27 +83,18 @@ function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFo
   const [isMaximized, setIsMaximized] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
-  const [isMobileScreen, setIsMobileScreen] = useState(typeof window !== 'undefined' ? window.innerWidth <= 768 : false);
   const dragStartRef = useRef({ x: 0, y: 0, posX: 0, posY: 0 });
   const resizeStartRef = useRef({ x: 0, y: 0, w: 0, h: 0 });
 
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobileScreen(window.innerWidth <= 768);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
   const handleHeaderMouseDown = (e) => {
-    if (e.target.closest('.window-control-btn') || isMaximized || isMobileScreen) return;
+    if (e.target.closest('.window-control-btn') || isMaximized) return;
     onFocus(id);
     setIsDragging(true);
     dragStartRef.current = { x: e.clientX, y: e.clientY, posX: pos.x, posY: pos.y };
   };
 
   const handleHeaderTouchStart = (e) => {
-    if (e.target.closest('.window-control-btn') || isMaximized || isMobileScreen) return;
+    if (e.target.closest('.window-control-btn') || isMaximized) return;
     onFocus(id);
     setIsDragging(true);
     const touch = e.touches[0];
@@ -129,15 +122,15 @@ function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFo
         const dx = clientX - dragStartRef.current.x;
         const dy = clientY - dragStartRef.current.y;
         setPos({
-          x: Math.max(8, Math.min(window.innerWidth - 100, dragStartRef.current.posX + dx)),
-          y: Math.max(48, Math.min(window.innerHeight - 80, dragStartRef.current.posY + dy))
+          x: dragStartRef.current.posX + dx,
+          y: Math.max(48, dragStartRef.current.posY + dy)
         });
       } else if (isResizing) {
         const dw = clientX - resizeStartRef.current.x;
         const dh = clientY - resizeStartRef.current.y;
         setSize({
-          w: Math.max(300, resizeStartRef.current.w + dw),
-          h: Math.max(240, resizeStartRef.current.h + dh)
+          w: Math.max(280, resizeStartRef.current.w + dw),
+          h: Math.max(200, resizeStartRef.current.h + dh)
         });
       }
     };
@@ -170,22 +163,21 @@ function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFo
 
   if (isMinimized) return null;
 
-  const isMobile = isMobileScreen;
-  const windowStyle = (isMaximized || isMobile) ? {
-    top: isMobile ? '52px' : '48px',
-    left: isMobile ? '8px' : '0px',
-    width: isMobile ? 'calc(100vw - 16px)' : '100vw',
-    height: isMobile ? 'calc(100vh - 115px)' : 'calc(100vh - 105px)',
-    maxWidth: isMobile ? 'calc(100vw - 16px)' : '100vw',
-    maxHeight: isMobile ? 'calc(100vh - 115px)' : '100vh',
+  const windowStyle = isMaximized ? {
+    top: '48px',
+    left: '0px',
+    width: '100vw',
+    height: 'calc(100vh - 105px)',
+    maxWidth: '100vw',
+    maxHeight: '100vh',
     zIndex: zIndex + 10
   } : {
-    top: `${Math.max(50, Math.min(pos.y, (window.innerHeight || 800) - 80))}px`,
-    left: `${Math.max(8, Math.min(pos.x, (window.innerWidth || 1200) - (size.w || 400) - 8))}px`,
-    width: `${Math.min(size.w, (window.innerWidth || 1200) - 16)}px`,
-    height: `${Math.min(size.h, (window.innerHeight || 800) - 100)}px`,
+    top: `${Math.max(48, pos.y)}px`,
+    left: `${pos.x}px`,
+    width: `${Math.min(size.w, (typeof window !== 'undefined' ? window.innerWidth - 16 : 800))}px`,
+    height: `${Math.min(size.h, (typeof window !== 'undefined' ? window.innerHeight - 90 : 600))}px`,
     maxWidth: 'calc(100vw - 16px)',
-    maxHeight: 'calc(100vh - 105px)',
+    maxHeight: 'calc(100vh - 90px)',
     zIndex
   };
 
@@ -194,13 +186,15 @@ function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFo
       onMouseDown={() => onFocus(id)}
       onTouchStart={() => onFocus(id)}
       style={windowStyle}
-      className="absolute flex flex-col rounded-xl bg-cyan-950/90 sm:bg-cyan-950/45 border border-cyan-400/40 backdrop-blur-2xl shadow-[0_10px_40px_rgba(0,0,0,0.7)] overflow-hidden transition-shadow duration-200"
+      className={`absolute flex flex-col rounded-xl bg-cyan-950/90 sm:bg-cyan-950/45 border border-cyan-400/40 backdrop-blur-2xl shadow-[0_10px_40px_rgba(0,0,0,0.7)] overflow-hidden transition-shadow duration-200 ${
+        isDragging ? 'ring-2 ring-cyan-400 shadow-[0_0_50px_rgba(0,240,255,0.4)] select-none' : ''
+      }`}
     >
       {/* Window Header Bar */}
       <div
         onMouseDown={handleHeaderMouseDown}
         onTouchStart={handleHeaderTouchStart}
-        className="px-3 py-2 sm:px-3.5 sm:py-2.5 bg-cyan-950/90 border-b border-cyan-500/30 flex items-center justify-between cursor-move select-none backdrop-blur-xl shrink-0"
+        className="px-3 py-2 sm:px-3.5 sm:py-2 bg-cyan-950/90 border-b border-cyan-500/30 flex items-center justify-between cursor-grab active:cursor-grabbing select-none backdrop-blur-xl shrink-0"
       >
         <div className="flex items-center gap-1.5 sm:gap-2 text-cyan-300 font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wider truncate max-w-[60%]">
           <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400 shrink-0" />
@@ -215,15 +209,13 @@ function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFo
           >
             <Minus className="w-3.5 h-3.5" />
           </button>
-          {!isMobile && (
-            <button
-              onClick={() => setIsMaximized(!isMaximized)}
-              className="window-control-btn p-1 sm:p-1.5 rounded-md text-cyan-400 hover:bg-cyan-500/20 hover:text-cyan-200 transition-colors"
-              title={isMaximized ? "Restore App Window" : "Maximize App Window"}
-            >
-              {isMaximized ? <Square className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
-            </button>
-          )}
+          <button
+            onClick={() => setIsMaximized(!isMaximized)}
+            className="window-control-btn p-1 sm:p-1.5 rounded-md text-cyan-400 hover:bg-cyan-500/20 hover:text-cyan-200 transition-colors"
+            title={isMaximized ? "Restore App Window" : "Maximize App Window"}
+          >
+            {isMaximized ? <Square className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+          </button>
           <button
             onClick={() => onClose(id)}
             className="window-control-btn p-1 sm:p-1.5 rounded-md text-rose-400 hover:bg-rose-500/20 hover:text-rose-200 transition-colors"
@@ -240,7 +232,7 @@ function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFo
       </div>
 
       {/* Resize Handle */}
-      {!isMaximized && !isMobile && (
+      {!isMaximized && (
         <div
           onMouseDown={handleResizeMouseDown}
           onTouchStart={handleResizeTouchStart}
