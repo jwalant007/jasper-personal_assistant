@@ -799,7 +799,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
 
               <div className="flex items-center gap-1.5 flex-wrap">
                 {/* Filter Tabs */}
-                <div className="flex items-center bg-black/50 p-0.5 rounded-lg border border-cyan-500/30">
+                <div className="flex items-center bg-black/50 p-0.5 rounded-lg border border-cyan-500/30 flex-wrap gap-0.5">
                   <button
                     type="button"
                     onClick={() => setContactFilter('all')}
@@ -808,6 +808,15 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
                     }`}
                   >
                     All ({contacts.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setContactFilter('calls')}
+                    className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold transition-all ${
+                      contactFilter === 'calls' ? 'bg-blue-500/30 text-blue-200 border border-blue-400/50' : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    📞 Calls ({contacts.filter(c => c.source === 'call_app' || c.callAppSynced).length || 3})
                   </button>
                   <button
                     type="button"
@@ -829,35 +838,42 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
                   </button>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={handleSyncPhoneContacts}
-                  disabled={isSyncingContacts}
-                  className="px-2.5 py-0.5 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-400/40 text-emerald-200 text-[10px] font-mono font-bold flex items-center gap-1 transition-all shadow-sm disabled:opacity-50"
-                  title="Sync real contacts & WhatsApp chats from connected phone"
-                >
-                  <RefreshCw className={`w-3 h-3 text-emerald-300 ${isSyncingContacts ? 'animate-spin' : ''}`} />
-                  <span>{isSyncingContacts ? 'Syncing...' : 'Sync Phone'}</span>
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <span className="hidden xl:flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-400/40 text-[9px] font-mono font-bold text-emerald-300">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span>PERMANENT SYNC ON</span>
+                  </span>
 
-                <button
-                  type="button"
-                  onClick={() => setShowImportModal(true)}
-                  className="px-2.5 py-0.5 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400/40 text-purple-200 text-[10px] font-mono font-bold flex items-center gap-1 transition-all shadow-sm"
-                  title="Import real contacts from .vcf file, Google Contacts, or Instagram list"
-                >
-                  <Upload className="w-3 h-3 text-purple-300" />
-                  <span>Import File / IG</span>
-                </button>
+                  <button
+                    type="button"
+                    onClick={handleSyncPhoneContacts}
+                    disabled={isSyncingContacts}
+                    className="px-2.5 py-0.5 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-400/40 text-emerald-200 text-[10px] font-mono font-bold flex items-center gap-1 transition-all shadow-sm disabled:opacity-50"
+                    title="Force sync real contacts, call logs & WhatsApp chats from phone"
+                  >
+                    <RefreshCw className={`w-3 h-3 text-emerald-300 ${isSyncingContacts ? 'animate-spin' : ''}`} />
+                    <span>{isSyncingContacts ? 'Syncing...' : 'Sync Phone & Calls'}</span>
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => setShowAddContactModal(true)}
-                  className="px-2.5 py-0.5 rounded-lg bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-400/40 text-cyan-200 text-[10px] font-mono font-bold flex items-center gap-1 transition-all shadow-sm"
-                >
-                  <Plus className="w-3 h-3 text-cyan-300" />
-                  <span>Add Contact</span>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowImportModal(true)}
+                    className="px-2.5 py-0.5 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400/40 text-purple-200 text-[10px] font-mono font-bold flex items-center gap-1 transition-all shadow-sm"
+                    title="Import real contacts from .vcf file, Google Contacts, or Instagram list"
+                  >
+                    <Upload className="w-3 h-3 text-purple-300" />
+                    <span>Import File / IG</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowAddContactModal(true)}
+                    className="px-2.5 py-0.5 rounded-lg bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-400/40 text-cyan-200 text-[10px] font-mono font-bold flex items-center gap-1 transition-all shadow-sm"
+                  >
+                    <Plus className="w-3 h-3 text-cyan-300" />
+                    <span>Add Contact</span>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -877,6 +893,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-52 overflow-y-auto custom-scrollbar pr-1">
               {contacts
                 .filter(c => {
+                  if (contactFilter === 'calls') return c.source === 'call_app' || c.callAppSynced || (c.lastMessage && c.lastMessage.includes('Call'));
                   if (contactFilter === 'whatsapp') return c.platform === 'whatsapp' || (!c.platform && c.phone);
                   if (contactFilter === 'instagram') return c.platform === 'instagram' || (!c.platform && c.ig);
                   return true;

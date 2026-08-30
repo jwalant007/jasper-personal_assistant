@@ -452,32 +452,131 @@ const PhoneController = {
     let rawContacts = [];
     try {
       if (!PhoneController.virtualMode) {
-        // Query Android Contacts Content Provider via ADB
-        const output = await runAdb(`shell "content query --uri content://com.android.contacts/data/phones --projection display_name:data1"`);
-        const rows = output.split('\n');
-        for (const row of rows) {
-          const nameMatch = row.match(/display_name=([^,]+)/);
-          const phoneMatch = row.match(/data1=([^\r\n,]+)/);
-          if (nameMatch && phoneMatch) {
-            const name = nameMatch[1].trim();
-            const phone = phoneMatch[1].trim();
-            if (name && phone && !rawContacts.some(c => c.phone === phone)) {
-              rawContacts.push({
-                id: `c_adb_${Date.now()}_${rawContacts.length}`,
-                name,
-                phone,
-                ig: `@${name.toLowerCase().replace(/[^a-z0-9_]/g, '')}`,
-                platform: 'whatsapp',
-                lastMessage: 'Synced from Android Device Contacts',
-                lastTimestamp: 'Just now',
-                avatarColor: 'from-emerald-500 to-teal-500'
-              });
+        // 1. Query Phone Dialer Contacts Address Book
+        try {
+          const contactOutput = await runAdb(`shell "content query --uri content://com.android.contacts/data/phones --projection display_name:data1"`);
+          const rows = contactOutput.split('\n');
+          for (const row of rows) {
+            const nameMatch = row.match(/display_name=([^,]+)/);
+            const phoneMatch = row.match(/data1=([^\r\n,]+)/);
+            if (nameMatch && phoneMatch) {
+              const name = nameMatch[1].trim();
+              const phone = phoneMatch[1].trim();
+              if (name && phone && !rawContacts.some(c => c.phone === phone)) {
+                rawContacts.push({
+                  id: `c_phone_${phone.replace(/[^0-9]/g, '')}`,
+                  name,
+                  phone,
+                  ig: `@${name.toLowerCase().replace(/[^a-z0-9_]/g, '')}`,
+                  platform: 'whatsapp',
+                  source: 'phone_dialer',
+                  lastMessage: 'Synced from Phone Address Book',
+                  lastTimestamp: 'Phone Synced',
+                  avatarColor: 'from-emerald-500 to-teal-500'
+                });
+              }
             }
           }
+        } catch (e) {
+          console.log(`[PhoneController] Notice on phone contacts query: ${e.message}`);
+        }
+
+        // 2. Query Call App (Call Logs - Incoming, Outgoing, Missed Calls)
+        try {
+          const callLogOutput = await runAdb(`shell "content query --uri content://call_log/calls --projection number:name:type:date:duration"`);
+          const callRows = callLogOutput.split('\n');
+          for (const row of callRows) {
+            const numMatch = row.match(/number=([^,]+)/);
+            const nameMatch = row.match(/name=([^,]+)/);
+            const typeMatch = row.match(/type=([^,]+)/);
+            const dateMatch = row.match(/date=([^,]+)/);
+            
+            if (numMatch) {
+              const phone = numMatch[1].trim();
+              const name = (nameMatch && nameMatch[1] && nameMatch[1] !== 'null') ? nameMatch[1].trim() : `Caller ${phone}`;
+              const callType = typeMatch ? parseInt(typeMatch[1]) : 1;
+              const typeStr = callType === 3 ? 'Missed Call' : callType === 2 ? 'Outgoing Call' : 'Incoming Call';
+              const dateStr = dateMatch ? new Date(parseInt(dateMatch[1])).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent';
+
+              const existingIdx = rawContacts.findIndex(c => c.phone === phone);
+              if (existingIdx >= 0) {
+                rawContacts[existingIdx].lastMessage = `📞 ${typeStr} logged from Phone Call App`;
+                rawContacts[existingIdx].lastTimestamp = dateStr;
+                rawContacts[existingIdx].callAppSynced = true;
+              } else if (phone && phone !== '-1' && phone !== 'null') {
+                rawContacts.push({
+                  id: `c_call_${phone.replace(/[^0-9]/g, '')}`,
+                  name,
+                  phone,
+                  ig: `@${name.toLowerCase().replace(/[^a-z0-9_]/g, '')}`,
+                  platform: 'whatsapp',
+                  source: 'call_app',
+                  lastMessage: `📞 ${typeStr} in Call App`,
+                  lastTimestamp: dateStr,
+                  avatarColor: callType === 3 ? 'from-rose-500 to-amber-500' : 'from-blue-500 to-cyan-500'
+                });
+              }
+            }
+          }
+        } catch (e) {
+          console.log(`[PhoneController] Notice on call log query: ${e.message}`);
+        }
+
+        // 3. Query Active WhatsApp and Instagram Notification Threads
+        try {
+          const notifs = await PhoneController.notifications();
+          for (const n of notifs) {
+            if (n.package === 'com.whatsapp' && n.title) {
+              const waName = n.title.replace(/\s*\(\d+\s*messages?\)/i, '').trim();
+              const waMsg = n.text || 'Active WhatsApp conversation';
+              const existing = rawContacts.find(c => c.name.toLowerCase() === waName.toLowerCase());
+              if (existing) {
+                existing.lastMessage = `💬 WA: "${waMsg}"`;
+                existing.lastTimestamp = 'Live WA';
+                existing.platform = 'whatsapp';
+              } else {
+                rawContacts.unshift({
+                  id: `c_wa_${Date.now()}_${rawContacts.length}`,
+                  name: waName,
+                  phone: '+91 98000 00000',
+                  ig: `@${waName.toLowerCase().replace(/[^a-z0-9_]/g, '')}`,
+                  platform: 'whatsapp',
+                  source: 'whatsapp_live',
+                  lastMessage: `💬 WA: "${waMsg}"`,
+                  lastTimestamp: 'Live WA',
+                  avatarColor: 'from-emerald-500 to-teal-500'
+                });
+              }
+            } else if (n.package === 'com.instagram.android' && n.title) {
+              const igUser = n.title.split(/[:\s]/)[0].trim();
+              const igMsg = n.text || 'Active Instagram DM thread';
+              const cleanIg = igUser.startsWith('@') ? igUser : `@${igUser}`;
+              const existing = rawContacts.find(c => c.ig.toLowerCase() === cleanIg.toLowerCase() || c.name.toLowerCase() === igUser.toLowerCase());
+              if (existing) {
+                existing.lastMessage = `📸 IG: "${igMsg}"`;
+                existing.lastTimestamp = 'Live IG';
+                existing.platform = 'instagram';
+              } else {
+                rawContacts.unshift({
+                  id: `c_ig_${Date.now()}_${rawContacts.length}`,
+                  name: igUser.replace(/^@/, ''),
+                  phone: '+91 98000 00000',
+                  ig: cleanIg,
+                  platform: 'instagram',
+                  source: 'instagram_live',
+                  lastMessage: `📸 IG: "${igMsg}"`,
+                  lastTimestamp: 'Live IG',
+                  avatarColor: 'from-purple-500 to-pink-500'
+                });
+              }
+            }
+          }
+        } catch (e) {
+          console.log(`[PhoneController] Notice on notification query: ${e.message}`);
         }
       }
     } catch (err) {
-      console.log(`[PhoneController] ADB contact sync notice: ${err.message}`);
+      console.log(`[PhoneController] Multi-source contact sync notice: ${err.message}`);
     }
 
     return rawContacts;

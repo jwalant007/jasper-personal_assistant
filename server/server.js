@@ -1323,6 +1323,36 @@ app.post('/api/social/sync-contacts', async (req, res) => {
   }
 });
 
+// --- PERMANENT AUTOMATED BACKGROUND SYNC DAEMON ---
+// Syncs Call App (Call logs & Contacts), WhatsApp and Instagram every 45s continuously
+setInterval(async () => {
+  try {
+    const synced = await phoneController.syncPhoneContacts();
+    if (synced && synced.length > 0) {
+      let current = dbManager.getSocialContacts();
+      let updated = false;
+      for (const sc of synced) {
+        const existingIdx = current.findIndex(c => c.phone === sc.phone || (c.ig && c.ig === sc.ig));
+        if (existingIdx >= 0) {
+          if (sc.lastMessage && sc.lastMessage !== current[existingIdx].lastMessage) {
+            current[existingIdx].lastMessage = sc.lastMessage;
+            current[existingIdx].lastTimestamp = sc.lastTimestamp;
+            updated = true;
+          }
+        } else {
+          current.unshift(sc);
+          updated = true;
+        }
+      }
+      if (updated) {
+        dbManager.saveSocialContacts(current);
+        broadcastToClients({ type: 'SOCIAL_CONTACTS_SYNCED', contacts: current });
+        console.log(`[PermanentSyncDaemon] Background contacts sync completed: ${current.length} total active threads.`);
+      }
+    }
+  } catch (e) {}
+}, 45000);
+
 // Direct Automated Message Dispatch (WhatsApp / Instagram)
 app.post('/api/social/send', async (req, res) => {
   const { platform, recipient, recipientName, message, senderOverride } = req.body;
