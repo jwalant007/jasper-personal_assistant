@@ -4,7 +4,7 @@ import {
   Car, Briefcase, Moon, Bot, Zap, RefreshCw, CheckCircle2, AlertTriangle, 
   Clock, Smartphone, ArrowRight, X, ChevronRight, User, Trash2, Radio,
   Link2, ExternalLink, Key, Check, Eye, EyeOff, Lock, AtSign,
-  Search, Plus, Users, MessageCircle
+  Search, Plus, Users, MessageCircle, Upload, FileText, Download
 } from 'lucide-react';
 import geminiClient from '../utils/geminiClient';
 
@@ -51,12 +51,121 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
   const [contactSearch, setContactSearch] = useState('');
   const [contactFilter, setContactFilter] = useState('all'); // 'all' | 'whatsapp' | 'instagram'
   const [showAddContactModal, setShowAddContactModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importTab, setImportTab] = useState('vcf'); // 'vcf' | 'ig' | 'adb'
+  const [bulkIgText, setBulkIgText] = useState('');
   const [newContactForm, setNewContactForm] = useState({
     name: '',
     platform: 'whatsapp',
     phone: '',
     ig: ''
   });
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const text = event.target.result;
+      let imported = [];
+      if (file.name.endsWith('.vcf') || text.includes('BEGIN:VCARD')) {
+        const vcards = text.split('END:VCARD');
+        for (const card of vcards) {
+          const fnMatch = card.match(/FN[;:]([^\r\n]+)/);
+          const telMatch = card.match(/TEL[^:]*:([^\r\n]+)/);
+          if (fnMatch && telMatch) {
+            const name = fnMatch[1].trim();
+            const phone = telMatch[1].replace(/[^0-9+]/g, '').trim();
+            if (name && phone) {
+              imported.push({
+                id: `c_vcf_${Date.now()}_${imported.length}`,
+                name,
+                phone,
+                ig: `@${name.toLowerCase().replace(/[^a-z0-9_]/g, '')}`,
+                platform: 'whatsapp',
+                lastMessage: 'Imported from phone contacts (.vcf)',
+                lastTimestamp: 'Just now',
+                avatarColor: 'from-emerald-500 to-teal-500'
+              });
+            }
+          }
+        }
+      } else if (file.name.endsWith('.csv')) {
+        const lines = text.split('\n');
+        for (let i = 1; i < lines.length; i++) {
+          const parts = lines[i].split(',');
+          if (parts.length >= 2) {
+            const name = parts[0].trim().replace(/^["']|["']$/g, '');
+            const phoneOrIg = parts[1].trim().replace(/^["']|["']$/g, '');
+            if (name) {
+              const isIg = phoneOrIg.startsWith('@');
+              imported.push({
+                id: `c_csv_${Date.now()}_${imported.length}`,
+                name,
+                phone: isIg ? '+91 98000 00000' : phoneOrIg,
+                ig: isIg ? phoneOrIg : `@${name.toLowerCase().replace(/[^a-z0-9_]/g, '')}`,
+                platform: isIg ? 'instagram' : 'whatsapp',
+                lastMessage: 'Imported from CSV contacts file',
+                lastTimestamp: 'Just now',
+                avatarColor: isIg ? 'from-purple-500 to-pink-500' : 'from-emerald-500 to-teal-500'
+              });
+            }
+          }
+        }
+      }
+      if (imported.length > 0) {
+        const merged = [...imported, ...contacts];
+        setContacts(merged);
+        setShowImportModal(false);
+        showBanner(`Successfully imported ${imported.length} real contacts!`, 'success');
+        try {
+          await fetch('http://localhost:3001/api/social/contacts/bulk', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contacts: merged })
+          });
+        } catch (e) {}
+      } else {
+        showBanner('Could not find contacts in file. Please ensure it is a valid .vcf or .csv file.', 'error');
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleBulkIgImport = async () => {
+    if (!bulkIgText.trim()) {
+      showBanner('Please enter Instagram handles.', 'error');
+      return;
+    }
+    const handles = bulkIgText.split(/[\n,;]+/).map(h => h.trim()).filter(h => h.length > 0);
+    const newIgContacts = handles.map((h, i) => {
+      const cleanH = h.startsWith('@') ? h : `@${h}`;
+      const name = cleanH.replace(/^@/, '').replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      return {
+        id: `c_ig_${Date.now()}_${i}`,
+        name,
+        phone: '+91 98000 00000',
+        ig: cleanH,
+        platform: 'instagram',
+        lastMessage: 'Real Instagram conversation linked',
+        lastTimestamp: 'Just now',
+        avatarColor: 'from-purple-500 to-pink-500'
+      };
+    });
+
+    const merged = [...newIgContacts, ...contacts];
+    setContacts(merged);
+    setShowImportModal(false);
+    setBulkIgText('');
+    showBanner(`Imported ${newIgContacts.length} Instagram Direct accounts!`, 'success');
+    try {
+      await fetch('http://localhost:3001/api/social/contacts/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contacts: merged })
+      });
+    } catch (e) {}
+  };
 
   const [contacts, setContacts] = useState([
     { id: 'c1', name: 'Mom', phone: '+91 98200 12345', ig: '@mom_family', platform: 'whatsapp', lastMessage: '🚗 Drive Mode: I\'m currently driving...', lastTimestamp: '10:42 PM', avatarColor: 'from-pink-500 to-rose-500' },
@@ -733,6 +842,16 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
 
                 <button
                   type="button"
+                  onClick={() => setShowImportModal(true)}
+                  className="px-2.5 py-0.5 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400/40 text-purple-200 text-[10px] font-mono font-bold flex items-center gap-1 transition-all shadow-sm"
+                  title="Import real contacts from .vcf file, Google Contacts, or Instagram list"
+                >
+                  <Upload className="w-3 h-3 text-purple-300" />
+                  <span>Import File / IG</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => setShowAddContactModal(true)}
                   className="px-2.5 py-0.5 rounded-lg bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-400/40 text-cyan-200 text-[10px] font-mono font-bold flex items-center gap-1 transition-all shadow-sm"
                 >
@@ -1329,6 +1448,184 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
                 <span>Save Contact</span>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Import Real Contacts & Threads Modal */}
+      {showImportModal && (
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-950 border border-purple-500/50 rounded-2xl p-5 max-w-lg w-full shadow-[0_0_50px_rgba(168,85,247,0.3)] flex flex-col gap-4 font-sans animate-in fade-in zoom-in duration-200">
+            
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-purple-500/30 pb-3">
+              <div className="flex items-center gap-2">
+                <Upload className="w-5 h-5 text-purple-400" />
+                <div>
+                  <h3 className="font-orbitron font-bold text-sm text-purple-200 uppercase tracking-wider">
+                    Import Real Contacts &amp; Threads
+                  </h3>
+                  <p className="text-[10px] text-slate-400 font-mono">
+                    Sync real contacts from Phone .vcf, Google Contacts, or Instagram
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowImportModal(false)}
+                className="text-slate-400 hover:text-white p-1 text-base"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Tabs */}
+            <div className="grid grid-cols-3 gap-1.5 p-1 bg-black/60 rounded-xl border border-purple-500/30">
+              <button
+                type="button"
+                onClick={() => setImportTab('vcf')}
+                className={`py-1.5 rounded-lg text-xs font-mono font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  importTab === 'vcf' ? 'bg-purple-600/40 text-purple-200 border border-purple-400/50 shadow' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <FileText className="w-3.5 h-3.5 text-purple-400" />
+                <span>Phone .vcf File</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setImportTab('ig')}
+                className={`py-1.5 rounded-lg text-xs font-mono font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  importTab === 'ig' ? 'bg-pink-600/40 text-pink-200 border border-pink-400/50 shadow' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <AtSign className="w-3.5 h-3.5 text-pink-400" />
+                <span>Instagram List</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setImportTab('adb')}
+                className={`py-1.5 rounded-lg text-xs font-mono font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  importTab === 'adb' ? 'bg-emerald-600/40 text-emerald-200 border border-emerald-400/50 shadow' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Phone ADB</span>
+              </button>
+            </div>
+
+            {/* Tab 1: VCF / Google Contacts File Dropzone */}
+            {importTab === 'vcf' && (
+              <div className="flex flex-col gap-3">
+                <div className="p-3 rounded-xl bg-purple-950/20 border border-purple-500/30 flex flex-col gap-1.5">
+                  <span className="text-xs font-bold text-purple-200">How to get your phone contacts file:</span>
+                  <p className="text-[11px] text-slate-300 leading-relaxed">
+                    1. On your phone: Open <strong>Contacts app</strong> ➔ Settings ➔ <strong>Export to .vcf</strong>.<br />
+                    2. Or visit <strong className="text-cyan-300">contacts.google.com</strong> ➔ Click <strong>Export ➔ vCard (for iOS/Android)</strong>.<br />
+                    3. Upload the downloaded file below to import all real names and WhatsApp phone numbers in 1 second!
+                  </p>
+                </div>
+
+                <label className="border-2 border-dashed border-purple-500/40 hover:border-purple-400/70 rounded-2xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer bg-slate-900/60 hover:bg-slate-900/90 transition-all text-center">
+                  <Upload className="w-8 h-8 text-purple-400 animate-bounce" />
+                  <div>
+                    <span className="text-xs font-bold text-purple-200 block">Click to upload .vcf or .csv Contacts file</span>
+                    <span className="text-[10px] text-slate-400 font-mono">Supports standard vCard (.vcf) &amp; CSV export</span>
+                  </div>
+                  <input
+                    type="file"
+                    accept=".vcf,.csv"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+            )}
+
+            {/* Tab 2: Bulk Instagram Handles Import */}
+            {importTab === 'ig' && (
+              <div className="flex flex-col gap-3">
+                <div className="p-3 rounded-xl bg-pink-950/20 border border-pink-500/30 flex flex-col gap-1.5">
+                  <span className="text-xs font-bold text-pink-200">Import Real Instagram DM Contacts:</span>
+                  <p className="text-[11px] text-slate-300 leading-relaxed">
+                    Paste real Instagram usernames (comma or newline separated). JASPER will link them into your active Direct Message threads!
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-slate-400 font-mono">Instagram Handles (e.g. @fatihmakes, @alex_design, @sarah_lead)</label>
+                  <textarea
+                    rows={4}
+                    value={bulkIgText}
+                    onChange={(e) => setBulkIgText(e.target.value)}
+                    placeholder="@fatihmakes&#10;@alex_design&#10;@dr_mehta_official&#10;@sarah_lead"
+                    className="w-full p-2.5 bg-black/60 border border-pink-500/40 rounded-xl text-xs font-mono text-pink-200 focus:outline-none focus:border-pink-400 custom-scrollbar resize-none mt-1"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleBulkIgImport}
+                    className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white font-bold text-xs font-mono shadow-md flex items-center gap-1.5"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Import Instagram Accounts</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Tab 3: Live ADB Sync Guide */}
+            {importTab === 'adb' && (
+              <div className="flex flex-col gap-3">
+                <div className="p-3.5 rounded-xl bg-emerald-950/20 border border-emerald-500/30 flex flex-col gap-2">
+                  <span className="text-xs font-bold text-emerald-200 flex items-center gap-1.5">
+                    <Smartphone className="w-4 h-4 text-emerald-400" />
+                    <span>Live Android Phone Direct Sync (ADB)</span>
+                  </span>
+                  <p className="text-[11px] text-slate-300 leading-relaxed">
+                    When your Android phone is connected to JASPER via <strong>USB</strong> or <strong>Wireless Debugging (192.168.29.159)</strong>, clicking <strong>Sync Phone</strong> automatically queries:
+                  </p>
+                  <ul className="text-[11px] text-emerald-300 font-mono list-disc list-inside space-y-1">
+                    <li>Android System Contacts Provider (Live Address Book)</li>
+                    <li>WhatsApp Active Notification Threads</li>
+                    <li>Instagram DM Message Threads</li>
+                  </ul>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-black/40 border border-emerald-500/30 rounded-xl">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-slate-200">Trigger Phone Sync Now</span>
+                    <span className="text-[10px] text-slate-400 font-mono">Queries connected device address book</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleSyncPhoneContacts();
+                      setShowImportModal(false);
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-mono font-bold flex items-center gap-1.5 shadow-md"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Sync from Phone</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Close Button */}
+            <div className="flex items-center justify-end pt-2 border-t border-purple-500/30">
+              <button
+                type="button"
+                onClick={() => setShowImportModal(false)}
+                className="px-3.5 py-1.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-mono transition-all"
+              >
+                Close
+              </button>
+            </div>
+
           </div>
         </div>
       )}

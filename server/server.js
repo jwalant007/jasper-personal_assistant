@@ -1287,6 +1287,21 @@ app.post('/api/social/contacts', (req, res) => {
   }
 });
 
+// Bulk Save Social Contacts (from VCF / CSV / IG import)
+app.post('/api/social/contacts/bulk', (req, res) => {
+  try {
+    const { contacts } = req.body;
+    if (contacts && Array.isArray(contacts)) {
+      const saved = dbManager.saveSocialContacts(contacts);
+      broadcastToClients({ type: 'SOCIAL_CONTACTS_SYNCED', contacts: saved });
+      return res.json({ success: true, count: saved.length, contacts: saved });
+    }
+    res.status(400).json({ error: 'Contacts array required' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Sync Live Contacts from Phone (ADB) & WhatsApp / Instagram
 app.post('/api/social/sync-contacts', async (req, res) => {
   try {
