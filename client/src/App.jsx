@@ -54,167 +54,171 @@ import {
 } from './utils/faceBiometrics.js';
 import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, BookOpen, Activity, Heart, Laptop, Languages, Box, MessageSquare } from 'lucide-react';
 
+import { useJasperApp, useJasperModals, useJasperChat } from './context/index.jsx';
+
 export default function App() {
-  const [jasperState, setJasperState] = useState('idle'); // idle, listening, processing, speaking
-  const [showDiagnostics, setShowDiagnostics] = useState(false);
-  const [showSocialAutoReply, setShowSocialAutoReply] = useState(false);
-  const [reminders, setReminders] = useState([]);
-  const [showReminderAlert, setShowReminderAlert] = useState(null);
-  const [tick, setTick] = useState(0);
-  const [showPcCommand, setShowPcCommand] = useState(false);
-  const [showBrowserAgent, setShowBrowserAgent] = useState(false);
-  const [showPersonalAssistant, setShowPersonalAssistant] = useState(false);
-  const [showMemory, setShowMemory] = useState(false);
-  const [showSkillsStore, setShowSkillsStore] = useState(false);
-  const [showAnalytics, setShowAnalytics] = useState(false);
-  const [showAvatar, setShowAvatar] = useState(false);
-  const [showSecurity, setShowSecurity] = useState(false);
-  const [showAutomation, setShowAutomation] = useState(false);
-  const [showMissionControl, setShowMissionControl] = useState(false);
-  const [showPcMasterHub, setShowPcMasterHub] = useState(false);
-  const [showMusicMasterHub, setShowMusicMasterHub] = useState(false);
-  const [showDevicesMasterHub, setShowDevicesMasterHub] = useState(false);
-  const [showAiMasterHub, setShowAiMasterHub] = useState(false);
-  const [showSportsHub, setShowSportsHub] = useState(false);
-  const [showMaps, setShowMaps] = useState(false);
-  const [showAgenticActions, setShowAgenticActions] = useState(false);
-  const [showHealthHub, setShowHealthHub] = useState(false);
-  const [showLiveTranslation, setShowLiveTranslation] = useState(false);
+  // 1. Core System & Preference Context
+  const {
+    currentTheme,
+    setCurrentTheme,
+    jasperState,
+    setJasperState,
+    speakingText,
+    setSpeakingText,
+    voiceTranscript,
+    setVoiceTranscript,
+    showAudioPage,
+    setShowAudioPage,
+    isLocked,
+    setIsLocked,
+    biometricMode,
+    setBiometricMode,
+    lastScanMode,
+    setLastScanMode,
+    scanStatusText,
+    setScanStatusText,
+    scanProgress,
+    setScanProgress,
+    reminders,
+    setReminders,
+    showReminderAlert,
+    setShowReminderAlert,
+    tick,
+    setTick,
+    viewMode,
+    setViewMode,
+    isMobileScreen,
+    setIsMobileScreen,
+    isMobileLayout,
+    apiKey,
+    setApiKey,
+    aiProvider,
+    setAiProvider,
+    ollamaModel,
+    setOllamaModel,
+    availableOllamaModels,
+    setAvailableOllamaModels,
+    serverIp,
+    setServerIpState,
+    isPhoneBrainMode,
+    setIsPhoneBrainModeState
+  } = useJasperApp();
+
+  // 2. Centralized Modal Registry Context
+  const {
+    openModals,
+    modalData,
+    isModalOpen,
+    getModalData,
+    openModal,
+    closeModal,
+    toggleModal,
+    closeAllModals
+  } = useJasperModals();
+
+  // 3. Chat & Attachments Context
+  const {
+    pastChats,
+    setPastChats,
+    selectedChatId,
+    setSelectedChatId,
+    manualInput,
+    setManualInput,
+    pendingAttachments,
+    setPendingAttachments,
+    isDraggingOver,
+    setIsDraggingOver,
+    lightboxImage,
+    setLightboxImage,
+    addPastChat,
+    clearChatHistory,
+    processFiles,
+    handleRemoveAttachment,
+    clearAttachments
+  } = useJasperChat();
+
+  // Modal Aliases for backward compatibility
+  const showDiagnostics = isModalOpen('diagnostics');
+  const setShowDiagnostics = (v) => v ? openModal('diagnostics') : closeModal('diagnostics');
+  const showSocialAutoReply = isModalOpen('socialAutoReply');
+  const setShowSocialAutoReply = (v) => v ? openModal('socialAutoReply') : closeModal('socialAutoReply');
+  const showPcCommand = isModalOpen('pcCommand');
+  const setShowPcCommand = (v) => v ? openModal('pcCommand') : closeModal('pcCommand');
+  const showBrowserAgent = isModalOpen('browserAgent');
+  const setShowBrowserAgent = (v) => v ? openModal('browserAgent') : closeModal('browserAgent');
+  const showPersonalAssistant = isModalOpen('personalAssistant');
+  const setShowPersonalAssistant = (v) => v ? openModal('personalAssistant') : closeModal('personalAssistant');
+  const showMemory = isModalOpen('memory');
+  const setShowMemory = (v) => v ? openModal('memory') : closeModal('memory');
+  const showSkillsStore = isModalOpen('skillsStore');
+  const setShowSkillsStore = (v) => v ? openModal('skillsStore') : closeModal('skillsStore');
+  const showAnalytics = isModalOpen('analytics');
+  const setShowAnalytics = (v) => v ? openModal('analytics') : closeModal('analytics');
+  const showAvatar = isModalOpen('avatar');
+  const setShowAvatar = (v) => v ? openModal('avatar') : closeModal('avatar');
+  const showSecurity = isModalOpen('security');
+  const setShowSecurity = (v) => v ? openModal('security') : closeModal('security');
+  const showAutomation = isModalOpen('automation');
+  const setShowAutomation = (v) => v ? openModal('automation') : closeModal('automation');
+  const showMissionControl = isModalOpen('missionControl');
+  const setShowMissionControl = (v) => v ? openModal('missionControl') : closeModal('missionControl');
+  const showPcMasterHub = isModalOpen('pcMasterHub');
+  const setShowPcMasterHub = (v) => v ? openModal('pcMasterHub') : closeModal('pcMasterHub');
+  const showMusicMasterHub = isModalOpen('musicMasterHub');
+  const setShowMusicMasterHub = (v) => v ? openModal('musicMasterHub') : closeModal('musicMasterHub');
+  const showDevicesMasterHub = isModalOpen('devicesMasterHub');
+  const setShowDevicesMasterHub = (v) => v ? openModal('devicesMasterHub') : closeModal('devicesMasterHub');
+  const showAiMasterHub = isModalOpen('aiMasterHub');
+  const setShowAiMasterHub = (v) => v ? openModal('aiMasterHub') : closeModal('aiMasterHub');
+  const showSportsHub = isModalOpen('sportsHub');
+  const setShowSportsHub = (v) => v ? openModal('sportsHub') : closeModal('sportsHub');
+  const showMaps = isModalOpen('maps');
+  const setShowMaps = (v) => v ? openModal('maps') : closeModal('maps');
+  const showAgenticActions = isModalOpen('agenticActions');
+  const setShowAgenticActions = (v) => v ? openModal('agenticActions') : closeModal('agenticActions');
+  const showHealthHub = isModalOpen('healthHub');
+  const setShowHealthHub = (v) => v ? openModal('healthHub') : closeModal('healthHub');
+  const showLiveTranslation = isModalOpen('liveTranslation');
+  const setShowLiveTranslation = (v) => v ? openModal('liveTranslation') : closeModal('liveTranslation');
   const [autoTranslateEnabled, setAutoTranslateEnabled] = useState(true);
-  const [showSearchEngine, setShowSearchEngine] = useState(false);
-  const [showBrowser, setShowBrowser] = useState(false);
-  const [showFileManager, setShowFileManager] = useState(false);
-  const [showCodeStudio, setShowCodeStudio] = useState(false);
-  const [showNotesPlanner, setShowNotesPlanner] = useState(false);
-  const [showCalculator, setShowCalculator] = useState(false);
-  const [showLaptopConnect, setShowLaptopConnect] = useState(false);
-  const [showHologramModal, setShowHologramModal] = useState(false);
+  const showSearchEngine = isModalOpen('searchEngine');
+  const setShowSearchEngine = (v) => v ? openModal('searchEngine') : closeModal('searchEngine');
+  const showBrowser = isModalOpen('browser');
+  const setShowBrowser = (v) => v ? openModal('browser') : closeModal('browser');
+  const showFileManager = isModalOpen('fileManager');
+  const setShowFileManager = (v) => v ? openModal('fileManager') : closeModal('fileManager');
+  const showCodeStudio = isModalOpen('codeStudio');
+  const setShowCodeStudio = (v) => v ? openModal('codeStudio') : closeModal('codeStudio');
+  const showNotesPlanner = isModalOpen('notesPlanner');
+  const setShowNotesPlanner = (v) => v ? openModal('notesPlanner') : closeModal('notesPlanner');
+  const showCalculator = isModalOpen('calculator');
+  const setShowCalculator = (v) => v ? openModal('calculator') : closeModal('calculator');
+  const showLaptopConnect = isModalOpen('laptopConnect');
+  const setShowLaptopConnect = (v) => v ? openModal('laptopConnect') : closeModal('laptopConnect');
+  const showHologramModal = isModalOpen('hologram');
+  const setShowHologramModal = (v) => v ? openModal('hologram') : closeModal('hologram');
   const [hologramQuery, setHologramQuery] = useState('');
-
-  const [isPhoneBrainMode, setIsPhoneBrainModeState] = useState(() => getPhoneBrainMode());
   const [agenticQuery, setAgenticQuery] = useState('');
-  const [showManual, setShowManual] = useState(false);
-  const [showThemes, setShowThemes] = useState(false);
-  const [currentTheme, setCurrentTheme] = useState(() => {
-    return localStorage.getItem('jasper_theme') || 'matte-gold';
-  });
+  const showManual = isModalOpen('manual');
+  const setShowManual = (v) => v ? openModal('manual') : closeModal('manual');
+  const showThemes = isModalOpen('themes');
+  const setShowThemes = (v) => v ? openModal('themes') : closeModal('themes');
+  const showSettings = isModalOpen('settings');
+  const setShowSettings = (v) => v ? openModal('settings') : closeModal('settings');
+  const showTvRemote = isModalOpen('tvRemote');
+  const setShowTvRemote = (v) => v ? openModal('tvRemote') : closeModal('tvRemote');
 
-  useEffect(() => {
-    const handleBrainChange = (e) => {
-      if (e?.detail?.enabled !== undefined) {
-        setIsPhoneBrainModeState(e.detail.enabled);
-      }
-    };
-    window.addEventListener('jasper_phone_brain_change', handleBrainChange);
-    return () => window.removeEventListener('jasper_phone_brain_change', handleBrainChange);
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('jasper_theme', currentTheme);
-    document.documentElement.setAttribute('data-theme', currentTheme);
-  }, [currentTheme]);
-  const [pastChats, setPastChats] = useState(() => {
-    const saved = localStorage.getItem('jasper_past_chats');
-    return saved ? JSON.parse(saved) : [
-      { 
-        id: 1, 
-        query: 'who is narendra modi', 
-        response: 'Narendra Damodardas Modi is an Indian politician who has served as the prime minister of India since 2014. Modi was the chief minister of Gujarat from 2001 to 2014 and is the member of parliament for Varanasi. He is a member of the Bharatiya Janata Party and of the Rashtriya Swayamsevak Sangh, a right-wing Hindutva paramilitary volunteer organisation. He is the longest-serving prime minister outside the Indian National Congress. Modi was born and raised in Vadnagar, Bombay State, where he completed his secondary education. He was introduced to the RSS at the age of eight, becoming a full-time worker for the organisation in Gujarat in 1971. The RSS assigned him to the BJP in 1985, and he rose through the party hierarchy, becoming general secretary in 1998. In 2001, Modi was appointed chief minister of Gujarat and elected to the legislative assembly soon after.', 
-        timestamp: new Date().toLocaleString() 
-      }
-    ];
-  });
-  const [selectedChatId, setSelectedChatId] = useState(null);
-  const [manualInput, setManualInput] = useState('');
-  const [apiKey, setApiKey] = useState(geminiClient.apiKey);
-  const [aiProvider, setAiProvider] = useState(() => geminiClient.provider || 'ollama');
-  const [ollamaModel, setOllamaModel] = useState(() => geminiClient.ollamaModel || 'llama3');
-  const [availableOllamaModels, setAvailableOllamaModels] = useState(['llama3', 'llama3.2', 'qwen2.5', 'mistral', 'gemma2']);
-  const [serverIp, setServerIpState] = useState(getServerIp);
-  const [showSettings, setShowSettings] = useState(false);
+  // Local Component State
   const [showKey, setShowKey] = useState(false);
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [apkDownloadUrl, setApkDownloadUrl] = useState('');
   const hudPanelRef = useRef(null);
   const fileInputRef = useRef(null);
   const [showScrollTopButton, setShowScrollTopButton] = useState(false);
-  const [pendingAttachments, setPendingAttachments] = useState([]);
-  const [isDraggingOver, setIsDraggingOver] = useState(false);
-  const [lightboxImage, setLightboxImage] = useState(null);
-
-  const processFiles = (files) => {
-    if (!files || files.length === 0) return;
-    const fileArray = Array.from(files);
-
-    fileArray.forEach((file) => {
-      if (file.size > 20 * 1024 * 1024) {
-        alert(`File "${file.name}" exceeds the maximum size limit of 20MB.`);
-        return;
-      }
-
-      const isImage = file.type.startsWith('image/');
-      const isAudio = file.type.startsWith('audio/');
-      const isPdf = file.type === 'application/pdf';
-      const isText = file.type.startsWith('text/') || 
-                     /\.(js|jsx|ts|tsx|json|csv|py|md|html|css|c|cpp|h|java|txt|log|xml|yaml|yml|sh|ps1)$/i.test(file.name);
-
-      const reader = new FileReader();
-
-      if (isText) {
-        reader.onload = (e) => {
-          const textContent = e.target.result;
-          setPendingAttachments(prev => [
-            ...prev,
-            {
-              id: Date.now() + Math.random(),
-              name: file.name,
-              type: file.type || 'text/plain',
-              size: file.size,
-              isText: true,
-              textContent: textContent,
-              icon: '📄'
-            }
-          ]);
-        };
-        reader.readAsText(file);
-      } else {
-        reader.onload = (e) => {
-          const dataUrl = e.target.result;
-          const base64 = dataUrl.split(',')[1] || '';
-          
-          let icon = '📁';
-          if (isImage) icon = '🖼️';
-          else if (isAudio) icon = '🎵';
-          else if (isPdf) icon = '📕';
-
-          setPendingAttachments(prev => [
-            ...prev,
-            {
-              id: Date.now() + Math.random(),
-              name: file.name,
-              type: file.type || (isImage ? 'image/png' : 'application/octet-stream'),
-              size: file.size,
-              dataUrl: dataUrl,
-              base64: base64,
-              isImage,
-              isAudio,
-              isPdf,
-              icon
-            }
-          ]);
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-  };
 
   const handleFileSelect = (e) => {
     processFiles(e.target.files);
     e.target.value = null;
-  };
-
-  const handleRemoveAttachment = (id) => {
-    setPendingAttachments(prev => prev.filter(att => att.id !== id));
   };
 
   const handleDragOver = (e) => {
@@ -268,22 +272,13 @@ export default function App() {
     return isMobileUA || isNarrow;
   };
 
-  const [isMobileScreen, setIsMobileScreen] = useState(checkIsMobileDevice);
-  const [viewMode, setViewMode] = useState(() => checkIsMobileDevice() ? 'mobile' : 'pc');
   const [showSidebar, setShowSidebar] = useState(false);
-  const [speakingText, setSpeakingText] = useState('');
   const [triggerWakeOnMount, setTriggerWakeOnMount] = useState(false);
-  const [showTvRemote, setShowTvRemote] = useState(false);
-  const [isLocked, setIsLocked] = useState(true);
   const [passcode, setPasscode] = useState('');
-  const [showImageGenerator, setShowImageGenerator] = useState(false);
-  const [showPhoneControl, setShowPhoneControl] = useState(false);
-  const [biometricMode, setBiometricMode] = useState('idle'); // idle, face_scan, voice_scan, success, failed
-  const [lastScanMode, setLastScanMode] = useState(null); // tracks which scan was attempted before failure
-  const [scanStatusText, setScanStatusText] = useState('');
-  const [scanProgress, setScanProgress] = useState(0);
-  const [voiceTranscript, setVoiceTranscript] = useState('');
-  const [showAudioPage, setShowAudioPage] = useState(false);
+  const showImageGenerator = isModalOpen('imageGenerator');
+  const setShowImageGenerator = (v) => v ? openModal('imageGenerator') : closeModal('imageGenerator');
+  const showPhoneControl = isModalOpen('phoneControl');
+  const setShowPhoneControl = (v) => v ? openModal('phoneControl') : closeModal('phoneControl');
 
   // Auto-detect mobile screen & Sync Biometric Owner Profile from Server Database
   useEffect(() => {
@@ -303,8 +298,6 @@ export default function App() {
 
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  const isMobileLayout = viewMode === 'mobile' || isMobileScreen;
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
