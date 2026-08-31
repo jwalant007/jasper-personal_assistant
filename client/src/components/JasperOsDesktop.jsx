@@ -117,22 +117,29 @@ function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFo
   };
 
   useEffect(() => {
+    let animFrame = null;
+
     const handleMove = (clientX, clientY) => {
-      if (isDragging) {
-        const dx = clientX - dragStartRef.current.x;
-        const dy = clientY - dragStartRef.current.y;
-        setPos({
-          x: dragStartRef.current.posX + dx,
-          y: Math.max(48, dragStartRef.current.posY + dy)
-        });
-      } else if (isResizing) {
-        const dw = clientX - resizeStartRef.current.x;
-        const dh = clientY - resizeStartRef.current.y;
-        setSize({
-          w: Math.max(280, resizeStartRef.current.w + dw),
-          h: Math.max(200, resizeStartRef.current.h + dh)
-        });
-      }
+      if (!isDragging && !isResizing) return;
+      if (animFrame) cancelAnimationFrame(animFrame);
+
+      animFrame = requestAnimationFrame(() => {
+        if (isDragging) {
+          const dx = clientX - dragStartRef.current.x;
+          const dy = clientY - dragStartRef.current.y;
+          setPos({
+            x: dragStartRef.current.posX + dx,
+            y: Math.max(48, dragStartRef.current.posY + dy)
+          });
+        } else if (isResizing) {
+          const dw = clientX - resizeStartRef.current.x;
+          const dh = clientY - resizeStartRef.current.y;
+          setSize({
+            w: Math.max(280, resizeStartRef.current.w + dw),
+            h: Math.max(200, resizeStartRef.current.h + dh)
+          });
+        }
+      });
     };
 
     const handleMouseMove = (e) => handleMove(e.clientX, e.clientY);
@@ -143,17 +150,19 @@ function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFo
     };
 
     const handleEnd = () => {
+      if (animFrame) cancelAnimationFrame(animFrame);
       setIsDragging(false);
       setIsResizing(false);
     };
 
     if (isDragging || isResizing) {
-      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mousemove', handleMouseMove, { passive: true });
       window.addEventListener('mouseup', handleEnd);
-      window.addEventListener('touchmove', handleTouchMove);
+      window.addEventListener('touchmove', handleTouchMove, { passive: true });
       window.addEventListener('touchend', handleEnd);
     }
     return () => {
+      if (animFrame) cancelAnimationFrame(animFrame);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleEnd);
       window.removeEventListener('touchmove', handleTouchMove);

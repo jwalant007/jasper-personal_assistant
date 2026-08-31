@@ -4,102 +4,118 @@ export default function ArcReactor({ state = 'idle', onClick }) {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
   const angleRef = useRef(0);
-  const pulseRef = useRef(0);
+  const pulseRef = useRef(1);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: true });
+
+    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let width = 0;
+    let height = 0;
 
     const handleResize = () => {
-      canvas.width = canvas.parentElement.clientWidth;
-      canvas.height = canvas.parentElement.clientHeight;
+      if (!canvas.parentElement) return;
+      const clientW = canvas.parentElement.clientWidth || 220;
+      const clientH = canvas.parentElement.clientHeight || 220;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      
+      width = clientW;
+      height = clientH;
+      
+      canvas.width = Math.floor(clientW * dpr);
+      canvas.height = Math.floor(clientH * dpr);
+      canvas.style.width = `${clientW}px`;
+      canvas.style.height = `${clientH}px`;
+      
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
+
     handleResize();
     window.addEventListener('resize', handleResize);
 
-    let lastFrameTime = 0;
-    const targetFps = state === 'idle' ? 30 : 60;
-    const frameInterval = 1000 / targetFps;
+    let lastTime = performance.now();
 
     const draw = (currentTime) => {
       if (!canvas || !ctx) return;
-
       animationRef.current = requestAnimationFrame(draw);
 
-      const delta = currentTime - lastFrameTime;
-      if (delta < frameInterval) return;
-      lastFrameTime = currentTime - (delta % frameInterval);
+      const elapsed = currentTime - lastTime;
+      lastTime = currentTime;
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // Delta normalizer (target 60fps = 16.6ms)
+      const dt = Math.min(elapsed / 16.667, 2.0);
 
-      const centerX = canvas.width / 2;
-      const centerY = canvas.height / 2;
-      const baseRadius = Math.min(canvas.width, canvas.height) * 0.38;
+      ctx.clearRect(0, 0, width, height);
 
-      // Update angles and pulses depending on state
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const baseRadius = Math.min(width, height) * 0.38;
+
+      // Dynamic variables based on operational state
       let speed = 0.01;
       let targetGlowColor = 'rgba(245, 197, 66, '; // Champagne Gold
       let coreColor = '#ffd700'; // 24K Gold
-      let outerColor = 'rgba(212, 175, 55, 0.38)'; // Burnished Bronze Gold
+      let outerColor = 'rgba(212, 175, 55, 0.35)'; // Burnished Bronze Gold
 
       if (state === 'listening') {
         speed = 0.035;
         targetGlowColor = 'rgba(255, 153, 0, '; 
         coreColor = '#ff9900';
         outerColor = 'rgba(255, 153, 0, 0.35)';
-        pulseRef.current = 1 + Math.sin(Date.now() * 0.015) * 0.12;
+        pulseRef.current = 1 + Math.sin(currentTime * 0.008) * 0.1;
       } else if (state === 'processing') {
-        speed = -0.06;
+        speed = -0.05;
         targetGlowColor = 'rgba(255, 215, 0, '; 
         coreColor = '#ffe066';
         outerColor = 'rgba(245, 197, 66, 0.45)';
-        pulseRef.current = 1 + Math.sin(Date.now() * 0.03) * 0.08;
+        pulseRef.current = 1 + Math.sin(currentTime * 0.015) * 0.06;
       } else if (state === 'speaking') {
-        speed = 0.015;
+        speed = 0.018;
         targetGlowColor = 'rgba(245, 197, 66, ';
         coreColor = '#ffd700';
         outerColor = 'rgba(212, 175, 55, 0.3)';
-        pulseRef.current = 1 + Math.sin(Date.now() * 0.01) * 0.18;
+        pulseRef.current = 1 + Math.sin(currentTime * 0.006) * 0.14;
       } else {
         // Idle
-        speed = 0.006;
-        pulseRef.current = 1 + Math.sin(Date.now() * 0.003) * 0.04;
+        speed = 0.007;
+        pulseRef.current = 1 + Math.sin(currentTime * 0.002) * 0.03;
       }
 
-      angleRef.current += speed;
+      angleRef.current += speed * dt;
       const r = baseRadius * pulseRef.current;
 
-      // 1. OUTERMOST AMBIENT GLOW
-      const ambientGlow = ctx.createRadialGradient(centerX, centerY, r * 0.2, centerX, centerY, r * 1.5);
-      ambientGlow.addColorStop(0, targetGlowColor + '0.14)');
-      ambientGlow.addColorStop(0.5, targetGlowColor + '0.04)');
+      // 1. OUTERMOST AMBIENT GLOW (Optimized radial gradient)
+      const ambientGlow = ctx.createRadialGradient(centerX, centerY, r * 0.2, centerX, centerY, r * 1.4);
+      ambientGlow.addColorStop(0, targetGlowColor + '0.12)');
+      ambientGlow.addColorStop(0.6, targetGlowColor + '0.03)');
       ambientGlow.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = ambientGlow;
       ctx.beginPath();
-      ctx.arc(centerX, centerY, r * 1.5, 0, Math.PI * 2);
+      ctx.arc(centerX, centerY, r * 1.4, 0, Math.PI * 2);
       ctx.fill();
 
       // 2. BACKGROUND CONCENTRIC RADAR RINGS
       ctx.strokeStyle = outerColor;
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.arc(centerX, centerY, r * 1.2, 0, Math.PI * 2);
+      ctx.arc(centerX, centerY, r * 1.18, 0, Math.PI * 2);
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.arc(centerX, centerY, r * 1.08, 0, Math.PI * 2);
+      ctx.arc(centerX, centerY, r * 1.06, 0, Math.PI * 2);
       ctx.stroke();
 
-      // 3. MAIN OUTER FLANGED RING (Fast dual-stroke glow instead of shadowBlur)
+      // 3. MAIN OUTER FLANGED RING (GPU-friendly dual-stroke glow)
       ctx.strokeStyle = targetGlowColor + '0.25)';
-      ctx.lineWidth = 5;
+      ctx.lineWidth = 4;
       ctx.beginPath();
       ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
       ctx.stroke();
 
       ctx.strokeStyle = coreColor;
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 1.8;
       ctx.beginPath();
       ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
       ctx.stroke();
@@ -113,14 +129,14 @@ export default function ArcReactor({ state = 'idle', onClick }) {
         const ny1 = centerY + Math.sin(notchAngle) * r;
         
         ctx.beginPath();
-        ctx.arc(nx1, ny1, 2.5, 0, Math.PI * 2);
+        ctx.arc(nx1, ny1, 2.2, 0, Math.PI * 2);
         ctx.fill();
       }
 
       // 4. INNER COIL RING (Segmented golden arcs)
       const coils = 10;
       const coilLength = (Math.PI * 2) / coils - 0.15;
-      ctx.lineWidth = 5;
+      ctx.lineWidth = 4;
       ctx.strokeStyle = state === 'listening' ? 'rgba(255, 153, 0, 0.75)' : 'rgba(212, 175, 55, 0.75)';
       for (let i = 0; i < coils; i++) {
         const startA = -angleRef.current + (i * Math.PI * 2) / coils;
@@ -130,7 +146,7 @@ export default function ArcReactor({ state = 'idle', onClick }) {
         ctx.stroke();
       }
 
-      // Inner coil dividers/accents
+      // Inner coil accents
       ctx.strokeStyle = coreColor;
       ctx.lineWidth = 1;
       ctx.beginPath();
@@ -152,15 +168,15 @@ export default function ArcReactor({ state = 'idle', onClick }) {
       ctx.arc(centerX, centerY, coreR, 0, Math.PI * 2);
       ctx.fill();
 
-      // 6. DYNAMIC SOUNDWAVE SPECTRUM LINES (Only when speaking)
+      // 6. DYNAMIC SOUNDWAVE SPECTRUM LINES (When speaking)
       if (state === 'speaking') {
-        const waveLines = 36;
-        ctx.lineWidth = 2;
+        const waveLines = 32;
+        ctx.lineWidth = 1.8;
         ctx.strokeStyle = 'rgba(255, 215, 0, 0.85)';
         for (let i = 0; i < waveLines; i++) {
           const waveAngle = (i * Math.PI * 2) / waveLines;
-          const val = Math.sin(i * 0.8 + Date.now() * 0.02) * Math.cos(i * 0.2 + Date.now() * 0.005);
-          const offset = Math.abs(val) * 16 + 2;
+          const val = Math.sin(i * 0.8 + currentTime * 0.012) * Math.cos(i * 0.2 + currentTime * 0.003);
+          const offset = Math.abs(val) * 14 + 2;
           
           const startX = centerX + Math.cos(waveAngle) * (r * 0.4);
           const startY = centerY + Math.sin(waveAngle) * (r * 0.4);
@@ -215,13 +231,18 @@ export default function ArcReactor({ state = 'idle', onClick }) {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center w-full h-full p-4 relative select-none">
-      {/* Clickable canvas container */}
+    <div className="flex flex-col items-center justify-center w-full h-full p-4 relative select-none" style={{ contain: 'paint layout' }}>
+      {/* Clickable canvas container with hardware acceleration */}
       <div 
         onClick={onClick}
         className="w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] md:w-[240px] md:h-[240px] relative cursor-pointer active:scale-95 transition-transform"
+        style={{ transform: 'translate3d(0, 0, 0)', willChange: 'transform' }}
       >
-        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+        <canvas 
+          ref={canvasRef} 
+          className="absolute inset-0 w-full h-full"
+          style={{ willChange: 'contents', transform: 'translate3d(0, 0, 0)' }}
+        />
       </div>
       
       {/* HUD State Indicator */}

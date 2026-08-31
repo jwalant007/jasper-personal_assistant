@@ -687,9 +687,7 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
 
     try {
       renderer.setSize(width, height);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      renderer.shadowMap.enabled = true;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.35;
       container.appendChild(renderer.domElement);

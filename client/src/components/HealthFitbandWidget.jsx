@@ -182,16 +182,16 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
       points.shift();
       points.push(currentY);
 
-      // Draw ECG Line
-      ctx.beginPath();
-      ctx.strokeStyle = connectionMode === 'disconnected' 
+      const strokeColor = connectionMode === 'disconnected' 
         ? '#78716c' 
         : isAlerting ? '#ef4444' : '#ffd700';
-      ctx.lineWidth = 2.5;
-      ctx.shadowColor = isAlerting ? '#ef4444' : '#ffd700';
-      ctx.shadowBlur = 10;
 
       const dx = width / (points.length - 1);
+
+      // Outer glow pass (GPU fast stroke)
+      ctx.beginPath();
+      ctx.strokeStyle = isAlerting ? 'rgba(239, 68, 68, 0.25)' : 'rgba(255, 215, 0, 0.25)';
+      ctx.lineWidth = 5;
       for (let i = 0; i < points.length; i++) {
         const x = i * dx;
         const y = points[i];
@@ -199,13 +199,24 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
         else ctx.lineTo(x, y);
       }
       ctx.stroke();
-      ctx.shadowBlur = 0;
+
+      // Main crisp ECG stroke
+      ctx.beginPath();
+      ctx.strokeStyle = strokeColor;
+      ctx.lineWidth = 2;
+      for (let i = 0; i < points.length; i++) {
+        const x = i * dx;
+        const y = points[i];
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
 
       // Pulse leading point
       const lastX = width - dx;
       const lastY = points[points.length - 1];
       ctx.beginPath();
-      ctx.arc(lastX, lastY, 4, 0, Math.PI * 2);
+      ctx.arc(lastX, lastY, 3.5, 0, Math.PI * 2);
       ctx.fillStyle = isAlerting ? '#ef4444' : '#fffdf5';
       ctx.fill();
 

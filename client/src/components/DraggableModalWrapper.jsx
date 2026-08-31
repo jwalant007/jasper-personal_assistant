@@ -45,15 +45,21 @@ export default function DraggableModalWrapper({
   };
 
   useEffect(() => {
+    let animFrame = null;
+
     const handleMove = (clientX, clientY) => {
       if (!isDragging) return;
-      const dx = clientX - dragStartRef.current.x;
-      const dy = clientY - dragStartRef.current.y;
-      
-      const newX = dragStartRef.current.startLeft + dx;
-      const newY = Math.max(10, dragStartRef.current.startTop + dy);
+      if (animFrame) cancelAnimationFrame(animFrame);
 
-      setPos({ x: newX, y: newY });
+      animFrame = requestAnimationFrame(() => {
+        const dx = clientX - dragStartRef.current.x;
+        const dy = clientY - dragStartRef.current.y;
+        
+        const newX = dragStartRef.current.startLeft + dx;
+        const newY = Math.max(10, dragStartRef.current.startTop + dy);
+
+        setPos({ x: newX, y: newY });
+      });
     };
 
     const onMouseMove = (e) => handleMove(e.clientX, e.clientY);
@@ -63,16 +69,20 @@ export default function DraggableModalWrapper({
       }
     };
 
-    const onEnd = () => setIsDragging(false);
+    const onEnd = () => {
+      if (animFrame) cancelAnimationFrame(animFrame);
+      setIsDragging(false);
+    };
 
     if (isDragging) {
-      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mousemove', onMouseMove, { passive: true });
       window.addEventListener('mouseup', onEnd);
-      window.addEventListener('touchmove', onTouchMove);
+      window.addEventListener('touchmove', onTouchMove, { passive: true });
       window.addEventListener('touchend', onEnd);
     }
 
     return () => {
+      if (animFrame) cancelAnimationFrame(animFrame);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onEnd);
       window.removeEventListener('touchmove', onTouchMove);
