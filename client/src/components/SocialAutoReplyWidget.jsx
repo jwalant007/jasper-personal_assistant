@@ -31,6 +31,34 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
   const [isSending, setIsSending] = useState(false);
   const [statusBanner, setStatusBanner] = useState(null);
 
+  const showBanner = (text, type = 'info') => {
+    setStatusBanner({ text, type });
+    setTimeout(() => setStatusBanner(null), 4000);
+  };
+
+  const [logs, setLogs] = useState([
+    {
+      id: 'log-1',
+      platform: 'whatsapp',
+      type: 'auto_reply',
+      recipient: '+91 98200 12345 (Mom)',
+      trigger: 'Incoming message: "Hey, are you free?"',
+      replyText: "🚗 Drive Mode: I'm currently driving. JASPER AI has recorded your message and I will reply as soon as I park.",
+      timestamp: '10:42 PM',
+      status: 'sent'
+    },
+    {
+      id: 'log-2',
+      platform: 'instagram',
+      type: 'auto_reply',
+      recipient: '@fatihmakes',
+      trigger: 'Incoming DM: "Check this cool project!"',
+      replyText: "Automated test DM sent from Jwalant's connected Instagram account!",
+      timestamp: '11:45 PM',
+      status: 'sent'
+    }
+  ]);
+
   // Account Linking & Credentials State
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -392,11 +420,6 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
       emergencyKeyword
     });
     showBanner(`Activated ${presetKey.toUpperCase()} mode preset.`, 'success');
-  };
-
-  const showBanner = (text, type = 'success') => {
-    setStatusBanner({ text, type });
-    setTimeout(() => setStatusBanner(null), 4000);
   };
 
   // AI draft message formulation
