@@ -18,8 +18,19 @@ export default function ArcReactor({ state = 'idle', onClick }) {
     handleResize();
     window.addEventListener('resize', handleResize);
 
-    const draw = () => {
+    let lastFrameTime = 0;
+    const targetFps = state === 'idle' ? 30 : 60;
+    const frameInterval = 1000 / targetFps;
+
+    const draw = (currentTime) => {
       if (!canvas || !ctx) return;
+
+      animationRef.current = requestAnimationFrame(draw);
+
+      const delta = currentTime - lastFrameTime;
+      if (delta < frameInterval) return;
+      lastFrameTime = currentTime - (delta % frameInterval);
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const centerX = canvas.width / 2;
@@ -34,22 +45,22 @@ export default function ArcReactor({ state = 'idle', onClick }) {
 
       if (state === 'listening') {
         speed = 0.035;
-        targetGlowColor = 'rgba(255, 153, 0, '; // Amber-Orange Gold
+        targetGlowColor = 'rgba(255, 153, 0, '; 
         coreColor = '#ff9900';
         outerColor = 'rgba(255, 153, 0, 0.35)';
         pulseRef.current = 1 + Math.sin(Date.now() * 0.015) * 0.12;
       } else if (state === 'processing') {
-        speed = -0.06; // Rotate backward and fast
-        targetGlowColor = 'rgba(255, 215, 0, '; // Radiant Pure Gold
+        speed = -0.06;
+        targetGlowColor = 'rgba(255, 215, 0, '; 
         coreColor = '#ffe066';
         outerColor = 'rgba(245, 197, 66, 0.45)';
         pulseRef.current = 1 + Math.sin(Date.now() * 0.03) * 0.08;
       } else if (state === 'speaking') {
         speed = 0.015;
-        targetGlowColor = 'rgba(245, 197, 66, '; // Champagne Gold
+        targetGlowColor = 'rgba(245, 197, 66, ';
         coreColor = '#ffd700';
         outerColor = 'rgba(212, 175, 55, 0.3)';
-        pulseRef.current = 1 + Math.sin(Date.now() * 0.01) * 0.18; // Large fluctuations
+        pulseRef.current = 1 + Math.sin(Date.now() * 0.01) * 0.18;
       } else {
         // Idle
         speed = 0.006;
@@ -57,39 +68,41 @@ export default function ArcReactor({ state = 'idle', onClick }) {
       }
 
       angleRef.current += speed;
-
       const r = baseRadius * pulseRef.current;
 
       // 1. OUTERMOST AMBIENT GLOW
       const ambientGlow = ctx.createRadialGradient(centerX, centerY, r * 0.2, centerX, centerY, r * 1.5);
-      ambientGlow.addColorStop(0, targetGlowColor + '0.18)');
-      ambientGlow.addColorStop(0.5, targetGlowColor + '0.05)');
+      ambientGlow.addColorStop(0, targetGlowColor + '0.14)');
+      ambientGlow.addColorStop(0.5, targetGlowColor + '0.04)');
       ambientGlow.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = ambientGlow;
       ctx.beginPath();
-      ctx.arc(centerX, centerY, r * 1.6, 0, Math.PI * 2);
+      ctx.arc(centerX, centerY, r * 1.5, 0, Math.PI * 2);
       ctx.fill();
 
       // 2. BACKGROUND CONCENTRIC RADAR RINGS
       ctx.strokeStyle = outerColor;
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.arc(centerX, centerY, r * 1.25, 0, Math.PI * 2);
+      ctx.arc(centerX, centerY, r * 1.2, 0, Math.PI * 2);
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.arc(centerX, centerY, r * 1.1, 0, Math.PI * 2);
+      ctx.arc(centerX, centerY, r * 1.08, 0, Math.PI * 2);
       ctx.stroke();
 
-      // 3. MAIN OUTER FLANGED RING
-      ctx.strokeStyle = coreColor;
-      ctx.lineWidth = 2;
-      ctx.shadowBlur = 12;
-      ctx.shadowColor = coreColor;
+      // 3. MAIN OUTER FLANGED RING (Fast dual-stroke glow instead of shadowBlur)
+      ctx.strokeStyle = targetGlowColor + '0.25)';
+      ctx.lineWidth = 5;
       ctx.beginPath();
       ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
       ctx.stroke();
-      ctx.shadowBlur = 0; // Reset shadow
+
+      ctx.strokeStyle = coreColor;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
+      ctx.stroke();
 
       // Draw notches on outer ring
       const notches = 12;
@@ -100,14 +113,14 @@ export default function ArcReactor({ state = 'idle', onClick }) {
         const ny1 = centerY + Math.sin(notchAngle) * r;
         
         ctx.beginPath();
-        ctx.arc(nx1, ny1, 3, 0, Math.PI * 2);
+        ctx.arc(nx1, ny1, 2.5, 0, Math.PI * 2);
         ctx.fill();
       }
 
       // 4. INNER COIL RING (Segmented golden arcs)
       const coils = 10;
       const coilLength = (Math.PI * 2) / coils - 0.15;
-      ctx.lineWidth = 6;
+      ctx.lineWidth = 5;
       ctx.strokeStyle = state === 'listening' ? 'rgba(255, 153, 0, 0.75)' : 'rgba(212, 175, 55, 0.75)';
       for (let i = 0; i < coils; i++) {
         const startA = -angleRef.current + (i * Math.PI * 2) / coils;
@@ -141,14 +154,13 @@ export default function ArcReactor({ state = 'idle', onClick }) {
 
       // 6. DYNAMIC SOUNDWAVE SPECTRUM LINES (Only when speaking)
       if (state === 'speaking') {
-        const waveLines = 60;
+        const waveLines = 36;
         ctx.lineWidth = 2;
         ctx.strokeStyle = 'rgba(255, 215, 0, 0.85)';
         for (let i = 0; i < waveLines; i++) {
           const waveAngle = (i * Math.PI * 2) / waveLines;
-          // Calculate sound wave offset
           const val = Math.sin(i * 0.8 + Date.now() * 0.02) * Math.cos(i * 0.2 + Date.now() * 0.005);
-          const offset = Math.abs(val) * 20 + 2;
+          const offset = Math.abs(val) * 16 + 2;
           
           const startX = centerX + Math.cos(waveAngle) * (r * 0.4);
           const startY = centerY + Math.sin(waveAngle) * (r * 0.4);
@@ -175,15 +187,13 @@ export default function ArcReactor({ state = 'idle', onClick }) {
       }
       ctx.closePath();
       ctx.stroke();
-
-      animationRef.current = requestAnimationFrame(draw);
     };
 
-    draw();
+    animationRef.current = requestAnimationFrame(draw);
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      cancelAnimationFrame(animationRef.current);
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
   }, [state]);
 

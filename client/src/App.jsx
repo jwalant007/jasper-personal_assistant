@@ -1697,43 +1697,72 @@ export default function App() {
                     <ArcReactor state={jasperState} onClick={handleReactorClick} />
                   </div>
 
-                  {/* Interactive Stark HUD Quick Action Pills */}
-                  <div className="flex flex-wrap items-center justify-center gap-2 max-w-2xl px-2">
-                    <button onClick={() => setShowHologramModal(true)} className="jarvis-pill bg-amber-500/20 border-amber-400/50 text-amber-200 hover:bg-amber-500/30 font-bold">
-                      🌌 3D Hologram
+                  {/* Streamlined, Simple & Intuitive Quick Directives Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-2.5 max-w-xl w-full px-2">
+                    <button 
+                      onClick={triggerMorningBriefing}
+                      className="p-2.5 rounded-xl bg-neutral-900/80 hover:bg-amber-500/15 border border-amber-500/25 hover:border-amber-400 text-left transition-all group flex items-center gap-2.5"
+                    >
+                      <span className="text-lg p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 group-hover:scale-110 transition-transform">☀️</span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-xs font-bold text-amber-200 truncate">Morning Brief</span>
+                        <span className="text-[9px] text-neutral-400 font-mono truncate">News, weather & agenda</span>
+                      </div>
                     </button>
-                    <button onClick={() => handleCommand('Hey Jasper, get ready for work')} className="jarvis-pill bg-amber-500/20 border-amber-400/50 text-amber-200 hover:bg-amber-500/30 font-bold">
-                      💼 Get Ready for Work
+
+                    <button 
+                      onClick={() => handleCommand('Hey Jasper, get ready for work')}
+                      className="p-2.5 rounded-xl bg-neutral-900/80 hover:bg-amber-500/15 border border-amber-500/25 hover:border-amber-400 text-left transition-all group flex items-center gap-2.5"
+                    >
+                      <span className="text-lg p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 group-hover:scale-110 transition-transform">💼</span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-xs font-bold text-amber-200 truncate">Work Mode</span>
+                        <span className="text-[9px] text-neutral-400 font-mono truncate">Open productivity suite</span>
+                      </div>
                     </button>
-                    <button onClick={triggerMorningBriefing} className="jarvis-pill bg-amber-500/20 border-amber-400/50 text-amber-200 hover:bg-amber-500/30">
-                      ☀️ Morning Briefing
+
+                    <button 
+                      onClick={() => setShowHealthHub(true)}
+                      className="p-2.5 rounded-xl bg-neutral-900/80 hover:bg-amber-500/15 border border-amber-500/25 hover:border-amber-400 text-left transition-all group flex items-center gap-2.5"
+                    >
+                      <span className="text-lg p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 group-hover:scale-110 transition-transform">🩺</span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-xs font-bold text-amber-200 truncate">Health Vitals</span>
+                        <span className="text-[9px] text-neutral-400 font-mono truncate">Fitband & ECG monitor</span>
+                      </div>
                     </button>
-                    <button onClick={triggerVisionAnalysis} className="jarvis-pill bg-amber-500/20 border-amber-400/50 text-amber-200 hover:bg-amber-500/30">
-                      👁️ Vision AI Desk Scan
+
+                    <button 
+                      onClick={triggerVisionAnalysis}
+                      className="p-2.5 rounded-xl bg-neutral-900/80 hover:bg-amber-500/15 border border-amber-500/25 hover:border-amber-400 text-left transition-all group flex items-center gap-2.5"
+                    >
+                      <span className="text-lg p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 group-hover:scale-110 transition-transform">👁️</span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-xs font-bold text-amber-200 truncate">Vision AI Scan</span>
+                        <span className="text-[9px] text-neutral-400 font-mono truncate">Scan desk & camera</span>
+                      </div>
                     </button>
-                    <button onClick={() => handleCommand('Set PC volume to 50%')} className="jarvis-pill">
-                      ⚡ Set Volume 50%
+
+                    <button 
+                      onClick={() => setShowHologramModal(true)}
+                      className="p-2.5 rounded-xl bg-neutral-900/80 hover:bg-amber-500/15 border border-amber-500/25 hover:border-amber-400 text-left transition-all group flex items-center gap-2.5"
+                    >
+                      <span className="text-lg p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 group-hover:scale-110 transition-transform">🌌</span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-xs font-bold text-amber-200 truncate">3D Hologram</span>
+                        <span className="text-[9px] text-neutral-400 font-mono truncate">Interactive blueprints</span>
+                      </div>
                     </button>
-                    <button onClick={() => handleCommand('Open EA Sports FC Mobile on phone')} className="jarvis-pill">
-                      📱 Open FC Mobile
-                    </button>
-                    <button onClick={() => handleCommand('What is the current price of AAPL stock?')} className="jarvis-pill">
-                      📈 Check Apple Stock
-                    </button>
-                    <button onClick={() => setShowTvRemote(!showTvRemote)} className="jarvis-pill">
-                      📺 TV Remote
-                    </button>
-                    <button onClick={() => setShowHealthHub(true)} className="jarvis-pill">
-                      🩺 Health Vitals
-                    </button>
-                    <button onClick={() => handleCommand('Research latest news on Artificial Intelligence')} className="jarvis-pill">
-                      🤖 Research AI
-                    </button>
-                    <button onClick={() => handleCommand('What song is currently playing on my PC?')} className="jarvis-pill">
-                      🎵 Now Playing
-                    </button>
-                    <button onClick={() => setShowAgenticActions(true)} className="jarvis-pill">
-                      🍽️ Reserve Table
+
+                    <button 
+                      onClick={() => setShowTvRemote(!showTvRemote)}
+                      className="p-2.5 rounded-xl bg-neutral-900/80 hover:bg-amber-500/15 border border-amber-500/25 hover:border-amber-400 text-left transition-all group flex items-center gap-2.5"
+                    >
+                      <span className="text-lg p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 group-hover:scale-110 transition-transform">📺</span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-xs font-bold text-amber-200 truncate">Remote & Volume</span>
+                        <span className="text-[9px] text-neutral-400 font-mono truncate">Control TV & PC audio</span>
+                      </div>
                     </button>
                   </div>
                 </div>
