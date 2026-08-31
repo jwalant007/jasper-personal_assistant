@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-08-31T12:13:20.633Z",
+  "lastUpdated": "2026-08-31T12:21:53.463Z",
   "memories": [
     {
       "id": 1,
@@ -23,23 +23,7 @@
     "connectedDevices": 3,
     "startTime": 1785650061434
   },
-  "reservations": [
-    {
-      "id": "RES-DEMO-01",
-      "venueName": "Trattoria Bella Vista",
-      "cuisine": "Italian Fine Dining",
-      "partySize": 4,
-      "date": "Tomorrow",
-      "time": "8:30 PM",
-      "confirmationCode": "JSP-8821",
-      "contactName": "Jwalant",
-      "phone": "+1 (555) 382-9901",
-      "address": "450 Grand Avenue, Suite 12",
-      "specialRequests": "Quiet garden booth",
-      "createdAt": "2026-08-21T06:44:20.683Z",
-      "status": "Confirmed"
-    }
-  ],
+  "reservations": [],
   "chat_history": [
     {
       "id": 1,
