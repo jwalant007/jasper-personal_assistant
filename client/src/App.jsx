@@ -2628,8 +2628,8 @@ export default function App() {
 
       {/* 20. Health & Fitband Hub Modal */}
       {showHealthHub && (
-        <DraggableModalWrapper isOpen={showHealthHub} onClose={() => setShowHealthHub(false)} title="Health & Fitband Hub">
-          <div className="max-w-4xl w-full">
+        <DraggableModalWrapper isOpen={showHealthHub} onClose={() => setShowHealthHub(false)} title="Health & Fitband Hub" maxWidth="max-w-6xl">
+          <div className="w-full flex-1">
             <HealthFitbandWidget 
               onClose={() => setShowHealthHub(false)} 
               onAskJasper={(query) => {
@@ -2643,7 +2643,7 @@ export default function App() {
 
       {/* 21. Connect to Laptop Mode Modal */}
       {showLaptopConnect && (
-        <DraggableModalWrapper isOpen={showLaptopConnect} onClose={() => setShowLaptopConnect(false)} title="Dual Laptop Cluster Link">
+        <DraggableModalWrapper isOpen={showLaptopConnect} onClose={() => setShowLaptopConnect(false)} title="Dual Laptop Cluster Link" maxWidth="max-w-5xl">
           <LaptopConnectModal 
             onClose={() => setShowLaptopConnect(false)} 
             onLog={(text, type) => console.log(`[LAPTOP] ${text}`)}
@@ -2661,14 +2661,14 @@ export default function App() {
 
       {/* 23. WhatsApp & Instagram Automated Messaging & Call Hub Modal */}
       {showSocialAutoReply && (
-        <DraggableModalWrapper isOpen={showSocialAutoReply} onClose={() => setShowSocialAutoReply(false)} title="WhatsApp & Instagram Auto-Reply Hub">
+        <DraggableModalWrapper isOpen={showSocialAutoReply} onClose={() => setShowSocialAutoReply(false)} title="WhatsApp & Instagram Auto-Reply Hub" maxWidth="max-w-6xl">
           <SocialAutoReplyWidget onClose={() => setShowSocialAutoReply(false)} />
         </DraggableModalWrapper>
       )}
 
       {/* 24. 3D Holographic Visualizer Modal */}
       {showHologramModal && (
-        <DraggableModalWrapper isOpen={showHologramModal} onClose={() => { setShowHologramModal(false); setHologramQuery(''); }} title="3D Hologram Blueprint Studio">
+        <DraggableModalWrapper isOpen={showHologramModal} onClose={() => { setShowHologramModal(false); setHologramQuery(''); }} title="3D Hologram Blueprint Studio" maxWidth="max-w-6xl">
           <HolographicAnswerModal 
             initialQuery={hologramQuery}
             onClose={() => {
@@ -2681,48 +2681,48 @@ export default function App() {
 
       {/* Voice Triggered Standalone App Overlay Windows */}
       {showSearchEngine && (
-        <DraggableModalWrapper isOpen={showSearchEngine} onClose={() => setShowSearchEngine(false)} title="JASPER AI Search Engine">
-          <div className="w-[95vw] max-w-4xl h-[85vh] max-h-[640px] relative my-auto flex flex-col">
+        <DraggableModalWrapper isOpen={showSearchEngine} onClose={() => setShowSearchEngine(false)} title="JASPER AI Search Engine" maxWidth="max-w-6xl">
+          <div className="w-full h-full min-h-[520px] flex-1 relative flex flex-col">
             <JasperSearchApp />
           </div>
         </DraggableModalWrapper>
       )}
 
       {showBrowser && (
-        <DraggableModalWrapper isOpen={showBrowser} onClose={() => setShowBrowser(false)} title="JASPER Web Browser">
-          <div className="w-[95vw] max-w-5xl h-[85vh] max-h-[680px] relative my-auto flex flex-col">
+        <DraggableModalWrapper isOpen={showBrowser} onClose={() => setShowBrowser(false)} title="JASPER Web Browser" maxWidth="max-w-6xl">
+          <div className="w-full h-full min-h-[560px] flex-1 relative flex flex-col">
             <JasperBrowserApp />
           </div>
         </DraggableModalWrapper>
       )}
 
       {showFileManager && (
-        <DraggableModalWrapper isOpen={showFileManager} onClose={() => setShowFileManager(false)} title="JASPER File Explorer">
-          <div className="w-[95vw] max-w-4xl h-[85vh] max-h-[600px] relative my-auto flex flex-col">
+        <DraggableModalWrapper isOpen={showFileManager} onClose={() => setShowFileManager(false)} title="JASPER File Explorer" maxWidth="max-w-6xl">
+          <div className="w-full h-full min-h-[480px] flex-1 relative flex flex-col">
             <JasperFileManagerApp />
           </div>
         </DraggableModalWrapper>
       )}
 
       {showCodeStudio && (
-        <DraggableModalWrapper isOpen={showCodeStudio} onClose={() => setShowCodeStudio(false)} title="JASPER Code Studio">
-          <div className="w-[95vw] max-w-5xl h-[85vh] max-h-[660px] relative my-auto flex flex-col">
+        <DraggableModalWrapper isOpen={showCodeStudio} onClose={() => setShowCodeStudio(false)} title="JASPER Code Studio" maxWidth="max-w-6xl">
+          <div className="w-full h-full min-h-[540px] flex-1 relative flex flex-col">
             <JasperCodeStudioApp />
           </div>
         </DraggableModalWrapper>
       )}
 
       {showNotesPlanner && (
-        <DraggableModalWrapper isOpen={showNotesPlanner} onClose={() => setShowNotesPlanner(false)} title="JASPER Notes & Task Planner">
-          <div className="w-[95vw] max-w-4xl h-[85vh] max-h-[620px] relative my-auto flex flex-col">
+        <DraggableModalWrapper isOpen={showNotesPlanner} onClose={() => setShowNotesPlanner(false)} title="JASPER Notes & Task Planner" maxWidth="max-w-6xl">
+          <div className="w-full h-full min-h-[500px] flex-1 relative flex flex-col">
             <JasperNotesPlannerApp />
           </div>
         </DraggableModalWrapper>
       )}
 
       {showCalculator && (
-        <DraggableModalWrapper isOpen={showCalculator} onClose={() => setShowCalculator(false)} title="JASPER Scientific Calculator">
-          <div className="w-[95vw] max-w-3xl h-[85vh] max-h-[560px] relative my-auto flex flex-col">
+        <DraggableModalWrapper isOpen={showCalculator} onClose={() => setShowCalculator(false)} title="JASPER Scientific Calculator" maxWidth="max-w-4xl">
+          <div className="w-full h-full min-h-[480px] flex-1 relative flex flex-col">
             <JasperCalculatorApp />
           </div>
         </DraggableModalWrapper>

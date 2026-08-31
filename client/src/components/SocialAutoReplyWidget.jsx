@@ -536,7 +536,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
   };
 
   return (
-    <div className="bg-neutral-950/95 border border-amber-500/40 rounded-2xl p-4 sm:p-6 text-neutral-100 backdrop-blur-2xl shadow-[0_0_50px_rgba(245,197,66,0.2)] max-w-5xl w-full mx-auto relative overflow-hidden font-sans flex flex-col gap-5 max-h-[90vh] overflow-y-auto custom-scrollbar">
+    <div className="w-full flex-1 relative font-sans flex flex-col gap-5 text-neutral-100">
       
       {/* Top Header */}
       <div className="flex items-center justify-between border-b border-amber-500/30 pb-3.5 shrink-0">
