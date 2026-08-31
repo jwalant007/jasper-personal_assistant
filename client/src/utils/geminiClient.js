@@ -384,8 +384,9 @@ class GeminiClient {
   }
 
   // Local tool executors calling backend Express routes
-  async executeTool(name, args, onLog) {
-    onLog(`[JASPER CORE] Executing tool: ${name}(${JSON.stringify(args)})`, 'info');
+  async executeTool(name, args, onLog = () => {}) {
+    const log = typeof onLog === 'function' ? onLog : (m, t) => console.log(`[${t || 'info'}] ${m}`);
+    log(`[JASPER CORE] Executing tool: ${name}(${JSON.stringify(args)})`, 'info');
     
     try {
       if (name === 'search_internet') {
@@ -397,11 +398,11 @@ class GeminiClient {
           });
           if (res.ok) {
             const data = await res.json();
-            onLog(`[SEARCH HUB] Found ${data.results?.length || 0} search results.`, 'success');
+            log(`[SEARCH HUB] Found ${data.results?.length || 0} search results.`, 'success');
             return data;
           }
         } catch (e) {
-          onLog(`[SEARCH HUB] Laptop backend offline. Running direct mobile web search...`, 'info');
+          log(`[SEARCH HUB] Laptop backend offline. Running direct mobile web search...`, 'info');
         }
 
         // Direct client fallback via Wikipedia search API
@@ -415,7 +416,7 @@ class GeminiClient {
               snippet: item.snippet.replace(/<\/?[^>]+(>|$)/g, ""),
               url: `https://en.wikipedia.org/wiki/${encodeURIComponent(item.title)}`
             }));
-            onLog(`[SEARCH HUB] Found ${results.length} search results via mobile fallback.`, 'success');
+            log(`[SEARCH HUB] Found ${results.length} search results via mobile fallback.`, 'success');
             return { query: args.query, results };
           }
         } catch (wikiErr) {
@@ -426,7 +427,7 @@ class GeminiClient {
       }
 
       if (name === 'get_stock_data') {
-        onLog(`[MARKET INTEL] Fetching live data for: ${args.symbol}`, 'info');
+        log(`[MARKET INTEL] Fetching live data for: ${args.symbol}`, 'info');
         try {
           const res = await fetch(`${getApiBase()}/api/stock`, {
             method: 'POST',
@@ -435,11 +436,11 @@ class GeminiClient {
           });
           if (res.ok) {
             const data = await res.json();
-            onLog(`[MARKET INTEL] Stock data loaded for ${args.symbol}.`, 'success');
+            log(`[MARKET INTEL] Stock data loaded for ${args.symbol}.`, 'success');
             return data;
           }
         } catch (e) {
-          onLog(`[MARKET INTEL] PC backend offline. Unable to fetch stock quote.`, 'warning');
+          log(`[MARKET INTEL] PC backend offline. Unable to fetch stock quote.`, 'warning');
           return { status: 'offline', symbol: args.symbol, message: 'Stock data requires PC backend online.' };
         }
       }

@@ -29,6 +29,7 @@ import HealthFitbandWidget from './components/HealthFitbandWidget';
 import LaptopConnectModal from './components/LaptopConnectModal';
 import LiveTranslationWidget from './components/LiveTranslationWidget';
 import SocialAutoReplyWidget from './components/SocialAutoReplyWidget';
+import HolographicAnswerModal from './components/HolographicAnswerModal';
 import DraggableModalWrapper from './components/DraggableModalWrapper';
 import JasperOsDesktop from './components/JasperOsDesktop';
 import JasperSearchApp from './components/JasperSearchApp';
@@ -87,6 +88,8 @@ export default function App() {
   const [showNotesPlanner, setShowNotesPlanner] = useState(false);
   const [showCalculator, setShowCalculator] = useState(false);
   const [showLaptopConnect, setShowLaptopConnect] = useState(false);
+  const [showHologramModal, setShowHologramModal] = useState(false);
+  const [hologramQuery, setHologramQuery] = useState('');
 
   const [isPhoneBrainMode, setIsPhoneBrainModeState] = useState(() => getPhoneBrainMode());
   const [agenticQuery, setAgenticQuery] = useState('');
@@ -281,8 +284,6 @@ export default function App() {
   const [scanProgress, setScanProgress] = useState(0);
   const [voiceTranscript, setVoiceTranscript] = useState('');
   const [showAudioPage, setShowAudioPage] = useState(false);
-  const [showHologramModal, setShowHologramModal] = useState(false);
-  const [hologramQuery, setHologramQuery] = useState('');
 
   // Auto-detect mobile screen & Sync Biometric Owner Profile from Server Database
   useEffect(() => {
@@ -801,13 +802,13 @@ export default function App() {
   const triggerVisionAnalysis = async () => {
     if (!videoRef.current) {
       alert("Camera feed is currently inactive. Opening Security & Vision Center...");
-      setShowSecurityCenter(true);
+      setShowSecurity(true);
       return;
     }
     const frame = captureWebcamFrameAsBase64(videoRef.current);
     if (!frame) {
       alert("Please ensure your webcam is enabled in Face Unlock / Security Center.");
-      setShowSecurityCenter(true);
+      setShowSecurity(true);
       return;
     }
     setJasperState('processing');

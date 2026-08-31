@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-08-30T19:46:43.582Z",
+  "lastUpdated": "2026-08-31T10:13:36.563Z",
   "memories": [
     {
       "id": 1,
@@ -229,6 +229,17 @@
     }
   },
   "social_contacts": [
+    {
+      "id": "c_wa_1788171216562_0",
+      "name": "Mom (WhatsApp)",
+      "phone": "+91 98000 00000",
+      "ig": "@momwhatsapp",
+      "platform": "whatsapp",
+      "source": "whatsapp_live",
+      "lastMessage": "💬 WA: \"See you tomorrow at 8 PM for dinner!\"",
+      "lastTimestamp": "Live WA",
+      "avatarColor": "from-emerald-500 to-teal-500"
+    },
     {
       "id": "c_call_917949210104",
       "name": "Caller +917949210104",
