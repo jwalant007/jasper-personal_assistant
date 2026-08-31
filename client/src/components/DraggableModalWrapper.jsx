@@ -106,7 +106,7 @@ export default function DraggableModalWrapper({
         style={modalStyle}
         className={`pointer-events-auto relative ${maxWidth} w-full flex flex-col transition-shadow duration-150 ${
           isDragging 
-            ? 'cursor-grabbing shadow-[0_0_50px_rgba(0,240,255,0.4)] ring-2 ring-cyan-400/50 select-none' 
+            ? 'cursor-grabbing shadow-[0_0_50px_rgba(245,197,66,0.4)] ring-2 ring-amber-400/50 select-none' 
             : 'shadow-2xl'
         } ${className}`}
       >
@@ -114,14 +114,14 @@ export default function DraggableModalWrapper({
         <div
           onMouseDown={handleMouseDown}
           onTouchStart={handleTouchStart}
-          className="flex items-center justify-between px-3 py-1.5 bg-gradient-to-r from-cyan-950/95 via-slate-900/95 to-cyan-950/95 border border-cyan-500/40 rounded-t-xl text-cyan-300 text-xs font-mono select-none cursor-grab active:cursor-grabbing backdrop-blur-xl shadow-md"
+          className="flex items-center justify-between px-3 py-1.5 bg-gradient-to-r from-amber-950/90 via-neutral-900/95 to-amber-950/90 border border-amber-500/40 rounded-t-xl text-amber-300 text-xs font-mono select-none cursor-grab active:cursor-grabbing backdrop-blur-xl shadow-md"
         >
           <div className="flex items-center gap-2">
-            <Move className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-            <span className="font-bold text-[10px] sm:text-xs text-cyan-200 uppercase tracking-wider">
+            <Move className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+            <span className="font-bold text-[10px] sm:text-xs text-amber-200 uppercase tracking-wider">
               {title || 'DRAGGABLE WINDOW'}
             </span>
-            <span className="hidden sm:inline px-1.5 py-0.2 bg-cyan-500/20 border border-cyan-400/40 rounded text-[9px] text-cyan-300">
+            <span className="hidden sm:inline px-1.5 py-0.2 bg-amber-500/20 border border-amber-400/40 rounded text-[9px] text-amber-300">
               DRAG ANYWHERE
             </span>
           </div>
@@ -132,7 +132,7 @@ export default function DraggableModalWrapper({
                 type="button"
                 onClick={() => setPos(null)}
                 title="Reset to center"
-                className="px-1.5 py-0.5 rounded bg-slate-800/80 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-200 text-[9px] flex items-center gap-1 border border-slate-700 transition-all"
+                className="px-1.5 py-0.5 rounded bg-neutral-800/80 hover:bg-amber-500/20 text-neutral-300 hover:text-amber-200 text-[9px] flex items-center gap-1 border border-neutral-700 transition-all"
               >
                 <RotateCcw className="w-2.5 h-2.5" />
                 <span className="hidden sm:inline">Center</span>

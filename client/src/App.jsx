@@ -93,7 +93,7 @@ export default function App() {
   const [showManual, setShowManual] = useState(false);
   const [showThemes, setShowThemes] = useState(false);
   const [currentTheme, setCurrentTheme] = useState(() => {
-    return localStorage.getItem('jasper_theme') || 'cyber-blue';
+    return localStorage.getItem('jasper_theme') || 'matte-gold';
   });
 
   useEffect(() => {
@@ -1207,9 +1207,9 @@ export default function App() {
               {/* Switch Back to OS Spatial Desktop Mode */}
               <button 
                 onClick={() => setIsOsMode(true)}
-                className="w-full py-2.5 px-3 bg-gradient-to-r from-cyan-500/30 to-blue-600/30 hover:from-cyan-500/40 hover:to-blue-600/40 border border-cyan-400 text-cyan-100 rounded-xl font-orbitron font-extrabold text-xs tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(0,240,255,0.25)] mt-1"
+                className="w-full py-2.5 px-3 bg-gradient-to-r from-amber-500/25 via-neutral-900/80 to-amber-600/25 hover:from-amber-500/35 hover:to-amber-600/35 border border-amber-400/80 text-amber-200 rounded-xl font-orbitron font-extrabold text-xs tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(245,197,66,0.22)] mt-1"
               >
-                <Monitor className="w-4 h-4 text-cyan-300 animate-pulse" />
+                <Monitor className="w-4 h-4 text-amber-300 animate-pulse" />
                 <span>JASPER OS DESKTOP</span>
               </button>
 
@@ -1229,7 +1229,7 @@ export default function App() {
                 }}
                 className="btn-sidebar btn-sidebar-blue w-full flex gap-1.5 items-center justify-center font-bold"
               >
-                <Radio size={12} className="text-cyan-400 animate-pulse" />
+                <Radio size={12} className="text-amber-400 animate-pulse" />
                 AUDIO CONVERSATION
               </button>
 
@@ -1239,15 +1239,15 @@ export default function App() {
                 }}
                 className="btn-sidebar btn-sidebar-purple w-full flex gap-1.5 items-center justify-center"
               >
-                <Sparkles size={12} />
+                <Sparkles size={12} className="text-amber-400" />
                 IMAGE SYNTHESIS
               </button>
 
               <button 
                 onClick={() => setShowManual(true)}
-                className="btn-sidebar btn-sidebar-blue w-full flex gap-1.5 items-center justify-center font-bold border-cyan-500/50 bg-cyan-950/40 text-cyan-300"
+                className="btn-sidebar btn-sidebar-blue w-full flex gap-1.5 items-center justify-center font-bold border-amber-500/40 bg-amber-950/30 text-amber-300"
               >
-                <BookOpen size={12} className="text-cyan-400 animate-pulse" />
+                <BookOpen size={12} className="text-amber-400 animate-pulse" />
                 USER MANUAL &amp; GUIDE
               </button>
 
@@ -1258,14 +1258,14 @@ export default function App() {
                   }}
                   className="btn-sidebar btn-sidebar-blue flex-1 text-[10px] py-3 flex gap-1.5 items-center justify-center"
                 >
-                  <Tv size={12} />
+                  <Tv size={12} className="text-amber-400" />
                   CONNECT TV
                 </button>
                 <button 
                   onClick={() => setShowTvRemote(!showTvRemote)}
                   className="btn-sidebar btn-sidebar-blue px-3 flex items-center justify-center"
                 >
-                  <ChevronDown size={14} />
+                  <ChevronDown size={14} className="text-amber-400" />
                 </button>
               </div>
               
@@ -1275,7 +1275,7 @@ export default function App() {
                 }}
                 className="btn-sidebar btn-sidebar-blue w-full flex gap-1.5 items-center justify-center"
               >
-                <Smartphone size={12} />
+                <Smartphone size={12} className="text-amber-400" />
                 CONNECT PHONE
               </button>
 
@@ -1284,69 +1284,69 @@ export default function App() {
                   setShowLaptopConnect(true);
                   if (isMobileLayout) setShowSidebar(false);
                 }}
-                className="btn-sidebar btn-sidebar-blue w-full flex gap-1.5 items-center justify-center font-bold border-cyan-400/60 bg-cyan-950/50 text-cyan-300 shadow-[0_0_12px_rgba(0,240,255,0.2)] hover:bg-cyan-900/60"
+                className="btn-sidebar btn-sidebar-blue w-full flex gap-1.5 items-center justify-center font-bold border-amber-400/60 bg-amber-950/40 text-amber-300 shadow-[0_0_12px_rgba(245,197,66,0.2)] hover:bg-amber-900/50"
               >
-                <Laptop size={14} className="text-cyan-400 animate-pulse" />
+                <Laptop size={14} className="text-amber-400 animate-pulse" />
                 CONNECT TO LAPTOP MODE
               </button>
 
               {/* Feature Modules Suite */}
-              <div className="flex flex-col gap-1.5 border-t border-cyan-500/15 pt-2 mt-1">
-                <span className="font-mono text-[9px] text-cyan-400 font-bold uppercase tracking-widest px-1">Feature Suite</span>
+              <div className="flex flex-col gap-1.5 border-t border-amber-500/20 pt-2 mt-1">
+                <span className="font-mono text-[9px] text-amber-400 font-bold uppercase tracking-widest px-1">Feature Suite</span>
                 
-                <button onClick={() => setShowSocialAutoReply(!showSocialAutoReply)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-emerald-400/60 bg-emerald-500/20 text-emerald-300 font-extrabold shadow-[0_0_15px_rgba(16,185,129,0.3)]">
-                  <MessageSquare size={12} className="text-emerald-400 animate-pulse" /> WHATSAPP &amp; IG AUTO-REPLY
+                <button onClick={() => setShowSocialAutoReply(!showSocialAutoReply)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-400/60 bg-amber-500/15 text-amber-300 font-extrabold shadow-[0_0_15px_rgba(245,197,66,0.2)]">
+                  <MessageSquare size={12} className="text-amber-400 animate-pulse" /> WHATSAPP &amp; IG AUTO-REPLY
                 </button>
-                <button onClick={() => setShowLiveTranslation(!showLiveTranslation)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-blue-400/60 bg-blue-500/20 text-blue-300 font-extrabold shadow-[0_0_15px_rgba(59,130,246,0.35)]">
-                  <Languages size={12} className="text-blue-400 animate-pulse" /> CHROME LIVE TRANSLATE
+                <button onClick={() => setShowLiveTranslation(!showLiveTranslation)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-400/50 bg-neutral-900/60 text-amber-300 font-bold shadow-[0_0_12px_rgba(245,197,66,0.15)]">
+                  <Languages size={12} className="text-amber-400 animate-pulse" /> CHROME LIVE TRANSLATE
                 </button>
-                <button onClick={() => setShowHologramModal(!showHologramModal)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-purple-400/60 bg-purple-500/20 text-purple-300 font-extrabold shadow-[0_0_15px_rgba(168,85,247,0.35)]">
-                  <Box size={12} className="text-purple-400 animate-pulse" /> 3D HOLOGRAM VISUALIZER
+                <button onClick={() => setShowHologramModal(!showHologramModal)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-400/50 bg-neutral-900/60 text-amber-300 font-bold shadow-[0_0_12px_rgba(245,197,66,0.15)]">
+                  <Box size={12} className="text-amber-400 animate-pulse" /> 3D HOLOGRAM VISUALIZER
                 </button>
-                <button onClick={() => setShowAgenticActions(!showAgenticActions)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-cyan-400/60 bg-cyan-500/20 text-cyan-300 font-extrabold shadow-[0_0_12px_rgba(6,182,212,0.25)]">
-                  <PhoneCall size={12} className="text-cyan-400 animate-pulse" /> AGENTIC ACTIONS
+                <button onClick={() => setShowAgenticActions(!showAgenticActions)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-400/50 bg-neutral-900/60 text-amber-300 font-bold">
+                  <PhoneCall size={12} className="text-amber-400 animate-pulse" /> AGENTIC ACTIONS
                 </button>
-                <button onClick={() => setShowHealthHub(!showHealthHub)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-rose-500/40 bg-rose-500/10 text-rose-300 font-bold shadow-[0_0_12px_rgba(244,63,94,0.2)]">
-                  <Activity size={12} className="text-rose-400 animate-pulse" /> HEALTH & FITBAND HUB
+                <button onClick={() => setShowHealthHub(!showHealthHub)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/40 bg-neutral-900/60 text-amber-300 font-bold">
+                  <Activity size={12} className="text-amber-400 animate-pulse" /> HEALTH & FITBAND HUB
                 </button>
-                <button onClick={() => setShowMissionControl(!showMissionControl)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-cyan-500/40 bg-cyan-500/10 text-cyan-300 font-bold">
-                  <LayoutDashboard size={12} className="text-cyan-400" /> MISSION CONTROL
+                <button onClick={() => setShowMissionControl(!showMissionControl)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/30">
+                  <LayoutDashboard size={12} className="text-amber-400" /> MISSION CONTROL
                 </button>
-                <button onClick={() => setShowMaps(!showMaps)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-blue-500/30">
-                  <MapPin size={12} className="text-blue-400" /> MAPS & NAVIGATION
+                <button onClick={() => setShowMaps(!showMaps)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/30">
+                  <MapPin size={12} className="text-amber-400" /> MAPS & NAVIGATION
                 </button>
-                <button onClick={() => setShowSportsHub(!showSportsHub)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-emerald-500/30">
-                  <Trophy size={12} className="text-emerald-400" /> SPORTS HUB
+                <button onClick={() => setShowSportsHub(!showSportsHub)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/30">
+                  <Trophy size={12} className="text-amber-400" /> SPORTS HUB
                 </button>
-                <button onClick={() => setShowAutomation(!showAutomation)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-yellow-500/30">
-                  <Workflow size={12} className="text-yellow-400" /> AUTOMATION BUILDER
+                <button onClick={() => setShowAutomation(!showAutomation)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/30">
+                  <Workflow size={12} className="text-amber-400" /> AUTOMATION BUILDER
                 </button>
-                <button onClick={() => setShowThemes(!showThemes)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-purple-500/30">
-                  <Palette size={12} className="text-purple-400" /> CUSTOM THEMES
+                <button onClick={() => setShowThemes(!showThemes)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/40 bg-amber-950/20 text-amber-300">
+                  <Palette size={12} className="text-amber-400" /> CUSTOM THEMES
                 </button>
-                <button onClick={() => setShowPcCommand(!showPcCommand)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-cyan-500/30">
-                  <Monitor size={12} className="text-cyan-400" /> PC COMMAND CENTER
+                <button onClick={() => setShowPcCommand(!showPcCommand)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/30">
+                  <Monitor size={12} className="text-amber-400" /> PC COMMAND CENTER
                 </button>
-                <button onClick={() => setShowBrowserAgent(!showBrowserAgent)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-blue-500/30">
-                  <Globe size={12} className="text-blue-400" /> BROWSER AGENT
+                <button onClick={() => setShowBrowserAgent(!showBrowserAgent)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/30">
+                  <Globe size={12} className="text-amber-400" /> BROWSER AGENT
                 </button>
                 <button onClick={() => setShowPersonalAssistant(!showPersonalAssistant)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/30">
                   <Calendar size={12} className="text-amber-400" /> PERSONAL ASSISTANT
                 </button>
-                <button onClick={() => setShowMemory(!showMemory)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-purple-500/30">
-                  <Brain size={12} className="text-purple-400" /> MEMORY DASHBOARD
+                <button onClick={() => setShowMemory(!showMemory)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/30">
+                  <Brain size={12} className="text-amber-400" /> MEMORY DASHBOARD
                 </button>
-                <button onClick={() => setShowSkillsStore(!showSkillsStore)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-emerald-500/30">
-                  <Store size={12} className="text-emerald-400" /> AI SKILLS STORE
+                <button onClick={() => setShowSkillsStore(!showSkillsStore)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/30">
+                  <Store size={12} className="text-amber-400" /> AI SKILLS STORE
                 </button>
-                <button onClick={() => setShowAnalytics(!showAnalytics)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-indigo-500/30">
-                  <BarChart3 size={12} className="text-indigo-400" /> ANALYTICS
+                <button onClick={() => setShowAnalytics(!showAnalytics)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/30">
+                  <BarChart3 size={12} className="text-amber-400" /> ANALYTICS
                 </button>
-                <button onClick={() => setShowAvatar(!showAvatar)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-violet-500/30">
-                  <Bot size={12} className="text-violet-400" /> AI AVATAR
+                <button onClick={() => setShowAvatar(!showAvatar)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/30">
+                  <Bot size={12} className="text-amber-400" /> AI AVATAR
                 </button>
-                <button onClick={() => setShowSecurity(!showSecurity)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-emerald-500/30">
-                  <ShieldCheck size={12} className="text-emerald-400" /> SECURITY CENTER
+                <button onClick={() => setShowSecurity(!showSecurity)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/30">
+                  <ShieldCheck size={12} className="text-amber-400" /> SECURITY CENTER
                 </button>
               </div>
 
@@ -1356,7 +1356,7 @@ export default function App() {
                 }}
                 className="btn-sidebar btn-sidebar-blue w-full flex gap-1.5 items-center justify-center text-[10px] py-3"
               >
-                <Cpu size={12} />
+                <Cpu size={12} className="text-amber-400" />
                 SYSTEM DIAGNOSTICS
               </button>
 
@@ -1366,7 +1366,7 @@ export default function App() {
                   onClick={() => {
                     handleToggleViewMode();
                   }}
-                  className="btn-sidebar btn-sidebar-blue w-full text-[10px] py-2.5 mt-1 border-cyan-500/40 bg-cyan-950/30 text-cyan-300 font-bold"
+                  className="btn-sidebar btn-sidebar-blue w-full text-[10px] py-2.5 mt-1 border-amber-500/40 bg-amber-950/30 text-amber-300 font-bold"
                 >
                   {viewMode === 'mobile' ? '💻 SWITCH TO PC LAYOUT' : '📱 SWITCH TO MOBILE LAYOUT'}
                 </button>
@@ -1374,7 +1374,7 @@ export default function App() {
 
               {/* System Routines Panel */}
               <div className="flex flex-col gap-3 mt-2">
-                <span className="font-mono text-[9px] text-sky-500 uppercase tracking-widest border-b border-cyan-500/10 pb-1.5 font-bold">
+                <span className="font-mono text-[9px] text-amber-500/80 uppercase tracking-widest border-b border-amber-500/15 pb-1.5 font-bold">
                   System Routines
                 </span>
                 <div className="flex gap-2">
@@ -1382,7 +1382,7 @@ export default function App() {
                     onClick={() => {
                       runMacro('cinema');
                     }}
-                    className="btn-sidebar flex-1 text-[10px] py-2 flex items-center justify-center gap-1 border-cyan-500/30 hover:border-cyan-400 bg-cyan-950/15"
+                    className="btn-sidebar flex-1 text-[10px] py-2 flex items-center justify-center gap-1 border-amber-500/30 hover:border-amber-400 bg-amber-950/20"
                   >
                     CINEMA
                   </button>
@@ -1390,7 +1390,7 @@ export default function App() {
                     onClick={() => {
                       runMacro('study');
                     }}
-                    className="btn-sidebar flex-1 text-[10px] py-2 flex items-center justify-center gap-1 border-cyan-500/30 hover:border-cyan-400 bg-cyan-950/15"
+                    className="btn-sidebar flex-1 text-[10px] py-2 flex items-center justify-center gap-1 border-amber-500/30 hover:border-amber-400 bg-amber-950/20"
                   >
                     STUDY
                   </button>
@@ -1405,7 +1405,7 @@ export default function App() {
 
               {/* Past Chats List */}
               <div className="flex flex-col gap-3 mt-4">
-                <span className="font-mono text-[9px] text-sky-500 uppercase tracking-widest border-b border-cyan-500/10 pb-1.5 font-bold">
+                <span className="font-mono text-[9px] text-amber-500/80 uppercase tracking-widest border-b border-amber-500/15 pb-1.5 font-bold">
                   Past Chats
                 </span>
                 
@@ -1419,10 +1419,10 @@ export default function App() {
                       className={`chat-history-card flex items-center justify-between gap-2 text-left transition-all ${selectedChatId === chat.id ? 'active' : ''}`}
                     >
                       <div className="flex flex-col overflow-hidden">
-                        <span className="font-semibold text-[11px] text-cyan-100 truncate w-44">
+                        <span className="font-semibold text-[11px] text-amber-100 truncate w-44">
                           {chat.query}
                         </span>
-                        <span className="text-[8px] text-sky-600/70 font-mono mt-0.5">
+                        <span className="text-[8px] text-amber-600/70 font-mono mt-0.5">
                           {chat.timestamp}
                         </span>
                       </div>
@@ -1447,8 +1447,8 @@ export default function App() {
 
             {/* Active Reminders countdown block */}
             {reminders.length > 0 && (
-              <div className="flex flex-col gap-2 mt-4 border-t border-cyan-500/10 pt-3">
-                <span className="font-mono text-[9px] text-sky-500 uppercase tracking-widest font-bold">
+              <div className="flex flex-col gap-2 mt-4 border-t border-amber-500/15 pt-3">
+                <span className="font-mono text-[9px] text-amber-500/80 uppercase tracking-widest font-bold">
                   Active Reminders
                 </span>
                 <div className="flex flex-col gap-1.5 max-h-[150px] overflow-y-auto pr-1">
@@ -1459,10 +1459,10 @@ export default function App() {
                     const timeString = `${mins}:${secs.toString().padStart(2, '0')}`;
                     
                     return (
-                      <div key={r.id} className="flex justify-between items-center bg-cyan-950/10 border border-cyan-500/10 rounded px-2 py-1.5 text-[10px]">
+                      <div key={r.id} className="flex justify-between items-center bg-amber-950/20 border border-amber-500/20 rounded px-2 py-1.5 text-[10px]">
                         <div className="flex flex-col overflow-hidden">
-                          <span className="text-cyan-100 truncate w-32 font-medium">{r.task}</span>
-                          <span className="text-[8px] text-sky-600 font-mono">T-MINUS: {timeString}</span>
+                          <span className="text-amber-100 truncate w-32 font-medium">{r.task}</span>
+                          <span className="text-[8px] text-amber-600 font-mono">T-MINUS: {timeString}</span>
                         </div>
                         <button 
                           onClick={() => setReminders(prev => prev.filter(item => item.id !== r.id))}
@@ -1479,7 +1479,7 @@ export default function App() {
             )}
 
             {/* Footer details in sidebar */}
-            <div className="border-t border-cyan-500/10 pt-3 flex items-center justify-between text-[8px] font-mono text-sky-600/60 uppercase">
+            <div className="border-t border-amber-500/15 pt-3 flex items-center justify-between text-[8px] font-mono text-amber-600/70 uppercase">
               <span>JWALANT BHATT CREATION v4.1</span>
               <span>SECURE HUD</span>
             </div>
@@ -1491,22 +1491,22 @@ export default function App() {
           
           {/* Header Panel (Only shown in Classic mode) */}
           {!isOsMode && (
-            <header className={`flex items-center justify-between border-b border-cyan-500/15 bg-black/40 backdrop-blur-md shrink-0 ${isMobileLayout ? 'px-3 py-2.5 gap-2' : 'px-6 py-4'}`}>
+            <header className={`flex items-center justify-between border-b border-amber-500/20 bg-neutral-950/80 backdrop-blur-md shrink-0 ${isMobileLayout ? 'px-3 py-2.5 gap-2' : 'px-6 py-4'}`}>
               <div className="flex items-center gap-2.5">
                 <button 
                   onClick={() => setShowSidebar(prev => !prev)}
-                  className="btn-hdr-action py-1.5 px-3 font-bold text-xs text-cyan-400 border-cyan-500/40 bg-cyan-950/40 hover:bg-cyan-900/60 transition-all flex items-center gap-1.5 cursor-pointer shrink-0 z-30 shadow-[0_0_10px_rgba(0,240,255,0.2)]"
+                  className="btn-hdr-action py-1.5 px-3 font-bold text-xs text-amber-400 border-amber-500/40 bg-amber-950/40 hover:bg-amber-900/60 transition-all flex items-center gap-1.5 cursor-pointer shrink-0 z-30 shadow-[0_0_10px_rgba(245,197,66,0.2)]"
                   title="Toggle Navigation Menu"
                 >
                   <span className="text-sm font-extrabold leading-none">☰</span>
                   <span className="text-[10px] font-mono uppercase tracking-wider">{showSidebar ? 'Hide Menu' : 'Menu'}</span>
                 </button>
                 <div className="flex flex-col shrink-0">
-                  <h1 className={`font-orbitron font-extrabold tracking-[0.2em] text-cyan-400 glow-cyan leading-none ${isMobileLayout ? 'text-xs sm:text-sm' : 'text-lg'}`}>
+                  <h1 className={`font-orbitron font-extrabold tracking-[0.2em] text-amber-400 glow-gold leading-none ${isMobileLayout ? 'text-xs sm:text-sm' : 'text-lg'}`}>
                     J.A.S.P.E.R
                   </h1>
                   {!isMobileLayout && (
-                    <span className="font-mono text-[9px] text-sky-500 tracking-wider mt-1.5 uppercase font-semibold">
+                    <span className="font-mono text-[9px] text-amber-500/80 tracking-wider mt-1.5 uppercase font-semibold">
                       Futuristic AI assistant interface
                     </span>
                   )}
@@ -1527,7 +1527,7 @@ export default function App() {
                 )}
                 <button 
                   onClick={() => setIsOsMode(true)}
-                  className="btn-hdr-action text-[10px] py-1 px-2.5 font-mono font-extrabold text-cyan-300 border-cyan-400/80 bg-cyan-950/80 hover:bg-cyan-800/90 transition-all flex items-center gap-1 cursor-pointer shadow-[0_0_15px_rgba(0,240,255,0.4)] animate-pulse"
+                  className="btn-hdr-action text-[10px] py-1 px-2.5 font-mono font-extrabold text-amber-300 border-amber-400/80 bg-amber-950/80 hover:bg-amber-800/90 transition-all flex items-center gap-1 cursor-pointer shadow-[0_0_15px_rgba(245,197,66,0.3)] animate-pulse"
                   title="Switch to JASPER OS Spatial Desktop Environment"
                 >
                   🖥️ {isMobileLayout ? 'OS MODE' : 'OS DESKTOP MODE'}
@@ -1537,7 +1537,7 @@ export default function App() {
                     setSelectedChatId(null);
                     scrollToTop();
                   }}
-                  className="btn-hdr-action text-[10px] py-1 px-2.5 font-mono font-extrabold text-cyan-300 border-cyan-400/60 bg-cyan-950/70 hover:bg-cyan-800/80 transition-all flex items-center gap-1 cursor-pointer shadow-[0_0_12px_rgba(0,240,255,0.3)]"
+                  className="btn-hdr-action text-[10px] py-1 px-2.5 font-mono font-extrabold text-amber-300 border-amber-400/60 bg-amber-950/70 hover:bg-amber-800/80 transition-all flex items-center gap-1 cursor-pointer shadow-[0_0_12px_rgba(245,197,66,0.25)]"
                   title="Return to Main J.A.R.V.I.S. Home HUD"
                 >
                   🏠 {isMobileLayout ? 'HOME' : 'HOME HUD'}
@@ -1552,10 +1552,10 @@ export default function App() {
 
                 <button 
                   onClick={() => setShowLaptopConnect(true)}
-                  className="btn-hdr-action text-[10px] py-1 px-2 font-mono font-bold text-cyan-300 border-cyan-500/50 bg-cyan-950/60 hover:bg-cyan-900/80 transition-all flex items-center gap-1 cursor-pointer shadow-[0_0_10px_rgba(0,240,255,0.2)]"
+                  className="btn-hdr-action text-[10px] py-1 px-2 font-mono font-bold text-amber-300 border-amber-500/50 bg-amber-950/60 hover:bg-amber-900/80 transition-all flex items-center gap-1 cursor-pointer shadow-[0_0_10px_rgba(245,197,66,0.2)]"
                   title="Connect to Laptop Mode"
                 >
-                  <Laptop size={12} className="text-cyan-400" />
+                  <Laptop size={12} className="text-amber-400" />
                   {isMobileLayout ? '💻 Laptop' : '💻 Connect Laptop'}
                 </button>
 
@@ -1566,8 +1566,8 @@ export default function App() {
                   }}
                   className={`btn-hdr-action text-[10px] py-1 px-2 font-mono font-bold transition-all flex items-center gap-1 ${
                     isPhoneBrainMode 
-                      ? 'bg-purple-500/20 text-purple-300 border-purple-500/50 shadow-[0_0_10px_rgba(168,85,247,0.3)]' 
-                      : 'text-cyan-400 hover:text-cyan-200'
+                      ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-[0_0_10px_rgba(245,197,66,0.3)]' 
+                      : 'text-amber-400 hover:text-amber-200'
                   }`}
                   title="Toggle Mobile Master Brain Mode"
                 >
@@ -1581,7 +1581,7 @@ export default function App() {
                 </button>
                 <button 
                   onClick={() => setShowSettings(true)}
-                  className="btn-hdr-status glow-cyan cursor-pointer text-[10px] py-1 px-2 flex items-center gap-1 font-mono font-bold"
+                  className="btn-hdr-status glow-gold cursor-pointer text-[10px] py-1 px-2 flex items-center gap-1 font-mono font-bold"
                   title="Configure AI Engine & Provider"
                 >
                   {aiProvider === 'ollama' 
@@ -1617,26 +1617,26 @@ export default function App() {
                 {isDraggingOver && (
                   <div className="drag-drop-overlay">
                     <div className="text-4xl animate-bounce">📥</div>
-                    <div className="text-lg font-bold tracking-widest text-cyan-300">DROP FILES TO UPLOAD TO J.A.S.P.E.R.</div>
-                    <div className="text-xs font-mono text-cyan-400">Images, Code, PDFs, Text Documents & Audio supported</div>
+                    <div className="text-lg font-bold tracking-widest text-amber-300">DROP FILES TO UPLOAD TO J.A.S.P.E.R.</div>
+                    <div className="text-xs font-mono text-amber-400">Images, Code, PDFs, Text Documents & Audio supported</div>
                   </div>
                 )}
 
             <div 
               ref={hudPanelRef}
               onScroll={handleHudScroll}
-              className={`hud-panel flex-1 overflow-y-auto relative bg-gradient-to-b from-cyan-950/5 to-black/30 border border-cyan-500/10 ${isMobileLayout ? 'p-3 sm:p-5' : 'p-6'}`}
+              className={`hud-panel flex-1 overflow-y-auto relative bg-gradient-to-b from-amber-950/10 via-neutral-950/60 to-black/80 border border-amber-500/20 ${isMobileLayout ? 'p-3 sm:p-5' : 'p-6'}`}
             >
               {/* Scanline laser */}
-              <div className="absolute inset-x-0 top-0 h-0.5 bg-cyan-500/10 pointer-events-none animate-pulse" />
+              <div className="absolute inset-x-0 top-0 h-0.5 bg-amber-500/20 pointer-events-none animate-pulse" />
               
               {/* Loader */}
               {jasperState === 'processing' && (
-                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center gap-4 z-20 animate-in fade-in duration-200">
-                  <div className="relative w-12 h-12 flex items-center justify-center border border-cyan-500/30 rounded-full animate-spin" style={{ animationDuration: '6s' }}>
-                    <div className="w-8 h-8 border border-cyan-400/50 rounded-full animate-ping" />
+                <div className="absolute inset-0 bg-black/75 backdrop-blur-sm flex flex-col items-center justify-center gap-4 z-20 animate-in fade-in duration-200">
+                  <div className="relative w-12 h-12 flex items-center justify-center border border-amber-500/40 rounded-full animate-spin" style={{ animationDuration: '6s' }}>
+                    <div className="w-8 h-8 border border-amber-400/60 rounded-full animate-ping" />
                   </div>
-                  <div className="font-mono text-[9px] text-cyan-400 tracking-widest uppercase animate-pulse">
+                  <div className="font-mono text-[9px] text-amber-400 tracking-widest uppercase animate-pulse">
                     COMPUTING NEURAL PATHWAYS...
                   </div>
                 </div>
@@ -1645,7 +1645,7 @@ export default function App() {
               {/* Chat View */}
               {selectedChatId ? (
                 <div className="flex flex-col gap-4 text-[20px] leading-relaxed text-slate-200" style={{ fontSize: '20px' }}>
-                  <div className="flex justify-between items-center border-b border-cyan-500/10 pb-2 mb-1 select-none font-orbitron text-[9px] text-sky-500 tracking-wider">
+                  <div className="flex justify-between items-center border-b border-amber-500/20 pb-2 mb-1 select-none font-orbitron text-[9px] text-amber-400 tracking-wider">
                     <span className="truncate max-w-[70%]">QUERY: {pastChats.find(c => c.id === selectedChatId)?.query}</span>
                     <span className="shrink-0">{pastChats.find(c => c.id === selectedChatId)?.timestamp}</span>
                   </div>
@@ -1657,20 +1657,20 @@ export default function App() {
                         att.isImage ? (
                           <div 
                             key={att.id} 
-                            className="relative group cursor-pointer border border-cyan-500/30 rounded-lg overflow-hidden bg-black/50 p-1.5 hover:border-cyan-400 transition-all shadow-[0_0_15px_rgba(0,240,255,0.15)]"
+                            className="relative group cursor-pointer border border-amber-500/30 rounded-lg overflow-hidden bg-black/60 p-1.5 hover:border-amber-400 transition-all shadow-[0_0_15px_rgba(245,197,66,0.15)]"
                             onClick={() => setLightboxImage(att.dataUrl)}
                           >
                             <img src={att.dataUrl} alt={att.name} className="h-36 max-w-xs object-cover rounded" />
-                            <div className="absolute inset-0 bg-cyan-950/70 opacity-0 group-hover:opacity-100 flex items-center justify-center text-cyan-300 font-mono text-xs transition-opacity">
+                            <div className="absolute inset-0 bg-amber-950/75 opacity-0 group-hover:opacity-100 flex items-center justify-center text-amber-300 font-mono text-xs transition-opacity">
                               🔍 Expand Image
                             </div>
                           </div>
                         ) : (
-                          <div key={att.id} className="flex items-center gap-2.5 px-3 py-2 bg-slate-900/80 border border-cyan-500/30 rounded-lg font-mono text-xs text-cyan-200">
+                          <div key={att.id} className="flex items-center gap-2.5 px-3 py-2 bg-neutral-900/90 border border-amber-500/30 rounded-lg font-mono text-xs text-amber-200">
                             <span className="text-xl">{att.icon || '📄'}</span>
                             <div className="flex flex-col">
-                              <span className="font-semibold text-cyan-100 truncate max-w-[200px]">{att.name}</span>
-                              <span className="text-[10px] text-sky-400">{(att.size / 1024).toFixed(1)} KB</span>
+                              <span className="font-semibold text-amber-100 truncate max-w-[200px]">{att.name}</span>
+                              <span className="text-[10px] text-amber-400/80">{(att.size / 1024).toFixed(1)} KB</span>
                             </div>
                           </div>
                         )
@@ -1684,12 +1684,12 @@ export default function App() {
                 /* Welcomes user with heroic Arc Reactor and J.A.R.V.I.S. Quick Pills */
                 <div className="flex flex-col items-center justify-center h-full gap-5 sm:gap-6 py-4">
                   <div className="text-center font-orbitron max-w-md">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 mb-2">
-                      <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-                      <span className="text-[10px] font-bold tracking-widest text-cyan-300">SYSTEM CORE ONLINE • J.A.R.V.I.S. v4.1</span>
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 mb-2">
+                      <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                      <span className="text-[10px] font-bold tracking-widest text-amber-300">SYSTEM CORE ONLINE • J.A.S.P.E.R. v4.1</span>
                     </div>
-                    <h3 className="text-cyan-400 font-extrabold text-sm sm:text-base tracking-widest glow-cyan">AT YOUR SERVICE, SIR</h3>
-                    <p className="font-mono text-[9px] sm:text-[10px] text-sky-400/80 uppercase tracking-widest leading-relaxed mt-1">
+                    <h3 className="text-amber-400 font-extrabold text-sm sm:text-base tracking-widest glow-gold">AT YOUR SERVICE, SIR</h3>
+                    <p className="font-mono text-[9px] sm:text-[10px] text-amber-400/80 uppercase tracking-widest leading-relaxed mt-1">
                       Select a quick command below or speak your directive.
                     </p>
                   </div>
@@ -1699,16 +1699,16 @@ export default function App() {
 
                   {/* Interactive Stark HUD Quick Action Pills */}
                   <div className="flex flex-wrap items-center justify-center gap-2 max-w-2xl px-2">
-                    <button onClick={() => setShowHologramModal(true)} className="jarvis-pill bg-purple-500/20 border-purple-400/50 text-purple-200 hover:bg-purple-500/30 font-bold">
+                    <button onClick={() => setShowHologramModal(true)} className="jarvis-pill bg-amber-500/20 border-amber-400/50 text-amber-200 hover:bg-amber-500/30 font-bold">
                       🌌 3D Hologram
                     </button>
-                    <button onClick={() => handleCommand('Hey Jasper, get ready for work')} className="jarvis-pill bg-emerald-500/20 border-emerald-400/50 text-emerald-200 hover:bg-emerald-500/30 font-bold">
+                    <button onClick={() => handleCommand('Hey Jasper, get ready for work')} className="jarvis-pill bg-amber-500/20 border-amber-400/50 text-amber-200 hover:bg-amber-500/30 font-bold">
                       💼 Get Ready for Work
                     </button>
                     <button onClick={triggerMorningBriefing} className="jarvis-pill bg-amber-500/20 border-amber-400/50 text-amber-200 hover:bg-amber-500/30">
                       ☀️ Morning Briefing
                     </button>
-                    <button onClick={triggerVisionAnalysis} className="jarvis-pill bg-cyan-500/20 border-cyan-400/50 text-cyan-200 hover:bg-cyan-500/30">
+                    <button onClick={triggerVisionAnalysis} className="jarvis-pill bg-amber-500/20 border-amber-400/50 text-amber-200 hover:bg-amber-500/30">
                       👁️ Vision AI Desk Scan
                     </button>
                     <button onClick={() => handleCommand('Set PC volume to 50%')} className="jarvis-pill">
@@ -1751,8 +1751,8 @@ export default function App() {
                       <div className="chat-attachment-icon-badge">{att.icon}</div>
                     )}
                     <div className="flex flex-col text-left">
-                      <span className="font-medium text-cyan-100 truncate max-w-[140px]">{att.name}</span>
-                      <span className="text-[9px] text-sky-400">{(att.size / 1024).toFixed(1)} KB</span>
+                      <span className="font-medium text-amber-100 truncate max-w-[140px]">{att.name}</span>
+                      <span className="text-[9px] text-amber-400">{(att.size / 1024).toFixed(1)} KB</span>
                     </div>
                     <button
                       type="button"
@@ -1778,12 +1778,12 @@ export default function App() {
             />
 
             {/* Input Form */}
-            <form onSubmit={handleManualSubmit} className={`flex border-t border-cyan-500/10 select-none shrink-0 ${isMobileLayout ? 'flex-col gap-2 mt-2 pt-2' : 'flex-row gap-3 mt-4 pt-4'}`}>
+            <form onSubmit={handleManualSubmit} className={`flex border-t border-amber-500/20 select-none shrink-0 ${isMobileLayout ? 'flex-col gap-2 mt-2 pt-2' : 'flex-row gap-3 mt-4 pt-4'}`}>
               <div className="flex items-center gap-2 w-full">
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="btn-attach shrink-0"
+                  className="btn-attach shrink-0 text-amber-400 hover:text-amber-200"
                   title="Upload image or file"
                 >
                   📎
@@ -1794,7 +1794,7 @@ export default function App() {
                   onChange={(e) => setManualInput(e.target.value)}
                   onPaste={handlePaste}
                   placeholder={pendingAttachments.length > 0 ? "Ask JASPER about uploaded file(s)..." : "Enter command or question, paste or drop files..."}
-                  className={`input-main bg-black/50 px-4 py-3 border border-cyan-500/20 text-cyan-100 placeholder-sky-700/80 outline-none font-mono text-sm sm:text-base w-full focus:border-cyan-400/60 transition-all`}
+                  className={`input-main bg-black/60 px-4 py-3 border border-amber-500/30 text-amber-100 placeholder-amber-700/60 outline-none font-mono text-sm sm:text-base w-full focus:border-amber-400/80 transition-all`}
                   style={{ fontSize: '16px' }}
                 />
               </div>
@@ -2550,12 +2550,13 @@ export default function App() {
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {[
+                { id: 'matte-gold', name: 'Obsidian Gold (Matte Black & Gold)', color: 'bg-amber-400 text-black', border: 'border-amber-400' },
                 { id: 'cyber-blue', name: 'Cyber Blue', color: 'bg-cyan-500', border: 'border-cyan-500' },
                 { id: 'matrix-green', name: 'Matrix Green', color: 'bg-emerald-500', border: 'border-emerald-500' },
                 { id: 'iron-man-red', name: 'Iron Man Red', color: 'bg-rose-600', border: 'border-rose-600' },
                 { id: 'purple-neon', name: 'Purple Neon', color: 'bg-purple-500', border: 'border-purple-500' },
-                { id: 'pure-white', name: 'Pure White', color: 'bg-slate-100 text-slate-950', border: 'border-slate-300' },
                 { id: 'amoled-black', name: 'AMOLED Black', color: 'bg-black text-white', border: 'border-slate-700' },
+                { id: 'pure-white', name: 'Pure White', color: 'bg-slate-100 text-slate-950', border: 'border-slate-300' },
               ].map(theme => (
                 <button
                   key={theme.id}
@@ -2564,14 +2565,14 @@ export default function App() {
                   }}
                   className={`p-3 rounded-xl border flex flex-col items-center gap-2 text-xs font-bold transition-all ${
                     currentTheme === theme.id 
-                      ? 'bg-purple-500/20 border-purple-500 text-purple-300 ring-2 ring-purple-500/40' 
-                      : 'bg-slate-900/80 border-slate-800 text-slate-300 hover:border-purple-500/30'
+                      ? 'bg-amber-500/20 border-amber-400 text-amber-300 ring-2 ring-amber-500/40' 
+                      : 'bg-neutral-900/80 border-neutral-800 text-neutral-300 hover:border-amber-500/30'
                   }`}
                 >
                   <div className={`w-8 h-8 rounded-full ${theme.color} border shadow-lg flex items-center justify-center`}>
-                    {currentTheme === theme.id && <CheckCircle2 className="w-4 h-4 text-white" />}
+                    {currentTheme === theme.id && <CheckCircle2 className="w-4 h-4 text-amber-950" />}
                   </div>
-                  <span>{theme.name}</span>
+                  <span className="text-center">{theme.name}</span>
                 </button>
               ))}
             </div>

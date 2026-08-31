@@ -185,10 +185,10 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
       // Draw ECG Line
       ctx.beginPath();
       ctx.strokeStyle = connectionMode === 'disconnected' 
-        ? '#64748b' 
-        : isAlerting ? '#ef4444' : '#00f0ff';
+        ? '#78716c' 
+        : isAlerting ? '#ef4444' : '#ffd700';
       ctx.lineWidth = 2.5;
-      ctx.shadowColor = isAlerting ? '#ef4444' : '#00f0ff';
+      ctx.shadowColor = isAlerting ? '#ef4444' : '#ffd700';
       ctx.shadowBlur = 10;
 
       const dx = width / (points.length - 1);
@@ -206,7 +206,7 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
       const lastY = points[points.length - 1];
       ctx.beginPath();
       ctx.arc(lastX, lastY, 4, 0, Math.PI * 2);
-      ctx.fillStyle = isAlerting ? '#ef4444' : '#ffffff';
+      ctx.fillStyle = isAlerting ? '#ef4444' : '#fffdf5';
       ctx.fill();
 
       animationFrameRef.current = requestAnimationFrame(render);
@@ -332,7 +332,7 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
       <div className="health-hub-header">
         <div className="health-hub-title-group">
           <div className="health-hub-icon-wrapper">
-            <Activity className="icon-pulse" size={24} color="#00f0ff" />
+            <Activity className="icon-pulse" size={24} color="#ffd700" />
           </div>
           <div>
             <h2 className="health-hub-title">HEALTH & FITBAND HUB</h2>

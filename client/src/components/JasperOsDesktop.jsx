@@ -186,32 +186,32 @@ function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFo
       onMouseDown={() => onFocus(id)}
       onTouchStart={() => onFocus(id)}
       style={windowStyle}
-      className={`absolute flex flex-col rounded-xl bg-cyan-950/90 sm:bg-cyan-950/45 border border-cyan-400/40 backdrop-blur-2xl shadow-[0_10px_40px_rgba(0,0,0,0.7)] overflow-hidden transition-shadow duration-200 ${
-        isDragging ? 'ring-2 ring-cyan-400 shadow-[0_0_50px_rgba(0,240,255,0.4)] select-none' : ''
+      className={`absolute flex flex-col rounded-xl bg-neutral-950/95 sm:bg-neutral-950/85 border border-amber-500/40 backdrop-blur-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] overflow-hidden transition-shadow duration-200 ${
+        isDragging ? 'ring-2 ring-amber-400 shadow-[0_0_50px_rgba(245,197,66,0.4)] select-none' : ''
       }`}
     >
       {/* Window Header Bar */}
       <div
         onMouseDown={handleHeaderMouseDown}
         onTouchStart={handleHeaderTouchStart}
-        className="px-3 py-2 sm:px-3.5 sm:py-2 bg-cyan-950/90 border-b border-cyan-500/30 flex items-center justify-between cursor-grab active:cursor-grabbing select-none backdrop-blur-xl shrink-0"
+        className="px-3 py-2 sm:px-3.5 sm:py-2 bg-gradient-to-r from-amber-950/90 via-neutral-900/95 to-amber-950/90 border-b border-amber-500/30 flex items-center justify-between cursor-grab active:cursor-grabbing select-none backdrop-blur-xl shrink-0"
       >
-        <div className="flex items-center gap-1.5 sm:gap-2 text-cyan-300 font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wider truncate max-w-[60%]">
-          <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400 shrink-0" />
+        <div className="flex items-center gap-1.5 sm:gap-2 text-amber-300 font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wider truncate max-w-[60%]">
+          <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 shrink-0" />
           <span className="truncate">{title}</span>
         </div>
 
         <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
           <button
             onClick={() => onMinimize(id)}
-            className="window-control-btn p-1 sm:p-1.5 rounded-md text-cyan-400 hover:bg-cyan-500/20 hover:text-cyan-200 transition-colors"
+            className="window-control-btn p-1 sm:p-1.5 rounded-md text-amber-400 hover:bg-amber-500/20 hover:text-amber-200 transition-colors"
             title="Minimize App"
           >
             <Minus className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => setIsMaximized(!isMaximized)}
-            className="window-control-btn p-1 sm:p-1.5 rounded-md text-cyan-400 hover:bg-cyan-500/20 hover:text-cyan-200 transition-colors"
+            className="window-control-btn p-1 sm:p-1.5 rounded-md text-amber-400 hover:bg-amber-500/20 hover:text-amber-200 transition-colors"
             title={isMaximized ? "Restore App Window" : "Maximize App Window"}
           >
             {isMaximized ? <Square className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
@@ -326,22 +326,22 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-950/20 via-slate-950 to-black pointer-events-none" />
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#00f0ff08_1px,transparent_1px),linear-gradient(to_bottom,#00f0ff08_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none" />
 
-      {/* TOP STARK OS TASKBAR WITH AI AVATAR LISTENER HUD */}
-      <div className="absolute top-0 left-0 right-0 h-12 bg-cyan-950/60 border-b border-cyan-500/30 backdrop-blur-2xl z-50 flex items-center justify-between px-4">
+      {/* TOP GLASS SYSTEM TASKBAR */}
+      <div className="absolute top-0 left-0 right-0 h-12 bg-neutral-950/85 border-b border-amber-500/25 backdrop-blur-2xl z-50 flex items-center justify-between px-4">
         {/* Left: Start Launcher & App Categories */}
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowStartMenu(!showStartMenu)}
-            className="p-1.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/50 text-cyan-300 flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(0,240,255,0.3)]"
+            className="p-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/60 text-amber-300 flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(245,197,66,0.25)]"
             title="JASPER OS App Center & Start Launcher"
           >
-            <div className="w-5 h-5 rounded-full border border-cyan-300 flex items-center justify-center animate-pulse">
-              <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#00f0ff]" />
+            <div className="w-5 h-5 rounded-full border border-amber-300 flex items-center justify-center animate-pulse">
+              <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_#ffd700]" />
             </div>
-            <span className="font-orbitron font-extrabold text-xs tracking-wider uppercase text-cyan-200">JASPER OS</span>
+            <span className="font-orbitron font-extrabold text-xs tracking-wider uppercase text-amber-200">JASPER OS</span>
           </button>
 
-          <div className="h-4 w-px bg-cyan-500/30 mx-1 hidden sm:block" />
+          <div className="h-4 w-px bg-amber-500/30 mx-1 hidden sm:block" />
 
           {/* Quick App Categories */}
           <div className="hidden md:flex items-center gap-1">
@@ -360,8 +360,8 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
                 }}
                 className={`px-3 py-1 rounded-lg text-xs font-mono transition-all ${
                   activeWorkspace === ws.id
-                    ? 'bg-cyan-500/25 border border-cyan-400/60 text-cyan-200 shadow-[0_0_10px_rgba(0,240,255,0.2)]'
-                    : 'text-slate-400 hover:text-cyan-300 hover:bg-cyan-950/40'
+                    ? 'bg-amber-500/25 border border-amber-400/60 text-amber-200 shadow-[0_0_10px_rgba(245,197,66,0.2)]'
+                    : 'text-neutral-400 hover:text-amber-300 hover:bg-amber-950/40'
                 }`}
               >
                 {ws.label}
@@ -376,32 +376,32 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
             onClick={onMicClick}
             className={`px-3 py-1 rounded-xl border flex items-center gap-2.5 transition-all shadow-lg ${
               jasperState === 'listening'
-                ? 'bg-cyan-500/30 border-cyan-300 text-cyan-100 shadow-[0_0_20px_rgba(0,240,255,0.4)] animate-pulse'
+                ? 'bg-amber-500/30 border-amber-300 text-amber-100 shadow-[0_0_20px_rgba(245,197,66,0.4)] animate-pulse'
                 : jasperState === 'processing'
-                ? 'bg-purple-500/30 border-purple-300 text-purple-100 shadow-[0_0_20px_rgba(168,85,247,0.4)]'
+                ? 'bg-yellow-500/30 border-yellow-300 text-yellow-100 shadow-[0_0_20px_rgba(255,215,0,0.4)]'
                 : jasperState === 'speaking'
-                ? 'bg-emerald-500/30 border-emerald-300 text-emerald-100 shadow-[0_0_20px_rgba(16,185,129,0.4)]'
-                : 'bg-cyan-950/50 border-cyan-500/30 text-cyan-300 hover:border-cyan-400'
+                ? 'bg-amber-500/30 border-amber-300 text-amber-100 shadow-[0_0_20px_rgba(212,175,55,0.4)]'
+                : 'bg-neutral-900/60 border-amber-500/30 text-amber-300 hover:border-amber-400'
             }`}
             title="Click to speak to JASPER AI Assistant"
           >
             {/* Animated AI Orb Arc Reactor Avatar */}
             <div className="relative w-5 h-5 flex items-center justify-center">
-              <div className={`absolute inset-0 rounded-full border border-cyan-400 ${jasperState === 'listening' ? 'animate-ping opacity-75' : ''}`} />
+              <div className={`absolute inset-0 rounded-full border border-amber-400 ${jasperState === 'listening' ? 'animate-ping opacity-75' : ''}`} />
               <div className={`w-3 h-3 rounded-full ${
-                jasperState === 'listening' ? 'bg-cyan-400 shadow-[0_0_10px_#00f0ff]' :
-                jasperState === 'processing' ? 'bg-purple-400 shadow-[0_0_10px_#a855f7]' :
-                jasperState === 'speaking' ? 'bg-emerald-400 shadow-[0_0_10px_#10b981]' :
-                'bg-cyan-400/80 shadow-[0_0_5px_#00f0ff]'
+                jasperState === 'listening' ? 'bg-amber-400 shadow-[0_0_10px_#ff9900]' :
+                jasperState === 'processing' ? 'bg-yellow-300 shadow-[0_0_10px_#ffd700]' :
+                jasperState === 'speaking' ? 'bg-amber-300 shadow-[0_0_10px_#f5c542]' :
+                'bg-amber-400/80 shadow-[0_0_5px_#ffd700]'
               }`} />
             </div>
 
             <div className="text-left font-mono text-[11px]">
               <div className="font-bold flex items-center gap-1">
                 <span>AI VOICE AVATAR</span>
-                {jasperState === 'listening' && <span className="text-[9px] text-cyan-300 animate-pulse">● REC</span>}
+                {jasperState === 'listening' && <span className="text-[9px] text-amber-300 animate-pulse">● REC</span>}
               </div>
-              <div className="text-[9px] text-cyan-400/80">
+              <div className="text-[9px] text-amber-400/80">
                 {jasperState === 'listening' ? 'LISTENING TO VOICE COMMAND...' :
                  jasperState === 'processing' ? 'PROCESSING INTENT...' :
                  jasperState === 'speaking' ? 'SPEAKING RESPONSE...' :
@@ -411,17 +411,17 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
           </button>
 
           {/* Live System Telemetry & Clock */}
-          <div className="hidden lg:flex items-center gap-3 text-slate-300 bg-cyan-950/40 border border-cyan-500/30 px-3 py-1 rounded-lg backdrop-blur-md font-mono text-[11px]">
-            <span className="flex items-center gap-1 text-cyan-400"><Cpu className="w-3.5 h-3.5" /> CPU: 12%</span>
-            <span className="flex items-center gap-1 text-cyan-400"><HardDrive className="w-3.5 h-3.5" /> RAM: 3.8GB</span>
+          <div className="hidden lg:flex items-center gap-3 text-neutral-300 bg-neutral-900/60 border border-amber-500/30 px-3 py-1 rounded-lg backdrop-blur-md font-mono text-[11px]">
+            <span className="flex items-center gap-1 text-amber-400"><Cpu className="w-3.5 h-3.5" /> CPU: 12%</span>
+            <span className="flex items-center gap-1 text-amber-400"><HardDrive className="w-3.5 h-3.5" /> RAM: 3.8GB</span>
           </div>
 
           <button
             onClick={onToggleClassicMode}
-            className="px-3 py-1 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-cyan-300 rounded-lg font-semibold flex items-center gap-1.5 transition-all text-xs font-mono"
+            className="px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400 text-amber-300 rounded-lg font-semibold flex items-center gap-1.5 transition-all text-xs font-mono"
             title="Switch to Grid Layout View"
           >
-            <Grid className="w-3.5 h-3.5 text-cyan-400" /> Classic
+            <Grid className="w-3.5 h-3.5 text-amber-400" /> Classic
           </button>
 
           {onLockSystem && (
@@ -435,7 +435,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
             </button>
           )}
 
-          <div className="text-cyan-200 font-mono font-bold text-[11px] px-2.5 py-1 bg-cyan-950/50 border border-cyan-500/30 rounded-lg">
+          <div className="text-amber-200 font-mono font-bold text-[11px] px-2.5 py-1 bg-neutral-900/80 border border-amber-500/30 rounded-lg">
             {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </div>
         </div>
@@ -443,21 +443,21 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
 
       {/* OS APP CENTER & START LAUNCHER DRAWER */}
       {showStartMenu && (
-        <div className="absolute top-14 left-2 right-2 sm:left-4 sm:right-auto w-auto sm:w-96 max-w-[calc(100vw-16px)] bg-cyan-950/95 border border-cyan-400/60 rounded-2xl p-3 sm:p-4 shadow-[0_0_50px_rgba(0,240,255,0.35)] backdrop-blur-3xl z-50 animate-in fade-in slide-in-from-top-2 max-h-[82vh] flex flex-col">
+        <div className="absolute top-14 left-2 right-2 sm:left-4 sm:right-auto w-auto sm:w-96 max-w-[calc(100vw-16px)] bg-neutral-950/95 border border-amber-400/60 rounded-2xl p-3 sm:p-4 shadow-[0_0_50px_rgba(245,197,66,0.35)] backdrop-blur-3xl z-50 animate-in fade-in slide-in-from-top-2 max-h-[82vh] flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-cyan-500/30 pb-3 mb-3">
+          <div className="flex items-center justify-between border-b border-amber-500/30 pb-3 mb-3">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-cyan-500/20 border border-cyan-400 rounded-xl text-cyan-300">
+              <div className="p-2 bg-amber-500/20 border border-amber-400 rounded-xl text-amber-300">
                 <Zap className="w-5 h-5 animate-pulse" />
               </div>
               <div>
-                <h3 className="font-orbitron font-extrabold text-sm text-cyan-200 uppercase tracking-wider">JASPER OS App Center</h3>
-                <p className="text-[10px] text-slate-400 font-mono">28 Native System Applications Available</p>
+                <h3 className="font-orbitron font-extrabold text-sm text-amber-200 uppercase tracking-wider">JASPER OS App Center</h3>
+                <p className="text-[10px] text-neutral-400 font-mono">28 Native System Applications Available</p>
               </div>
             </div>
             <button
               onClick={() => setShowStartMenu(false)}
-              className="p-1 rounded-lg text-slate-400 hover:text-cyan-300 hover:bg-cyan-500/20"
+              className="p-1 rounded-lg text-neutral-400 hover:text-amber-300 hover:bg-amber-500/20"
             >
               <X className="w-4 h-4" />
             </button>
@@ -465,13 +465,13 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
 
           {/* App Search Bar */}
           <div className="relative mb-3">
-            <Search className="w-4 h-4 absolute left-3 top-2.5 text-cyan-400/70" />
+            <Search className="w-4 h-4 absolute left-3 top-2.5 text-amber-400/70" />
             <input
               type="text"
               value={appSearchQuery}
               onChange={(e) => setAppSearchQuery(e.target.value)}
               placeholder="Search JASPER OS Native Apps..."
-              className="w-full pl-9 pr-3 py-1.5 bg-cyan-950/70 border border-cyan-500/40 rounded-xl text-xs font-mono text-cyan-200 placeholder-cyan-500/50 focus:outline-none focus:border-cyan-400"
+              className="w-full pl-9 pr-3 py-1.5 bg-neutral-900/80 border border-amber-500/40 rounded-xl text-xs font-mono text-amber-200 placeholder-amber-500/50 focus:outline-none focus:border-amber-400"
             />
           </div>
 
@@ -486,21 +486,21 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
                   onClick={() => launchApp(app.id)}
                   className={`w-full px-3 py-2 rounded-xl text-xs font-mono flex items-center justify-between transition-all border ${
                     isRunning 
-                      ? 'bg-cyan-500/25 border-cyan-400/60 text-cyan-100 shadow-[0_0_10px_rgba(0,240,255,0.2)]'
-                      : 'text-slate-200 hover:bg-cyan-500/20 hover:text-cyan-200 border-transparent hover:border-cyan-500/30'
+                      ? 'bg-amber-500/25 border-amber-400/60 text-amber-100 shadow-[0_0_10px_rgba(245,197,66,0.2)]'
+                      : 'text-neutral-200 hover:bg-amber-500/20 hover:text-amber-200 border-transparent hover:border-amber-500/30'
                   }`}
                 >
                   <span className="flex items-center gap-2.5">
-                    <div className="p-1.5 rounded-lg bg-cyan-950/80 border border-cyan-500/30 text-cyan-400">
+                    <div className="p-1.5 rounded-lg bg-neutral-900 border border-amber-500/30 text-amber-400">
                       <AppIcon className="w-4 h-4" />
                     </div>
                     <div className="text-left">
-                      <div className="font-semibold text-slate-100">{app.title}</div>
-                      <div className="text-[10px] text-cyan-400/70">{app.category}</div>
+                      <div className="font-semibold text-neutral-100">{app.title}</div>
+                      <div className="text-[10px] text-amber-400/70">{app.category}</div>
                     </div>
                   </span>
                   {isRunning && (
-                    <span className="px-2 py-0.5 rounded-full text-[9px] bg-cyan-400/20 border border-cyan-400/50 text-cyan-300 font-bold">
+                    <span className="px-2 py-0.5 rounded-full text-[9px] bg-amber-400/20 border border-amber-400/50 text-amber-300 font-bold">
                       ACTIVE
                     </span>
                   )}
@@ -522,17 +522,17 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
               <button
                 key={app.id}
                 onClick={() => launchApp(app.id)}
-                className={`p-3 rounded-2xl bg-cyan-950/40 hover:bg-cyan-500/25 border border-cyan-500/25 hover:border-cyan-400/70 backdrop-blur-md flex flex-col items-center justify-center gap-2 transition-all group hover:scale-105 hover:shadow-[0_0_20px_rgba(0,240,255,0.25)] ${
-                  isRunning ? 'border-cyan-400/80 bg-cyan-500/20 shadow-[0_0_15px_rgba(0,240,255,0.2)]' : ''
+                className={`p-3 rounded-2xl bg-neutral-950/70 hover:bg-amber-500/20 border border-amber-500/25 hover:border-amber-400/70 backdrop-blur-md flex flex-col items-center justify-center gap-2 transition-all group hover:scale-105 hover:shadow-[0_0_20px_rgba(245,197,66,0.25)] ${
+                  isRunning ? 'border-amber-400/80 bg-amber-500/20 shadow-[0_0_15px_rgba(245,197,66,0.2)]' : ''
                 }`}
               >
-                <div className="p-3 rounded-xl bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 group-hover:text-cyan-100 group-hover:border-cyan-300 transition-all shadow-[0_0_10px_rgba(0,240,255,0.15)] relative">
+                <div className="p-3 rounded-xl bg-neutral-900 border border-amber-500/40 text-amber-300 group-hover:text-amber-100 group-hover:border-amber-300 transition-all shadow-[0_0_10px_rgba(245,197,66,0.15)] relative">
                   <AppIcon className="w-6 h-6" />
                   {isRunning && (
-                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-cyan-400 border border-black shadow-[0_0_8px_#00f0ff]" />
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 border border-black shadow-[0_0_8px_#ffd700]" />
                   )}
                 </div>
-                <span className="text-[11px] font-mono font-semibold text-slate-200 group-hover:text-cyan-200 text-center line-clamp-1">
+                <span className="text-[11px] font-mono font-semibold text-neutral-200 group-hover:text-amber-200 text-center line-clamp-1">
                   {app.title.replace(' App', '').replace('JASPER ', '')}
                 </span>
               </button>
@@ -566,7 +566,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
       </div>
 
       {/* BOTTOM OS NATIVE APP DOCK */}
-      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 h-14 bg-cyan-950/70 border border-cyan-500/40 rounded-2xl px-4 flex items-center gap-2 backdrop-blur-2xl shadow-[0_10px_35px_rgba(0,240,255,0.25)] z-50 max-w-[90vw] overflow-x-auto custom-scrollbar">
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 h-14 bg-neutral-950/80 border border-amber-500/40 rounded-2xl px-4 flex items-center gap-2 backdrop-blur-2xl shadow-[0_10px_35px_rgba(245,197,66,0.2)] z-50 max-w-[90vw] overflow-x-auto custom-scrollbar">
         {JASPER_OS_APPS_REGISTRY.slice(0, 10).map((app) => {
           const AppIcon = app.icon;
           const isRunning = openWindows[app.id];
@@ -577,30 +577,30 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
               onClick={() => toggleWindow(app.id)}
               className={`relative p-2.5 rounded-xl flex items-center justify-center transition-all ${
                 isRunning && !isMinimized
-                  ? 'bg-cyan-500/30 border border-cyan-400 text-cyan-200 shadow-[0_0_15px_rgba(0,240,255,0.3)] scale-105'
+                  ? 'bg-amber-500/30 border border-amber-400 text-amber-200 shadow-[0_0_15px_rgba(245,197,66,0.3)] scale-105'
                   : isRunning && isMinimized
-                  ? 'bg-cyan-950/80 border border-cyan-500/40 text-cyan-400 opacity-80'
-                  : 'text-slate-400 hover:text-cyan-300 hover:bg-cyan-950/50 border border-transparent'
+                  ? 'bg-neutral-900 border border-amber-500/40 text-amber-400 opacity-80'
+                  : 'text-neutral-400 hover:text-amber-300 hover:bg-neutral-900/60 border border-transparent'
               }`}
               title={app.title}
             >
               <AppIcon className="w-5 h-5" />
               {isRunning && (
-                <span className={`absolute -bottom-1 w-1.5 h-1.5 rounded-full ${isMinimized ? 'bg-amber-400' : 'bg-cyan-400 shadow-[0_0_8px_#00f0ff]'}`} />
+                <span className={`absolute -bottom-1 w-1.5 h-1.5 rounded-full ${isMinimized ? 'bg-amber-400' : 'bg-amber-400 shadow-[0_0_8px_#ffd700]'}`} />
               )}
             </button>
           );
         })}
 
-        <div className="h-6 w-px bg-cyan-500/30 mx-1" />
+        <div className="h-6 w-px bg-amber-500/30 mx-1" />
 
         <button
           onClick={() => setShowStartMenu(true)}
-          className="p-2.5 rounded-xl text-cyan-300 hover:bg-cyan-500/20 border border-cyan-500/40 flex items-center gap-1 text-xs font-mono"
+          className="p-2.5 rounded-xl text-amber-300 hover:bg-amber-500/20 border border-amber-500/40 flex items-center gap-1 text-xs font-mono"
           title="Open JASPER OS App Center"
         >
-          <AppWindow className="w-5 h-5 text-cyan-400" />
-          <span className="hidden xl:inline">More Apps ({JASPER_OS_APPS_REGISTRY.length})</span>
+          <Layers className="w-5 h-5 text-amber-400" />
+          <span className="hidden sm:inline font-bold">App Center</span>
         </button>
       </div>
     </div>

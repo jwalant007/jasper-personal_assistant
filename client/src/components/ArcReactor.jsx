@@ -28,27 +28,27 @@ export default function ArcReactor({ state = 'idle', onClick }) {
 
       // Update angles and pulses depending on state
       let speed = 0.01;
-      let targetGlowColor = 'rgba(0, 240, 255, '; // Cyan
-      let coreColor = '#00f0ff';
-      let outerColor = 'rgba(0, 85, 255, 0.4)';
+      let targetGlowColor = 'rgba(245, 197, 66, '; // Champagne Gold
+      let coreColor = '#ffd700'; // 24K Gold
+      let outerColor = 'rgba(212, 175, 55, 0.38)'; // Burnished Bronze Gold
 
       if (state === 'listening') {
         speed = 0.035;
-        targetGlowColor = 'rgba(255, 85, 0, '; // Orange
-        coreColor = '#ff5500';
-        outerColor = 'rgba(255, 85, 0, 0.3)';
+        targetGlowColor = 'rgba(255, 153, 0, '; // Amber-Orange Gold
+        coreColor = '#ff9900';
+        outerColor = 'rgba(255, 153, 0, 0.35)';
         pulseRef.current = 1 + Math.sin(Date.now() * 0.015) * 0.12;
       } else if (state === 'processing') {
         speed = -0.06; // Rotate backward and fast
-        targetGlowColor = 'rgba(180, 0, 255, '; // Purple/magenta
-        coreColor = '#bd00ff';
-        outerColor = 'rgba(180, 0, 255, 0.3)';
+        targetGlowColor = 'rgba(255, 215, 0, '; // Radiant Pure Gold
+        coreColor = '#ffe066';
+        outerColor = 'rgba(245, 197, 66, 0.45)';
         pulseRef.current = 1 + Math.sin(Date.now() * 0.03) * 0.08;
       } else if (state === 'speaking') {
         speed = 0.015;
-        targetGlowColor = 'rgba(0, 240, 255, '; // Cyan
-        coreColor = '#00f0ff';
-        outerColor = 'rgba(0, 240, 255, 0.2)';
+        targetGlowColor = 'rgba(245, 197, 66, '; // Champagne Gold
+        coreColor = '#ffd700';
+        outerColor = 'rgba(212, 175, 55, 0.3)';
         pulseRef.current = 1 + Math.sin(Date.now() * 0.01) * 0.18; // Large fluctuations
       } else {
         // Idle
@@ -62,8 +62,8 @@ export default function ArcReactor({ state = 'idle', onClick }) {
 
       // 1. OUTERMOST AMBIENT GLOW
       const ambientGlow = ctx.createRadialGradient(centerX, centerY, r * 0.2, centerX, centerY, r * 1.5);
-      ambientGlow.addColorStop(0, targetGlowColor + '0.15)');
-      ambientGlow.addColorStop(0.5, targetGlowColor + '0.04)');
+      ambientGlow.addColorStop(0, targetGlowColor + '0.18)');
+      ambientGlow.addColorStop(0.5, targetGlowColor + '0.05)');
       ambientGlow.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = ambientGlow;
       ctx.beginPath();
@@ -84,7 +84,7 @@ export default function ArcReactor({ state = 'idle', onClick }) {
       // 3. MAIN OUTER FLANGED RING
       ctx.strokeStyle = coreColor;
       ctx.lineWidth = 2;
-      ctx.shadowBlur = 10;
+      ctx.shadowBlur = 12;
       ctx.shadowColor = coreColor;
       ctx.beginPath();
       ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
@@ -104,11 +104,11 @@ export default function ArcReactor({ state = 'idle', onClick }) {
         ctx.fill();
       }
 
-      // 4. INNER COIL RING (Segmented copper-looking arcs)
+      // 4. INNER COIL RING (Segmented golden arcs)
       const coils = 10;
       const coilLength = (Math.PI * 2) / coils - 0.15;
       ctx.lineWidth = 6;
-      ctx.strokeStyle = state === 'listening' ? 'rgba(255, 110, 20, 0.7)' : 'rgba(0, 160, 255, 0.7)';
+      ctx.strokeStyle = state === 'listening' ? 'rgba(255, 153, 0, 0.75)' : 'rgba(212, 175, 55, 0.75)';
       for (let i = 0; i < coils; i++) {
         const startA = -angleRef.current + (i * Math.PI * 2) / coils;
         const endA = startA + coilLength;
@@ -143,7 +143,7 @@ export default function ArcReactor({ state = 'idle', onClick }) {
       if (state === 'speaking') {
         const waveLines = 60;
         ctx.lineWidth = 2;
-        ctx.strokeStyle = 'rgba(0, 240, 255, 0.8)';
+        ctx.strokeStyle = 'rgba(255, 215, 0, 0.85)';
         for (let i = 0; i < waveLines; i++) {
           const waveAngle = (i * Math.PI * 2) / waveLines;
           // Calculate sound wave offset
@@ -163,7 +163,7 @@ export default function ArcReactor({ state = 'idle', onClick }) {
       }
 
       // 7. CENTER TARGET TRIANGLE (Stark Mark VI style)
-      ctx.strokeStyle = '#ffffff';
+      ctx.strokeStyle = '#fffdf0';
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       for (let i = 0; i < 3; i++) {
@@ -198,9 +198,9 @@ export default function ArcReactor({ state = 'idle', onClick }) {
 
   const getStateColorClass = () => {
     switch (state) {
-      case 'listening': return 'text-orange-500 glow-orange';
-      case 'processing': return 'text-purple-500 text-shadow-purple'; // custom purple shadow
-      default: return 'text-cyan-400 glow-cyan';
+      case 'listening': return 'text-amber-400 glow-orange';
+      case 'processing': return 'text-yellow-300 glow-gold';
+      default: return 'text-amber-300 glow-gold';
     }
   };
 
@@ -218,7 +218,7 @@ export default function ArcReactor({ state = 'idle', onClick }) {
       <div className={`mt-4 font-orbitron text-xs font-semibold tracking-widest text-center ${getStateColorClass()}`}>
         {getStateText()}
       </div>
-      <div className="mt-1 font-mono text-[9px] text-sky-700 uppercase tracking-wider text-center">
+      <div className="mt-1 font-mono text-[9px] text-amber-500/70 uppercase tracking-wider text-center">
         {state === 'idle' ? 'Click reactor to manually query' : 'Press ESC to abort'}
       </div>
     </div>

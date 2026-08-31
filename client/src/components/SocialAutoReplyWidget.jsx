@@ -513,24 +513,24 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
   };
 
   return (
-    <div className="bg-slate-950/95 border border-cyan-500/40 rounded-2xl p-4 sm:p-6 text-slate-100 backdrop-blur-2xl shadow-[0_0_50px_rgba(6,182,212,0.25)] max-w-5xl w-full mx-auto relative overflow-hidden font-sans flex flex-col gap-5 max-h-[90vh] overflow-y-auto custom-scrollbar">
+    <div className="bg-neutral-950/95 border border-amber-500/40 rounded-2xl p-4 sm:p-6 text-neutral-100 backdrop-blur-2xl shadow-[0_0_50px_rgba(245,197,66,0.2)] max-w-5xl w-full mx-auto relative overflow-hidden font-sans flex flex-col gap-5 max-h-[90vh] overflow-y-auto custom-scrollbar">
       
       {/* Top Header */}
-      <div className="flex items-center justify-between border-b border-cyan-500/30 pb-3.5 shrink-0">
+      <div className="flex items-center justify-between border-b border-amber-500/30 pb-3.5 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-gradient-to-br from-emerald-500/20 to-purple-500/20 border border-cyan-400/60 rounded-xl text-cyan-300 shadow-[0_0_15px_rgba(0,240,255,0.3)]">
-            <MessageSquare className="w-6 h-6 text-cyan-300 animate-pulse" />
+          <div className="p-2.5 bg-gradient-to-br from-amber-500/20 to-neutral-900 border border-amber-400/60 rounded-xl text-amber-300 shadow-[0_0_15px_rgba(245,197,66,0.3)]">
+            <MessageSquare className="w-6 h-6 text-amber-300 animate-pulse" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="font-orbitron font-extrabold text-sm sm:text-base text-cyan-200 uppercase tracking-wider">
+              <h2 className="font-orbitron font-extrabold text-sm sm:text-base text-amber-200 uppercase tracking-wider">
                 WHATSAPP &amp; INSTAGRAM AUTO-REPLY HUB
               </h2>
-              <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-emerald-500/20 border border-emerald-400/50 text-emerald-300">
+              <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-amber-500/20 border border-amber-400/50 text-amber-300">
                 PRO PLUGIN
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 font-mono">
+            <p className="text-[11px] text-neutral-400 font-mono">
               Hands-Free Call Handling, Autonomous Auto-Replies &amp; AI Direct Messaging
             </p>
           </div>
@@ -539,10 +539,10 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowAccountModal(true)}
-            className="px-2.5 py-1.5 rounded-xl bg-purple-500/15 border border-purple-400/40 hover:bg-purple-500/25 text-purple-300 text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-[0_0_10px_rgba(168,85,247,0.2)]"
+            className="px-2.5 py-1.5 rounded-xl bg-amber-500/15 border border-amber-400/40 hover:bg-amber-500/25 text-amber-300 text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-[0_0_10px_rgba(245,197,66,0.2)]"
             title="Configure Instagram & WhatsApp accounts"
           >
-            <Link2 className="w-3.5 h-3.5 text-purple-400" />
+            <Link2 className="w-3.5 h-3.5 text-amber-400" />
             <span className="hidden sm:inline">Connect Accounts</span>
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping ml-0.5"></span>
           </button>
@@ -550,7 +550,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
           {onClose && (
             <button 
               onClick={onClose}
-              className="p-1.5 rounded-xl bg-cyan-950/60 border border-cyan-500/30 text-slate-400 hover:text-cyan-200 hover:border-cyan-400 transition-all"
+              className="p-1.5 rounded-xl bg-neutral-900 border border-amber-500/30 text-neutral-400 hover:text-amber-200 hover:border-amber-400 transition-all"
             >
               <X className="w-5 h-5" />
             </button>
@@ -564,14 +564,14 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
           statusBanner.type === 'error' 
             ? 'bg-rose-950/80 border-rose-500/50 text-rose-200' 
             : statusBanner.type === 'info'
-            ? 'bg-blue-950/80 border-blue-500/50 text-blue-200'
-            : 'bg-emerald-950/80 border-emerald-500/50 text-emerald-200 shadow-[0_0_15px_rgba(168,85,247,0.25)]'
+            ? 'bg-neutral-900/80 border-amber-500/50 text-amber-200'
+            : 'bg-emerald-950/80 border-emerald-500/50 text-emerald-200 shadow-[0_0_15px_rgba(245,197,66,0.25)]'
         }`}>
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4" />
             <span>{statusBanner.text}</span>
           </div>
-          <button onClick={() => setStatusBanner(null)} className="text-slate-400 hover:text-white">✕</button>
+          <button onClick={() => setStatusBanner(null)} className="text-neutral-400 hover:text-white">✕</button>
         </div>
       )}
 
@@ -582,7 +582,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
         <div className="lg:col-span-7 flex flex-col gap-4">
           
           {/* Active Sender Accounts Bar */}
-          <div className="p-3 bg-gradient-to-r from-purple-950/40 via-slate-900/60 to-cyan-950/40 border border-purple-500/40 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-2.5 shadow-md">
+          <div className="p-3 bg-gradient-to-r from-amber-950/40 via-neutral-900/90 to-amber-950/40 border border-amber-500/40 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-2.5 shadow-md">
             <div className="flex items-center gap-2.5 w-full sm:w-auto overflow-x-auto">
               <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-pink-500/20 border border-pink-500/40 text-pink-200 text-xs font-mono shrink-0">
                 <span className="text-xs font-bold text-pink-400">IG:</span>
@@ -611,7 +611,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
                 <button
                   type="button"
                   onClick={handleWaWebConnect}
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-600/50 text-slate-300 hover:text-white hover:border-emerald-400/50 text-xs font-mono shrink-0 transition-all"
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-neutral-800 border border-neutral-600/50 text-neutral-300 hover:text-white hover:border-amber-400/50 text-xs font-mono shrink-0 transition-all"
                 >
                   <span className="text-[10px] font-bold">🌐 Connect WA Web (Auto-Send)</span>
                 </button>
@@ -623,7 +623,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
                 <button
                   type="button"
                   onClick={handleWaWebDisconnect}
-                  className="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-red-300 text-xs font-mono"
+                  className="px-2.5 py-1 rounded-lg bg-neutral-800 text-neutral-400 hover:text-red-300 text-xs font-mono"
                 >
                   Disconnect
                 </button>
@@ -631,16 +631,16 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
               <button
                 type="button"
                 onClick={() => setShowAccountModal(true)}
-                className="w-full sm:w-auto px-3 py-1 bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400/50 text-purple-200 text-xs font-mono font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all shrink-0"
+                className="w-full sm:w-auto px-3 py-1 bg-amber-600/30 hover:bg-amber-600/50 border border-amber-400/50 text-amber-200 text-xs font-mono font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all shrink-0"
               >
-                <Key className="w-3.5 h-3.5 text-purple-300" />
+                <Key className="w-3.5 h-3.5 text-amber-300" />
                 <span>Configure Credentials</span>
               </button>
             </div>
           </div>
           
           {/* Master Toggles Bar */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 bg-cyan-950/30 border border-cyan-500/30 p-3 rounded-xl">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 bg-neutral-900/60 border border-amber-500/30 p-3 rounded-xl">
             
             {/* WhatsApp Toggle */}
             <button

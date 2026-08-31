@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-08-30T19:35:16.435Z",
+  "lastUpdated": "2026-08-30T19:46:43.582Z",
   "memories": [
     {
       "id": 1,
@@ -230,13 +230,2136 @@
   },
   "social_contacts": [
     {
+      "id": "c_call_917949210104",
+      "name": "Caller +917949210104",
+      "phone": "+917949210104",
+      "ig": "@caller917949210104",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Missed Call logged from Phone Call App",
+      "lastTimestamp": "03:42 pm",
+      "avatarColor": "from-rose-500 to-amber-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_919586696009",
+      "name": "Caller +919586696009",
+      "phone": "+919586696009",
+      "ig": "@caller919586696009",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "12:51 pm",
+      "avatarColor": "from-rose-500 to-amber-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_912241497679",
+      "name": "Caller +912241497679",
+      "phone": "+912241497679",
+      "ig": "@caller912241497679",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "08:31 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_917931167933",
+      "name": "Zomato Delivery Partner",
+      "phone": "+917931167933",
+      "ig": "@zomatodeliverypartner",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "04:27 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_918031015660",
+      "name": "Caller +918031015660",
+      "phone": "+918031015660",
+      "ig": "@caller918031015660",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Missed Call logged from Phone Call App",
+      "lastTimestamp": "04:26 pm",
+      "avatarColor": "from-rose-500 to-amber-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_8866415712",
+      "name": "Caller 8866415712",
+      "phone": "8866415712",
+      "ig": "@caller8866415712",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "08:36 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_917203007272",
+      "name": "MUKUNDBHAI MAFATLAL NAYAK",
+      "phone": "+917203007272",
+      "ig": "@mukundbhaimafatlalnayak",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "08:35 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_912269123521",
+      "name": "Caller +912269123521",
+      "phone": "+912269123521",
+      "ig": "@caller912269123521",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Missed Call logged from Phone Call App",
+      "lastTimestamp": "02:30 pm",
+      "avatarColor": "from-rose-500 to-amber-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_917227979983",
+      "name": "Caller +917227979983",
+      "phone": "+917227979983",
+      "ig": "@caller917227979983",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "09:53 am",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_918657951454",
+      "name": "Burger King",
+      "phone": "+918657951454",
+      "ig": "@burgerking",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "10:05 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_918069455964",
+      "name": "Caller +918069455964",
+      "phone": "+918069455964",
+      "ig": "@caller918069455964",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "10:04 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_912269976406",
+      "name": "Caller +912269976406",
+      "phone": "+912269976406",
+      "ig": "@caller912269976406",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "10:04 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_918780397613",
+      "name": "Kishanbhai Manjibhai Dantani",
+      "phone": "+918780397613",
+      "ig": "@kishanbhaimanjibhaidantani",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "09:42 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_8000083535",
+      "name": "Caller 8000083535",
+      "phone": "8000083535",
+      "ig": "@caller8000083535",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "08:33 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_911600304197",
+      "name": "State Bank of India",
+      "phone": "+911600304197",
+      "ig": "@statebankofindia",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Missed Call in Call App",
+      "lastTimestamp": "07:58 pm",
+      "avatarColor": "from-rose-500 to-amber-500"
+    },
+    {
+      "id": "c_call_918488016624",
+      "name": "Caller +918488016624",
+      "phone": "+918488016624",
+      "ig": "@caller918488016624",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "04:42 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_918487985622",
+      "name": "Caller +918487985622",
+      "phone": "+918487985622",
+      "ig": "@caller918487985622",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "08:50 pm",
+      "avatarColor": "from-rose-500 to-amber-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_09104527509",
+      "name": "vivo & iQOO Authorised Service Center",
+      "phone": "09104527509",
+      "ig": "@vivoiqooauthorisedservicecenter",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "12:37 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_917313638717",
+      "name": "Zomato",
+      "phone": "+917313638717",
+      "ig": "@zomato",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "08:18 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_918983844323",
+      "name": "Y Kings Pizza food truck - Alandi road",
+      "phone": "+918983844323",
+      "ig": "@ykingspizzafoodtruckalandiroad",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "04:07 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_917935048444",
+      "name": "Caller +917935048444",
+      "phone": "+917935048444",
+      "ig": "@caller917935048444",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "04:31 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_911408511526",
+      "name": "MEESHO",
+      "phone": "+911408511526",
+      "ig": "@meesho",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "04:08 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_919724178489",
+      "name": "Caller +919724178489",
+      "phone": "+919724178489",
+      "ig": "@caller919724178489",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "05:50 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_914435099112",
+      "name": "Caller +914435099112",
+      "phone": "+914435099112",
+      "ig": "@caller914435099112",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "03:18 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_918071414799",
+      "name": "Caller +918071414799",
+      "phone": "+918071414799",
+      "ig": "@caller918071414799",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Missed Call in Call App",
+      "lastTimestamp": "12:27 pm",
+      "avatarColor": "from-rose-500 to-amber-500"
+    },
+    {
+      "id": "c_call_918849257520",
+      "name": "Caller +918849257520",
+      "phone": "+918849257520",
+      "ig": "@caller918849257520",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Missed Call logged from Phone Call App",
+      "lastTimestamp": "05:14 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_911414721607",
+      "name": "⛔ Spam Alert From Jio",
+      "phone": "+911414721607",
+      "ig": "@spamalertfromjio",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "07:29 am",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_919099851322",
+      "name": "Caller +919099851322",
+      "phone": "+919099851322",
+      "ig": "@caller919099851322",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Missed Call in Call App",
+      "lastTimestamp": "08:53 pm",
+      "avatarColor": "from-rose-500 to-amber-500"
+    },
+    {
+      "id": "c_call_9099851322",
+      "name": "Caller 9099851322",
+      "phone": "9099851322",
+      "ig": "@caller9099851322",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "08:42 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_919510244868",
+      "name": "Barot Gitaben Harishbhai",
+      "phone": "+919510244868",
+      "ig": "@barotgitabenharishbhai",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Missed Call in Call App",
+      "lastTimestamp": "12:43 pm",
+      "avatarColor": "from-rose-500 to-amber-500"
+    },
+    {
+      "id": "c_call_918141702121",
+      "name": "Engineering by ARPIT PATEL",
+      "phone": "+918141702121",
+      "ig": "@engineeringbyarpitpatel",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "04:54 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_8849350933",
+      "name": "Caller 8849350933",
+      "phone": "8849350933",
+      "ig": "@caller8849350933",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "12:59 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_9898348143",
+      "name": "Caller 9898348143",
+      "phone": "9898348143",
+      "ig": "@caller9898348143",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "08:27 am",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_917863832966",
+      "name": "Mann Lj",
+      "phone": "917863832966",
+      "ig": "@mannlj",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "08:15 am",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_918035273460",
+      "name": "Caller +918035273460",
+      "phone": "+918035273460",
+      "ig": "@caller918035273460",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "03:55 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_9924783642",
+      "name": "Caller 9924783642",
+      "phone": "9924783642",
+      "ig": "@caller9924783642",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "11:27 am",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_9824518421",
+      "name": "Caller 9824518421",
+      "phone": "9824518421",
+      "ig": "@caller9824518421",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "11:27 am",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_9842162481",
+      "name": "Caller 9842162481",
+      "phone": "9842162481",
+      "ig": "@caller9842162481",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "11:26 am",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_917600460306",
+      "name": "Caller +917600460306",
+      "phone": "+917600460306",
+      "ig": "@caller917600460306",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "06:12 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_919664820231",
+      "name": "Caller +919664820231",
+      "phone": "+919664820231",
+      "ig": "@caller919664820231",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "06:54 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_919016199287",
+      "name": "PARV",
+      "phone": "919016199287",
+      "ig": "@parv",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "11:24 am",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_9664820231",
+      "name": "Caller 9664820231",
+      "phone": "9664820231",
+      "ig": "@caller9664820231",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "08:44 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_8080803580",
+      "name": "Caller 8080803580",
+      "phone": "8080803580",
+      "ig": "@caller8080803580",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "11:19 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_919979965763",
+      "name": "Caller +919979965763",
+      "phone": "+919979965763",
+      "ig": "@caller919979965763",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "06:44 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_9327717268",
+      "name": "Caller 9327717268",
+      "phone": "9327717268",
+      "ig": "@caller9327717268",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "06:05 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_9327717267",
+      "name": "Caller 9327717267",
+      "phone": "9327717267",
+      "ig": "@caller9327717267",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "06:04 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_09879301004",
+      "name": "Caller 09879301004",
+      "phone": "09879301004",
+      "ig": "@caller09879301004",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "11:13 am",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_7600568394",
+      "name": "Caller 7600568394",
+      "phone": "7600568394",
+      "ig": "@caller7600568394",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "08:52 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_9825350281",
+      "name": "Caller 9825350281",
+      "phone": "9825350281",
+      "ig": "@caller9825350281",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "08:51 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_9313036021",
+      "name": "Caller 9313036021",
+      "phone": "9313036021",
+      "ig": "@caller9313036021",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "08:51 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_917935048247",
+      "name": "Caller +917935048247",
+      "phone": "+917935048247",
+      "ig": "@caller917935048247",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "10:48 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_917948220914",
+      "name": "Caller +917948220914",
+      "phone": "+917948220914",
+      "ig": "@caller917948220914",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "10:47 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_919016140326",
+      "name": "Caller +919016140326",
+      "phone": "+919016140326",
+      "ig": "@caller919016140326",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "06:22 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_9904842982",
+      "name": "Caller 9904842982",
+      "phone": "9904842982",
+      "ig": "@caller9904842982",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "02:34 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_919909482222",
+      "name": "RP's Pizzeria Prahaladnagar",
+      "phone": "+919909482222",
+      "ig": "@rpspizzeriaprahaladnagar",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "09:20 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_919898233038",
+      "name": "Esensible Technology",
+      "phone": "+919898233038",
+      "ig": "@esensibletechnology",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "10:45 am",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_9227774545",
+      "name": "COMPUTER TECHNOLOGY FOUNDATION",
+      "phone": "9227774545",
+      "ig": "@computertechnologyfoundation",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "08:54 am",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_9227778181",
+      "name": "MANGALAYATAN UNIVERSITY ADMISSION AND COUNSELLING CENTRE",
+      "phone": "9227778181",
+      "ig": "@mangalayatanuniversityadmissionandcounsellingcentre",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "08:53 am",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_919909970829",
+      "name": "Panth Softech",
+      "phone": "+919909970829",
+      "ig": "@panthsoftech",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "03:33 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_919427956415",
+      "name": "Caller +919427956415",
+      "phone": "+919427956415",
+      "ig": "@caller919427956415",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "10:35 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_919227093435",
+      "name": "Caller +919227093435",
+      "phone": "+919227093435",
+      "ig": "@caller919227093435",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "09:18 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_916353975877",
+      "name": "Caller +916353975877",
+      "phone": "+916353975877",
+      "ig": "@caller916353975877",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Missed Call in Call App",
+      "lastTimestamp": "07:32 pm",
+      "avatarColor": "from-rose-500 to-amber-500"
+    },
+    {
+      "id": "c_call_7946045992",
+      "name": "Datatech Computers Pvt. Ltd.",
+      "phone": "7946045992",
+      "ig": "@datatechcomputerspvtltd",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "12:06 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_9825363670",
+      "name": "Caller 9825363670",
+      "phone": "9825363670",
+      "ig": "@caller9825363670",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "11:44 am",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_13802242504",
+      "name": "International Call",
+      "phone": "+13802242504",
+      "ig": "@internationalcall",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Missed Call in Call App",
+      "lastTimestamp": "05:05 pm",
+      "avatarColor": "from-rose-500 to-amber-500"
+    },
+    {
+      "id": "c_call_9375092020",
+      "name": "Caller 9375092020",
+      "phone": "9375092020",
+      "ig": "@caller9375092020",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "11:44 am",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_09737262666",
+      "name": "Kantilal Manilal (GOPI SWEET)",
+      "phone": "09737262666",
+      "ig": "@kantilalmanilalgopisweet",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "11:37 am",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_917935048482",
+      "name": "Caller +917935048482",
+      "phone": "+917935048482",
+      "ig": "@caller917935048482",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "09:52 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_912271897337",
+      "name": "Caller +912271897337",
+      "phone": "+912271897337",
+      "ig": "@caller912271897337",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "09:50 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_919558280307",
+      "name": "Caller +919558280307",
+      "phone": "+919558280307",
+      "ig": "@caller919558280307",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "10:53 am",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_6352721349",
+      "name": "Yash Lj",
+      "phone": "6352721349",
+      "ig": "@yashlj",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "09:24 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_8511143075",
+      "name": "Caller 8511143075",
+      "phone": "8511143075",
+      "ig": "@caller8511143075",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "07:04 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_9998822935",
+      "name": "Caller 9998822935",
+      "phone": "9998822935",
+      "ig": "@caller9998822935",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "07:04 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_919409183592",
+      "name": "Caller +919409183592",
+      "phone": "+919409183592",
+      "ig": "@caller919409183592",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "02:32 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_917961732942",
+      "name": "Caller +917961732942",
+      "phone": "+917961732942",
+      "ig": "@caller917961732942",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "01:36 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_919016666497",
+      "name": "Caller +919016666497",
+      "phone": "+919016666497",
+      "ig": "@caller919016666497",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "06:01 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_912250245429",
+      "name": "Caller +912250245429",
+      "phone": "+912250245429",
+      "ig": "@caller912250245429",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "07:51 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_918035073606",
+      "name": "Caller +918035073606",
+      "phone": "+918035073606",
+      "ig": "@caller918035073606",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "07:27 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_919265840351",
+      "name": "Caller +919265840351",
+      "phone": "+919265840351",
+      "ig": "@caller919265840351",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "07:14 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_07096220220",
+      "name": "Atul Bakery | Satellite Ahmedabad",
+      "phone": "07096220220",
+      "ig": "@atulbakerysatelliteahmedabad",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "04:45 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_911408430238",
+      "name": "Caller +911408430238",
+      "phone": "+911408430238",
+      "ig": "@caller911408430238",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "08:03 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_912876233533",
+      "name": "Caller 912876233533",
+      "phone": "912876233533",
+      "ig": "@caller912876233533",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "06:35 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_918758992374",
+      "name": "Caller +918758992374",
+      "phone": "+918758992374",
+      "ig": "@caller918758992374",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Missed Call in Call App",
+      "lastTimestamp": "10:50 am",
+      "avatarColor": "from-rose-500 to-amber-500"
+    },
+    {
+      "id": "c_call_916359434481",
+      "name": "Sfw The Gym - Satellite",
+      "phone": "+916359434481",
+      "ig": "@sfwthegymsatellite",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Missed Call logged from Phone Call App",
+      "lastTimestamp": "07:20 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_916353751606",
+      "name": "Caller +916353751606",
+      "phone": "+916353751606",
+      "ig": "@caller916353751606",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "03:47 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_918485904031",
+      "name": "Caller +918485904031",
+      "phone": "+918485904031",
+      "ig": "@caller918485904031",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "06:35 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_912231238334",
+      "name": "Caller +912231238334",
+      "phone": "+912231238334",
+      "ig": "@caller912231238334",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "01:21 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_912231238448",
+      "name": "Caller +912231238448",
+      "phone": "+912231238448",
+      "ig": "@caller912231238448",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "01:19 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_919825429085",
+      "name": "Caller +919825429085",
+      "phone": "+919825429085",
+      "ig": "@caller919825429085",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "07:26 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_911408520248",
+      "name": "Caller +911408520248",
+      "phone": "+911408520248",
+      "ig": "@caller911408520248",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Missed Call in Call App",
+      "lastTimestamp": "06:16 pm",
+      "avatarColor": "from-rose-500 to-amber-500"
+    },
+    {
+      "id": "c_call_911408402240",
+      "name": "Election Commission of India",
+      "phone": "+911408402240",
+      "ig": "@electioncommissionofindia",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Missed Call in Call App",
+      "lastTimestamp": "11:13 am",
+      "avatarColor": "from-rose-500 to-amber-500"
+    },
+    {
+      "id": "c_call_918511358489",
+      "name": "Caller +918511358489",
+      "phone": "+918511358489",
+      "ig": "@caller918511358489",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "09:27 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_911408520325",
+      "name": "Caller +911408520325",
+      "phone": "+911408520325",
+      "ig": "@caller911408520325",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Missed Call in Call App",
+      "lastTimestamp": "07:25 pm",
+      "avatarColor": "from-rose-500 to-amber-500"
+    },
+    {
+      "id": "c_call_911408430235",
+      "name": "Caller +911408430235",
+      "phone": "+911408430235",
+      "ig": "@caller911408430235",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "06:56 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_919016389632",
+      "name": "Caller +919016389632",
+      "phone": "+919016389632",
+      "ig": "@caller919016389632",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "08:27 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_09426696759",
+      "name": "SAHELI INN || Best Restaurants",
+      "phone": "09426696759",
+      "ig": "@saheliinnbestrestaurants",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "07:55 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_919382188939",
+      "name": "Caller +919382188939",
+      "phone": "+919382188939",
+      "ig": "@caller919382188939",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "02:34 pm",
+      "avatarColor": "from-rose-500 to-amber-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_911409080056",
+      "name": "Caller +911409080056",
+      "phone": "+911409080056",
+      "ig": "@caller911409080056",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "02:24 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_911408430226",
+      "name": "Caller +911408430226",
+      "phone": "+911408430226",
+      "ig": "@caller911408430226",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "01:16 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_911408430351",
+      "name": "Caller +911408430351",
+      "phone": "+911408430351",
+      "ig": "@caller911408430351",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "01:01 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_919377777033",
+      "name": "Caller +919377777033",
+      "phone": "+919377777033",
+      "ig": "@caller919377777033",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "12:01 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_919319798450",
+      "name": "Caller +919319798450",
+      "phone": "+919319798450",
+      "ig": "@caller919319798450",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "02:28 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_18289271309",
+      "name": "Caller +18289271309",
+      "phone": "+18289271309",
+      "ig": "@caller18289271309",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "12:37 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_917969791561",
+      "name": "Caller +917969791561",
+      "phone": "+917969791561",
+      "ig": "@caller917969791561",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "01:07 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_917314621074",
+      "name": "Caller +917314621074",
+      "phone": "+917314621074",
+      "ig": "@caller917314621074",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "05:30 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_918800898041",
+      "name": "Caller +918800898041",
+      "phone": "+918800898041",
+      "ig": "@caller918800898041",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "04:40 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_911244861300",
+      "name": "Caller +911244861300",
+      "phone": "+911244861300",
+      "ig": "@caller911244861300",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "04:24 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_917969037088",
+      "name": "Caller +917969037088",
+      "phone": "+917969037088",
+      "ig": "@caller917969037088",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "04:03 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_918045217211",
+      "name": "Caller +918045217211",
+      "phone": "+918045217211",
+      "ig": "@caller918045217211",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "05:29 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_917313576169",
+      "name": "Caller +917313576169",
+      "phone": "+917313576169",
+      "ig": "@caller917313576169",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Missed Call in Call App",
+      "lastTimestamp": "03:02 pm",
+      "avatarColor": "from-rose-500 to-amber-500"
+    },
+    {
+      "id": "c_call_911244710000",
+      "name": "Caller +911244710000",
+      "phone": "+911244710000",
+      "ig": "@caller911244710000",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "11:17 am",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_9377777033",
+      "name": "Caller 9377777033",
+      "phone": "9377777033",
+      "ig": "@caller9377777033",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "11:23 am",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_918035216690",
+      "name": "Caller +918035216690",
+      "phone": "+918035216690",
+      "ig": "@caller918035216690",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "05:44 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_919427613828",
+      "name": "Dipakdada",
+      "phone": "+919427613828",
+      "ig": "@dipakdada",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "08:46 am",
+      "avatarColor": "from-rose-500 to-amber-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_917317159616",
+      "name": "Caller +917317159616",
+      "phone": "+917317159616",
+      "ig": "@caller917317159616",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Missed Call in Call App",
+      "lastTimestamp": "11:30 pm",
+      "avatarColor": "from-rose-500 to-amber-500"
+    },
+    {
+      "id": "c_call_918045243236",
+      "name": "Caller +918045243236",
+      "phone": "+918045243236",
+      "ig": "@caller918045243236",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Missed Call in Call App",
+      "lastTimestamp": "11:30 pm",
+      "avatarColor": "from-rose-500 to-amber-500"
+    },
+    {
+      "id": "c_call_917317165808",
+      "name": "Caller +917317165808",
+      "phone": "+917317165808",
+      "ig": "@caller917317165808",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Missed Call in Call App",
+      "lastTimestamp": "11:29 pm",
+      "avatarColor": "from-rose-500 to-amber-500"
+    },
+    {
+      "id": "c_call_919428596610",
+      "name": "Caller +919428596610",
+      "phone": "+919428596610",
+      "ig": "@caller919428596610",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "07:36 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_9558534556",
+      "name": "Happy Store",
+      "phone": "9558534556",
+      "ig": "@happystore",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "06:15 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_918071991292",
+      "name": "Caller +918071991292",
+      "phone": "+918071991292",
+      "ig": "@caller918071991292",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "04:24 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_914071316124",
+      "name": "Caller +914071316124",
+      "phone": "+914071316124",
+      "ig": "@caller914071316124",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "04:23 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_918071991033",
+      "name": "Caller +918071991033",
+      "phone": "+918071991033",
+      "ig": "@caller918071991033",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "03:34 pm",
+      "avatarColor": "from-rose-500 to-amber-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_17156460136",
+      "name": "Caller +17156460136",
+      "phone": "+17156460136",
+      "ig": "@caller17156460136",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "03:59 pm",
+      "avatarColor": "from-rose-500 to-amber-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_918035480593",
+      "name": "Caller +918035480593",
+      "phone": "+918035480593",
+      "ig": "@caller918035480593",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Missed Call logged from Phone Call App",
+      "lastTimestamp": "11:38 am",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_079026921736",
+      "name": "Caller 079026921736",
+      "phone": "079026921736",
+      "ig": "@caller079026921736",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "03:32 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_07926901736",
+      "name": "Caller 07926901736",
+      "phone": "07926901736",
+      "ig": "@caller07926901736",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "03:32 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_9427382430",
+      "name": "Caller 9427382430",
+      "phone": "9427382430",
+      "ig": "@caller9427382430",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "10:53 am",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_919265862703",
+      "name": "Rudra LJ",
+      "phone": "+919265862703",
+      "ig": "@rudralj",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "03:41 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_918401996406",
+      "name": "Caller +918401996406",
+      "phone": "+918401996406",
+      "ig": "@caller918401996406",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "08:00 am",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_916261463449",
+      "name": "Caller +916261463449",
+      "phone": "+916261463449",
+      "ig": "@caller916261463449",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "02:12 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_911409080151",
+      "name": "Caller +911409080151",
+      "phone": "+911409080151",
+      "ig": "@caller911409080151",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "03:09 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_911409080001",
+      "name": "Caller +911409080001",
+      "phone": "+911409080001",
+      "ig": "@caller911409080001",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "05:27 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_911",
+      "name": "Caller 911",
+      "phone": "911",
+      "ig": "@caller911",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "07:22 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_917383475319",
+      "name": "Caller +917383475319",
+      "phone": "+917383475319",
+      "ig": "@caller917383475319",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "09:57 pm",
+      "avatarColor": "from-rose-500 to-amber-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_911409080031",
+      "name": "Caller +911409080031",
+      "phone": "+911409080031",
+      "ig": "@caller911409080031",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "09:34 am",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_912265015086",
+      "name": "Caller +912265015086",
+      "phone": "+912265015086",
+      "ig": "@caller912265015086",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "01:52 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_9824358366",
+      "name": "Moral Enterprises",
+      "phone": "9824358366",
+      "ig": "@moralenterprises",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "11:56 am",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_918347769754",
+      "name": "Caller +918347769754",
+      "phone": "+918347769754",
+      "ig": "@caller918347769754",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "02:30 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_8347769754",
+      "name": "Caller 8347769754",
+      "phone": "8347769754",
+      "ig": "@caller8347769754",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "01:16 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_9925044756",
+      "name": "Caller 9925044756",
+      "phone": "9925044756",
+      "ig": "@caller9925044756",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "06:41 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_07926601338",
+      "name": "Caller 07926601338",
+      "phone": "07926601338",
+      "ig": "@caller07926601338",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "08:54 am",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_07935333462",
+      "name": "Caller 07935333462",
+      "phone": "07935333462",
+      "ig": "@caller07935333462",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "08:52 am",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_026601338",
+      "name": "Caller 026601338",
+      "phone": "026601338",
+      "ig": "@caller026601338",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "08:51 am",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_26601338",
+      "name": "Caller 26601338",
+      "phone": "26601338",
+      "ig": "@caller26601338",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "08:51 am",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_8866035228",
+      "name": "Caller 8866035228",
+      "phone": "8866035228",
+      "ig": "@caller8866035228",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "08:49 am",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_916354468987",
+      "name": "Caller +916354468987",
+      "phone": "+916354468987",
+      "ig": "@caller916354468987",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "03:55 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_07925326701",
+      "name": "Caller 07925326701",
+      "phone": "07925326701",
+      "ig": "@caller07925326701",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "12:30 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_911409081005",
+      "name": "Caller +911409081005",
+      "phone": "+911409081005",
+      "ig": "@caller911409081005",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "01:50 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_8980810000",
+      "name": "Caller 8980810000",
+      "phone": "8980810000",
+      "ig": "@caller8980810000",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "06:41 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_919426464423",
+      "name": "Caller +919426464423",
+      "phone": "+919426464423",
+      "ig": "@caller919426464423",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "12:13 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_911409080181",
+      "name": "Caller +911409080181",
+      "phone": "+911409080181",
+      "ig": "@caller911409080181",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "04:26 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_911409081112",
+      "name": "Caller +911409081112",
+      "phone": "+911409081112",
+      "ig": "@caller911409081112",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "06:26 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_911409080271",
+      "name": "Caller +911409080271",
+      "phone": "+911409080271",
+      "ig": "@caller911409080271",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "10:57 am",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_9825469077",
+      "name": "Delta Electronic Parts",
+      "phone": "9825469077",
+      "ig": "@deltaelectronicparts",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "03:12 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_9824011374",
+      "name": "Caller 9824011374",
+      "phone": "9824011374",
+      "ig": "@caller9824011374",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "07:25 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_918035468940",
+      "name": "Caller +918035468940",
+      "phone": "+918035468940",
+      "ig": "@caller918035468940",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Missed Call in Call App",
+      "lastTimestamp": "06:33 pm",
+      "avatarColor": "from-rose-500 to-amber-500"
+    },
+    {
+      "id": "c_call_917935591340",
+      "name": "Caller +917935591340",
+      "phone": "+917935591340",
+      "ig": "@caller917935591340",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Missed Call in Call App",
+      "lastTimestamp": "07:57 pm",
+      "avatarColor": "from-rose-500 to-amber-500"
+    },
+    {
+      "id": "c_call_917935591010",
+      "name": "Caller +917935591010",
+      "phone": "+917935591010",
+      "ig": "@caller917935591010",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Missed Call in Call App",
+      "lastTimestamp": "07:42 pm",
+      "avatarColor": "from-rose-500 to-amber-500"
+    },
+    {
+      "id": "c_call_912269097097",
+      "name": "Caller +912269097097",
+      "phone": "+912269097097",
+      "ig": "@caller912269097097",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "04:12 pm",
+      "avatarColor": "from-rose-500 to-amber-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_911409080241",
+      "name": "Caller +911409080241",
+      "phone": "+911409080241",
+      "ig": "@caller911409080241",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "12:34 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_911409081340",
+      "name": "Caller +911409081340",
+      "phone": "+911409081340",
+      "ig": "@caller911409081340",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "03:15 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_911409080091",
+      "name": "Caller +911409080091",
+      "phone": "+911409080091",
+      "ig": "@caller911409080091",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "08:46 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_911409080121",
+      "name": "Caller +911409080121",
+      "phone": "+911409080121",
+      "ig": "@caller911409080121",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "06:13 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_911409080331",
+      "name": "Caller +911409080331",
+      "phone": "+911409080331",
+      "ig": "@caller911409080331",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "07:51 pm",
+      "avatarColor": "from-rose-500 to-amber-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_918035472102",
+      "name": "Caller +918035472102",
+      "phone": "+918035472102",
+      "ig": "@caller918035472102",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "03:11 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_919428018468",
+      "name": "Tanvi Crow Girl",
+      "phone": "+919428018468",
+      "ig": "@tanvicrowgirl",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "02:28 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_911409080061",
+      "name": "Caller +911409080061",
+      "phone": "+911409080061",
+      "ig": "@caller911409080061",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "06:09 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_917043651961",
+      "name": "Caller +917043651961",
+      "phone": "+917043651961",
+      "ig": "@caller917043651961",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "10:04 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_919924365516",
+      "name": "Caller +919924365516",
+      "phone": "+919924365516",
+      "ig": "@caller919924365516",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "05:43 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_9924365516",
+      "name": "Caller 9924365516",
+      "phone": "9924365516",
+      "ig": "@caller9924365516",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "02:35 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_112",
+      "name": "Caller 112",
+      "phone": "112",
+      "ig": "@caller112",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "09:41 am",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_9824323624",
+      "name": "Caller 9824323624",
+      "phone": "9824323624",
+      "ig": "@caller9824323624",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "08:43 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_911409080211",
+      "name": "Caller +911409080211",
+      "phone": "+911409080211",
+      "ig": "@caller911409080211",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "07:36 pm",
+      "avatarColor": "from-rose-500 to-amber-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_911409030041",
+      "name": "Caller +911409030041",
+      "phone": "+911409030041",
+      "ig": "@caller911409030041",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "02:30 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_9106963153",
+      "name": "Caller 9106963153",
+      "phone": "9106963153",
+      "ig": "@caller9106963153",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "02:23 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_918035242066",
+      "name": "Caller +918035242066",
+      "phone": "+918035242066",
+      "ig": "@caller918035242066",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Missed Call in Call App",
+      "lastTimestamp": "11:08 am",
+      "avatarColor": "from-rose-500 to-amber-500"
+    },
+    {
+      "id": "c_call_918401156644",
+      "name": "Caller +918401156644",
+      "phone": "+918401156644",
+      "ig": "@caller918401156644",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "07:49 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_912269097392",
+      "name": "Caller +912269097392",
+      "phone": "+912269097392",
+      "ig": "@caller912269097392",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "09:08 pm",
+      "avatarColor": "from-rose-500 to-amber-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_912265015062",
+      "name": "Caller +912265015062",
+      "phone": "+912265015062",
+      "ig": "@caller912265015062",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "12:48 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_918657914839",
+      "name": "Caller +918657914839",
+      "phone": "+918657914839",
+      "ig": "@caller918657914839",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Missed Call in Call App",
+      "lastTimestamp": "09:48 am",
+      "avatarColor": "from-rose-500 to-amber-500"
+    },
+    {
+      "id": "c_call_918657914846",
+      "name": "Caller +918657914846",
+      "phone": "+918657914846",
+      "ig": "@caller918657914846",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "02:32 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_918657914785",
+      "name": "Caller +918657914785",
+      "phone": "+918657914785",
+      "ig": "@caller918657914785",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "08:41 am",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_911409030011",
+      "name": "Caller +911409030011",
+      "phone": "+911409030011",
+      "ig": "@caller911409030011",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "07:17 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_919409141042",
+      "name": "Didi",
+      "phone": "+919409141042",
+      "ig": "@didi",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Missed Call logged from Phone Call App",
+      "lastTimestamp": "06:56 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
+      "id": "c_call_917949129124",
+      "name": "Caller +917949129124",
+      "phone": "+917949129124",
+      "ig": "@caller917949129124",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "07:42 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_13148972614",
+      "name": "Caller +13148972614",
+      "phone": "+13148972614",
+      "ig": "@caller13148972614",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "06:23 pm",
+      "avatarColor": "from-blue-500 to-cyan-500"
+    },
+    {
+      "id": "c_call_9426703566",
+      "name": "Pappa",
+      "phone": "9426703566",
+      "ig": "@pappa",
+      "platform": "whatsapp",
+      "source": "call_app",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "07:17 pm",
+      "avatarColor": "from-blue-500 to-cyan-500",
+      "callAppSynced": true
+    },
+    {
       "id": "c_adb_1788118427092_276",
       "name": "JA-JioPay-S",
       "phone": "JA-JioPay-S",
       "ig": "@jajiopays",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -245,8 +2368,8 @@
       "phone": "9978070115",
       "ig": "@dhariyacn",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "05:39 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -255,8 +2378,8 @@
       "phone": "99240 00504",
       "ig": "@radhe",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -265,8 +2388,8 @@
       "phone": "99136 19340",
       "ig": "@kushaljwalant",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "02:58 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -275,8 +2398,8 @@
       "phone": "99134 44756",
       "ig": "@aarushghandhi",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Missed Call logged from Phone Call App",
+      "lastTimestamp": "09:24 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -285,8 +2408,8 @@
       "phone": "98988 36044",
       "ig": "@krishapujarachichu",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -295,8 +2418,8 @@
       "phone": "98987 10047",
       "ig": "@adarshkepapa",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "08:28 am",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -305,8 +2428,8 @@
       "phone": "98798 16616",
       "ig": "@mukeshuncle",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "12:04 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -315,8 +2438,8 @@
       "phone": "97243 26764",
       "ig": "@kumkumxerox",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -325,8 +2448,8 @@
       "phone": "97127 92689",
       "ig": "@darshansirctf",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "11:57 am",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -335,8 +2458,8 @@
       "phone": "95868 00046",
       "ig": "@plumbermaheshbhai",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -345,8 +2468,8 @@
       "phone": "95121 41029",
       "ig": "@watchmanprakash",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Missed Call in Call App",
+      "lastTimestamp": "03:08 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -355,8 +2478,8 @@
       "phone": "94286 58949",
       "ig": "@ashishljfootball",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -365,8 +2488,8 @@
       "phone": "94280 18468",
       "ig": "@tanvisoni",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "03:04 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -375,8 +2498,8 @@
       "phone": "92658 62703",
       "ig": "@rudradesai",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "03:58 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -385,8 +2508,8 @@
       "phone": "92658 40351",
       "ig": "@krishbhatt",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "11:49 am",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -395,8 +2518,8 @@
       "phone": "92288 18881",
       "ig": "@prakshalfootball",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "07:03 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -405,8 +2528,8 @@
       "phone": "918849144071",
       "ig": "@churchurnaangloria",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "07:23 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -415,8 +2538,8 @@
       "phone": "91731 02987",
       "ig": "@jaihindpharmacy",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -425,8 +2548,8 @@
       "phone": "91042 01601",
       "ig": "@kahaanbhatt",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "02:59 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -435,8 +2558,8 @@
       "phone": "90237 71348",
       "ig": "@mihirdumbo",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "07:41 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -445,8 +2568,8 @@
       "phone": "90235 94007",
       "ig": "@mahi",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -455,8 +2578,8 @@
       "phone": "90233 70369",
       "ig": "@dharmikbhavsar",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "08:58 am",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -465,8 +2588,8 @@
       "phone": "88667 92299",
       "ig": "@arihantxerox",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -475,8 +2598,8 @@
       "phone": "88666 77975",
       "ig": "@jiyamistry",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "11:20 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -485,8 +2608,8 @@
       "phone": "87994 37481",
       "ig": "@anshul",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "07:45 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -495,8 +2618,8 @@
       "phone": "87586 93368",
       "ig": "@mrunalfootball",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "07:44 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -505,8 +2628,8 @@
       "phone": "84888 80676",
       "ig": "@sanketddcet",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "12:45 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -515,8 +2638,8 @@
       "phone": "83207 17440",
       "ig": "@dairybot",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "06:33 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -525,8 +2648,8 @@
       "phone": "82000 10881",
       "ig": "@drashti",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "06:12 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -535,8 +2658,8 @@
       "phone": "81470 2121",
       "ig": "@arpitsir",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "04:54 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -545,8 +2668,8 @@
       "phone": "79905 98550",
       "ig": "@xeroxoutsidelj",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -555,8 +2678,8 @@
       "phone": "79844 30121",
       "ig": "@prakshal",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "07:07 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -565,8 +2688,8 @@
       "phone": "78599 96739",
       "ig": "@harshcn",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -575,8 +2698,8 @@
       "phone": "75750 64453",
       "ig": "@maitrididi",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call in Call App",
+      "lastTimestamp": "09:28 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -585,8 +2708,8 @@
       "phone": "73838 78535",
       "ig": "@jeetmishrajwalant",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -595,8 +2718,8 @@
       "phone": "72269 53799",
       "ig": "@sangitaaunty",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "02:59 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -605,8 +2728,8 @@
       "phone": "72269 37250",
       "ig": "@rishilj",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "06:18 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -615,8 +2738,8 @@
       "phone": "70695 38879",
       "ig": "@nandini",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -625,8 +2748,8 @@
       "phone": "70465 29861",
       "ig": "@ljxerox",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "09:50 am",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -635,8 +2758,8 @@
       "phone": "70167 92907",
       "ig": "@devamlj",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -645,8 +2768,8 @@
       "phone": "70145 99427",
       "ig": "@khemendrasinghjaisalmer",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "04:30 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -655,8 +2778,8 @@
       "phone": "6355 932 360",
       "ig": "@bsnl",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -665,8 +2788,8 @@
       "phone": "63548 49889",
       "ig": "@rahillj",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "12:27 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -675,8 +2798,8 @@
       "phone": "63532 48656",
       "ig": "@shubhamljfootball",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -685,8 +2808,8 @@
       "phone": "63517 24552",
       "ig": "@chaitanyainternship",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "01:32 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -695,8 +2818,8 @@
       "phone": "1991",
       "ig": "@jiohelpline",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -705,8 +2828,8 @@
       "phone": "1977",
       "ig": "@jioteleverificationhelpline",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -715,8 +2838,8 @@
       "phone": "18001023388",
       "ig": "@vivocustomercare",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -725,8 +2848,8 @@
       "phone": "+919998679318",
       "ig": "@yashjiju",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -735,8 +2858,8 @@
       "phone": "+919979977232",
       "ig": "@rajeshsircn",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -745,8 +2868,8 @@
       "phone": "+919925508588",
       "ig": "@hindibhasi",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "09:01 am",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -755,8 +2878,8 @@
       "phone": "+919925315075",
       "ig": "@krishnasevak",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "11:26 am",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -765,8 +2888,8 @@
       "phone": "+919924620410",
       "ig": "@bhaveshmasa",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -775,8 +2898,8 @@
       "phone": "+919909211608",
       "ig": "@pranshavdave",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "12:52 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -785,8 +2908,8 @@
       "phone": "+919898678914",
       "ig": "@prachiaunty",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "06:27 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -795,8 +2918,8 @@
       "phone": "+919898063027",
       "ig": "@somaya",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "08:11 am",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -805,8 +2928,8 @@
       "phone": "+919825393458",
       "ig": "@rannasevak",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -815,8 +2938,8 @@
       "phone": "+919824603667",
       "ig": "@dharatigandhiparikhe603",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "01:02 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -825,8 +2948,8 @@
       "phone": "+919773015189",
       "ig": "@hitarthlj",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "03:19 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -835,8 +2958,8 @@
       "phone": "+919737577222",
       "ig": "@hardibhatt",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "01:08 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -845,8 +2968,8 @@
       "phone": "+919687496964",
       "ig": "@pagal",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "12:46 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -855,8 +2978,8 @@
       "phone": "+919664539634",
       "ig": "@meetbhatt",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -865,8 +2988,8 @@
       "phone": "+919662927748",
       "ig": "@chitraluncle",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -875,8 +2998,8 @@
       "phone": "+919586954944",
       "ig": "@aaravfaldu",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "08:50 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -885,8 +3008,8 @@
       "phone": "+919558836857",
       "ig": "@priyankamamlj",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -895,8 +3018,8 @@
       "phone": "+919537172075",
       "ig": "@deerghshah",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -905,8 +3028,8 @@
       "phone": "+919510079437",
       "ig": "@sujalchaudhari",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "12:16 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -915,8 +3038,8 @@
       "phone": "+919428460393",
       "ig": "@poojadidi",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -925,8 +3048,8 @@
       "phone": "+919428043137",
       "ig": "@yashbhatt",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -935,8 +3058,8 @@
       "phone": "+919427011012",
       "ig": "@hirenbhatt",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "08:32 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -945,8 +3068,8 @@
       "phone": "+919426059764",
       "ig": "@alpahirenkunarbhatt",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "02:23 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -955,8 +3078,8 @@
       "phone": "+9194091 41042",
       "ig": "@devanshijigneshbhatt",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "11:40 am",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -965,8 +3088,8 @@
       "phone": "+919408686187",
       "ig": "@ankitajigneshbhatt",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "03:04 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -975,8 +3098,8 @@
       "phone": "+919408208200",
       "ig": "@anshpatel",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -985,8 +3108,8 @@
       "phone": "+919377334404",
       "ig": "@fewsatechnologies",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "05:56 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -995,8 +3118,8 @@
       "phone": "+919327221431",
       "ig": "@yashakbari",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "10:40 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1005,8 +3128,8 @@
       "phone": "+919313984504",
       "ig": "@dakshgadhavilj",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Missed Call logged from Phone Call App",
+      "lastTimestamp": "03:42 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1015,8 +3138,8 @@
       "phone": "+919313192703",
       "ig": "@harshvardhan",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "07:26 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1025,8 +3148,8 @@
       "phone": "+919265817857",
       "ig": "@rishitbhai",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "06:27 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1035,8 +3158,8 @@
       "phone": "+919227778181",
       "ig": "@hardimaminternship",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "10:50 am",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1045,8 +3168,8 @@
       "phone": "+919157128857",
       "ig": "@aryanshah",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Missed Call logged from Phone Call App",
+      "lastTimestamp": "12:19 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1055,8 +3178,8 @@
       "phone": "+919104183808",
       "ig": "@aaryan",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "01:24 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1065,8 +3188,8 @@
       "phone": "+919054586876",
       "ig": "@bhuttirth",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "11:45 am",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1075,8 +3198,8 @@
       "phone": "+919016731838",
       "ig": "@dhyanam",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "08:58 am",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1085,8 +3208,8 @@
       "phone": "+919016199287",
       "ig": "@spacebarparv",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "12:08 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1095,8 +3218,8 @@
       "phone": "+919016083928",
       "ig": "@nancydidinifriend",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Missed Call logged from Phone Call App",
+      "lastTimestamp": "01:12 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1105,8 +3228,8 @@
       "phone": "+9187808 14849",
       "ig": "@pappadipakbhaibhatt",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "11:21 am",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1115,8 +3238,8 @@
       "phone": "+918780338477",
       "ig": "@brigadierjhangiyo",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "09:51 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1125,8 +3248,8 @@
       "phone": "+918780132121",
       "ig": "@ishita",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1135,8 +3258,8 @@
       "phone": "+918692957887",
       "ig": "@annabellelj2",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1145,8 +3268,8 @@
       "phone": "+918359877145",
       "ig": "@aanudon",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "12:38 am",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1155,8 +3278,8 @@
       "phone": "+918320732979",
       "ig": "@bhavsarrudra",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "06:38 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1165,8 +3288,8 @@
       "phone": "+918160356370",
       "ig": "@aditibhatt",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1175,8 +3298,8 @@
       "phone": "+918128523381",
       "ig": "@harshchauhan",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Missed Call logged from Phone Call App",
+      "lastTimestamp": "08:00 am",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1185,8 +3308,8 @@
       "phone": "+918017547179",
       "ig": "@habibi",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1195,8 +3318,8 @@
       "phone": "+917863832966",
       "ig": "@bailomann",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "01:44 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1205,8 +3328,8 @@
       "phone": "+917862927930",
       "ig": "@annabellelj",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1215,8 +3338,8 @@
       "phone": "+917859908889",
       "ig": "@dhariyalj",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "09:52 am",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1225,8 +3348,8 @@
       "phone": "+917708903567",
       "ig": "@rajjiju",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1235,8 +3358,8 @@
       "phone": "+917600897539",
       "ig": "@neellj",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "08:30 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1245,8 +3368,8 @@
       "phone": "+917600844076",
       "ig": "@aanchalshah",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1255,8 +3378,8 @@
       "phone": "+917575819996",
       "ig": "@urvigogna",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "08:56 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1265,8 +3388,8 @@
       "phone": "+917265038011",
       "ig": "@kadircnmustakbhai",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "04:42 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1275,8 +3398,8 @@
       "phone": "+917016712298",
       "ig": "@narendradantanilj",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "02:20 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1285,8 +3408,8 @@
       "phone": "+917016312822",
       "ig": "@tirthshahfootball",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "05:14 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1295,8 +3418,8 @@
       "phone": "+916356980897",
       "ig": "@mrunalfootballpersonal",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "04:35 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1305,8 +3428,8 @@
       "phone": "+91 99790 20939",
       "ig": "@panthiserashiya",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "12:52 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1315,8 +3438,8 @@
       "phone": "+91 99744 35653",
       "ig": "@dogbitearyan",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "01:25 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1325,8 +3448,8 @@
       "phone": "+91 99742 45045",
       "ig": "@kathanmom",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1335,8 +3458,8 @@
       "phone": "+91 99741 72619",
       "ig": "@benstokes",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "05:31 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1345,8 +3468,8 @@
       "phone": "+91 99740 26524",
       "ig": "@sbicardmanagerbharatsolanki",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1355,8 +3478,8 @@
       "phone": "+91 99259 70647",
       "ig": "@wiremankanubhai",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1365,8 +3488,8 @@
       "phone": "+91 99254 11150",
       "ig": "@jainellj",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "05:48 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1375,8 +3498,8 @@
       "phone": "+91 99252 36490",
       "ig": "@panthidad",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1385,8 +3508,8 @@
       "phone": "+91 99251 28552",
       "ig": "@panthimom",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "10:39 am",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1395,8 +3518,8 @@
       "phone": "+91 99250 44756",
       "ig": "@aarush",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "02:53 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1405,8 +3528,8 @@
       "phone": "+91 99099 07202",
       "ig": "@darsh",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call in Call App",
+      "lastTimestamp": "06:55 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1415,8 +3538,8 @@
       "phone": "+91 99090 16848",
       "ig": "@jitenjayeshbhaitrivedi",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "05:08 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1425,8 +3548,8 @@
       "phone": "+91 98989 92111",
       "ig": "@siddhashilarenukashreyansauntycontractor",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "07:30 am",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1435,8 +3558,8 @@
       "phone": "+91 98798 57371",
       "ig": "@rajvirathodmother",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "07:09 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1445,8 +3568,8 @@
       "phone": "+91 98796 77724",
       "ig": "@vaishnavibhatt",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "07:32 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1455,8 +3578,8 @@
       "phone": "+91 98250 05688",
       "ig": "@drbinjantripathijwalantsdr",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1465,8 +3588,8 @@
       "phone": "+91 98247 40071",
       "ig": "@hiralmam",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1475,8 +3598,8 @@
       "phone": "+91 98247 39392",
       "ig": "@leenapatelkhushimother",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1485,8 +3608,8 @@
       "phone": "+91 98243 58366",
       "ig": "@taralshah",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "04:19 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1495,8 +3618,8 @@
       "phone": "+91 97260 96677",
       "ig": "@ishitamom",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1505,8 +3628,8 @@
       "phone": "+91 97260 65992",
       "ig": "@harshitsociety",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1515,8 +3638,8 @@
       "phone": "+91 97233 22277",
       "ig": "@hirendbhatt",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "10:36 am",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1525,8 +3648,8 @@
       "phone": "+91 97120 81587",
       "ig": "@mahiddcet",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "08:59 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1535,8 +3658,8 @@
       "phone": "+91 96870 90500",
       "ig": "@truptimam",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "01:06 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1545,8 +3668,8 @@
       "phone": "+91 96626 26907",
       "ig": "@aishwarya3",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1555,8 +3678,8 @@
       "phone": "+91 95585 34556",
       "ig": "@prince",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "05:22 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1565,8 +3688,8 @@
       "phone": "+91 95121 00508",
       "ig": "@shlokaddcet",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "12:06 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1575,8 +3698,8 @@
       "phone": "+91 94295 21399",
       "ig": "@mummyminaxibenbhatt",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Missed Call logged from Phone Call App",
+      "lastTimestamp": "11:07 am",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1585,8 +3708,8 @@
       "phone": "+91 94293 00195",
       "ig": "@maharshrirao",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "12:59 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1595,8 +3718,8 @@
       "phone": "+91 94290 00120",
       "ig": "@taralnimummy",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1605,8 +3728,8 @@
       "phone": "+91 94267 09399",
       "ig": "@pappagaurangbhaibhatt",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1615,8 +3738,8 @@
       "phone": "+91 94267 03566",
       "ig": "@drjigneshgbhatt",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "07:51 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1625,8 +3748,8 @@
       "phone": "+91 94266 24372",
       "ig": "@parthjiju",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "12:49 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1635,8 +3758,8 @@
       "phone": "+91 94092 67608",
       "ig": "@parthschool",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "09:34 am",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1645,8 +3768,8 @@
       "phone": "+91 94080 93492",
       "ig": "@harshbarot",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "08:37 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1655,8 +3778,8 @@
       "phone": "+91 93289 93934",
       "ig": "@tirthesh",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "05:37 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1665,8 +3788,8 @@
       "phone": "+91 93283 85138",
       "ig": "@jinalpandya",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "07:56 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1675,8 +3798,8 @@
       "phone": "+91 93164 01669",
       "ig": "@aryan",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1685,8 +3808,8 @@
       "phone": "+91 93131 12983",
       "ig": "@yug",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "05:28 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1695,8 +3818,8 @@
       "phone": "+91 90798 79785",
       "ig": "@byjumaheshsir",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1705,8 +3828,8 @@
       "phone": "+91 90540 73146",
       "ig": "@aryanbhatt",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "10:18 am",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1715,8 +3838,8 @@
       "phone": "+91 90239 64298",
       "ig": "@rudridesai",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1725,8 +3848,8 @@
       "phone": "+91 90092 33211",
       "ig": "@urvi",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Missed Call logged from Phone Call App",
+      "lastTimestamp": "10:30 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1735,8 +3858,8 @@
       "phone": "+91 88497 13866",
       "ig": "@ljxeroxvarakaka2",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1745,8 +3868,8 @@
       "phone": "+91 87994 12603",
       "ig": "@aagamlj",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "05:35 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1755,8 +3878,8 @@
       "phone": "+91 86579 14846",
       "ig": "@tatastudy",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1765,8 +3888,8 @@
       "phone": "+91 84607 77404",
       "ig": "@ctf",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "09:36 am",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1775,8 +3898,8 @@
       "phone": "+91 84600 71515",
       "ig": "@waytoweb",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "04:13 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1785,8 +3908,8 @@
       "phone": "+91 84019 76468",
       "ig": "@sohamkorat",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Missed Call logged from Phone Call App",
+      "lastTimestamp": "03:09 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1795,8 +3918,8 @@
       "phone": "+91 82004 39715",
       "ig": "@parth",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "07:21 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1805,8 +3928,8 @@
       "phone": "+91 82001 43690",
       "ig": "@desairudralj",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1815,8 +3938,8 @@
       "phone": "+91 79906 63054",
       "ig": "@mummynirubenbhatt",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "07:12 am",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1825,8 +3948,8 @@
       "phone": "+91 79841 73128",
       "ig": "@jwalantjigneshbhatt",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "11:11 am",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1835,8 +3958,8 @@
       "phone": "+91 78744 18128",
       "ig": "@keyursir",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1845,8 +3968,8 @@
       "phone": "+91 76001 70630",
       "ig": "@rudrasmom",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "07:05 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1855,8 +3978,8 @@
       "phone": "+91 75671 57157",
       "ig": "@jaylj",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "12:23 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1865,8 +3988,8 @@
       "phone": "+91 74058 18275",
       "ig": "@aastha",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "09:31 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1875,8 +3998,8 @@
       "phone": "+91 70419 34425",
       "ig": "@kavyadalwadi",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "02:07 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1885,8 +4008,8 @@
       "phone": "+91 70414 57118",
       "ig": "@renny",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1895,8 +4018,8 @@
       "phone": "+91 70161 59993",
       "ig": "@tirthlj",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Incoming Call logged from Phone Call App",
+      "lastTimestamp": "03:59 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1905,8 +4028,8 @@
       "phone": "+91 70160 41857",
       "ig": "@jatinljlj",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "12:58 pm",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1915,8 +4038,8 @@
       "phone": "+91 6353431085",
       "ig": "@tanayparikh",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
+      "lastTimestamp": "09:50 am",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1925,8 +4048,8 @@
       "phone": "+91 63524 38313",
       "ig": "@barotatul",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1935,8 +4058,8 @@
       "phone": "+91 265 350 0981",
       "ig": "@sbicreditcardclosurenoc",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
@@ -1945,8 +4068,8 @@
       "phone": "+1 317-664-1136",
       "ig": "@krishhirenbhatt",
       "platform": "whatsapp",
-      "lastMessage": "Synced from Android Device Contacts",
-      "lastTimestamp": "Just now",
+      "lastMessage": "Synced from Phone Address Book",
+      "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
     },
     {

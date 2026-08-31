@@ -162,22 +162,22 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
   };
 
   return (
-    <div className="bg-cyan-950/30 border border-cyan-400/50 rounded-2xl p-6 text-slate-100 backdrop-blur-3xl shadow-[0_0_50px_rgba(0,240,255,0.25)] max-w-5xl w-full mx-auto relative overflow-hidden font-sans">
+    <div className="bg-neutral-950/95 border border-amber-500/40 rounded-2xl p-6 text-neutral-100 backdrop-blur-3xl shadow-[0_0_50px_rgba(245,197,66,0.2)] max-w-5xl w-full mx-auto relative overflow-hidden font-sans">
       {/* Ambient Background Glow */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-cyan-500/20 pb-4 mb-5">
+      <div className="flex items-center justify-between border-b border-amber-500/20 pb-4 mb-5">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-cyan-500/10 border border-cyan-500/40 rounded-xl text-cyan-400">
+          <div className="p-2.5 bg-amber-500/15 border border-amber-500/40 rounded-xl text-amber-400">
             <Box className="w-6 h-6 animate-pulse" />
           </div>
           <div>
-            <h2 className="text-xl font-extrabold tracking-wider text-cyan-300 uppercase font-orbitron flex items-center gap-2">
+            <h2 className="text-xl font-extrabold tracking-wider text-amber-300 uppercase font-orbitron flex items-center gap-2">
               J.A.S.P.E.R. 4D Hologram & Nanotech Suite
             </h2>
-            <p className="text-xs text-slate-400 font-mono">4D Temporal Dynamics • Exploded 3D Blueprint • Tesseract Projection</p>
+            <p className="text-xs text-neutral-400 font-mono">4D Temporal Dynamics • Exploded 3D Blueprint • Tesseract Projection</p>
           </div>
         </div>
 
