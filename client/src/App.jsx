@@ -1127,15 +1127,16 @@ export default function App() {
       const cleanText = text.replace(imgRegex, '').replace('[IMAGE]', '').trim();
       return (
         <div className="flex flex-col gap-4">
-          <p className="whitespace-pre-wrap text-[20px] leading-relaxed" style={{ fontSize: '20px' }}>{cleanText}</p>
+          <p className="whitespace-pre-wrap leading-relaxed">{cleanText}</p>
           <div className="relative border border-cyan-500/20 rounded-lg overflow-hidden bg-black/40 p-2 self-start max-w-lg">
             <img src={match[2]} alt={match[1]} className="max-w-full rounded shadow-[0_0_15px_rgba(0,240,255,0.2)]" />
           </div>
         </div>
       );
     }
-    return <p className="whitespace-pre-wrap leading-relaxed text-[20px]" style={{ fontSize: '20px' }}>{text}</p>;
+    return <p className="whitespace-pre-wrap leading-relaxed">{text}</p>;
   };
+
 
   const handleToggleViewMode = () => {
     if (viewMode === 'pc') {
@@ -1173,7 +1174,7 @@ export default function App() {
 
         {/* Left Sidebar */}
         {showSidebar && (
-          <aside className={`sidebar-panel p-3 sm:p-5 flex flex-col justify-between h-full select-none shrink-0 border-r border-cyan-500/20 bg-slate-950/98 backdrop-blur-2xl transition-all duration-300 ${isMobileLayout ? 'fixed inset-y-0 left-0 z-50 w-[270px] max-w-[85vw] shadow-2xl' : 'w-[280px] relative z-20'}`}>
+          <aside className={`sidebar-panel flex flex-col justify-between h-full select-none shrink-0 border-r border-cyan-500/20 bg-slate-950/98 backdrop-blur-2xl transition-all duration-300 ${isMobileLayout ? 'fixed inset-y-0 left-0 z-50 w-[270px] max-w-[85vw] shadow-2xl p-3' : 'w-[260px] relative z-20 p-3'}`}>
             <div className="flex flex-col gap-4 overflow-y-auto">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -1485,7 +1486,7 @@ export default function App() {
           
           {/* Header Panel (Only shown in Classic mode) */}
           {!isOsMode && (
-            <header className={`flex items-center justify-between border-b border-amber-500/20 bg-neutral-950/80 backdrop-blur-md shrink-0 ${isMobileLayout ? 'px-3 py-2.5 gap-2' : 'px-6 py-4'}`}>
+            <header className={`flex items-center justify-between border-b border-amber-500/20 bg-neutral-950/80 backdrop-blur-md shrink-0 ${isMobileLayout ? 'px-3 py-2.5 gap-2' : 'px-4 py-2 gap-2'}`}>
               <div className="flex items-center gap-2.5">
                 <button 
                   onClick={() => setShowSidebar(prev => !prev)}
@@ -1592,7 +1593,7 @@ export default function App() {
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className={`flex-1 overflow-hidden flex flex-col relative ${isOsMode ? 'p-0' : (isMobileLayout ? 'p-2 sm:p-4' : 'p-6')}`}
+            className={`flex-1 overflow-hidden flex flex-col relative ${isOsMode ? 'p-0' : (isMobileLayout ? 'p-2 sm:p-4' : 'p-3')}`}
           >
             {isOsMode ? (
               <JasperOsDesktop 
@@ -1619,7 +1620,7 @@ export default function App() {
             <div 
               ref={hudPanelRef}
               onScroll={handleHudScroll}
-              className={`hud-panel flex-1 overflow-y-auto relative bg-gradient-to-b from-amber-950/10 via-neutral-950/60 to-black/80 border border-amber-500/20 ${isMobileLayout ? 'p-3 sm:p-5' : 'p-6'}`}
+              className={`hud-panel flex-1 overflow-y-auto relative bg-gradient-to-b from-amber-950/10 via-neutral-950/60 to-black/80 border border-amber-500/20 ${isMobileLayout ? 'p-3 sm:p-5' : 'p-4'}`}
             >
               {/* Scanline laser */}
               <div className="absolute inset-x-0 top-0 h-0.5 bg-amber-500/20 pointer-events-none animate-pulse" />
@@ -1638,7 +1639,7 @@ export default function App() {
 
               {/* Chat View */}
               {selectedChatId ? (
-                <div className="flex flex-col gap-4 text-[20px] leading-relaxed text-slate-200" style={{ fontSize: '20px' }}>
+                <div className={`flex flex-col gap-4 leading-relaxed text-slate-200 ${isMobileLayout ? 'text-[18px]' : 'text-[14px]'}`} style={{ fontSize: isMobileLayout ? '18px' : '14px' }}>
                   <div className="flex justify-between items-center border-b border-amber-500/20 pb-2 mb-1 select-none font-orbitron text-[9px] text-amber-400 tracking-wider">
                     <span className="truncate max-w-[70%]">QUERY: {pastChats.find(c => c.id === selectedChatId)?.query}</span>
                     <span className="shrink-0">{pastChats.find(c => c.id === selectedChatId)?.timestamp}</span>
@@ -1672,27 +1673,30 @@ export default function App() {
                     </div>
                   )}
 
-                  {renderResponseText(pastChats.find(c => c.id === selectedChatId)?.response)}
+                  <div style={{ fontSize: isMobileLayout ? '18px' : '14px' }}>{renderResponseText(pastChats.find(c => c.id === selectedChatId)?.response)}</div>
                 </div>
               ) : (
                 /* Welcomes user with heroic Arc Reactor and J.A.R.V.I.S. Quick Pills */
-                <div className="flex flex-col items-center justify-center h-full gap-5 sm:gap-6 py-4">
-                  <div className="text-center font-orbitron max-w-md">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 mb-2">
-                      <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-                      <span className="text-[10px] font-bold tracking-widest text-amber-300">SYSTEM CORE ONLINE • J.A.S.P.E.R. v4.1</span>
+                <div className={`flex ${isMobileLayout ? 'flex-col items-center justify-center h-full gap-5 py-4' : 'flex-row items-start gap-5 py-2 h-full'}`}>
+                  {/* Left: Arc Reactor + Title (column on mobile, left panel on laptop) */}
+                  <div className={`flex flex-col items-center justify-center gap-3 ${isMobileLayout ? '' : 'w-44 shrink-0 pt-6'}`}>
+                    <div className="text-center font-orbitron">
+                      <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 mb-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+                        <span className="text-[9px] font-bold tracking-wider text-amber-300">J.A.S.P.E.R. v4.1</span>
+                      </div>
+                      <h3 className="text-amber-400 font-extrabold text-xs tracking-widest glow-gold">AT YOUR SERVICE</h3>
+                      <p className="font-mono text-[9px] text-amber-400/70 uppercase tracking-wider mt-0.5">
+                        {isMobileLayout ? 'Speak your directive.' : 'Select a command or speak.'}
+                      </p>
                     </div>
-                    <h3 className="text-amber-400 font-extrabold text-sm sm:text-base tracking-widest glow-gold">AT YOUR SERVICE, SIR</h3>
-                    <p className="font-mono text-[9px] sm:text-[10px] text-amber-400/80 uppercase tracking-widest leading-relaxed mt-1">
-                      Select a quick command below or speak your directive.
-                    </p>
+                    <div className={`hero-arc-animated ${isMobileLayout ? 'w-36 h-36' : 'w-32 h-32'}`}>
+                      <ArcReactor state={jasperState} onClick={handleReactorClick} />
+                    </div>
                   </div>
-                  <div className={`hero-arc-animated ${isMobileLayout ? 'w-36 h-36' : 'w-48 h-48'}`}>
-                    <ArcReactor state={jasperState} onClick={handleReactorClick} />
-                  </div>
+                  {/* Right: Quick Directives (compact on laptop) */}
 
-                  {/* Streamlined, Simple & Intuitive Quick Directives Grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-2.5 max-w-xl w-full px-2">
+                  <div className={`grid gap-2 ${isMobileLayout ? 'grid-cols-2 sm:grid-cols-3 max-w-xl w-full px-2' : 'grid-cols-2 flex-1 content-start'}`}>
                     <button 
                       onClick={triggerMorningBriefing}
                       className="p-2.5 rounded-xl bg-neutral-900/80 hover:bg-amber-500/15 border border-amber-500/25 hover:border-amber-400 text-left transition-all group flex items-center gap-2.5"
@@ -1801,7 +1805,7 @@ export default function App() {
             />
 
             {/* Input Form */}
-            <form onSubmit={handleManualSubmit} className={`flex border-t border-amber-500/20 select-none shrink-0 ${isMobileLayout ? 'flex-col gap-2 mt-2 pt-2' : 'flex-row gap-3 mt-4 pt-4'}`}>
+            <form onSubmit={handleManualSubmit} className={`flex border-t border-amber-500/20 select-none shrink-0 ${isMobileLayout ? 'flex-col gap-2 mt-2 pt-2' : 'flex-row gap-2 mt-2 pt-2'}`}>
               <div className="flex items-center gap-2 w-full">
                 <button
                   type="button"

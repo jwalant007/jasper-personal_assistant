@@ -2666,4 +2666,91 @@ input, textarea, select {
 
 
 
+/* =============================================================
+   LAPTOP & SHORT-VIEWPORT RESPONSIVE OPTIMIZATIONS
+   Target: screens ~1024–1440px wide, height ~500–750px
+   (e.g., 1366x768 laptops, 1280x600, etc.)
+   ============================================================= */
+
+/* Laptop-height breakpoint: screens shorter than 750px */
+@media screen and (max-height: 750px) and (min-width: 768px) {
+  /* Header: reduce vertical padding */
+  header {
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+  }
+
+  /* Sidebar: reduce gap between items */
+  .sidebar-panel > div {
+    gap: 0.5rem !important;
+  }
+
+  /* Sidebar buttons: reduce padding */
+  .btn-sidebar {
+    padding: 7px 12px !important;
+    font-size: 10px !important;
+    letter-spacing: 1px !important;
+    border-radius: 8px !important;
+  }
+
+  /* Chat response text: reduce from 20px to 14px for compact view */
+  .text-\[20px\] {
+    font-size: 14px !important;
+  }
+
+  /* Main content area: reduce padding */
+  main.p-6 {
+    padding: 0.75rem !important;
+  }
+
+  /* HUD panel: reduce padding */
+  .hud-panel.p-6 {
+    padding: 0.75rem !important;
+  }
+
+  /* Input form: compact */
+  .input-main {
+    padding: 8px 14px !important;
+    font-size: 12px !important;
+  }
+
+  .btn-send, .btn-speak, .btn-clear {
+    padding: 7px 16px !important;
+    font-size: 11px !important;
+  }
+
+  /* Header action buttons: compact */
+  .btn-hdr-action,
+  .btn-hdr-status {
+    padding: 5px 10px !important;
+    font-size: 10px !important;
+  }
+
+  /* Sidebar widget cards: tighter */
+  .sidebar-widget-card {
+    padding: 8px 10px !important;
+  }
+}
+
+/* Mid-laptop: between 1024 and 1440px wide, under 700px tall */
+@media screen and (max-height: 700px) and (min-width: 768px) {
+  /* Further reduce sidebar button padding */
+  .btn-sidebar {
+    padding: 6px 10px !important;
+    font-size: 10px !important;
+  }
+
+  /* Tighter sidebar overall gap */
+  .sidebar-panel {
+    padding: 10px 12px !important;
+  }
+}
+
+/* Standard laptop fix: sidebar should not be too wide */
+@media screen and (min-width: 768px) and (max-width: 1440px) {
+  /* Ensure sidebar fits without squeezing main content */
+  aside.w-\[280px\] {
+    width: 260px !important;
+  }
+}
 
