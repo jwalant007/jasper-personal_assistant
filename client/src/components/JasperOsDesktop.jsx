@@ -6,7 +6,6 @@ import {
   Bot, Palette, Music, Workflow, BarChart3, Brain, Store, Trophy, MapPin, Heart, Languages, BookOpen, Laptop, Grid, AppWindow, Lock
 } from 'lucide-react';
 
-import HolographicAnswerModal from './HolographicAnswerModal';
 import TvRemoteWidget from './TvRemoteWidget';
 import DiagnosticWidget from './DiagnosticWidget';
 import PcMasterHubWidget from './PcMasterHubWidget';
@@ -52,7 +51,6 @@ const JASPER_OS_APPS_REGISTRY = [
   { id: 'codeStudio', title: 'JASPER Code Studio & Terminal App', category: 'Productivity & Tools', icon: FileCode, component: JasperCodeStudioApp, defaultSize: { w: 780, h: 540 } },
   { id: 'notesPlanner', title: 'JASPER AI Notes & Task Planner App', category: 'Productivity & Tools', icon: BookOpen, component: JasperNotesPlannerApp, defaultSize: { w: 720, h: 520 } },
   { id: 'calculator', title: 'JASPER Scientific Calculator App', category: 'Productivity & Tools', icon: Calculator, component: JasperCalculatorApp, defaultSize: { w: 640, h: 500 } },
-  { id: 'hologram', title: '3D/4D Blueprint Studio App', category: 'Creative & AI', icon: Box, component: HolographicAnswerModal, defaultSize: { w: 800, h: 560 } },
   { id: 'blenderStudio', title: 'Blender 3D Graphics Studio', category: 'Creative & AI', icon: Box, component: (props) => <BlenderStudioModal {...props} embedded={true} />, defaultSize: { w: 860, h: 600 } },
   { id: 'diagnostics', title: 'System Diagnostics & Telemetry App', category: 'System & Hardware', icon: Activity, component: DiagnosticWidget, defaultSize: { w: 450, h: 500 } },
   { id: 'tvRemote', title: 'Smart TV Controller App', category: 'Hardware Control', icon: Tv, component: TvRemoteWidget, defaultSize: { w: 400, h: 480 } },
@@ -268,7 +266,6 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
   const [appSearchQuery, setAppSearchQuery] = useState('');
   const [openWindows, setOpenWindows] = useState({
     searchEngine: true,
-    hologram: false,
     diagnostics: false,
     tvRemote: false,
     pcHub: false,

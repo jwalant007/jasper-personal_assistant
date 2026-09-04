@@ -182,7 +182,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
         setResponseText(data.response);
       }
     } catch (err) {
-      setResponseText(`At your service, Sir. Synthesized 3D graphic blueprint for "${q}" via Blender Graphics API.`);
+      setResponseText(`At your service, Sir. Synthesized 3D graphic model for "${q}" via Blender Graphics API.`);
     } finally {
       setIsLoading(false);
     }
@@ -227,7 +227,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
             <h2 className="text-xl font-extrabold tracking-wider text-amber-300 uppercase font-orbitron flex items-center gap-2">
               J.A.S.P.E.R. 4D Hologram & Nanotech Suite
             </h2>
-            <p className="text-xs text-neutral-400 font-mono">4D Temporal Dynamics • Exploded 3D Blueprint • Tesseract Projection</p>
+            <p className="text-xs text-neutral-400 font-mono">Blender 3D Engine • Real-time Spatial Hologram • 3D Telemetry</p>
           </div>
         </div>
 
@@ -307,7 +307,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
                 ? 'bg-cyan-500/25 border-cyan-400 text-cyan-200 animate-pulse' 
                 : 'bg-slate-900 border-slate-800 text-slate-400'
             }`}
-            title="Toggle 3D Exploded Blueprint View"
+            title="Toggle 3D Exploded View"
           >
             <Layers className="w-4 h-4 text-cyan-400" />
             Exploded View
@@ -576,7 +576,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
                   {isBlenderSynthesizing ? (
                     <span className="text-[10px] text-amber-400 font-mono animate-pulse">SYNTHESIZING...</span>
                   ) : (
-                    <span className="text-[10px] text-emerald-400 font-mono">ACTIVE BLUEPRINT</span>
+                    <span className="text-[10px] text-emerald-400 font-mono">ACTIVE 3D GRAPHIC</span>
                   )}
                 </div>
 

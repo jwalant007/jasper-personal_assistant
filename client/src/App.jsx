@@ -1777,7 +1777,7 @@ export default function App() {
                       <span className="text-lg p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 group-hover:scale-110 transition-transform">🌌</span>
                       <div className="flex flex-col min-w-0">
                         <span className="text-xs font-bold text-amber-200 truncate">3D Hologram</span>
-                        <span className="text-[9px] text-neutral-400 font-mono truncate">Interactive blueprints</span>
+                        <span className="text-[9px] text-neutral-400 font-mono truncate">Blender 3D Graphics</span>
                       </div>
                     </button>
 
@@ -2775,7 +2775,7 @@ export default function App() {
 
       {/* 24. 3D Holographic Visualizer Modal */}
       {showHologramModal && (
-        <DraggableModalWrapper isOpen={showHologramModal} onClose={() => { setShowHologramModal(false); setHologramQuery(''); }} title="3D Hologram Blueprint Studio" maxWidth="max-w-6xl">
+        <DraggableModalWrapper isOpen={showHologramModal} onClose={() => { setShowHologramModal(false); setHologramQuery(''); }} title="3D Hologram Studio" maxWidth="max-w-6xl">
           <HolographicAnswerModal 
             initialQuery={hologramQuery}
             onClose={() => {

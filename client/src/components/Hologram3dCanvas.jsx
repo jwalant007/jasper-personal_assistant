@@ -1372,7 +1372,7 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
               {is4dEnabled
                 ? `🌌 4D TEMPORAL DYNAMICS: T=${time4d.toFixed(1)}s (4D HYPERCUBE ACTIVE)`
                 : explodedView
-                ? '💥 3D EXPLODED BLUEPRINT ACTIVE'
+                ? '💥 3D EXPLODED VIEW ACTIVE'
                 : 'Movie GLSL Shaders • Orbit 360°'}
             </span>
           </div>
