@@ -4,6 +4,8 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { getApiBase } from '../utils/apiConfig';
 import { playJarvisPowerUp, setJarvisPlasmaHum } from '../utils/jarvisAudioSynth';
 
 /**
@@ -619,7 +621,9 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
     timeSpeed4d = 1.0,
     is4dPlaying = true,
     starkReticles = true,
-    sfxEnabled = true
+    sfxEnabled = true,
+    blenderModelUrl = null,
+    blenderModelData = null
   },
   ref
 ) {
@@ -1159,6 +1163,103 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
 
       animateCallback = () => {
         core.rotation.y += 0.018;
+      };
+
+    } else if (mode === 'blender' || blenderModelUrl) {
+      // 🎨 BLENDER 3D GRAPHICS & PROCEDURAL HOLOGRAPHIC BLUEPRINT
+      const blenderGroup = new THREE.Group();
+      hologramGroup.add(blenderGroup);
+
+      let scanY = -1.8;
+      let scanDir = 1;
+
+      // Stark scanning laser ring
+      const scanRingGeo = new THREE.RingGeometry(0.2, 2.8, 96);
+      const scanRingMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, side: THREE.DoubleSide, transparent: true, opacity: 0.75 });
+      const scanRingMesh = new THREE.Mesh(scanRingGeo, scanRingMat);
+      scanRingMesh.rotation.x = Math.PI / 2;
+      blenderGroup.add(scanRingMesh);
+
+      // Stark targeting lock reticles
+      const { group: reticles, ring1, ring2 } = createStarkTargetLockReticleGroup();
+      blenderGroup.add(reticles);
+
+      // Procedural base mesh displayed while GLB loads or as fallback
+      const baseGeo = new THREE.TorusGeometry(1.3, 0.35, 32, 80);
+      const baseMat = new THREE.MeshPhysicalMaterial({
+        color: 0x00f3ff,
+        emissive: 0x00f3ff,
+        emissiveIntensity: 0.4,
+        roughness: 0.15,
+        metalness: 0.9,
+        clearcoat: 1.0,
+        wireframe: false
+      });
+      const placeholderMesh = new THREE.Mesh(baseGeo, baseMat);
+      
+      // Wireframe overlay on base
+      const baseWireGeo = new THREE.WireframeGeometry(baseGeo);
+      const baseWireMat = new THREE.LineBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.5 });
+      placeholderMesh.add(new THREE.LineSegments(baseWireGeo, baseWireMat));
+      blenderGroup.add(placeholderMesh);
+
+      // Load external Blender exported GLTF/GLB if URL provided
+      if (blenderModelUrl) {
+        const fullUrl = blenderModelUrl.startsWith('http') ? blenderModelUrl : `${getApiBase()}${blenderModelUrl}`;
+        const loader = new GLTFLoader();
+        loader.load(
+          fullUrl,
+          (gltf) => {
+            blenderGroup.remove(placeholderMesh);
+            const model = gltf.scene;
+
+            // Apply Stark Holographic wireframe accents to meshes
+            model.traverse((child) => {
+              if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+
+                try {
+                  const wireGeo = new THREE.WireframeGeometry(child.geometry);
+                  const wireMat = new THREE.LineBasicMaterial({
+                    color: 0x00f3ff,
+                    transparent: true,
+                    opacity: 0.45,
+                    blending: THREE.AdditiveBlending
+                  });
+                  const wireLine = new THREE.LineSegments(wireGeo, wireMat);
+                  child.add(wireLine);
+                } catch (_) {}
+              }
+            });
+
+            // Center and scale to fit hologram bounding box
+            const box = new THREE.Box3().setFromObject(model);
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z) || 1.0;
+            const targetScale = 3.2 / maxDim;
+
+            model.scale.setScalar(targetScale);
+            model.position.set(-center.x * targetScale, -center.y * targetScale, -center.z * targetScale);
+            blenderGroup.add(model);
+          },
+          undefined,
+          (err) => {
+            console.warn('[Hologram Canvas] Blender GLB fallback active:', err.message);
+          }
+        );
+      }
+
+      animateCallback = () => {
+        blenderGroup.rotation.y += 0.007;
+        if (ring1) ring1.rotation.z += 0.015;
+        if (ring2) ring2.rotation.z -= 0.012;
+
+        scanY += 0.025 * scanDir;
+        if (scanY > 2.0) scanDir = -1;
+        if (scanY < -2.0) scanDir = 1;
+        scanRingMesh.position.y = scanY;
       };
 
     } else {

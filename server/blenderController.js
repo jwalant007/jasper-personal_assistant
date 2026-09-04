@@ -457,35 +457,149 @@ if bsdf:
         pass
 
 # 5. Create Requested Geometry
+# 5. Determine geometry type from prompt if auto
+resolved_type = '${objectType}'
+prompt_lower = """${prompt}""".lower()
+
+if resolved_type == 'auto':
+    if any(k in prompt_lower for k in ['satellite', 'orbiter', 'probe', 'spacecraft', 'telescope']):
+        resolved_type = 'satellite'
+    elif any(k in prompt_lower for k in ['reactor', 'arc', 'fusion', 'tokamak', 'core', 'ring']):
+        resolved_type = 'arcreactor'
+    elif any(k in prompt_lower for k in ['turbine', 'jet', 'engine', 'motor', 'propeller', 'thruster']):
+        resolved_type = 'turbine'
+    elif any(k in prompt_lower for k in ['drone', 'quadcopter', 'uav', 'recon']):
+        resolved_type = 'drone'
+    elif any(k in prompt_lower for k in ['tesseract', 'hypercube', 'dimension', '4d', 'matrix', 'cube']):
+        resolved_type = 'tesseract'
+    elif any(k in prompt_lower for k in ['atom', 'molecule', 'dna', 'chemical', 'crystal', 'lattice']):
+        resolved_type = 'molecule'
+    elif any(k in prompt_lower for k in ['head', 'skull', 'robot', 'monkey', 'face', 'cyborg']):
+        resolved_type = 'monkey'
+    elif any(k in prompt_lower for k in ['sphere', 'planet', 'earth', 'sun', 'star', 'globe']):
+        resolved_type = 'sphere'
+    elif any(k in prompt_lower for k in ['cylinder', 'capsule', 'pillar', 'pipe']):
+        resolved_type = 'cylinder'
+    elif any(k in prompt_lower for k in ['text', 'title', 'logo', 'word', 'name']):
+        resolved_type = 'text'
+    else:
+        resolved_type = 'torus'
+
 target_obj = None
 
-if '${objectType}' == 'cube':
+if resolved_type == 'cube':
     bpy.ops.mesh.primitive_cube_add(size=2.0, location=(0, 0, 0))
     target_obj = bpy.context.active_object
-    # Add Bevel Modifier for clean studio look
     mod = target_obj.modifiers.new(name="Bevel", type='BEVEL')
     mod.width = 0.1
     mod.segments = 4
-elif '${objectType}' == 'sphere':
+elif resolved_type == 'sphere':
     bpy.ops.mesh.primitive_uv_sphere_add(radius=1.2, segments=64, ring_count=32, location=(0, 0, 0))
     target_obj = bpy.context.active_object
     bpy.ops.object.shade_smooth()
-elif '${objectType}' == 'torus':
+elif resolved_type == 'torus':
     bpy.ops.mesh.primitive_torus_add(major_radius=1.2, minor_radius=0.4, major_segments=64, minor_segments=32, location=(0, 0, 0))
     target_obj = bpy.context.active_object
     target_obj.rotation_euler = (math.radians(35), math.radians(20), 0)
     bpy.ops.object.shade_smooth()
-elif '${objectType}' == 'cylinder':
+elif resolved_type == 'cylinder':
     bpy.ops.mesh.primitive_cylinder_add(radius=1.0, depth=2.0, vertices=64, location=(0, 0, 0))
     target_obj = bpy.context.active_object
     bpy.ops.object.shade_smooth()
-elif '${objectType}' == 'monkey':
+elif resolved_type == 'monkey':
     bpy.ops.mesh.primitive_monkey_add(size=1.5, location=(0, 0, 0))
     target_obj = bpy.context.active_object
     bpy.ops.object.shade_smooth()
     mod = target_obj.modifiers.new(name="Subsurf", type='SUBSURF')
     mod.levels = 2
-elif '${objectType}' == 'text':
+elif resolved_type == 'satellite':
+    # Central satellite main bus
+    bpy.ops.mesh.primitive_cube_add(size=1.2, location=(0, 0, 0))
+    target_obj = bpy.context.active_object
+    # Solar panel wing 1
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(2.2, 0, 0))
+    w1 = bpy.context.active_object
+    w1.scale = (1.6, 0.7, 0.05)
+    w1.data.materials.append(mat)
+    # Solar panel wing 2
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-2.2, 0, 0))
+    w2 = bpy.context.active_object
+    w2.scale = (1.6, 0.7, 0.05)
+    w2.data.materials.append(mat)
+    # High-gain parabolic dish antenna
+    bpy.ops.mesh.primitive_cylinder_add(radius=0.6, depth=0.08, location=(0, 0, 0.85))
+    dish = bpy.context.active_object
+    dish.rotation_euler = (math.radians(40), 0, 0)
+    dish.data.materials.append(mat)
+elif resolved_type == 'arcreactor':
+    # Luminous cyan core
+    bpy.ops.mesh.primitive_cylinder_add(radius=0.55, depth=0.25, location=(0, 0, 0))
+    target_obj = bpy.context.active_object
+    # Concentric magnetic ring
+    bpy.ops.mesh.primitive_torus_add(major_radius=1.25, minor_radius=0.18, location=(0, 0, 0))
+    ring = bpy.context.active_object
+    ring.data.materials.append(mat)
+    # Magnetic copper transformer nodes
+    for i in range(10):
+        angle = i * (2 * math.pi / 10)
+        bpy.ops.mesh.primitive_cube_add(size=0.18, location=(math.cos(angle) * 1.25, math.sin(angle) * 1.25, 0))
+        c = bpy.context.active_object
+        c.data.materials.append(mat)
+elif resolved_type == 'turbine':
+    # Center spinner cone
+    bpy.ops.mesh.primitive_cone_add(radius1=0.45, depth=0.9, location=(0, -0.45, 0))
+    target_obj = bpy.context.active_object
+    target_obj.rotation_euler = (math.radians(90), 0, 0)
+    # Outer nacelle ring
+    bpy.ops.mesh.primitive_cylinder_add(radius=1.4, depth=1.6, vertices=48, location=(0, 0, 0))
+    nacelle = bpy.context.active_object
+    nacelle.rotation_euler = (math.radians(90), 0, 0)
+    nacelle.data.materials.append(mat)
+    # Rotor blades
+    for b in range(14):
+        angle = b * (2 * math.pi / 14)
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(math.cos(angle) * 0.7, -0.3, math.sin(angle) * 0.7))
+        blade = bpy.context.active_object
+        blade.scale = (0.04, 0.25, 0.5)
+        blade.rotation_euler = (0, angle, math.radians(28))
+        blade.data.materials.append(mat)
+elif resolved_type == 'drone':
+    # Central fuselage
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.55, location=(0, 0, 0))
+    target_obj = bpy.context.active_object
+    target_obj.scale = (1.2, 0.8, 0.35)
+    # 4 Quad rotor booms & propellers
+    for ax, ay in [(1.1, 1.1), (-1.1, 1.1), (1.1, -1.1), (-1.1, -1.1)]:
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.06, depth=1.3, location=(ax * 0.5, ay * 0.5, 0))
+        arm = bpy.context.active_object
+        arm.rotation_euler = (0, math.radians(90), math.atan2(ay, ax))
+        arm.data.materials.append(mat)
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.4, depth=0.02, location=(ax, ay, 0.12))
+        rotor = bpy.context.active_object
+        rotor.data.materials.append(mat)
+elif resolved_type == 'tesseract':
+    bpy.ops.mesh.primitive_cube_add(size=1.8, location=(0, 0, 0))
+    target_obj = bpy.context.active_object
+    mod = target_obj.modifiers.new(name="Wireframe", type='WIREFRAME')
+    mod.thickness = 0.05
+    bpy.ops.mesh.primitive_cube_add(size=0.9, location=(0, 0, 0))
+    inner = bpy.context.active_object
+    mod2 = inner.modifiers.new(name="Wireframe", type='WIREFRAME')
+    mod2.thickness = 0.03
+    inner.data.materials.append(mat)
+elif resolved_type == 'molecule':
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.55, location=(0, 0, 0))
+    target_obj = bpy.context.active_object
+    # 4 Tetrahedral orbital nodes
+    for cx, cy, cz in [(0.9, 0.9, 0.9), (-0.9, -0.9, 0.9), (-0.9, 0.9, -0.9), (0.9, -0.9, -0.9)]:
+        bpy.ops.mesh.primitive_uv_sphere_add(radius=0.32, location=(cx, cy, cz))
+        atom = bpy.context.active_object
+        atom.data.materials.append(mat)
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.06, depth=1.3, location=(cx * 0.5, cy * 0.5, cz * 0.5))
+        bond = bpy.context.active_object
+        bond.rotation_euler = (math.atan2(cy, cz), math.atan2(cx, cz), 0)
+        bond.data.materials.append(mat)
+elif resolved_type == 'text':
     bpy.ops.object.text_add(location=(-1.5, 0, 0))
     target_obj = bpy.context.active_object
     target_obj.data.body = "${text}"

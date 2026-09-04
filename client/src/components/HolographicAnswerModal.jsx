@@ -61,6 +61,12 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [spidermanSuit, setSpidermanSuit] = useState('stark_blueprint');
 
+  // BLENDER 3D GRAPHICS INTEGRATION STATES
+  const [blenderModelUrl, setBlenderModelUrl] = useState(null);
+  const [blenderPreviewUrl, setBlenderPreviewUrl] = useState(null);
+  const [blenderDetails, setBlenderDetails] = useState(null);
+  const [isBlenderSynthesizing, setIsBlenderSynthesizing] = useState(false);
+
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -82,6 +88,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
   }, [is4dEnabled, is4dPlaying, timeSpeed4d]);
 
   const modePresets = [
+    { id: 'blender', label: 'Blender 3D Procedural Engine', emoji: '🎨', icon: Box },
     { id: 'spiderman', label: 'Spider-Man Cyber Web', emoji: '🕸️', icon: Eye },
     { id: 'ironman', label: 'Iron Man Arc Core', emoji: '⚡', icon: Zap },
     { id: 'v8engine', label: 'V8 Engine Blueprint', emoji: '⚙️', icon: Cpu },
@@ -107,20 +114,62 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
     if (!q.trim() || isLoading) return;
 
     setIsLoading(true);
-    setResponseText('Processing neural analysis and running 3D/4D simulation...');
+    setResponseText('Processing neural analysis and synthesizing 3D graphic model via Blender Engine...');
 
     const lower = q.toLowerCase();
     if (lower.includes('4d') || lower.includes('fourth dimension') || lower.includes('temporal') || lower.includes('time warp') || lower.includes('tesseract')) {
       setIs4dEnabled(true);
     }
-    if (lower.includes('spider') || lower.includes('web') || lower.includes('suit')) setActive3dMode('spiderman');
-    else if (lower.includes('iron') || lower.includes('stark') || lower.includes('arc')) setActive3dMode('ironman');
-    else if (lower.includes('engine') || lower.includes('v8') || lower.includes('motor') || lower.includes('piston')) setActive3dMode('v8engine');
-    else if (lower.includes('drone') || lower.includes('quad') || lower.includes('uav')) setActive3dMode('cyberdrone');
-    else if (lower.includes('vortex') || lower.includes('swirl') || lower.includes('wormhole')) setActive3dMode('quantumvortex');
-    else if (lower.includes('atom') || lower.includes('nuclear') || lower.includes('quantum') || lower.includes('physics')) setActive3dMode('atom');
-    else if (lower.includes('dna') || lower.includes('gene') || lower.includes('biology')) setActive3dMode('dna');
-    else if (lower.includes('planet') || lower.includes('earth') || lower.includes('globe')) setActive3dMode('planet');
+
+    const legacyModes = [
+      { key: 'spiderman', terms: ['spider', 'web', 'spiderman'] },
+      { key: 'ironman', terms: ['iron man', 'arc core', 'mark 85'] },
+      { key: 'v8engine', terms: ['v8', 'piston', 'combustion engine'] },
+      { key: 'cyberdrone', terms: ['cyberdrone', 'quadcopter'] },
+      { key: 'quantumvortex', terms: ['wormhole', 'vortex'] },
+      { key: 'atom', terms: ['atomic core', 'quantum particle'] },
+      { key: 'dna', terms: ['dna sequence', 'double helix'] },
+      { key: 'planet', terms: ['planetary globe', 'solar planet'] }
+    ];
+
+    const matchedLegacy = legacyModes.find(m => m.terms.some(t => lower.includes(t)));
+
+    if (matchedLegacy && !lower.includes('blender') && !lower.includes('show') && !lower.includes('model')) {
+      setActive3dMode(matchedLegacy.key);
+    } else {
+      // 🎨 Engage Blender 3D Graphics Engine for custom 3D requests
+      setActive3dMode('blender');
+      setIsBlenderSynthesizing(true);
+
+      fetch(`${getApiBase()}/api/blender/generate-3d`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: q,
+          objectType: 'auto',
+          color: '#00f0ff',
+          metallic: 0.85,
+          roughness: 0.18,
+          renderPreview: true
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.glbUrl) {
+          setBlenderModelUrl(data.glbUrl);
+        }
+        if (data.previewUrl) {
+          setBlenderPreviewUrl(data.previewUrl);
+        }
+        setBlenderDetails(data);
+      })
+      .catch(err => {
+        console.warn('[Hologram Modal] Blender synthesis notice:', err.message);
+      })
+      .finally(() => {
+        setIsBlenderSynthesizing(false);
+      });
+    }
 
     try {
       const res = await fetch(`${getApiBase()}/api/agent/chat`, {
@@ -133,11 +182,12 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
         setResponseText(data.response);
       }
     } catch (err) {
-      setResponseText(`At your service, Sir. Analyzed "${q}". 3D/4D Holographic model loaded.`);
+      setResponseText(`At your service, Sir. Synthesized 3D graphic blueprint for "${q}" via Blender Graphics API.`);
     } finally {
       setIsLoading(false);
     }
   };
+
 
   const triggerNanotechReassembly = () => {
     setNanotechReassembling(true);
@@ -477,6 +527,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
             is4dPlaying={is4dPlaying}
             starkReticles={starkReticles}
             sfxEnabled={sfxEnabled}
+            blenderModelUrl={blenderModelUrl}
           />
 
           {/* VIRTUAL AIR-GESTURE CONTROL OVERLAY */}
@@ -510,18 +561,58 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
               </button>
             </div>
 
-            <p className="text-xs text-slate-200 leading-relaxed font-sans max-h-56 overflow-y-auto pr-1">
+            <p className="text-xs text-slate-200 leading-relaxed font-sans max-h-44 overflow-y-auto pr-1">
               {responseText}
             </p>
+
+            {/* Blender 3D Graphics Engine Telemetry Card */}
+            {(active3dMode === 'blender' || blenderDetails) && (
+              <div className="mt-3 p-3 bg-slate-950/80 border border-cyan-500/40 rounded-xl space-y-2">
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="text-cyan-300 font-bold flex items-center gap-1">
+                    <Box className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>BLENDER 3D: {blenderDetails?.objectType?.toUpperCase() || 'SYNTHESIZED'}</span>
+                  </span>
+                  {isBlenderSynthesizing ? (
+                    <span className="text-[10px] text-amber-400 font-mono animate-pulse">SYNTHESIZING...</span>
+                  ) : (
+                    <span className="text-[10px] text-emerald-400 font-mono">ACTIVE BLUEPRINT</span>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  {blenderDetails?.glbUrl && (
+                    <a
+                      href={`${getApiBase()}${blenderDetails.glbUrl}`}
+                      download={blenderDetails.glbFileName || 'model.glb'}
+                      className="px-3 py-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 rounded text-[11px] font-mono text-cyan-200 transition-all flex items-center gap-1"
+                    >
+                      <Box className="w-3 h-3" />
+                      <span>Download GLB 3D</span>
+                    </a>
+                  )}
+                  {blenderPreviewUrl && (
+                    <a
+                      href={`${getApiBase()}${blenderPreviewUrl}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded text-[11px] font-mono text-slate-300 transition-all"
+                    >
+                      <span>View 4K Render</span>
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="pt-3 border-t border-cyan-500/20 space-y-1.5">
             <span className="text-[10px] text-slate-400 font-mono uppercase">Quick 3D Hologram Prompts:</span>
             <div className="flex flex-wrap gap-1.5">
               {[
-                'Spider-Man suit web tech',
+                'Satellite orbital solar array in 3D',
+                'Aircraft jet turbine engine in 3D',
                 'Iron Man Arc Reactor core',
-                'V8 Internal combustion engine',
                 'Autonomous cyber drone recon',
                 'Quantum particle swirl vortex'
               ].map((sample, idx) => (
@@ -540,6 +631,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
           </div>
         </div>
       </div>
+
 
       {/* Query Bar */}
       <form onSubmit={(e) => { e.preventDefault(); handleAskQuery(); }} className="flex gap-2">

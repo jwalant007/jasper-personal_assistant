@@ -930,14 +930,15 @@ export default function App() {
       return;
     }
 
-    // Intercept Voice App Open Commands (e.g. "Jasper open search", "open calculator", "open files", "open whatsapp auto reply")
-    const appOpenRegex = /(open|launch|start|show|run)\s+(search|search engine|files|file manager|explorer|code|code studio|terminal|notes|planner|tasks|calculator|calc|tv|tv remote|phone|android|pc|pc hub|pc command|security|biometrics|browser|web agent|sports|maps|navigation|health|fitband|translator|translation|manual|guide|whatsapp|instagram|auto reply|call auto|social auto)/i;
+    // Intercept Voice App Open Commands (e.g. "Jasper open search", "open calculator", "open files", "open whatsapp auto reply", "open blender")
+    const appOpenRegex = /(open|launch|start|show|run)\s+(search|search engine|files|file manager|explorer|code|code studio|terminal|notes|planner|tasks|calculator|calc|tv|tv remote|phone|android|pc|pc hub|pc command|security|biometrics|browser|web agent|sports|maps|navigation|health|fitband|translator|translation|manual|guide|whatsapp|instagram|auto reply|call auto|social auto|blender|blender 3d|3d studio)/i;
     const appMatch = queryText.match(appOpenRegex);
     if (appMatch) {
       const targetApp = appMatch[2].toLowerCase();
       let openedAppName = 'App';
 
-      if (targetApp.includes('search')) { setShowSearchEngine(true); openedAppName = 'JASPER AI Search Engine'; }
+      if (targetApp.includes('blender')) { setShowBlenderStudio(true); openedAppName = 'Blender 3D Graphics Studio'; }
+      else if (targetApp.includes('search')) { setShowSearchEngine(true); openedAppName = 'JASPER AI Search Engine'; }
       else if (targetApp.includes('whatsapp') || targetApp.includes('instagram') || targetApp.includes('auto reply') || targetApp.includes('social')) { setShowSocialAutoReply(true); openedAppName = 'WhatsApp & Instagram Auto-Reply Hub'; }
       else if (targetApp.includes('file') || targetApp.includes('explorer')) { setShowFileManager(true); openedAppName = 'JASPER File Explorer'; }
       else if (targetApp.includes('code') || targetApp.includes('terminal')) { setShowCodeStudio(true); openedAppName = 'JASPER Code Studio'; }
@@ -968,12 +969,13 @@ export default function App() {
       return;
     }
 
-    // Intercept 3D & 4D Hologram & Simulation commands (including "run 3d simulation", "4d hologram")
-    const hologramRegex = /(4d hologram|4d|tesseract|temporal|3d hologram|hologram|show 3d|render 3d|3d model|spiderman|spider-man|spider man|peter parker|iron spider|miles morales|simulation|simulations|simulate|run 3d|3d simulation|physics simulation|quantum simulation|stark simulation|dna simulation|orbital simulation)/i;
+    // Intercept 3D & 4D Hologram & Simulation commands (including "show me X in 3D", "render in blender", "show hologram of X")
+    const hologramRegex = /(4d hologram|4d|tesseract|temporal|3d hologram|hologram|show me .* in 3d|show me .* 3d|show .* in 3d|show .* hologram|visualize .* in 3d|show 3d|render 3d|3d model|spiderman|spider-man|spider man|peter parker|iron spider|miles morales|simulation|simulations|simulate|run 3d|3d simulation|physics simulation|quantum simulation|stark simulation|dna simulation|orbital simulation)/i;
     if (hologramRegex.test(queryText)) {
       setHologramQuery(queryText);
       setShowHologramModal(true);
-      const response = `Activating J.A.S.P.E.R. 3D Holographic Rendering Engine for query: "${queryText}"`;
+      const response = `Activating J.A.S.P.E.R. 3D Holographic Rendering Suite & Blender Engine for query: "${queryText}"`;
+
       const newChat = {
         id: Date.now(),
         query: queryText,
