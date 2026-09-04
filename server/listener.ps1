@@ -87,7 +87,11 @@ while ($true) {
             }
         }
     } catch {
-        Write-Warning "[ERROR] Exception during speech loop: $_"
-        Start-Sleep -Seconds 2
+        if ($_.Exception.Message -match "No audio input") {
+            Start-Sleep -Seconds 15
+        } else {
+            Write-Warning "[ERROR] Exception during speech loop: $_"
+            Start-Sleep -Seconds 5
+        }
     }
 }

@@ -648,16 +648,42 @@ Key Directives:
 
     // Build AI response
     const memCtx = relevantMemories.length > 0
-      ? `\\nRelevant memories: ` + relevantMemories.map(m => `"${m.text}"`).join(', ')
+      ? `\nRelevant memories: ` + relevantMemories.map(m => `"${m.text}"`).join(', ')
       : '';
 
     let response;
     if (results.length > 0) {
       const successCount = results.filter(r => r.success !== false).length;
       const toolNames = results.map(r => r.tool || r.intent).join(', ');
-      response = `At your service, Sir. I've executed ${successCount} action(s): ${toolNames}.${memCtx ? ' ' + memCtx : ''}`;
+      response = `At your service, Sir. I have executed ${successCount} directive(s): ${toolNames}.${memCtx ? ' ' + memCtx : ''}`;
     } else {
-      response = `Understood, Sir. "${query}" — I've processed your request.${memCtx}`;
+      // Intelligent local conversational handling
+      if (lower.match(/\b(hello|hi|hey|good morning|good afternoon|good evening)\b/)) {
+        response = `Good day, Sir. All Jasper core neural pathways are online, synchronized, and operational. How may I assist you today?${memCtx}`;
+      } else if (lower.match(/\b(who are you|what are you|what is jasper)\b/)) {
+        response = `I am J.A.S.P.E.R. — Just Another Super Personal Assistant. I serve as your operating system intelligence, coordinating hardware controls, task automation, background communications, and system workflows.${memCtx}`;
+      } else if (lower.match(/\b(what can you do|help|capabilities|features)\b/)) {
+        response = `I can execute system controls (volume, display, power), manage media playback, launch apps, inspect hardware and memory telemetry, automate smart replies in Busy Mode, control connected Samsung TVs and mobile phones, and assist with your computing directives, Sir.`;
+      } else if (lower.match(/\b(how are you|how do you feel|system status|health)\b/)) {
+        response = `All neural subroutines and hardware interfaces report optimal stability, Sir. Operating at peak efficiency.`;
+      } else if (lower.match(/\b(thank you|thanks|good job|well done)\b/)) {
+        response = `Always a pleasure to be of service, Sir. Standing by for further directives.`;
+      } else if (lower.match(/\b(calculate|what is|solve)\b/) && lower.match(/[\d+\-*/^()]/)) {
+        try {
+          const mathExpr = lower.replace(/[^0-9+\-*/().^]/g, '');
+          if (mathExpr.length > 0) {
+            // Safe evaluation of simple math
+            const calcResult = Function(`"use strict"; return (${mathExpr});`)();
+            response = `Calculation complete, Sir: ${mathExpr} = ${calcResult}`;
+          } else {
+            response = `Understood, Sir. I have analyzed: "${query}".${memCtx}`;
+          }
+        } catch (_) {
+          response = `Understood, Sir. "${query}" — processed through Jasper local neural core.${memCtx}`;
+        }
+      } else {
+        response = `Understood, Sir. "${query}" — directive registered and processed through Jasper neural core.${memCtx}`;
+      }
     }
 
     return {

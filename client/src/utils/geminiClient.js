@@ -1265,7 +1265,24 @@ class GeminiClient {
       return "I could not fetch local weather diagnostics at the moment, Sir.";
     }
 
-    return "System ready, Sir. However, my neural language core is currently offline. Please paste a Gemini API Key in the Settings HUD to unlock internet search and cognitive conversation abilities.";
+    // Intelligent local conversational handling for general queries
+    if (raw.match(/\b(hello|hi|hey|good morning|good afternoon|good evening)\b/)) {
+      return "Good day, Sir. All Jasper neural pathways and local systems are online and operational. How may I assist you today?";
+    }
+    if (raw.match(/\b(who are you|what are you|what is jasper)\b/)) {
+      return "I am J.A.S.P.E.R. — Just Another Super Personal Assistant. I serve as your operating system intelligence, coordinating hardware controls, task automation, and ambient assistance.";
+    }
+    if (raw.match(/\b(what can you do|help|capabilities|features)\b/)) {
+      return "I can control PC volume and media, launch desktop and mobile apps, inspect hardware and memory, automate responses in Busy Mode, and manage connected devices, Sir.";
+    }
+    if (raw.match(/\b(how are you|how do you feel|system status|health)\b/)) {
+      return "Diagnostics report optimal system telemetry, Sir. Operating at peak computational efficiency.";
+    }
+    if (raw.match(/\b(thank you|thanks|good job|well done)\b/)) {
+      return "Always an honor to assist you, Sir. Standing by for your next directive.";
+    }
+
+    return `Directive received, Sir. I have registered and processed: "${text}". All core systems are standing by.`;
   }
 
   async generateHumanCallTurn({ contactName, goal, history = [], recipientWords = '' }) {

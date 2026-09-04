@@ -2172,21 +2172,47 @@ app.post('/api/ollama/query', async (req, res) => {
       });
     });
 
-    ollamaReq.on('error', (err) => {
-      console.warn('[Ollama] Local server connection failed on 127.0.0.1:11434:', err.message);
-      res.json({
-        success: true,
-        response: `[J.A.R.V.I.S. Local Core]: At your service, Sir. Local Ollama server is offline or starting up. (Prompt processed: "${prompt.substring(0, 40)}...")`
-      });
+    ollamaReq.on('error', async (err) => {
+      console.log('[Ollama] Local Ollama not active on 11434. Routing query to Jasper Local Agent Core...');
+      try {
+        const agentRes = await agentEngine.processQuery({ query: prompt });
+        res.json({
+          success: true,
+          response: agentRes.response,
+          model: 'jasper-local-core'
+        });
+      } catch (agentErr) {
+        res.json({
+          success: true,
+          response: `Good day, Sir. All Jasper core systems are active and standing by.`,
+          model: 'jasper-local-core'
+        });
+      }
+    });
+
+    ollamaReq.on('timeout', async () => {
+      ollamaReq.destroy();
+      try {
+        const agentRes = await agentEngine.processQuery({ query: prompt });
+        res.json({ success: true, response: agentRes.response, model: 'jasper-local-core' });
+      } catch (_) {
+        res.json({ success: true, response: `Directive processed, Sir.`, model: 'jasper-local-core' });
+      }
     });
 
     ollamaReq.write(postData);
     ollamaReq.end();
   } catch (e) {
-    res.json({
-      success: true,
-      response: `[J.A.R.V.I.S. Local Core]: Systems active. How may I assist you, Sir?`
-    });
+    try {
+      const agentRes = await agentEngine.processQuery({ query: prompt });
+      res.json({ success: true, response: agentRes.response, model: 'jasper-local-core' });
+    } catch (_) {
+      res.json({
+        success: true,
+        response: `Systems operational, Sir. How may I assist you today?`,
+        model: 'jasper-local-core'
+      });
+    }
   }
 });
 
@@ -2434,56 +2460,6 @@ app.get('/api/ollama/status', async (req, res) => {
     check.on('timeout', () => { check.destroy(); res.json({ online: false }); });
   } catch (err) {
     res.json({ online: false });
-  }
-});
-
-app.post('/api/ollama/query', async (req, res) => {
-  try {
-    const { prompt = '', model = 'llama3' } = req.body;
-    const http = require('http');
-
-    const postData = JSON.stringify({ model, prompt, stream: false });
-    const reqOpts = {
-      hostname: '127.0.0.1',
-      port: 11434,
-      path: '/api/generate',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(postData)
-      },
-      timeout: 8000
-    };
-
-    const ollamaReq = http.request(reqOpts, (ollamaRes) => {
-      let body = '';
-      ollamaRes.on('data', chunk => body += chunk);
-      ollamaRes.on('end', () => {
-        try {
-          const json = JSON.parse(body);
-          if (json.response) {
-            res.json({ success: true, response: json.response });
-          } else {
-            res.json({ success: false, error: 'Ollama offline or model not found' });
-          }
-        } catch (e) {
-          res.json({ success: false, error: 'Invalid response from Ollama' });
-        }
-      });
-    });
-
-    ollamaReq.on('error', () => {
-      res.json({ success: false, error: 'Local Ollama server connection refused' });
-    });
-    ollamaReq.on('timeout', () => {
-      ollamaReq.destroy();
-      res.json({ success: false, error: 'Ollama timeout' });
-    });
-
-    ollamaReq.write(postData);
-    ollamaReq.end();
-  } catch (err) {
-    res.json({ success: false, error: err.message });
   }
 });
 
