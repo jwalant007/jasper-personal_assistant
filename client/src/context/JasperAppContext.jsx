@@ -46,7 +46,9 @@ export function JasperAppProvider({ children }) {
 
   // AI Providers & Brain Settings
   const [apiKey, setApiKey] = useState(geminiClient.apiKey);
-  const [aiProvider, setAiProvider] = useState(() => geminiClient.provider || 'ollama');
+  const [chatGptKey, setChatGptKey] = useState(() => geminiClient.chatGptKey || '');
+  const [chatGptModel, setChatGptModel] = useState(() => geminiClient.chatGptModel || 'gpt-6-astra');
+  const [aiProvider, setAiProvider] = useState(() => geminiClient.provider || (geminiClient.chatGptKey ? 'chatgpt' : 'ollama'));
   const [ollamaModel, setOllamaModel] = useState(() => geminiClient.ollamaModel || 'llama3');
   const [availableOllamaModels, setAvailableOllamaModels] = useState(['llama3', 'llama3.2', 'qwen2.5', 'mistral', 'gemma2']);
   const [serverIp, setServerIpState] = useState(getServerIp);
@@ -102,6 +104,10 @@ export function JasperAppProvider({ children }) {
     // AI Settings
     apiKey,
     setApiKey,
+    chatGptKey,
+    setChatGptKey,
+    chatGptModel,
+    setChatGptModel,
     aiProvider,
     setAiProvider,
     ollamaModel,

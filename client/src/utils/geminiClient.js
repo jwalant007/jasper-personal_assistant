@@ -353,12 +353,43 @@ const TOOLS_CONFIG = [
     ]
   }
 ];
+
+export function getOpenAiTools() {
+  const fns = TOOLS_CONFIG[0].functionDeclarations;
+  return fns.map(fn => {
+    const props = {};
+    for (const [propName, propDef] of Object.entries(fn.parameters?.properties || {})) {
+      props[propName] = {
+        type: (propDef.type || 'string').toLowerCase(),
+        description: propDef.description || '',
+        ...(propDef.enum ? { enum: propDef.enum } : {})
+      };
+    }
+    return {
+      type: 'function',
+      function: {
+        name: fn.name,
+        description: fn.description,
+        parameters: {
+          type: 'object',
+          properties: props,
+          required: fn.parameters?.required || []
+        }
+      }
+    };
+  });
+}
+
 class GeminiClient {
   constructor() {
     this.apiKey = localStorage.getItem('jasper_gemini_key') || 
                   localStorage.getItem('jasper_gemini_api_key') || 
                   localStorage.getItem('gemini_api_key') || '';
-    this.provider = localStorage.getItem('jasper_ai_provider') || 'gemini'; // Default to Google Gemini Cloud Engine
+    this.chatGptKey = localStorage.getItem('jasper_chatgpt_key') || 
+                      localStorage.getItem('jasper_openai_key') || 
+                      localStorage.getItem('openai_api_key') || '';
+    this.chatGptModel = localStorage.getItem('jasper_chatgpt_model') || 'gpt-6-astra';
+    this.provider = localStorage.getItem('jasper_ai_provider') || (this.chatGptKey ? 'chatgpt' : 'gemini');
     this.ollamaModel = localStorage.getItem('jasper_ollama_model') || 'llama3';
     this.chatHistory = [];
   }
@@ -367,6 +398,17 @@ class GeminiClient {
     this.apiKey = key;
     localStorage.setItem('jasper_gemini_key', key);
     localStorage.setItem('jasper_gemini_api_key', key);
+  }
+
+  setChatGptKey(key) {
+    this.chatGptKey = key;
+    localStorage.setItem('jasper_chatgpt_key', key);
+    localStorage.setItem('jasper_openai_key', key);
+  }
+
+  setChatGptModel(model) {
+    this.chatGptModel = model;
+    localStorage.setItem('jasper_chatgpt_model', model);
   }
 
   setProvider(provider) {
@@ -380,7 +422,10 @@ class GeminiClient {
   }
 
   hasKey() {
-    return !!this.apiKey;
+    if (this.provider === 'chatgpt' || this.provider === 'astra') {
+      return !!this.chatGptKey;
+    }
+    return !!this.apiKey || !!this.chatGptKey;
   }
 
   // Local tool executors calling backend Express routes
@@ -796,13 +841,11 @@ class GeminiClient {
       onLog(`[VECTOR MEMORY] Recalled ${relevantMemories.length} relevant memory context(s): ${relevantMemories.map(m => m.text).join(' | ')}`, 'info');
     }
 
-    // 1. If provider is set to Ollama Local Server, or if no Gemini key exists, run Ollama engine!
-    if (this.provider === 'ollama' || !this.apiKey) {
+    // 1. If provider is set to Ollama Local Server
+    if (this.provider === 'ollama') {
       return this.handleOllamaQueryMode(userText, onLog, attachments);
     }
 
-    onLog(`[JASPER CORE] Processing neural request via Gemini Cloud...`, 'info');
-    
     // Format message with memory grounding if available
     let promptWithMemory = userText;
     if (relevantMemories.length > 0) {
@@ -819,7 +862,7 @@ class GeminiClient {
         if (att.textContent) {
           attachedTextContent += `\n\n--- [Attached File ${idx + 1}: ${att.name}] ---\n${att.textContent}\n--- [End of ${att.name}] ---`;
         } else if (att.base64) {
-          // Gemini API supports image, pdf, audio inlineData
+          // Multimodal inlineData
           inlineDataParts.push({
             inlineData: {
               mimeType: att.type || 'image/jpeg',
@@ -834,38 +877,65 @@ class GeminiClient {
       promptWithMemory += attachedTextContent;
     }
 
-    // Combine text part and any inline binary parts (images, PDF, audio)
-    const userParts = [
-      { text: promptWithMemory },
-      ...inlineDataParts
-    ];
-
-    // Add user message to history
-    this.chatHistory.push({
-      role: 'user',
-      parts: userParts
-    });
-
-    // Limit history length to keep context clean (50 messages for richer memory)
-    if (this.chatHistory.length > 50) {
-      this.chatHistory = this.chatHistory.slice(-50);
+    // 2. If provider is ChatGPT Astra or OpenAI (or if ChatGPT key is configured)
+    if (this.provider === 'chatgpt' || this.provider === 'astra' || (this.chatGptKey && !this.apiKey)) {
+      onLog(`[JASPER CORE] Processing neural request via ChatGPT Astra API (${this.chatGptModel || 'gpt-6-astra'})...`, 'info');
+      try {
+        const responseText = await this.runChatGptLoop(promptWithMemory, inlineDataParts, onLog);
+        this.chatHistory.push({
+          role: 'user',
+          parts: [{ text: promptWithMemory }]
+        });
+        this.chatHistory.push({
+          role: 'model',
+          parts: [{ text: responseText }]
+        });
+        return responseText;
+      } catch (err) {
+        console.error('[ChatGPT Astra Client Error]:', err);
+        onLog(`[API ERROR] ChatGPT Astra failed: ${err.message}. Checking failover...`, 'error');
+        if (this.apiKey) {
+          onLog(`[FAILOVER] Failing over to Gemini Cloud AI...`, 'warning');
+        } else {
+          return this.handleOllamaQueryMode(userText, onLog, attachments);
+        }
+      }
     }
 
-    try {
-      const responseText = await this.runGeminiLoop(onLog);
+    // 3. Fallback to Gemini Cloud if API key is present
+    if (this.apiKey) {
+      onLog(`[JASPER CORE] Processing neural request via Gemini Cloud...`, 'info');
       
-      // Save AI response to history
+      const userParts = [
+        { text: promptWithMemory },
+        ...inlineDataParts
+      ];
+
       this.chatHistory.push({
-        role: 'model',
-        parts: [{ text: responseText }]
+        role: 'user',
+        parts: userParts
       });
 
-      return responseText;
-    } catch (err) {
-      console.error('[Gemini API Client Error]:', err);
-      onLog(`[API ERROR] Gemini connection failed: ${err.message}. Rerouting to Ollama local server...`, 'error');
-      return this.handleOllamaQueryMode(userText, onLog, attachments);
+      if (this.chatHistory.length > 50) {
+        this.chatHistory = this.chatHistory.slice(-50);
+      }
+
+      try {
+        const responseText = await this.runGeminiLoop(onLog);
+        this.chatHistory.push({
+          role: 'model',
+          parts: [{ text: responseText }]
+        });
+        return responseText;
+      } catch (err) {
+        console.error('[Gemini API Client Error]:', err);
+        onLog(`[API ERROR] Gemini connection failed: ${err.message}. Rerouting to Ollama local server...`, 'error');
+        return this.handleOllamaQueryMode(userText, onLog, attachments);
+      }
     }
+
+    // 4. If no cloud keys exist, run local engine
+    return this.handleOllamaQueryMode(userText, onLog, attachments);
   }
 
   // Ollama Primary & Fallback Engine Handler
@@ -1078,12 +1148,225 @@ class GeminiClient {
   }
 
   /**
-   * Gemini 2.0 Multimodal Vision AI snapshot analyzer
+   * OpenAI / ChatGPT Astra Engine Loop with Multi-Step Tool Calling & Vision
+   */
+  async runChatGptLoop(promptWithMemory, inlineDataParts = [], onLog = () => {}, depth = 0) {
+    if (depth > 8) {
+      throw new Error("Maximum tool calling execution depth exceeded.");
+    }
+
+    const key = this.chatGptKey || this.apiKey;
+    if (!key) {
+      throw new Error("ChatGPT Astra API key missing. Please register your OpenAI / ChatGPT key in Settings HUD.");
+    }
+
+    // Convert chatHistory into OpenAI message format
+    const messages = [
+      { role: 'system', content: SYSTEM_INSTRUCTION }
+    ];
+
+    for (const item of this.chatHistory) {
+      if (item.role === 'user') {
+        const text = (item.parts || []).map(p => p.text).filter(Boolean).join('\n');
+        if (text) messages.push({ role: 'user', content: text });
+      } else if (item.role === 'model') {
+        const text = (item.parts || []).map(p => p.text).filter(Boolean).join('\n');
+        if (text) messages.push({ role: 'assistant', content: text });
+      }
+    }
+
+    // Add current query with vision attachments if any
+    if (inlineDataParts.length > 0) {
+      const contentParts = [
+        { type: 'text', text: promptWithMemory }
+      ];
+      for (const part of inlineDataParts) {
+        if (part.inlineData?.data) {
+          contentParts.push({
+            type: 'image_url',
+            image_url: {
+              url: `data:${part.inlineData.mimeType || 'image/jpeg'};base64,${part.inlineData.data}`
+            }
+          });
+        }
+      }
+      messages.push({ role: 'user', content: contentParts });
+    } else {
+      messages.push({ role: 'user', content: promptWithMemory });
+    }
+
+    const openAiTools = getOpenAiTools();
+    const candidateModels = [
+      this.chatGptModel || 'gpt-6-astra',
+      'gpt-4o',
+      'gpt-4o-mini',
+      'o3-mini'
+    ];
+
+    let responseData = null;
+    let successfulModel = this.chatGptModel || 'gpt-6-astra';
+    let lastError = null;
+
+    for (const model of candidateModels) {
+      try {
+        onLog?.(`[CHATGPT ASTRA] Sending directive via OpenAI model: ${model}...`, 'info');
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${key}`
+          },
+          body: JSON.stringify({
+            model: model,
+            messages: messages,
+            tools: openAiTools,
+            tool_choice: 'auto',
+            temperature: 0.7
+          })
+        });
+
+        if (res.ok) {
+          responseData = await res.json();
+          successfulModel = model;
+          break;
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          const errMsg = errData.error?.message || `HTTP ${res.status}`;
+          lastError = new Error(errMsg);
+          console.warn(`[ChatGPT Astra] Model ${model} returned error: ${errMsg}`);
+          if (res.status === 404 || errMsg.toLowerCase().includes('model')) {
+            continue; // Try fallback model
+          } else {
+            throw lastError;
+          }
+        }
+      } catch (err) {
+        lastError = err;
+        if (err.message && (err.message.includes('API key') || err.message.includes('quota') || err.message.includes('billing'))) {
+          throw err;
+        }
+      }
+    }
+
+    if (!responseData) {
+      throw lastError || new Error("Failed to connect to ChatGPT Astra API.");
+    }
+
+    const choice = responseData.choices?.[0];
+    const message = choice?.message;
+    if (!message) {
+      throw new Error("Empty response received from ChatGPT Astra API.");
+    }
+
+    // Handle tool execution
+    if (message.tool_calls && message.tool_calls.length > 0) {
+      onLog?.(`[CHATGPT ASTRA] Model invoked ${message.tool_calls.length} tool(s)...`, 'info');
+      messages.push(message);
+
+      for (const call of message.tool_calls) {
+        const fnName = call.function?.name;
+        let fnArgs = {};
+        try {
+          fnArgs = JSON.parse(call.function?.arguments || '{}');
+        } catch (_) {}
+
+        const result = await this.executeTool(fnName, fnArgs, onLog);
+        messages.push({
+          role: 'tool',
+          tool_call_id: call.id,
+          name: fnName,
+          content: JSON.stringify(result)
+        });
+      }
+
+      // Follow-up request to let model summarize tool results
+      const followUp = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${key}`
+        },
+        body: JSON.stringify({
+          model: successfulModel,
+          messages: messages,
+          temperature: 0.7
+        })
+      });
+
+      if (followUp.ok) {
+        const followData = await followUp.json();
+        const textResult = followData.choices?.[0]?.message?.content || 'Directive completed, Sir.';
+        onLog?.(`[CHATGPT ASTRA] Completed directive execution via ${successfulModel}.`, 'success');
+        return textResult;
+      }
+    }
+
+    const finalAnswer = message.content || 'Directive executed, Sir.';
+    onLog?.(`[CHATGPT ASTRA] Response received from ${successfulModel}.`, 'success');
+    return finalAnswer;
+  }
+
+  /**
+   * Multimodal Vision AI snapshot analyzer (ChatGPT Astra / Gemini)
    */
   async analyzeWebcamVision(base64Frame, prompt = "Analyze what is in front of the camera in detail, Sir.", onLog = () => {}) {
-    onLog(`[VISION AI] Analyzing camera frame with Gemini 2.0 Vision...`, 'info');
+    onLog(`[VISION AI] Analyzing camera frame with Vision AI...`, 'info');
+
+    // If ChatGPT Astra is configured, use OpenAI vision
+    if (this.provider === 'chatgpt' || this.provider === 'astra' || (this.chatGptKey && !this.apiKey)) {
+      const key = this.chatGptKey || this.apiKey;
+      if (!key) {
+        return "I require a ChatGPT or Gemini API key registered in Settings to perform vision analysis, Sir.";
+      }
+      try {
+        const cleanBase64 = base64Frame.replace(/^data:image\/\w+;base64,/, '');
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${key}`
+          },
+          body: JSON.stringify({
+            model: this.chatGptModel || 'gpt-6-astra',
+            messages: [
+              {
+                role: 'system',
+                content: "You are J.A.S.P.E.R., Tony Stark's futuristic AI vision neural core. Provide crisp, professional, high-detail visual analysis of the camera image."
+              },
+              {
+                role: 'user',
+                content: [
+                  { type: 'text', text: prompt },
+                  {
+                    type: 'image_url',
+                    image_url: { url: `data:image/jpeg;base64,${cleanBase64}` }
+                  }
+                ]
+              }
+            ],
+            max_tokens: 1000
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const text = data.choices?.[0]?.message?.content;
+          onLog(`[VISION AI] Visual analysis completed successfully via ChatGPT Astra.`, 'success');
+          return text || "Visual frame analyzed, Sir. No anomalies detected.";
+        } else {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error?.message || `HTTP ${res.status}`);
+        }
+      } catch (e) {
+        onLog(`[VISION AI ERROR] ChatGPT Vision failed: ${e.message}`, 'error');
+        if (!this.apiKey) {
+          return `Vision analysis error: ${e.message}`;
+        }
+      }
+    }
+
     if (!this.apiKey) {
-      return "I require a Gemini API key registered in Settings to perform neural vision analysis, Sir.";
+      return "I require a Gemini or ChatGPT API key registered in Settings to perform neural vision analysis, Sir.";
     }
 
     try {
