@@ -1,0 +1,21 @@
+// ==============================================================================
+// Jasper OS — Polkit Policy Rules for Native Jasper AI & System Services
+// ==============================================================================
+
+// Allow users in the 'wheel' or 'sudo' group to perform non-destructive actions
+polkit.addRule(function(action, subject) {
+    if ((action.id == "org.freedesktop.NetworkManager.network-control" ||
+         action.id == "org.freedesktop.upower.power-device" ||
+         action.id == "org.freedesktop.packagekit.package-install") &&
+        subject.isInGroup("sudo")) {
+        return polkit.Result.YES;
+    }
+});
+
+// Any destructive action (disk partitioning, direct raw device access) requires explicit auth
+polkit.addRule(function(action, subject) {
+    if (action.id.indexOf("org.freedesktop.udisks2.modify-device") === 0 ||
+        action.id.indexOf("org.freedesktop.udisks2.filesystem-mount-system") === 0) {
+        return polkit.Result.AUTH_ADMIN;
+    }
+});

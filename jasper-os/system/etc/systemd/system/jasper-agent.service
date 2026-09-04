@@ -1,0 +1,15 @@
+[Unit]
+Description=Jasper AI Native OS Assistant Daemon
+After=network.target sound.target dbus.service
+Wants=dbus.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/jasper-aid --daemon --socket=/run/user/%U/jasper-ai.sock
+Restart=on-failure
+RestartSec=3s
+Environment=JASPER_ENV=production
+LimitNOFILE=65536
+
+[Install]
+WantedBy=default.target

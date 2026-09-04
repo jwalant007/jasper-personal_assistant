@@ -36,3 +36,8 @@ client/vite.config.js.timestamp-*.mjs
 # OS metadata
 .DS_Store
 Thumbs.db
+
+# Python cache
+__pycache__/
+*.pyc
+

@@ -1,0 +1,10 @@
+# ==============================================================================
+# Jasper OS — Laptop Power & Battery Management Rules
+# ==============================================================================
+
+# Enable power saving for Intel Audio Codec on battery
+SUBSYSTEM=="power_supply", ATTR{online}=="0", RUN+="/usr/bin/jasper-power-profile set-battery"
+SUBSYSTEM=="power_supply", ATTR{online}=="1", RUN+="/usr/bin/jasper-power-profile set-ac"
+
+# NVMe APST (Autonomous Power State Transition) latency threshold
+ACTION=="add", SUBSYSTEM=="pci", ATTR{class}=="0x010802", ATTR{power/control}="auto"

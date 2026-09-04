@@ -1,0 +1,13 @@
+[Unit]
+Description=Jasper OS Busy Mode & Smart Communication Auto-Reply Daemon
+After=network.target jasper-agent.service
+PartOf=jasper-agent.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/jasper-busymoded --config=/etc/jasper/busymode.conf
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target

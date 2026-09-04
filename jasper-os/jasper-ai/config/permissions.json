@@ -1,0 +1,38 @@
+{
+  "permission_tiers": {
+    "L0": {
+      "name": "Read-Only / Ambient",
+      "requires_confirmation": false,
+      "description": "Safe queries such as battery level, time, weather, brightness, and system resource utilization."
+    },
+    "L1": {
+      "name": "Low-Risk Actions",
+      "requires_confirmation": false,
+      "description": "User-like actions such as launching permitted applications, changing volume, or toggling Bluetooth."
+    },
+    "L2": {
+      "name": "System Configuration",
+      "requires_confirmation": true,
+      "description": "Modifying Wi-Fi networks, default display scaling, or changing power plans."
+    },
+    "L3": {
+      "name": "Critical / Destructive",
+      "requires_confirmation": true,
+      "description": "Package removal, partition editing, bootloader changes, or deleting files. NEVER executed without explicit user confirmation."
+    }
+  },
+  "tools": {
+    "get_battery_status": { "tier": "L0", "module": "hardware", "handler": "get_battery" },
+    "get_system_stats": { "tier": "L0", "module": "telemetry", "handler": "get_stats" },
+    "get_wifi_status": { "tier": "L0", "module": "network", "handler": "get_wifi" },
+    "launch_application": { "tier": "L1", "module": "desktop", "handler": "launch_app" },
+    "set_volume": { "tier": "L1", "module": "audio", "handler": "set_volume" },
+    "toggle_bluetooth": { "tier": "L1", "module": "hardware", "handler": "toggle_bt" },
+    "connect_wifi": { "tier": "L2", "module": "network", "handler": "connect_wifi" },
+    "set_display_scale": { "tier": "L2", "module": "display", "handler": "set_scale" },
+    "install_package": { "tier": "L3", "module": "packagekit", "handler": "install_pkg" },
+    "delete_file": { "tier": "L3", "module": "filesystem", "handler": "delete_file" },
+    "modify_partitions": { "tier": "L3", "module": "installer", "handler": "modify_partitions" },
+    "update_bootloader": { "tier": "L3", "module": "bootloader", "handler": "update_grub" }
+  }
+}

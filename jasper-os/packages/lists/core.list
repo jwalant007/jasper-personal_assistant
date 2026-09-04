@@ -1,0 +1,20 @@
+# Core Boot & System Packages
+linux-image-amd64
+linux-headers-amd64
+intel-microcode
+firmware-misc-nonfree
+systemd
+systemd-sysv
+udev
+dbus
+polkitd
+network-manager
+zram-tools
+sudo
+curl
+ca-certificates
+grub-efi-amd64
+efibootmgr
+pciutils
+usbutils
+nvme-cli

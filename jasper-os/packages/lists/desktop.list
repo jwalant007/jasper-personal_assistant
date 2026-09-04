@@ -1,0 +1,18 @@
+# Desktop & Wayland Compositor Packages
+wayland-protocols
+libwayland-client0
+libwayland-server0
+mesa-vulkan-drivers
+mesa-va-drivers
+intel-media-va-driver-non-free
+pipewire
+pipewire-alsa
+pipewire-pulse
+wireplumber
+bluez
+bluez-tools
+fonts-inter
+fonts-roboto
+papirus-icon-theme
+libinput10
+xwayland
