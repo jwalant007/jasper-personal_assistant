@@ -1,0 +1,16 @@
+{
+  "tool_overrides": {
+    "send_message": { "requireConfirmation": false, "allowedContacts": "all", "enabled": true },
+    "send_email": { "requireConfirmation": true, "enabled": true },
+    "make_call": { "requireConfirmation": true, "enabled": false },
+    "delete_file": { "requireConfirmation": true, "enabled": false },
+    "install_software": { "requireConfirmation": true, "enabled": false },
+    "change_security_setting": { "requireConfirmation": true, "enabled": false }
+  },
+  "global_settings": {
+    "maxAutoExecuteLevel": 1,
+    "logAllActions": true,
+    "aiCanSuggestTools": true,
+    "confirmationTimeoutSeconds": 30
+  }
+}

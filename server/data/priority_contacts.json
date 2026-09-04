@@ -1,0 +1,7 @@
+{
+  "contacts": [
+    { "id": "pc-1", "name": "Mom", "identifiers": ["mom", "mother"], "priority": "always_notify", "customReply": null, "notifyHours": null },
+    { "id": "pc-2", "name": "Dad", "identifiers": ["dad", "father"], "priority": "always_notify", "customReply": null, "notifyHours": null },
+    { "id": "pc-3", "name": "Work", "identifiers": ["boss", "manager", "office", "work"], "priority": "notify_during_hours", "customReply": "I am in a meeting. Will respond shortly.", "notifyHours": { "start": "09:00", "end": "18:00" } }
+  ]
+}

@@ -36,12 +36,14 @@ import JasperFileManagerApp from './JasperFileManagerApp';
 import JasperCodeStudioApp from './JasperCodeStudioApp';
 import JasperNotesPlannerApp from './JasperNotesPlannerApp';
 import JasperCalculatorApp from './JasperCalculatorApp';
+import JasperAgentHubWidget from './JasperAgentHubWidget';
 import { Calculator, FileCode, Compass, MessageSquare } from 'lucide-react';
 
 /**
  * ALL NATIVE JASPER OS APPLICATIONS REGISTRY (30 NATIVE APPS)
  */
 const JASPER_OS_APPS_REGISTRY = [
+  { id: 'agentHub', title: 'JASPER AI Agent Hub', category: 'AI & Intelligence', icon: Brain, component: JasperAgentHubWidget, defaultSize: { w: 920, h: 640 } },
   { id: 'socialAutoReply', title: 'WhatsApp & IG Auto-Reply App', category: 'Hardware Control', icon: MessageSquare, component: SocialAutoReplyWidget, defaultSize: { w: 720, h: 540 } },
   { id: 'jasperBrowser', title: 'JASPER Browser App', category: 'Productivity & Tools', icon: Compass, component: JasperBrowserApp, defaultSize: { w: 820, h: 580 } },
   { id: 'searchEngine', title: 'JASPER AI Search Engine App', category: 'Productivity & Tools', icon: Search, component: JasperSearchApp, defaultSize: { w: 760, h: 560 } },

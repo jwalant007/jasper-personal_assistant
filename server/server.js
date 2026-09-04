@@ -14,6 +14,8 @@ const agentEngine = require('./agentEngine');
 const swarmEngine = require('./swarmEngine');
 const sportsEngine = require('./sportsEngine');
 const pcRemoteController = require('./pcRemoteController');
+const permissionLayer = require('./permissionLayer');
+const busyModeEngine = require('./busyModeEngine');
 
 // Optional WhatsApp Web Client (whatsapp-web.js) for laptop WhatsApp Web auto-send
 let Client, LocalAuth, WAStatus;
@@ -123,6 +125,16 @@ wss.on('connection', (ws) => {
   console.log('[WebSocket] Client connected');
   activeSockets.add(ws);
 
+  ws.on('message', (rawMsg) => {
+    try {
+      const msg = JSON.parse(rawMsg.toString());
+      // Handle permission confirmation responses from client
+      if (msg.type === 'PERMISSION_RESPONSE') {
+        permissionLayer.handleConfirmationResponse(msg.id, msg.approved, msg.reason);
+      }
+    } catch (_e) {}
+  });
+
   ws.on('close', () => {
     console.log('[WebSocket] Client disconnected');
     activeSockets.delete(ws);
@@ -138,6 +150,11 @@ function broadcastToClients(data) {
     }
   });
 }
+
+// Wire broadcast function into engine modules
+agentEngine.setBroadcastFn(broadcastToClients);
+permissionLayer.setBroadcastFn(broadcastToClients);
+busyModeEngine.setBroadcastFn(broadcastToClients);
 
 // Spawns the background listener.ps1 script
 function startBackgroundVoiceListener() {
@@ -2468,6 +2485,176 @@ app.post('/api/ollama/query', async (req, res) => {
   } catch (err) {
     res.json({ success: false, error: err.message });
   }
+});
+
+// =============================================================
+// JASPER AI AGENT — TOOL EXECUTION ENDPOINTS
+// =============================================================
+
+// Execute a tool through the permission layer
+app.post('/api/agent/execute', async (req, res) => {
+  const { tool, args = {}, confirmationId } = req.body;
+  if (!tool) return res.status(400).json({ error: 'tool is required' });
+  try {
+    const result = await agentEngine.executeTool(tool, args, { confirmationId });
+    busyModeEngine.appendActivityLog({
+      type: 'api_tool_call',
+      icon: '🔧',
+      tool,
+      args: JSON.stringify(args).substring(0, 100)
+    });
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Execute a multi-step task plan
+app.post('/api/agent/execute-plan', async (req, res) => {
+  const { steps = [], description } = req.body;
+  if (!Array.isArray(steps) || steps.length === 0) {
+    return res.status(400).json({ error: 'steps array is required' });
+  }
+  try {
+    const result = await agentEngine.executeTaskPlan(steps, { description });
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Process natural-language query
+app.post('/api/agent/query', async (req, res) => {
+  const { query, model } = req.body;
+  if (!query) return res.status(400).json({ error: 'query is required' });
+  try {
+    const result = await agentEngine.processQuery({ query, model });
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Confirm or deny a pending L2/L3 action
+app.post('/api/agent/confirm', (req, res) => {
+  const { id, approved, reason } = req.body;
+  if (!id) return res.status(400).json({ error: 'id is required' });
+  const handled = permissionLayer.handleConfirmationResponse(id, !!approved, reason);
+  res.json({ handled, id, approved: !!approved });
+});
+
+// Get list of pending confirmations
+app.get('/api/agent/pending-confirmations', (req, res) => {
+  res.json({ confirmations: permissionLayer.getPendingConfirmations() });
+});
+
+// Get tool registry
+app.get('/api/agent/tools', (req, res) => {
+  res.json({ tools: agentEngine.getToolRegistry() });
+});
+
+// =============================================================
+// ACTIVITY LOG ENDPOINTS
+// =============================================================
+
+app.get('/api/agent/activity-log', (req, res) => {
+  const limit = parseInt(req.query.limit) || 100;
+  const entries = busyModeEngine.getActivityLog(limit);
+  res.json({ entries, count: entries.length });
+});
+
+app.delete('/api/agent/activity-log', (req, res) => {
+  busyModeEngine.clearActivityLog();
+  res.json({ success: true, message: 'Activity log cleared' });
+});
+
+// =============================================================
+// PERMISSIONS MANAGEMENT ENDPOINTS
+// =============================================================
+
+app.get('/api/agent/permissions', (req, res) => {
+  res.json(permissionLayer.getConfig());
+});
+
+app.post('/api/agent/permissions/tool', (req, res) => {
+  const { toolName, override } = req.body;
+  if (!toolName) return res.status(400).json({ error: 'toolName is required' });
+  const cfg = permissionLayer.updateToolOverride(toolName, override || {});
+  res.json({ success: true, config: cfg });
+});
+
+app.post('/api/agent/permissions/global', (req, res) => {
+  const { settings } = req.body;
+  if (!settings) return res.status(400).json({ error: 'settings is required' });
+  const cfg = permissionLayer.updateGlobalSettings(settings);
+  res.json({ success: true, config: cfg });
+});
+
+// =============================================================
+// BUSY MODE ENDPOINTS
+// =============================================================
+
+app.get('/api/busy/config', (req, res) => {
+  res.json(busyModeEngine.getConfig());
+});
+
+app.post('/api/busy/config', (req, res) => {
+  const updates = req.body;
+  const cfg = busyModeEngine.setConfig(updates);
+  res.json({ success: true, config: cfg });
+});
+
+app.post('/api/busy/toggle', (req, res) => {
+  const cfg = busyModeEngine.toggle();
+  res.json({ success: true, enabled: cfg.enabled, config: cfg });
+});
+
+app.post('/api/busy/enable', (req, res) => {
+  const cfg = busyModeEngine.enable();
+  res.json({ success: true, enabled: true, config: cfg });
+});
+
+app.post('/api/busy/disable', (req, res) => {
+  const cfg = busyModeEngine.disable();
+  res.json({ success: true, enabled: false, config: cfg });
+});
+
+app.get('/api/busy/status', (req, res) => {
+  const cfg = busyModeEngine.getConfig();
+  res.json({ enabled: busyModeEngine.isEnabled(), config: cfg });
+});
+
+app.post('/api/busy/simulate', async (req, res) => {
+  const { platform = 'whatsapp', sender = 'Unknown', message = 'Hello' } = req.body;
+  try {
+    const result = await busyModeEngine.simulateIncomingMessage(platform, sender, message);
+    res.json({ success: true, result });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Priority Contacts
+app.get('/api/busy/priority-contacts', (req, res) => {
+  res.json({ contacts: busyModeEngine.getPriorityContacts() });
+});
+
+app.post('/api/busy/priority-contacts', (req, res) => {
+  const contact = req.body;
+  const newContact = busyModeEngine.addPriorityContact(contact);
+  res.json({ success: true, contact: newContact, contacts: busyModeEngine.getPriorityContacts() });
+});
+
+app.put('/api/busy/priority-contacts/:id', (req, res) => {
+  const { id } = req.params;
+  const updated = busyModeEngine.updatePriorityContact(id, req.body);
+  res.json({ success: true, contact: updated });
+});
+
+app.delete('/api/busy/priority-contacts/:id', (req, res) => {
+  const { id } = req.params;
+  const contacts = busyModeEngine.deletePriorityContact(id);
+  res.json({ success: true, contacts });
 });
 
 // Wildcard fallback to serve index.html for SPA client routing

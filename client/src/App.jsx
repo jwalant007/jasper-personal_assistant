@@ -38,6 +38,7 @@ import JasperFileManagerApp from './components/JasperFileManagerApp';
 import JasperCodeStudioApp from './components/JasperCodeStudioApp';
 import JasperNotesPlannerApp from './components/JasperNotesPlannerApp';
 import JasperCalculatorApp from './components/JasperCalculatorApp';
+import JasperAgentHubWidget from './components/JasperAgentHubWidget';
 import geminiClient from './utils/geminiClient';
 import { getServerIp, setServerIp } from './utils/apiConfig.js';
 import { getPhoneBrainMode, setPhoneBrainMode, togglePhoneBrainMode } from './utils/mobileBrain.js';
@@ -207,6 +208,8 @@ export default function App() {
   const setShowSettings = (v) => v ? openModal('settings') : closeModal('settings');
   const showTvRemote = isModalOpen('tvRemote');
   const setShowTvRemote = (v) => v ? openModal('tvRemote') : closeModal('tvRemote');
+  const showAgentHub = isModalOpen('agentHub');
+  const setShowAgentHub = (v) => v ? openModal('agentHub') : closeModal('agentHub');
 
   // Local Component State
   const [showKey, setShowKey] = useState(false);
@@ -2680,6 +2683,13 @@ export default function App() {
               setHologramQuery('');
             }} 
           />
+        </DraggableModalWrapper>
+      )}
+
+      {/* 25. JASPER AI Agent Hub Modal */}
+      {showAgentHub && (
+        <DraggableModalWrapper isOpen={showAgentHub} onClose={() => setShowAgentHub(false)} title="JASPER AI Agent Hub" maxWidth="max-w-6xl">
+          <JasperAgentHubWidget onClose={() => setShowAgentHub(false)} />
         </DraggableModalWrapper>
       )}
 
