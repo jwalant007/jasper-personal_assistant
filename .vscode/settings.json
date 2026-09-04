@@ -27,5 +27,15 @@
       "path": "C:\\Users\\Jwalant\\jdk17\\jdk-17.0.10+7"
     }
   ],
-  "java.configuration.updateBuildConfiguration": "automatic"
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "python.defaultInterpreterPath": "C:\\Program Files\\Python310\\python.exe",
+  "python.terminal.activateEnvironment": true,
+  "python.condaPath": "",
+  "python.experiments.optOutFrom": [
+    "pythonLocator"
+  ],
+  "python.analysis.extraPaths": [
+    "./jasper-os/jasper-ai",
+    "./jasper-os/installer"
+  ]
 }
