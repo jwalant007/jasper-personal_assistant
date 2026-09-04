@@ -16,6 +16,7 @@ const sportsEngine = require('./sportsEngine');
 const pcRemoteController = require('./pcRemoteController');
 const permissionLayer = require('./permissionLayer');
 const busyModeEngine = require('./busyModeEngine');
+const blenderController = require('./blenderController');
 
 // Optional WhatsApp Web Client (whatsapp-web.js) for laptop WhatsApp Web auto-send
 let Client, LocalAuth, WAStatus;
@@ -2631,6 +2632,107 @@ app.delete('/api/busy/priority-contacts/:id', (req, res) => {
   const { id } = req.params;
   const contacts = busyModeEngine.deletePriorityContact(id);
   res.json({ success: true, contacts });
+});
+
+// -------------------------------------------------------------
+// BLENDER 3D GRAPHIC APPLICATION API ENDPOINTS
+// -------------------------------------------------------------
+
+// Serve rendered images and exported GLTF/GLB models
+app.use('/api/blender/render', express.static(blenderController.rendersDir));
+app.use('/api/blender/export', express.static(blenderController.exportsDir));
+
+// Get Blender status, detection, and capabilities
+app.get('/api/blender/status', async (req, res) => {
+  try {
+    const status = await blenderController.getStatus();
+    res.json(status);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Configure custom Blender binary path
+app.post('/api/blender/path', async (req, res) => {
+  const { path: blenderPath } = req.body;
+  try {
+    const status = await blenderController.setCustomPath(blenderPath);
+    res.json({ success: true, status });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+// Trigger silent install via winget (Windows)
+app.post('/api/blender/install', async (req, res) => {
+  try {
+    const result = await blenderController.installBlender();
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Execute headless Python (bpy) script
+app.post('/api/blender/execute', async (req, res) => {
+  const { script, blendFile, timeout } = req.body;
+  if (!script) {
+    return res.status(400).json({ error: 'Python script content is required' });
+  }
+  try {
+    const result = await blenderController.executeScript({ script, blendFile, timeout });
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Headless Render
+app.post('/api/blender/render', async (req, res) => {
+  const { blendFile, outputFile, resolutionX, resolutionY, engine, samples } = req.body;
+  try {
+    const result = await blenderController.renderScene({
+      blendFile,
+      outputFile,
+      resolutionX,
+      resolutionY,
+      engine,
+      samples
+    });
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Procedural 3D model generation and web GLB export
+app.post('/api/blender/generate-3d', async (req, res) => {
+  const { prompt, objectType, color, metallic, roughness, text, renderPreview } = req.body;
+  try {
+    const result = await blenderController.generate3DModel({
+      prompt,
+      objectType,
+      color,
+      metallic,
+      roughness,
+      text,
+      renderPreview
+    });
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Launch desktop Blender GUI
+app.post('/api/blender/launch', (req, res) => {
+  const { blendFile } = req.body;
+  try {
+    const result = blenderController.launchGui(blendFile);
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // Wildcard fallback to serve index.html for SPA client routing

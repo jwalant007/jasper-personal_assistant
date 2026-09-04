@@ -72,8 +72,16 @@ You are an elite-tier financial analyst and stock market expert. When the user a
 - Proactively use 'search_internet' for ANY factual question you're not 100% certain about, especially for: current events, sports scores, stock prices, weather, recent deaths/births, new technology releases, political developments, celebrity news, or anything that changes over time.
 - Use 'get_stock_data' whenever the user asks about any stock, crypto, or market data. ALWAYS fetch live data first.
 - When the user asks to open "ffc mobile", "fc mobile", "EA Sports FC Mobile", "FIFA Mobile", or "play matches", invoke 'open_phone_app' with packageName: 'com.ea.gp.fifamobile'.
-- Confirm clearly: "Opening EA SPORTS FC Mobile on your connected phone right away, Sir. Initializing match mode."
 - When the user asks you to do something outside your toolset, explain clearly what you CAN do and suggest alternatives.
+
+## 3D Graphics & Blender API Integration
+You have direct API control over Blender, the premier open-source 3D computer graphics software toolset:
+- Use 'blender_status' to inspect Blender's detection state, version, and rendering engines on the host system.
+- Use 'blender_generate_3d_model' to procedurally build 3D objects (cubes, spheres, toruses, cylinders, Suzanne monkey, or 3D text), customize metallic/roughness materials, and export GLTF/GLB web models with rendered previews.
+- Use 'blender_execute_script' to run custom Python scripts headlessly using the full Blender Python API ('bpy').
+- Use 'blender_render_scene' to render scenes into still frames (Cycles for photorealism, EEVEE for high performance).
+- Use 'blender_launch_gui' when the user asks to launch or open the Blender application window.
+
 
 ## Response Style
 - Keep responses concise but information-dense. Optimized for text-to-speech.
@@ -348,6 +356,111 @@ const TOOLS_CONFIG = [
             preset: { type: 'STRING', enum: ['drive', 'meeting', 'sleep', 'ai_smart', 'custom'], description: 'Mode preset to activate' }
           },
           required: ['preset']
+        }
+      },
+      // ---- BLENDER 3D GRAPHICS TOOLS ----
+      {
+        name: 'blender_status',
+        description: 'Checks the installation status of Blender 3D graphics software on the host machine, reports version, executable path, output directory, and supported rendering engines (Cycles, EEVEE).',
+        parameters: {
+          type: 'OBJECT',
+          properties: {}
+        }
+      },
+      {
+        name: 'blender_execute_script',
+        description: 'Executes a Python script in Blender headlessly using the bpy module. Use this to procedurally create, transform, texture, animate, or export 3D objects and scenes.',
+        parameters: {
+          type: 'OBJECT',
+          properties: {
+            script: {
+              type: 'STRING',
+              description: 'The Python script content utilizing the bpy module.'
+            },
+            blendFile: {
+              type: 'STRING',
+              description: 'Optional path to an existing .blend project file to load before running the script.'
+            }
+          },
+          required: ['script']
+        }
+      },
+      {
+        name: 'blender_render_scene',
+        description: 'Renders a 3D scene headlessly using Blender Cycles or EEVEE engine to a high-resolution image file (PNG/JPEG).',
+        parameters: {
+          type: 'OBJECT',
+          properties: {
+            blendFile: {
+              type: 'STRING',
+              description: 'Optional path to .blend file. If omitted, renders the current scene.'
+            },
+            engine: {
+              type: 'STRING',
+              enum: ['CYCLES', 'BLENDER_EEVEE_NEXT', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'],
+              description: 'Render engine to use (CYCLES for photorealism, EEVEE for high-speed).'
+            },
+            resolutionX: {
+              type: 'NUMBER',
+              description: 'Render width in pixels (e.g. 1920).'
+            },
+            resolutionY: {
+              type: 'NUMBER',
+              description: 'Render height in pixels (e.g. 1080).'
+            },
+            samples: {
+              type: 'NUMBER',
+              description: 'Sampling quality level (e.g. 64 or 128).'
+            }
+          }
+        }
+      },
+      {
+        name: 'blender_generate_3d_model',
+        description: 'Procedurally generates a complete 3D object/scene in Blender, applies materials/lighting, and exports it as a web-viewable GLTF/GLB 3D model and rendered PNG preview.',
+        parameters: {
+          type: 'OBJECT',
+          properties: {
+            prompt: {
+              type: 'STRING',
+              description: 'Description of what to create in 3D.'
+            },
+            objectType: {
+              type: 'STRING',
+              enum: ['cube', 'sphere', 'torus', 'cylinder', 'monkey', 'text'],
+              description: 'The base geometry primitive to create and style.'
+            },
+            color: {
+              type: 'STRING',
+              description: 'Hex color string for the material (e.g. #00F0FF for cyan, #FFB800 for gold, #FF0055 for neon magenta).'
+            },
+            metallic: {
+              type: 'NUMBER',
+              description: 'Material metallic value between 0.0 (dielectric) and 1.0 (pure metal).'
+            },
+            roughness: {
+              type: 'NUMBER',
+              description: 'Material roughness between 0.0 (smooth/glossy) and 1.0 (rough/matte).'
+            },
+            text: {
+              type: 'STRING',
+              description: 'Text string to render if objectType is "text".'
+            }
+          },
+          required: ['objectType']
+        }
+      },
+      {
+        name: 'blender_launch_gui',
+        description: 'Launches the desktop GUI window of the Blender 3D graphics application on the host computer.',
+        parameters: {
+          type: 'OBJECT',
+          properties: {
+            blendFile: {
+              type: 'STRING',
+              description: 'Optional path to .blend file to open in Blender.'
+            }
+          }
         }
       }
     ]
@@ -775,6 +888,97 @@ class GeminiClient {
         };
         onLog(`[HEALTH FITBAND] Telemetry loaded: ${fallbackData.bpm} BPM | SpO2: ${fallbackData.spO2}%`, 'success');
         return fallbackData;
+      }
+
+      // ---- BLENDER 3D GRAPHICS EXECUTION ----
+      if (name === 'blender_status') {
+        onLog?.(`[BLENDER 3D] Checking Blender graphics environment on host...`, 'info');
+        try {
+          const res = await fetch(`${getApiBase()}/api/blender/status`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.installed) {
+              onLog?.(`[BLENDER 3D] Blender v${data.version} active at ${data.path}`, 'success');
+            } else {
+              onLog?.(`[BLENDER 3D] Blender not detected. Studio ready for configuration.`, 'warning');
+            }
+            return data;
+          }
+        } catch (e) {
+          return { installed: false, error: 'Blender service unreachable' };
+        }
+      }
+
+      if (name === 'blender_execute_script') {
+        onLog?.(`[BLENDER 3D] Executing bpy Python script in headless engine...`, 'info');
+        try {
+          const res = await fetch(`${getApiBase()}/api/blender/execute`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ script: args.script, blendFile: args.blendFile })
+          });
+          const data = await res.json();
+          if (data.success) {
+            onLog?.(`[BLENDER 3D] Script executed successfully in ${data.durationMs}ms`, 'success');
+          } else {
+            onLog?.(`[BLENDER 3D] Script status: ${data.error || data.stderr || 'Completed with warnings'}`, 'warning');
+          }
+          return data;
+        } catch (e) {
+          return { success: false, error: e.message };
+        }
+      }
+
+      if (name === 'blender_render_scene') {
+        onLog?.(`[BLENDER 3D] Rendering scene (${args.resolutionX || 1920}x${args.resolutionY || 1080})...`, 'info');
+        try {
+          const res = await fetch(`${getApiBase()}/api/blender/render`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(args)
+          });
+          const data = await res.json();
+          if (data.exists) {
+            onLog?.(`[BLENDER 3D] Render completed: ${data.outputFile}`, 'success');
+          }
+          return data;
+        } catch (e) {
+          return { success: false, error: e.message };
+        }
+      }
+
+      if (name === 'blender_generate_3d_model') {
+        onLog?.(`[BLENDER 3D] Generating procedural 3D model (${args.objectType})...`, 'info');
+        try {
+          const res = await fetch(`${getApiBase()}/api/blender/generate-3d`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(args)
+          });
+          const data = await res.json();
+          if (data.success) {
+            onLog?.(`[BLENDER 3D] 3D Model created & exported to ${data.glbFileName}`, 'success');
+          }
+          return data;
+        } catch (e) {
+          return { success: false, error: e.message };
+        }
+      }
+
+      if (name === 'blender_launch_gui') {
+        onLog?.(`[BLENDER 3D] Launching Blender desktop application...`, 'info');
+        try {
+          const res = await fetch(`${getApiBase()}/api/blender/launch`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ blendFile: args.blendFile })
+          });
+          const data = await res.json();
+          onLog?.(`[BLENDER 3D] Blender GUI launch initiated.`, 'success');
+          return data;
+        } catch (e) {
+          return { launched: false, error: e.message };
+        }
       }
 
       throw new Error(`Unknown tool: ${name}`);

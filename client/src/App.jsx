@@ -39,6 +39,7 @@ import JasperCodeStudioApp from './components/JasperCodeStudioApp';
 import JasperNotesPlannerApp from './components/JasperNotesPlannerApp';
 import JasperCalculatorApp from './components/JasperCalculatorApp';
 import JasperAgentHubWidget from './components/JasperAgentHubWidget';
+import BlenderStudioModal from './components/BlenderStudioModal';
 import geminiClient from './utils/geminiClient';
 import { getServerIp, setServerIp } from './utils/apiConfig.js';
 import { getPhoneBrainMode, setPhoneBrainMode, togglePhoneBrainMode } from './utils/mobileBrain.js';
@@ -214,6 +215,8 @@ export default function App() {
   const setShowTvRemote = (v) => v ? openModal('tvRemote') : closeModal('tvRemote');
   const showAgentHub = isModalOpen('agentHub');
   const setShowAgentHub = (v) => v ? openModal('agentHub') : closeModal('agentHub');
+  const showBlenderStudio = isModalOpen('blenderStudio');
+  const setShowBlenderStudio = (v) => v ? openModal('blenderStudio') : closeModal('blenderStudio');
 
   // Local Component State
   const [showKey, setShowKey] = useState(false);
@@ -1352,6 +1355,9 @@ export default function App() {
                 <button onClick={() => setShowSecurity(!showSecurity)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/30">
                   <ShieldCheck size={12} className="text-amber-400" /> SECURITY CENTER
                 </button>
+                <button onClick={() => setShowBlenderStudio(!showBlenderStudio)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-cyan-500/40 hover:border-cyan-400 bg-cyan-950/20 text-cyan-300">
+                  <Box size={12} className="text-cyan-400" /> BLENDER 3D STUDIO
+                </button>
               </div>
 
               <button 
@@ -1561,6 +1567,15 @@ export default function App() {
                 >
                   <Laptop size={12} className="text-amber-400" />
                   {isMobileLayout ? '💻 Laptop' : '💻 Connect Laptop'}
+                </button>
+
+                <button 
+                  onClick={() => setShowBlenderStudio(true)}
+                  className="btn-hdr-action text-[10px] py-1 px-2 font-mono font-bold text-cyan-300 border-cyan-500/50 bg-cyan-950/60 hover:bg-cyan-900/80 transition-all flex items-center gap-1 cursor-pointer shadow-[0_0_10px_rgba(6,182,212,0.2)]"
+                  title="Open Blender 3D Graphics Studio"
+                >
+                  <Box size={12} className="text-cyan-400" />
+                  {isMobileLayout ? '🎨 3D' : '🎨 Blender 3D'}
                 </button>
 
                 <button 
@@ -2775,6 +2790,15 @@ export default function App() {
           <JasperAgentHubWidget onClose={() => setShowAgentHub(false)} />
         </DraggableModalWrapper>
       )}
+
+      {/* 26. Blender 3D Graphics Studio Modal */}
+      {showBlenderStudio && (
+        <BlenderStudioModal 
+          isOpen={showBlenderStudio} 
+          onClose={() => setShowBlenderStudio(false)} 
+        />
+      )}
+
 
       {/* Voice Triggered Standalone App Overlay Windows */}
       {showSearchEngine && (
