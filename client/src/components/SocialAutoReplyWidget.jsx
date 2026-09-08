@@ -560,6 +560,28 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
         </div>
 
         <div className="flex items-center gap-2">
+          {waWebStatus === 'ready' ? (
+            <div className="px-2.5 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-400/50 text-emerald-300 text-xs font-mono font-bold flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="hidden sm:inline">WA Web Live</span>
+            </div>
+          ) : (
+            <button
+              onClick={() => {
+                if (waWebStatus === 'qr_pending' || waWebQr) {
+                  setShowWaQrModal(true);
+                } else {
+                  handleWaWebConnect();
+                }
+              }}
+              className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600/40 to-teal-600/40 hover:from-emerald-500/50 hover:to-teal-500/50 border border-emerald-400 text-emerald-200 hover:text-white text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] animate-pulse"
+              title="Open WhatsApp Web QR Code to connect auto-send"
+            >
+              <span>🌐</span>
+              <span>Connect WA Web (Auto-Send)</span>
+            </button>
+          )}
+
           <button
             onClick={() => setShowAccountModal(true)}
             className="px-2.5 py-1.5 rounded-xl bg-amber-500/15 border border-amber-400/40 hover:bg-amber-500/25 text-amber-300 text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-[0_0_10px_rgba(245,197,66,0.2)]"
