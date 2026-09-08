@@ -1605,12 +1605,9 @@ export default function App() {
                   className="btn-hdr-status glow-gold cursor-pointer text-[10px] py-1 px-2 flex items-center gap-1 font-mono font-bold"
                   title="Configure AI Engine & Provider"
                 >
-                  {aiProvider === 'chatgpt' || aiProvider === 'astra'
-                    ? (isMobileLayout ? '✨ Astra' : `✨ ChatGPT (${chatGptModel || 'gpt-6-astra'})`)
-                    : (aiProvider === 'ollama' 
-                      ? (isMobileLayout ? '🦙 Ollama' : `🦙 Ollama (${ollamaModel})`)
-                      : (apiKey ? (isMobileLayout ? '☁️ Gemini' : '☁️ Gemini Cloud') : (isMobileLayout ? '○ Offline' : 'Core Offline'))
-                    )
+                  {aiProvider === 'ollama' 
+                    ? (isMobileLayout ? '🦙 Ollama' : `🦙 Ollama (${ollamaModel})`)
+                    : (apiKey ? (isMobileLayout ? '☁️ Gemini' : '☁️ Gemini Cloud') : (isMobileLayout ? '○ Offline' : 'Core Offline'))
                   }
                 </button>
               </div>
@@ -1636,14 +1633,11 @@ export default function App() {
                 onLockSystem={() => setIsLocked(true)}
                 onOpenSettings={() => setShowSettings(true)}
                 aiStatusLabel={
-                  aiProvider === 'chatgpt' || aiProvider === 'astra'
-                    ? `✨ ChatGPT (${chatGptModel || 'gpt-6-astra'})`
-                    : (aiProvider === 'ollama' 
-                      ? `🦙 Ollama (${ollamaModel})`
-                      : (apiKey ? '☁️ Gemini Cloud' : 'Core Offline')
-                    )
+                  aiProvider === 'ollama' 
+                    ? `🦙 Ollama (${ollamaModel})`
+                    : (apiKey ? '☁️ Gemini Cloud' : 'Core Offline')
                 }
-                isAiOnline={Boolean(apiKey || chatGptKey)}
+                isAiOnline={Boolean(apiKey)}
               />
             ) : (
               <>
@@ -2265,34 +2259,20 @@ export default function App() {
                 <label className="text-[10px] text-cyan-300 uppercase font-extrabold flex items-center gap-1 font-orbitron">
                   <Cpu size={14} className="text-cyan-400 animate-pulse" /> Primary AI Engine Provider
                 </label>
-                <div className="grid grid-cols-3 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAiProvider('chatgpt');
-                      geminiClient.setProvider('chatgpt');
-                    }}
-                    className={`py-2 px-2 rounded text-[11px] font-bold font-mono border flex items-center justify-center gap-1 transition-all ${
-                      aiProvider === 'chatgpt' || aiProvider === 'astra'
-                        ? 'bg-emerald-500/25 border-emerald-400 text-emerald-200 shadow-[0_0_12px_rgba(16,185,129,0.3)]'
-                        : 'bg-black/40 border-cyan-500/20 text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    ✨ ChatGPT (Astra)
-                  </button>
+                <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => {
                       setAiProvider('gemini');
                       geminiClient.setProvider('gemini');
                     }}
-                    className={`py-2 px-2 rounded text-[11px] font-bold font-mono border flex items-center justify-center gap-1 transition-all ${
+                    className={`py-2 px-3 rounded text-[11px] font-bold font-mono border flex items-center justify-center gap-1.5 transition-all ${
                       aiProvider === 'gemini'
-                        ? 'bg-purple-500/20 border-purple-400 text-purple-200 shadow-[0_0_10px_rgba(168,85,247,0.2)]'
+                        ? 'bg-purple-500/25 border-purple-400 text-purple-200 shadow-[0_0_12px_rgba(168,85,247,0.3)]'
                         : 'bg-black/40 border-cyan-500/20 text-slate-400 hover:text-slate-200'
                     }`}
                   >
-                    ☁️ Gemini Cloud
+                    ☁️ Google Gemini (Online)
                   </button>
                   <button
                     type="button"
@@ -2300,74 +2280,23 @@ export default function App() {
                       setAiProvider('ollama');
                       geminiClient.setProvider('ollama');
                     }}
-                    className={`py-2 px-2 rounded text-[11px] font-bold font-mono border flex items-center justify-center gap-1 transition-all ${
+                    className={`py-2 px-3 rounded text-[11px] font-bold font-mono border flex items-center justify-center gap-1.5 transition-all ${
                       aiProvider === 'ollama'
-                        ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200 shadow-[0_0_10px_rgba(0,240,255,0.2)]'
+                        ? 'bg-cyan-500/25 border-cyan-400 text-cyan-200 shadow-[0_0_12px_rgba(0,240,255,0.3)]'
                         : 'bg-black/40 border-cyan-500/20 text-slate-400 hover:text-slate-200'
                     }`}
                   >
-                    🦙 Ollama Local
+                    🦙 Ollama Local (Offline)
                   </button>
                 </div>
 
-                {/* ChatGPT Astra Configuration */}
-                {(aiProvider === 'chatgpt' || aiProvider === 'astra') && (
-                  <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-cyan-500/20 bg-emerald-950/20 p-2.5 rounded border border-emerald-500/30">
-                    <div className="flex justify-between items-center">
-                      <label className="text-[9px] text-emerald-300 font-mono uppercase font-bold">Active ChatGPT Model</label>
-                      <span className="text-[8px] text-emerald-400 font-mono font-bold bg-emerald-950 px-1.5 py-0.5 rounded border border-emerald-500/30">
-                        ● Frontier Astra Engine
-                      </span>
-                    </div>
-                    <select
-                      value={chatGptModel}
-                      onChange={(e) => {
-                        setChatGptModel(e.target.value);
-                        geminiClient.setChatGptModel(e.target.value);
-                      }}
-                      className="w-full bg-slate-900 border border-emerald-500/40 rounded px-3 py-1.5 text-xs text-emerald-100 outline-none focus:border-emerald-300 font-mono cursor-pointer"
-                    >
-                      <option value="gpt-6-astra">gpt-6-astra (OpenAI GPT-6 Astra Frontier Model)</option>
-                      <option value="gpt-4o">gpt-4o (OpenAI Omni Flagship Model)</option>
-                      <option value="gpt-4o-mini">gpt-4o-mini (Lightweight Fast Agent Model)</option>
-                      <option value="o3-mini">o3-mini (OpenAI Advanced Reasoning Model)</option>
-                    </select>
-
-                    <div className="flex flex-col gap-1 mt-1">
-                      <label className="text-[9px] text-emerald-300 uppercase font-mono font-bold">ChatGPT / OpenAI API Key</label>
-                      <div className="relative flex items-center">
-                        <input
-                          type={showKey ? 'text' : 'password'}
-                          value={chatGptKey}
-                          onChange={(e) => {
-                            setChatGptKey(e.target.value);
-                            geminiClient.setChatGptKey(e.target.value);
-                          }}
-                          placeholder="Paste OpenAI API Key (sk-proj-...)"
-                          className="w-full bg-black/60 border border-emerald-500/30 rounded px-3 py-2 text-xs text-emerald-100 outline-none focus:border-emerald-400 pr-9 font-mono"
-                        />
-                        <button 
-                          type="button" 
-                          onClick={() => setShowKey(!showKey)}
-                          className="absolute right-2.5 text-emerald-500 hover:text-emerald-400"
-                        >
-                          {showKey ? <EyeOff size={14} /> : <Eye size={14} />}
-                        </button>
-                      </div>
-                      <span className="text-[8px] text-emerald-300/70 font-mono">
-                        Supports GPT-6 Astra, GPT-4o, and tool calling directly on your laptop.
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Ollama Model Selector & Install Guide */}
+                {/* Ollama Model Selector & Status */}
                 {aiProvider === 'ollama' && (
-                  <div className="flex flex-col gap-1.5 mt-2 pt-2 border-t border-cyan-500/20 bg-amber-950/20 p-2.5 rounded border border-amber-500/30">
+                  <div className="flex flex-col gap-1.5 mt-2 pt-2 border-t border-cyan-500/20 bg-cyan-950/20 p-2.5 rounded border border-cyan-500/30">
                     <div className="flex justify-between items-center">
-                      <label className="text-[9px] text-amber-300 font-mono uppercase font-bold">Active Ollama Model</label>
-                      <span className="text-[8px] text-rose-400 font-mono font-bold bg-rose-950 px-1.5 py-0.5 rounded border border-rose-500/30">
-                        ● Offline (Not Installed/Running)
+                      <label className="text-[9px] text-cyan-300 font-mono uppercase font-bold">Active Local Model</label>
+                      <span className="text-[8px] text-emerald-400 font-mono font-bold bg-emerald-950 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                        ● Local Daemon Active (127.0.0.1:11434)
                       </span>
                     </div>
                     <select
@@ -2376,34 +2305,14 @@ export default function App() {
                       className="w-full bg-slate-900 border border-cyan-500/40 rounded px-3 py-1.5 text-xs text-cyan-100 outline-none focus:border-cyan-300 font-mono cursor-pointer"
                     >
                       {availableOllamaModels.map(m => (
-                        <option key={m} value={m}>{m} (Local Ollama Model)</option>
+                        <option key={m} value={m}>{m} (Local Model)</option>
                       ))}
                     </select>
                     
                     <div className="flex flex-col gap-1 mt-1">
-                      <p className="text-[9px] text-amber-200/90 leading-relaxed font-sans">
-                        Ollama runs local models. If Ollama is not active, requests seamlessly process via <strong>Jasper Local Neural Core</strong>.
+                      <p className="text-[9px] text-cyan-200/90 leading-relaxed font-sans">
+                        Runs 100% locally on your laptop with zero internet connection and zero API keys required.
                       </p>
-                      <div className="flex gap-2 mt-1">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setAiProvider('chatgpt');
-                            geminiClient.setProvider('chatgpt');
-                          }}
-                          className="flex-1 py-1.5 bg-emerald-500/25 border border-emerald-400 text-emerald-200 text-[9px] font-bold rounded hover:bg-emerald-500/40 font-mono"
-                        >
-                          ✨ Switch to ChatGPT Astra
-                        </button>
-                        <a
-                          href="https://ollama.com/download/windows"
-                          target="_blank"
-                          rel="noreferrer"
-                          className="py-1.5 px-2 bg-slate-900 border border-cyan-500/30 text-cyan-300 text-[9px] font-bold rounded hover:bg-cyan-950 text-center font-mono"
-                        >
-                          ⬇️ Download Ollama
-                        </a>
-                      </div>
                     </div>
                   </div>
                 )}

@@ -44,13 +44,11 @@ export function JasperAppProvider({ children }) {
     localStorage.setItem('jasper_view_mode', viewMode);
   }, [viewMode]);
 
-  // AI Providers & Brain Settings
+  // AI Providers & Brain Settings (Clean Dual Architecture: Cloud Gemini & Local Ollama)
   const [apiKey, setApiKey] = useState(geminiClient.apiKey);
-  const [chatGptKey, setChatGptKey] = useState(() => geminiClient.chatGptKey || '');
-  const [chatGptModel, setChatGptModel] = useState(() => geminiClient.chatGptModel || 'gpt-6-astra');
-  const [aiProvider, setAiProvider] = useState(() => geminiClient.provider || (geminiClient.chatGptKey ? 'chatgpt' : 'ollama'));
-  const [ollamaModel, setOllamaModel] = useState(() => geminiClient.ollamaModel || 'llama3');
-  const [availableOllamaModels, setAvailableOllamaModels] = useState(['llama3', 'llama3.2', 'qwen2.5', 'mistral', 'gemma2']);
+  const [aiProvider, setAiProvider] = useState(() => geminiClient.provider || 'gemini');
+  const [ollamaModel, setOllamaModel] = useState(() => geminiClient.ollamaModel || 'llama3.2');
+  const [availableOllamaModels, setAvailableOllamaModels] = useState(['llama3.2', 'llama3', 'qwen2.5', 'mistral', 'gemma2']);
   const [serverIp, setServerIpState] = useState(getServerIp);
   const [isPhoneBrainMode, setIsPhoneBrainModeState] = useState(() => getPhoneBrainMode());
 

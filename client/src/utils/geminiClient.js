@@ -1121,34 +1121,9 @@ class GeminiClient {
       promptWithMemory += attachedTextContent;
     }
 
-    // 2. If provider is ChatGPT Astra or OpenAI (or if ChatGPT key is configured)
-    if (this.provider === 'chatgpt' || this.provider === 'astra' || (this.chatGptKey && !this.apiKey)) {
-      onLog(`[JASPER CORE] Processing neural request via ChatGPT Astra API (${this.chatGptModel || 'gpt-6-astra'})...`, 'info');
-      try {
-        const responseText = await this.runChatGptLoop(promptWithMemory, inlineDataParts, onLog);
-        this.chatHistory.push({
-          role: 'user',
-          parts: [{ text: promptWithMemory }]
-        });
-        this.chatHistory.push({
-          role: 'model',
-          parts: [{ text: responseText }]
-        });
-        return responseText;
-      } catch (err) {
-        console.error('[ChatGPT Astra Client Error]:', err);
-        onLog(`[API ERROR] ChatGPT Astra failed: ${err.message}. Checking failover...`, 'error');
-        if (this.apiKey) {
-          onLog(`[FAILOVER] Failing over to Gemini Cloud AI...`, 'warning');
-        } else {
-          return this.handleOllamaQueryMode(userText, onLog, attachments);
-        }
-      }
-    }
-
-    // 3. Fallback to Gemini Cloud if API key is present
-    if (this.apiKey) {
-      onLog(`[JASPER CORE] Processing neural request via Gemini Cloud...`, 'info');
+    // 2. Route directly to Gemini Cloud if API key is configured
+    if (this.apiKey && this.provider !== 'ollama') {
+      onLog(`[JASPER CORE] Processing neural request via Google Gemini Cloud...`, 'info');
       
       const userParts = [
         { text: promptWithMemory },
