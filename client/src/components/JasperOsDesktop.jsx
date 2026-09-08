@@ -129,9 +129,10 @@ function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFo
         if (isDragging) {
           const dx = clientX - dragStartRef.current.x;
           const dy = clientY - dragStartRef.current.y;
+          const maxY = (typeof window !== 'undefined' ? window.innerHeight - 80 : 600);
           setPos({
-            x: dragStartRef.current.posX + dx,
-            y: Math.max(48, dragStartRef.current.posY + dy)
+            x: Math.max(-size.w + 100, Math.min(dragStartRef.current.posX + dx, (typeof window !== 'undefined' ? window.innerWidth - 60 : 1200))),
+            y: Math.max(0, Math.min(dragStartRef.current.posY + dy, maxY))
           });
         } else if (isResizing) {
           const dw = clientX - resizeStartRef.current.x;
@@ -183,12 +184,12 @@ function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFo
     maxHeight: '100vh',
     zIndex: zIndex + 10
   } : {
-    top: `${Math.max(48, pos.y)}px`,
+    top: `${Math.max(0, pos.y)}px`,
     left: `${pos.x}px`,
     width: `${Math.min(size.w, (typeof window !== 'undefined' ? window.innerWidth - 16 : 800))}px`,
-    height: `${Math.min(size.h, (typeof window !== 'undefined' ? window.innerHeight - 90 : 600))}px`,
+    height: `${Math.min(size.h, (typeof window !== 'undefined' ? Math.max(200, window.innerHeight - pos.y - 70) : 600))}px`,
     maxWidth: 'calc(100vw - 16px)',
-    maxHeight: 'calc(100vh - 90px)',
+    maxHeight: `calc(100vh - ${Math.max(0, pos.y)}px - 70px)`,
     zIndex
   };
 
@@ -638,7 +639,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
               id={app.id}
               title={app.title}
               icon={AppIcon}
-              defaultPos={{ x: 60 + (JASPER_OS_APPS_REGISTRY.findIndex(a => a.id === app.id) % 5) * 40, y: 30 + (JASPER_OS_APPS_REGISTRY.findIndex(a => a.id === app.id) % 4) * 35 }}
+              defaultPos={{ x: Math.max(20, Math.min((typeof window !== 'undefined' ? (window.innerWidth - (app.defaultSize?.w || 640)) / 2 : 60) + (JASPER_OS_APPS_REGISTRY.findIndex(a => a.id === app.id) % 5) * 30, (typeof window !== 'undefined' ? window.innerWidth - 300 : 800))), y: Math.max(10, Math.min((typeof window !== 'undefined' ? (window.innerHeight - (app.defaultSize?.h || 480)) / 2 : 50) + (JASPER_OS_APPS_REGISTRY.findIndex(a => a.id === app.id) % 4) * 25, (typeof window !== 'undefined' ? window.innerHeight - 300 : 400))) }}
               defaultSize={app.defaultSize}
               zIndex={activeZIndex[app.id] || 5}
               onFocus={bringToTop}

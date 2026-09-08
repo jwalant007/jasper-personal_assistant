@@ -2857,7 +2857,7 @@ app.post('/api/blender/render', async (req, res) => {
 
 // Procedural 3D model generation and web GLB export
 app.post('/api/blender/generate-3d', async (req, res) => {
-  const { prompt, objectType, color, metallic, roughness, text, renderPreview } = req.body;
+  const { prompt, objectType, color, metallic, roughness, text, renderPreview, apiKey } = req.body;
   try {
     const result = await blenderController.generate3DModel({
       prompt,
@@ -2866,7 +2866,8 @@ app.post('/api/blender/generate-3d', async (req, res) => {
       metallic,
       roughness,
       text,
-      renderPreview
+      renderPreview,
+      apiKey
     });
     res.json(result);
   } catch (e) {

@@ -55,9 +55,8 @@ export default function TvRemoteWidget({ onLog }) {
         throw new Error(data.error || 'Connection failed');
       }
     } catch (err) {
-      setTvStatus('connected'); // Fallback to Virtual Smart TV Gateway
-      setHasToken(true);
-      if (onLog) onLog(`Connected via Virtual Smart TV Gateway! TV IP: ${ip}`, 'success');
+      setTvStatus('disconnected');
+      if (onLog) onLog(`TV connection failed: ${err.message}. Make sure the TV is powered ON and on the same network.`, 'error');
     }
   };
 
@@ -103,7 +102,8 @@ export default function TvRemoteWidget({ onLog }) {
 
   const getStatusText = () => {
     switch (tvStatus) {
-      case 'connected': return 'ONLINE';
+      case 'connected': return 'CONNECTED';
+      case 'reachable': return 'REACHABLE (NOT PAIRED)';
       case 'connecting': return 'PAIRING / CONNECTING';
       case 'disconnected': return 'OFFLINE / DISCONNECTED';
       default: return 'UNCONFIGURED';
@@ -113,6 +113,7 @@ export default function TvRemoteWidget({ onLog }) {
   const getStatusColorClass = () => {
     switch (tvStatus) {
       case 'connected': return 'text-green-400 border-green-500/30';
+      case 'reachable': return 'text-amber-400 border-amber-500/30';
       case 'connecting': return 'text-yellow-400 border-yellow-500/30 animate-pulse';
       case 'disconnected': return 'text-red-400 border-red-500/30';
       default: return 'text-cyan-400 border-cyan-500/30';

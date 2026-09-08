@@ -277,24 +277,78 @@ class BlenderController {
   }
 
   /**
-   * Safely attempt AI neural 3D picture synthesis (Pollinations AI)
+   * AI Neural 3D Picture Synthesis Engine
+   * Attempts: 1) Gemini Imagen 3 (if apiKey provided), 2) Pollinations FLUX with retry
    */
-  async generatePreviewImage(prompt, objectType, color = '#00f0ff') {
-    try {
-      const seed = Math.floor(Math.random() * 1000000);
-      const query = encodeURIComponent(`3D digital render of ${prompt || objectType}, holographic perspective, glowing neon ${color}, dark futuristic studio lighting, high resolution octane 3D render`);
-      const url = `https://image.pollinations.ai/prompt/${query}?width=960&height=720&nologo=true&seed=${seed}`;
-      const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
-      const contentType = res.headers.get('content-type') || '';
-      if (res.ok && contentType.includes('image')) {
-        const buffer = Buffer.from(await res.arrayBuffer());
-        if (buffer && buffer.length > 2048) {
-          return buffer;
+  async generatePreviewImage(prompt, objectType, color = '#00f0ff', apiKey = null) {
+    const subject = prompt || objectType || '3D object';
+    console.log(`[BlenderController] Generating preview image for: "${subject}" (apiKey: ${apiKey ? 'present' : 'none'})`);
+
+    // 1. Try Gemini Imagen 3 if API key is available
+    if (apiKey) {
+      try {
+        console.log('[BlenderController] Attempting Gemini Imagen 3 image generation...');
+        const models = ['imagen-3.0-generate-002', 'gemini-2.0-flash-exp'];
+        for (const model of models) {
+          try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            const requestBody = {
+              contents: [{ parts: [{ text: `3D rendered illustration of ${subject}, Cinema4D style, high detail, Octane render, studio lighting, dark background, photorealistic 3D model visualization` }] }],
+              generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
+            };
+            const res = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(requestBody),
+              signal: AbortSignal.timeout(30000)
+            });
+            if (res.ok) {
+              const data = await res.json();
+              const parts = data.candidates?.[0]?.content?.parts || [];
+              const imagePart = parts.find(p => p.inlineData);
+              if (imagePart) {
+                const buffer = Buffer.from(imagePart.inlineData.data, 'base64');
+                if (buffer.length > 2048) {
+                  console.log(`[BlenderController] ✓ Gemini Imagen generated preview (${Math.round(buffer.length / 1024)}KB via ${model})`);
+                  return buffer;
+                }
+              }
+            }
+          } catch (modelErr) {
+            console.log(`[BlenderController] Gemini model ${model} failed: ${modelErr.message}`);
+          }
         }
+      } catch (geminiErr) {
+        console.log('[BlenderController] Gemini image generation failed, falling back to FLUX:', geminiErr.message);
       }
-    } catch (_) {
-      // Fallback to high-res SVG Blueprint
     }
+
+    // 2. Pollinations FLUX AI - with retry and longer timeout
+    const maxAttempts = 2;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const seed = Math.floor(Math.random() * 1000000);
+        const query = encodeURIComponent(`High quality 3D rendered model of ${subject}, photorealistic, Cinema4D Octane render, detailed, studio lighting, dark moody background, professional 3D visualization`);
+        const url = `https://image.pollinations.ai/prompt/${query}?width=960&height=720&nologo=true&seed=${seed}`;
+        console.log(`[BlenderController] FLUX attempt ${attempt}/${maxAttempts} for "${subject}"...`);
+        const res = await fetch(url, { signal: AbortSignal.timeout(25000) });
+        const contentType = res.headers.get('content-type') || '';
+        if (res.ok && contentType.includes('image')) {
+          const buffer = Buffer.from(await res.arrayBuffer());
+          if (buffer && buffer.length > 2048) {
+            console.log(`[BlenderController] ✓ FLUX generated preview (${Math.round(buffer.length / 1024)}KB, attempt ${attempt})`);
+            return buffer;
+          }
+          console.log(`[BlenderController] FLUX returned small buffer (${buffer?.length || 0} bytes), retrying...`);
+        } else {
+          console.log(`[BlenderController] FLUX returned status ${res.status}, content-type: ${contentType}`);
+        }
+      } catch (err) {
+        console.log(`[BlenderController] FLUX attempt ${attempt} failed: ${err.message}`);
+      }
+    }
+
+    console.log('[BlenderController] All image generation attempts failed, falling back to SVG blueprint');
     return null;
   }
 
@@ -875,7 +929,8 @@ print("[JASPER BLENDER] Render completed successfully.")
     metallic = 0.85,
     roughness = 0.15,
     text = 'JASPER 3D',
-    renderPreview = true
+    renderPreview = true,
+    apiKey = null
   } = {}) {
     const timestamp = Date.now();
     const exportFileName = `model_${objectType}_${timestamp}.glb`;
@@ -904,8 +959,8 @@ print("[JASPER BLENDER] Render completed successfully.")
         fs.writeFileSync(exportPath, glbBuffer);
 
         let previewUrl = null;
-        // 1. Attempt photo-real / digital 3D render picture synthesis
-        const imgBuffer = await this.generatePreviewImage(prompt, objectType, color);
+        // 1. Attempt photo-real / digital 3D render picture synthesis (with apiKey for Gemini)
+        const imgBuffer = await this.generatePreviewImage(prompt, objectType, color, apiKey);
         if (imgBuffer) {
           fs.writeFileSync(previewPath, imgBuffer);
           previewUrl = `/api/blender/render/${previewFileName}`;

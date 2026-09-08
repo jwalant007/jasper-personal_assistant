@@ -57,7 +57,8 @@ export default function DraggableModalWrapper({
         const dy = clientY - dragStartRef.current.y;
         
         const newX = dragStartRef.current.startLeft + dx;
-        const newY = Math.max(8, dragStartRef.current.startTop + dy);
+        const maxY = typeof window !== 'undefined' ? window.innerHeight - 80 : 600;
+        const newY = Math.max(0, Math.min(dragStartRef.current.startTop + dy, maxY));
 
         setPos({ x: newX, y: newY });
       });

@@ -23,7 +23,7 @@ export function JasperAppProvider({ children }) {
   const [showAudioPage, setShowAudioPage] = useState(false);
 
   // Security & Lock State
-  const [isLocked, setIsLocked] = useState(false);
+  const [isLocked, setIsLocked] = useState(true);
   const [biometricMode, setBiometricMode] = useState('idle'); // idle | face_scan | voice_scan | success | failed | face_enroll
   const [lastScanMode, setLastScanMode] = useState(null);
   const [scanStatusText, setScanStatusText] = useState('');

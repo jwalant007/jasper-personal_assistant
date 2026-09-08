@@ -77,6 +77,66 @@ class TvController {
     });
   }
 
+  /**
+   * Verify actual Samsung TV connection by sending a handshake and checking for valid response
+   */
+  verifySamsungConnection(ip = null, timeout = 2500) {
+    const targetIp = ip || this.config.ip;
+    return new Promise((resolve) => {
+      if (!targetIp) return resolve(false);
+      const localInfo = getLocalNetworkInfo();
+      
+      function packString(str) {
+        const buf = Buffer.from(str, 'utf8');
+        const lenBuf = Buffer.alloc(2);
+        lenBuf.writeUInt16LE(buf.length);
+        return Buffer.concat([lenBuf, buf]);
+      }
+      function packPayload(payload) {
+        const lenBuf = Buffer.alloc(2);
+        lenBuf.writeUInt16LE(payload.length);
+        return Buffer.concat([lenBuf, payload]);
+      }
+
+      const b64ip = Buffer.from(localInfo.ip).toString('base64');
+      const b64mac = Buffer.from(localInfo.mac).toString('base64');
+      const b64app = Buffer.from('JASPER Assistant').toString('base64');
+      const b64remote = Buffer.from('iphone.iapp.samsung').toString('base64');
+
+      const payload1 = Buffer.concat([
+        Buffer.from([0x00]),
+        packString(b64app),
+        packString(b64ip),
+        packString(b64mac)
+      ]);
+      const packet1 = Buffer.concat([
+        Buffer.from([0x00]),
+        packString(b64remote),
+        packPayload(payload1)
+      ]);
+
+      let gotResponse = false;
+      const client = net.connect(55000, targetIp, () => {
+        client.write(packet1);
+      });
+      client.setTimeout(timeout);
+      client.on('data', (data) => {
+        gotResponse = true;
+        client.destroy();
+        // If we got any response from the TV after our handshake, it's a real Samsung TV
+        resolve(true);
+      });
+      client.on('error', () => resolve(false));
+      client.on('timeout', () => {
+        client.destroy();
+        resolve(gotResponse);
+      });
+      client.on('close', () => {
+        if (!gotResponse) resolve(false);
+      });
+    });
+  }
+
   async detectActivePort(ip = null) {
     const targetIp = ip || this.config.ip;
     // Check ports in parallel with short timeout: 55000 (legacy), 8002 (WSS), 8001 (WS), 7676 (UPnP)
@@ -262,15 +322,30 @@ class TvController {
 
   async getStatus() {
     const detection = await this.detectActivePort(this.config.ip);
+    
+    // Port open doesn't mean connected — verify with actual Samsung handshake
+    let verified = false;
+    if (detection.online && detection.port === 55000) {
+      try {
+        verified = await this.verifySamsungConnection(this.config.ip, 2000);
+      } catch (_) {
+        verified = false;
+      }
+    } else if (detection.online) {
+      // For WebSocket/UPnP ports, port open is a reasonable indicator
+      verified = detection.online;
+    }
+
     return {
-      status: detection.online ? 'connected' : 'disconnected',
-      isVirtual: !detection.online,
+      status: verified ? 'connected' : (detection.online ? 'reachable' : 'disconnected'),
+      isVirtual: !verified,
       model: `Samsung TV (${detection.protocol})`,
       ip: this.config.ip || '192.168.29.229',
       port: detection.port,
       mac: this.config.mac || '14:49:e0:20:f0:81',
       protocol: detection.protocol,
-      hasToken: true
+      hasToken: verified,
+      portOpen: detection.online
     };
   }
 }
