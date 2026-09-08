@@ -1165,7 +1165,7 @@ export default function App() {
   const [isOsMode, setIsOsMode] = useState(true);
 
   return (
-    <div className={`relative flex flex-col overflow-hidden bg-slate-950 text-cyan-50 select-none ${viewMode === 'mobile' && !isMobileScreen ? 'w-[360px] h-[800px] max-w-[100vw] max-h-[100dvh] mx-auto my-auto rounded-2xl border border-cyan-500/40 shadow-[0_0_50px_rgba(0,240,255,0.25)]' : 'w-full h-screen'}`}>
+    <div className={`relative flex flex-col overflow-hidden bg-black text-cyan-50 select-none ${viewMode === 'mobile' && !isMobileScreen ? 'w-[360px] h-[800px] max-w-[100vw] max-h-[100dvh] mx-auto my-auto rounded-2xl border border-cyan-500/40 shadow-[0_0_50px_rgba(0,240,255,0.25)]' : 'w-full h-screen'}`}>
       
       {/* Electron Drag Region */}
       {typeof window !== 'undefined' && (window.electronAPI || (navigator.userAgent && navigator.userAgent.toLowerCase().includes('electron'))) ? (
@@ -1188,7 +1188,7 @@ export default function App() {
 
         {/* Left Sidebar */}
         {showSidebar && (
-          <aside className={`sidebar-panel flex flex-col justify-between h-full select-none shrink-0 border-r border-cyan-500/20 bg-slate-950/98 backdrop-blur-2xl transition-all duration-300 ${isMobileLayout ? 'fixed inset-y-0 left-0 z-50 w-[270px] max-w-[85vw] shadow-2xl p-3' : 'w-[260px] relative z-20 p-3'}`}>
+          <aside className={`sidebar-panel flex flex-col justify-between h-full select-none shrink-0 border-r border-cyan-500/20 bg-black backdrop-blur-2xl transition-all duration-300 ${isMobileLayout ? 'fixed inset-y-0 left-0 z-50 w-[270px] max-w-[85vw] shadow-2xl p-3' : 'w-[260px] relative z-20 p-3'}`}>
             <div className="flex flex-col gap-4 overflow-y-auto">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -1503,7 +1503,7 @@ export default function App() {
           
           {/* Header Panel (Only shown in Classic mode) */}
           {!isOsMode && (
-            <header className={`flex items-center justify-between border-b border-amber-500/20 bg-neutral-950/80 backdrop-blur-md shrink-0 ${isMobileLayout ? 'px-3 py-2.5 gap-2' : 'px-4 py-2 gap-2'}`}>
+            <header className={`flex items-center justify-between border-b border-amber-500/20 bg-black/95 backdrop-blur-md shrink-0 ${isMobileLayout ? 'px-3 py-2.5 gap-2' : 'px-4 py-2 gap-2'}`}>
               <div className="flex items-center gap-2.5">
                 <button 
                   onClick={() => setShowSidebar(prev => !prev)}
@@ -1649,7 +1649,7 @@ export default function App() {
             <div 
               ref={hudPanelRef}
               onScroll={handleHudScroll}
-              className={`hud-panel flex-1 overflow-y-auto relative bg-gradient-to-b from-amber-950/10 via-neutral-950/60 to-black/80 border border-amber-500/20 ${isMobileLayout ? 'p-3 sm:p-5' : 'p-4'}`}
+              className={`hud-panel flex-1 overflow-y-auto relative bg-black border border-amber-500/20 ${isMobileLayout ? 'p-3 sm:p-5' : 'p-4'}`}
             >
               {/* Scanline laser */}
               <div className="absolute inset-x-0 top-0 h-0.5 bg-amber-500/20 pointer-events-none animate-pulse" />

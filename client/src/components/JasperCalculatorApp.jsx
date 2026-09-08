@@ -124,11 +124,11 @@ export default function JasperCalculatorApp() {
   ];
 
   return (
-    <div className="flex flex-col h-full bg-slate-950 text-slate-100 font-sans p-4 rounded-xl space-y-4">
+    <div className="flex flex-col h-full bg-black text-slate-100 font-sans p-4 rounded-xl space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between bg-cyan-950/40 border border-cyan-500/30 p-2.5 rounded-xl">
+      <div className="flex items-center justify-between bg-black/90 border border-cyan-500/30 p-2.5 rounded-xl shadow-[0_0_15px_rgba(0,0,0,0.9)]">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-cyan-500/20 border border-cyan-400/40 rounded-lg text-cyan-400">
+          <div className="p-1.5 bg-cyan-500/10 border border-cyan-400/40 rounded-lg text-cyan-400">
             <Calculator className="w-5 h-5" />
           </div>
           <div>
@@ -144,7 +144,7 @@ export default function JasperCalculatorApp() {
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => setMode(m => m === 'algebra' ? 'standard' : 'algebra')}
-            className="px-2.5 py-1 text-[11px] font-mono rounded-lg border border-cyan-500/30 bg-cyan-950/60 text-cyan-300 hover:bg-cyan-500/20 transition-all flex items-center gap-1"
+            className="px-2.5 py-1 text-[11px] font-mono rounded-lg border border-neutral-800 bg-black text-cyan-300 hover:bg-neutral-900 transition-all flex items-center gap-1"
           >
             <Cpu className="w-3 h-3 text-cyan-400" />
             <span>Mode: {mode === 'algebra' ? 'Algebra' : 'Standard'}</span>
@@ -161,7 +161,7 @@ export default function JasperCalculatorApp() {
           <button
             key={i}
             onClick={() => loadExample(eq)}
-            className="shrink-0 px-2 py-0.5 bg-cyan-950/40 hover:bg-cyan-500/20 border border-cyan-500/20 hover:border-cyan-400/50 rounded-md text-[11px] text-cyan-300 transition-all"
+            className="shrink-0 px-2 py-0.5 bg-black hover:bg-neutral-900 border border-neutral-800 hover:border-cyan-400/50 rounded-md text-[11px] text-cyan-300 transition-all"
           >
             {eq}
           </button>
@@ -172,7 +172,7 @@ export default function JasperCalculatorApp() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0">
         
         {/* Left Column: Calculator Keypad */}
-        <div className="bg-cyan-950/20 border border-cyan-500/30 rounded-xl p-3 flex flex-col space-y-3">
+        <div className="bg-black border border-neutral-800 rounded-xl p-3 flex flex-col space-y-3 shadow-[0_4px_25px_rgba(0,0,0,1)]">
           {/* Display screen (editable / typable) */}
           <div className="relative">
             <input
@@ -181,7 +181,7 @@ export default function JasperCalculatorApp() {
               onChange={(e) => setDisplay(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSolve(display)}
               placeholder="Enter equation (e.g. 3x + 5 = 20)"
-              className="w-full p-3 bg-black/80 border border-cyan-500/40 rounded-xl text-right font-mono text-lg font-bold text-cyan-300 tracking-wider focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 shadow-[inset_0_2px_8px_rgba(0,0,0,0.8)]"
+              className="w-full p-3 bg-black border border-cyan-500/50 rounded-xl text-right font-mono text-lg font-bold text-cyan-300 tracking-wider focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 shadow-[inset_0_2px_12px_rgba(0,0,0,1)]"
             />
             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-mono text-cyan-500/50 uppercase tracking-wider pointer-events-none">
               {/[a-zA-Z=]/.test(display) ? 'ALGEBRA' : 'MATH'}
@@ -197,17 +197,17 @@ export default function JasperCalculatorApp() {
               const isSpecialOp = ['^', '√', '(', ')'].includes(btn);
               const isArithOp = ['÷', '×', '-', '+'].includes(btn);
 
-              let btnClasses = 'bg-cyan-950/60 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-200';
+              let btnClasses = 'bg-[#080808] hover:bg-neutral-900 border border-neutral-800 text-cyan-200';
               if (isSolve) {
-                btnClasses = 'bg-cyan-500/30 hover:bg-cyan-500/50 border border-cyan-300 text-cyan-100 shadow-[0_0_12px_rgba(0,240,255,0.3)] font-black';
+                btnClasses = 'bg-cyan-500/25 hover:bg-cyan-500/40 border border-cyan-400 text-cyan-100 shadow-[0_0_15px_rgba(0,240,255,0.3)] font-black';
               } else if (isClear) {
-                btnClasses = 'bg-rose-950/40 hover:bg-rose-500/30 border border-rose-500/40 text-rose-200';
+                btnClasses = 'bg-[#150206] hover:bg-rose-950/50 border border-rose-900/60 text-rose-300';
               } else if (isAlgebraVar) {
-                btnClasses = 'bg-amber-950/40 hover:bg-amber-500/30 border border-amber-500/50 text-amber-200 font-black italic';
+                btnClasses = 'bg-[#140a00] hover:bg-amber-950/50 border border-amber-800/60 text-amber-300 font-black italic';
               } else if (isSpecialOp) {
-                btnClasses = 'bg-purple-950/40 hover:bg-purple-500/30 border border-purple-500/40 text-purple-200';
+                btnClasses = 'bg-[#0e0017] hover:bg-purple-950/50 border border-purple-900/60 text-purple-300';
               } else if (isArithOp) {
-                btnClasses = 'bg-cyan-900/40 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-300 font-bold';
+                btnClasses = 'bg-[#020d14] hover:bg-cyan-950/50 border border-cyan-900/60 text-cyan-300 font-bold';
               }
 
               return (
@@ -229,8 +229,8 @@ export default function JasperCalculatorApp() {
         </div>
 
         {/* Right Column: Step-by-Step Algebraic Working & AI Solver */}
-        <div className="bg-cyan-950/20 border border-cyan-500/30 rounded-xl p-3 flex flex-col space-y-3">
-          <div className="text-xs font-mono font-bold text-cyan-300 uppercase tracking-wider flex items-center justify-between border-b border-cyan-500/30 pb-2">
+        <div className="bg-black border border-neutral-800 rounded-xl p-3 flex flex-col space-y-3 shadow-[0_4px_25px_rgba(0,0,0,1)]">
+          <div className="text-xs font-mono font-bold text-cyan-300 uppercase tracking-wider flex items-center justify-between border-b border-neutral-800 pb-2">
             <div className="flex items-center gap-1.5">
               <Sparkles className={`w-4 h-4 text-purple-400 ${isSolving ? 'animate-spin' : ''}`} />
               <span>Step-by-Step Solution & Neural Proof</span>
@@ -239,7 +239,7 @@ export default function JasperCalculatorApp() {
             {aiMathSolution && (
               <button
                 onClick={copySolution}
-                className="px-2 py-0.5 bg-cyan-950/60 hover:bg-cyan-500/20 border border-cyan-500/30 rounded text-[10px] text-cyan-300 flex items-center gap-1 transition-all"
+                className="px-2 py-0.5 bg-black hover:bg-neutral-900 border border-neutral-800 rounded text-[10px] text-cyan-300 flex items-center gap-1 transition-all"
                 title="Copy Solution"
               >
                 {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
@@ -256,19 +256,19 @@ export default function JasperCalculatorApp() {
               onChange={(e) => setAiMathQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && solveMathWithAi()}
               placeholder="e.g. solve 3x + 5 = 20 or derivative of sin(x^2)"
-              className="flex-1 px-3 py-2 bg-black/60 border border-cyan-500/40 rounded-lg text-xs font-mono text-cyan-200 focus:outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
+              className="flex-1 px-3 py-2 bg-black border border-neutral-800 focus:border-cyan-400 rounded-lg text-xs font-mono text-cyan-200 focus:outline-none focus:ring-1 focus:ring-cyan-400"
             />
             <button
               onClick={() => solveMathWithAi()}
               disabled={isSolving || !aiMathQuery.trim()}
-              className="px-3.5 py-2 bg-purple-500/30 hover:bg-purple-500/50 border border-purple-400 text-purple-200 rounded-lg font-mono text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+              className="px-3.5 py-2 bg-purple-950/40 hover:bg-purple-900/60 border border-purple-600/60 text-purple-200 rounded-lg font-mono text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
             >
               {isSolving ? 'Solving...' : 'Solve'}
             </button>
           </div>
 
           {/* Solution Pane */}
-          <div className="flex-1 min-h-[220px] bg-slate-950/80 border border-cyan-500/20 rounded-xl p-3 font-mono text-xs text-slate-200 overflow-y-auto whitespace-pre-wrap leading-relaxed custom-scrollbar selection:bg-purple-500/30">
+          <div className="flex-1 min-h-[220px] bg-black border border-neutral-800 rounded-xl p-3 font-mono text-xs text-slate-200 overflow-y-auto whitespace-pre-wrap leading-relaxed custom-scrollbar selection:bg-purple-500/30">
             {aiMathSolution ? (
               <div className="space-y-1 text-slate-200">
                 {aiMathSolution}

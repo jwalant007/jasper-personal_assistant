@@ -115,7 +115,7 @@ export default function DraggableModalWrapper({
   } : {});
 
   return (
-    <div className={`fixed inset-0 z-50 ${pos || isMaximized ? 'pointer-events-none' : 'flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto'}`}>
+    <div className={`fixed inset-0 z-50 ${pos || isMaximized ? 'pointer-events-none' : 'flex items-center justify-center p-2 sm:p-4 bg-black/90 backdrop-blur-md overflow-y-auto'}`}>
       {/* Click outside backdrop when centered */}
       {!pos && !isMaximized && (
         <div 
@@ -127,7 +127,7 @@ export default function DraggableModalWrapper({
       <div
         ref={dragRef}
         style={modalStyle}
-        className={`pointer-events-auto relative ${isMaximized ? 'w-full h-full' : `${maxWidth} w-[96vw]`} flex flex-col transition-all duration-150 rounded-2xl overflow-hidden bg-neutral-950/95 border border-amber-500/40 shadow-[0_10px_50px_rgba(0,0,0,0.9)] backdrop-blur-2xl ${
+        className={`pointer-events-auto relative ${isMaximized ? 'w-full h-full' : `${maxWidth} w-[96vw]`} flex flex-col transition-all duration-150 rounded-2xl overflow-hidden bg-black border border-neutral-800 shadow-[0_10px_50px_rgba(0,0,0,1)] backdrop-blur-2xl ${
           isDragging 
             ? 'cursor-grabbing shadow-[0_0_50px_rgba(245,197,66,0.4)] ring-2 ring-amber-400/50 select-none' 
             : ''
@@ -137,7 +137,7 @@ export default function DraggableModalWrapper({
         <div
           onMouseDown={handleMouseDown}
           onTouchStart={handleTouchStart}
-          className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-amber-950/90 via-neutral-900/95 to-amber-950/90 border-b border-amber-500/40 text-amber-300 text-xs font-mono select-none cursor-grab active:cursor-grabbing backdrop-blur-xl shrink-0"
+          className="flex items-center justify-between px-3 py-2 bg-black border-b border-neutral-800 text-amber-300 text-xs font-mono select-none cursor-grab active:cursor-grabbing backdrop-blur-xl shrink-0"
         >
           <div className="flex items-center gap-2">
             <Move className="w-3.5 h-3.5 text-amber-400" />
