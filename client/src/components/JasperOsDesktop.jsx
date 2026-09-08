@@ -261,7 +261,7 @@ function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFo
 /**
  * MAIN JASPER OS SPATIAL DESKTOP APPLICATION ENVIRONMENT
  */
-export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'idle', onMicClick, onLockSystem }) {
+export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'idle', onMicClick, onLockSystem, onOpenSettings, aiStatusLabel = 'Core Offline', isAiOnline = false }) {
   const [activeWorkspace, setActiveWorkspace] = useState('all');
   const [appSearchQuery, setAppSearchQuery] = useState('');
   const [openWindows, setOpenWindows] = useState({
@@ -425,6 +425,21 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
             <span className="flex items-center gap-1 text-amber-400"><Cpu className="w-3.5 h-3.5" /> CPU: 12%</span>
             <span className="flex items-center gap-1 text-amber-400"><HardDrive className="w-3.5 h-3.5" /> RAM: 3.8GB</span>
           </div>
+
+          {onOpenSettings && (
+            <button
+              onClick={onOpenSettings}
+              className={`px-2.5 py-1 rounded-lg font-mono text-xs flex items-center gap-1.5 transition-all border ${
+                isAiOnline
+                  ? 'bg-emerald-500/20 hover:bg-emerald-500/30 border-emerald-400/60 text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.2)]'
+                  : 'bg-amber-500/20 hover:bg-amber-500/30 border-amber-400/60 text-amber-300 animate-pulse shadow-[0_0_10px_rgba(245,197,66,0.2)]'
+              }`}
+              title="Click to configure AI Neural Core & API Keys"
+            >
+              <Settings className="w-3.5 h-3.5 text-amber-400" />
+              <span>{aiStatusLabel}</span>
+            </button>
+          )}
 
           <button
             onClick={onToggleClassicMode}

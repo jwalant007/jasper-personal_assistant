@@ -1634,6 +1634,16 @@ export default function App() {
                   }
                 }}
                 onLockSystem={() => setIsLocked(true)}
+                onOpenSettings={() => setShowSettings(true)}
+                aiStatusLabel={
+                  aiProvider === 'chatgpt' || aiProvider === 'astra'
+                    ? `✨ ChatGPT (${chatGptModel || 'gpt-6-astra'})`
+                    : (aiProvider === 'ollama' 
+                      ? `🦙 Ollama (${ollamaModel})`
+                      : (apiKey ? '☁️ Gemini Cloud' : 'Core Offline')
+                    )
+                }
+                isAiOnline={Boolean(apiKey || chatGptKey)}
               />
             ) : (
               <>
