@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getApiBase } from '../utils/apiConfig.js';
-import { Workflow, Plus, Play, Trash2, ArrowRight, Zap, Volume2, Monitor, Smartphone, XCircle, CheckCircle2, Copy, Layers, Bell, Tv, BatteryCharging } from 'lucide-react';
+import { Workflow, Plus, Play, Trash2, ArrowRight, Zap, XCircle, CheckCircle2, Copy, Layers, Bell, Tv, BatteryCharging } from 'lucide-react';
 
 export default function AutomationBuilderWidget({ onClose }) {
   const [workflows, setWorkflows] = useState(() => {

@@ -20,21 +20,33 @@ function getAdbPath() {
 
 const adbBin = getAdbPath();
 
+function isPhysicalConnected() {
+  return !PhoneController.virtualMode && 
+         Boolean(PhoneController.activeDeviceId) && 
+         PhoneController.activeDeviceId !== 'JASPER-VIRTUAL-ADB';
+}
+
 // Helper to run adb commands
 async function runAdb(command) {
+  const metaCommands = ['devices', 'connect', 'disconnect', 'start-server', 'kill-server'];
+  const isMetaCommand = metaCommands.some(meta => command.startsWith(meta));
+
+  if (!isMetaCommand && !isPhysicalConnected()) {
+    throw new Error('No physical Android device connected');
+  }
+
   try {
     let targetCommand = command;
-    const metaCommands = ['devices', 'connect', 'disconnect', 'start-server', 'kill-server'];
-    const isMetaCommand = metaCommands.some(meta => command.startsWith(meta));
     if (PhoneController.activeDeviceId && !PhoneController.virtualMode && !isMetaCommand) {
       targetCommand = `-s ${PhoneController.activeDeviceId} ${command}`;
     }
     const fullCommand = `${adbBin} ${targetCommand}`;
-    console.log(`[PhoneController] Executing: ${fullCommand}`);
     const { stdout, stderr } = await execPromise(fullCommand, { timeout: 10000 });
     return stdout.trim();
   } catch (error) {
-    console.error(`[PhoneController] Error executing ADB command: ${error.message}`);
+    if (!error.message.includes('no devices/emulators found') && !error.message.includes('No physical Android device connected')) {
+      console.error(`[PhoneController] ADB command error: ${error.message}`);
+    }
     throw error;
   }
 }
@@ -66,7 +78,8 @@ function generateVirtualPhoneScreenshot() {
 const PhoneController = {
   activeDeviceId: null,
   lastKnownIp: '192.168.29.159:42931',
-  virtualMode: false,
+  virtualMode: true, // Default to true until physical connection confirmed
+  isPhysicalConnected: isPhysicalConnected,
 
   // Check if device is connected
   status: async () => {
@@ -331,6 +344,9 @@ const PhoneController = {
   },
 
   notifications: async () => {
+    if (!isPhysicalConnected()) {
+      return [];
+    }
     try {
       const stdout = await runAdb(`shell dumpsys notification --noredact`);
       const records = stdout.split(/NotificationRecord[\{\(]/);
@@ -346,16 +362,17 @@ const PhoneController = {
           results.push({ package: pkg, title: titleMatch ? titleMatch[1] : '', text: textMatch ? textMatch[1] : '' });
         }
       }
-      if (results.length > 0) return results;
-    } catch (e) {}
-
-    // High-fidelity fallback notifications when physical phone is not attached
-    return [
-      { package: 'com.whatsapp', title: 'Mom (WhatsApp)', text: 'See you tomorrow at 8 PM for dinner!' },
-      { package: 'com.google.android.calendar', title: 'Google Calendar', text: 'Upcoming: AI Architecture Review at 9:00 AM' },
-      { package: 'com.spotify.music', title: 'Spotify', text: 'Now Playing: Cyberpunk 2077 OST - I Really Want to Stay at Your House' }
-    ];
+      return results;
+    } catch (e) {
+      return [];
+    }
   },
+
+  simulatedNotifications: () => [
+    { package: 'com.whatsapp', title: 'Mom (WhatsApp)', text: 'See you tomorrow at 8 PM for dinner!' },
+    { package: 'com.google.android.calendar', title: 'Google Calendar', text: 'Upcoming: AI Architecture Review at 9:00 AM' },
+    { package: 'com.spotify.music', title: 'Spotify', text: 'Now Playing: Cyberpunk 2077 OST - I Really Want to Stay at Your House' }
+  ],
 
   lock: async () => {
     try {
@@ -504,7 +521,7 @@ const PhoneController = {
   syncPhoneContacts: async () => {
     let rawContacts = [];
     try {
-      if (!PhoneController.virtualMode) {
+      if (isPhysicalConnected()) {
         // 1. Query Phone Dialer Contacts Address Book
         try {
           const contactOutput = await runAdb(`shell "content query --uri content://com.android.contacts/data/phones --projection display_name:data1"`);
@@ -679,6 +696,9 @@ const PhoneController = {
   },
 
   contacts: async () => {
+    if (!isPhysicalConnected()) {
+      return PhoneController.fallbackContacts();
+    }
     try {
       const stdout = await runAdb(`shell content query --uri content://com.android.contacts/data/phones`);
       const rows = stdout.split(/Row:\s*\d+/);
@@ -711,15 +731,20 @@ const PhoneController = {
     } catch (e) {}
 
     // Realistic fallback contacts list when physical phone is not attached
-    return [
-      { id: 101, name: 'Mom', phone: '+91 98200 12345', category: 'Family', avatar: '❤️', defaultTask: 'Inform Mom I am running 15 minutes late for dinner.' },
-      { id: 102, name: 'Dr. Mehta (Dentist)', phone: '+91 98211 23456', category: 'Health', avatar: '🩺', defaultTask: 'Schedule a dental checkup appointment for Friday at 10 AM.' },
-      { id: 103, name: 'Alex (Auto Mechanic)', phone: '+91 98222 34567', category: 'Services', avatar: '🔧', defaultTask: 'Ask if my car service is complete and what the total bill is.' },
-      { id: 104, name: 'Sarah (Office Boss)', phone: '+91 98233 45678', category: 'Work', avatar: '💼', defaultTask: 'Notify that the quarterly AI report draft has been uploaded.' },
-      { id: 105, name: 'Pizza Express', phone: '+91 98244 56789', category: 'Food', avatar: '🍕', defaultTask: 'Inquire if large Pepperoni pizza special is available for pickup.' },
-      { id: 106, name: 'Rajesh (Landlord)', phone: '+91 98255 67890', category: 'Housing', avatar: '🏠', defaultTask: 'Ask when water heater maintenance technician is scheduled.' }
-    ];
-  }
+    return PhoneController.fallbackContacts();
+  },
+
+  fallbackContacts: () => [
+    { id: 101, name: 'Mom', phone: '+91 98200 12345', category: 'Family', avatar: '❤️', defaultTask: 'Inform Mom I am running 15 minutes late for dinner.' },
+    { id: 102, name: 'Dr. Mehta (Dentist)', phone: '+91 98211 23456', category: 'Health', avatar: '🩺', defaultTask: 'Schedule a dental checkup appointment for Friday at 10 AM.' },
+    { id: 103, name: 'Alex (Auto Mechanic)', phone: '+91 98222 34567', category: 'Services', avatar: '🔧', defaultTask: 'Ask if my car service is complete and what the total bill is.' },
+    { id: 104, name: 'Sarah (Office Boss)', phone: '+91 98233 45678', category: 'Work', avatar: '💼', defaultTask: 'Notify that the quarterly AI report draft has been uploaded.' },
+    { id: 105, name: 'Pizza Express', phone: '+91 98244 56789', category: 'Food', avatar: '🍕', defaultTask: 'Inquire if large Pepperoni pizza special is available for pickup.' },
+    { id: 106, name: 'Rajesh (Landlord)', phone: '+91 98255 67890', category: 'Housing', avatar: '🏠', defaultTask: 'Ask when water heater maintenance technician is scheduled.' }
+  ]
 };
+
+// Auto-check phone status immediately on module load
+PhoneController.status().catch(() => {});
 
 module.exports = PhoneController;

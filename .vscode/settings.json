@@ -28,14 +28,11 @@
     }
   ],
   "java.configuration.updateBuildConfiguration": "automatic",
-  "python.defaultInterpreterPath": "C:\\Program Files\\Python310\\python.exe",
+  "java.jdt.ls.vmargs": "-XX:+UseParallelGC -Xmx1G -Xms100m",
+  "python.defaultInterpreterPath": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
   "python.terminal.activateEnvironment": true,
-  "python.condaPath": "",
-  "python.experiments.optOutFrom": [
-    "pythonLocator"
-  ],
   "python.analysis.extraPaths": [
-    "./jasper-os/jasper-ai",
-    "./jasper-os/installer"
+    "${workspaceFolder}/jasper-os/jasper-ai",
+    "${workspaceFolder}/jasper-os/installer"
   ]
 }

@@ -1479,6 +1479,7 @@ app.post('/api/social/sync-contacts', async (req, res) => {
 // Syncs Call App (Call logs & Contacts), WhatsApp and Instagram every 45s continuously
 setInterval(async () => {
   try {
+    if (phoneController.virtualMode || (phoneController.isPhysicalConnected && !phoneController.isPhysicalConnected())) return;
     const synced = await phoneController.syncPhoneContacts();
     if (synced && synced.length > 0) {
       let current = dbManager.getSocialContacts();
