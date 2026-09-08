@@ -638,27 +638,29 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
                 <span className="font-bold">{accountConfig.senderNumber || '+91 7984173128'}</span>
               </div>
 
-              {/* WhatsApp Web Status Badge */}
+              {/* WhatsApp Web Status Badge & Connect Button */}
               {waWebStatus === 'ready' ? (
                 <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-600/20 border border-emerald-400/50 text-emerald-200 text-xs font-mono shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                  <span className="font-bold">WA Web: LIVE AUTO-SEND</span>
+                  <span className="font-bold">WA Web: LIVE</span>
                 </div>
               ) : waWebStatus === 'qr_pending' ? (
                 <button
                   type="button"
                   onClick={() => setShowWaQrModal(true)}
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-600/20 border border-amber-400/50 text-amber-200 text-xs font-mono shrink-0 hover:bg-amber-600/40 transition-all animate-pulse"
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400 text-amber-300 text-xs font-mono shrink-0 whitespace-nowrap transition-all shadow-[0_0_12px_rgba(245,197,66,0.3)] animate-pulse cursor-pointer"
+                  title="Click to view WhatsApp Web QR code and scan"
                 >
-                  <span className="text-[10px] font-bold">📱 Scan QR to Connect WA Web</span>
+                  <span className="text-[11px] font-bold">📱 Connect WA Web (Scan QR)</span>
                 </button>
               ) : (
                 <button
                   type="button"
                   onClick={handleWaWebConnect}
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-neutral-800 border border-neutral-600/50 text-neutral-300 hover:text-white hover:border-amber-400/50 text-xs font-mono shrink-0 transition-all"
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-neutral-800 hover:bg-neutral-700 border border-neutral-600/60 text-neutral-200 hover:text-white hover:border-amber-400/60 text-xs font-mono shrink-0 whitespace-nowrap transition-all cursor-pointer"
+                  title="Initialize WhatsApp Web session"
                 >
-                  <span className="text-[10px] font-bold">🌐 Connect WA Web (Auto-Send)</span>
+                  <span className="text-[11px] font-bold">🌐 Connect WA Web (Auto-Send)</span>
                 </button>
               )}
             </div>
