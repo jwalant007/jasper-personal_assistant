@@ -45,3 +45,7 @@ venv/
 
 # Generated 3D assets & temporary renders
 server/data/blender/
+
+# WhatsApp Web session authentication & cache
+.wwebjs_auth/
+.wwebjs_cache/

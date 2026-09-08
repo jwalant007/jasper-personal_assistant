@@ -41,10 +41,24 @@ function initWhatsAppWebClient() {
   console.log('[WhatsApp Web] Initializing WhatsApp Web client...');
   waClientStatus = 'initializing';
 
+  // Locate installed Chrome or Edge executable on Windows
+  const chromePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+  const chromePathX86 = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe';
+  const edgePath = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+  let executablePath = undefined;
+  try {
+    if (fs.existsSync(chromePath)) executablePath = chromePath;
+    else if (fs.existsSync(chromePathX86)) executablePath = chromePathX86;
+    else if (fs.existsSync(edgePath)) executablePath = edgePath;
+  } catch(e) {}
+
+  console.log(`[WhatsApp Web] Using browser binary: ${executablePath || 'bundled puppeteer chromium'}`);
+
   waClient = new Client({
     authStrategy: new LocalAuth({ clientId: 'jasper-assistant' }),
     puppeteer: {
       headless: true,
+      executablePath,
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu', '--disable-dev-shm-usage']
     }
   });
@@ -70,6 +84,53 @@ function initWhatsAppWebClient() {
     global.jasperWAClientReady = true;
     console.log('[WhatsApp Web] Client READY! Auto-send active via WhatsApp Web.');
     broadcastToClients({ type: 'WA_STATUS', status: 'ready', message: 'WhatsApp Web connected! Auto-send active.' });
+  });
+
+  // Automated WhatsApp Message Responder
+  waClient.on('message', async (msg) => {
+    try {
+      if (msg.fromMe) return; // Ignore outgoing messages
+      const from = msg.from;
+      if (from.endsWith('@g.us')) return; // Skip group chats by default
+
+      const config = dbManager.getSocialAutoReplyConfig();
+      if (!config.whatsappEnabled) {
+        console.log('[WhatsApp Web] Incoming message ignored because WhatsApp Auto-Reply is toggled OFF.');
+        return;
+      }
+
+      const fromNumber = from.replace('@c.us', '');
+      const incomingText = msg.body || '';
+      console.log(`[WhatsApp Web Auto-Responder] Message from ${fromNumber}: "${incomingText}"`);
+
+      let replyText = config.presets[config.activePreset] || config.presets.drive;
+      if (config.activePreset === 'ai_smart') {
+        replyText = `JASPER AI Assistant: Jwalant is currently occupied. I have logged your message: "${incomingText.slice(0, 50)}" and will alert him shortly.`;
+      }
+
+      // Check emergency keyword
+      if (config.emergencyKeyword && incomingText.toUpperCase().includes(config.emergencyKeyword.toUpperCase())) {
+        replyText = `🚨 URGENT PRIORITY ALERT: Your emergency message has been flagged to Jwalant with high priority. Stand by.`;
+      }
+
+      await msg.reply(replyText);
+      console.log(`[WhatsApp Web Auto-Responder] Dispatched automated reply to ${fromNumber}: "${replyText}"`);
+
+      const log = dbManager.addSocialLog({
+        platform: 'whatsapp',
+        type: 'auto_reply',
+        recipient: fromNumber,
+        recipientName: msg._data?.notifyName || fromNumber,
+        incomingTextOrCall: `Incoming WhatsApp: "${incomingText}"`,
+        actionTaken: `Auto-replied with ${config.activePreset.toUpperCase()} Mode Preset via WhatsApp Web`,
+        messageSent: replyText,
+        status: 'Delivered'
+      });
+
+      broadcastToClients({ type: 'SOCIAL_MESSAGE_SENT', log });
+    } catch(err) {
+      console.error('[WhatsApp Web Auto-Responder Error]:', err.message);
+    }
   });
 
   waClient.on('disconnected', (reason) => {
@@ -1443,6 +1504,70 @@ setInterval(async () => {
     }
   } catch (e) {}
 }, 45000);
+
+// --- AUTOMATED INCOMING NOTIFICATION & CALL AUTO-REPLY WATCHER ---
+const processedNotifSet = new Set();
+setInterval(async () => {
+  try {
+    const config = dbManager.getSocialAutoReplyConfig();
+    if (!config.whatsappEnabled && !config.instagramEnabled && !config.callAutoDeclineAndMsg) return;
+    if (phoneController.virtualMode) return;
+
+    const notifs = await phoneController.notifications();
+    if (Array.isArray(notifs) && notifs.length > 0) {
+      for (const n of notifs) {
+        const key = `${n.package}_${n.title}_${n.text}`;
+        if (processedNotifSet.has(key)) continue;
+
+        // Auto-reply to incoming WhatsApp notification on phone
+        if (n.package === 'com.whatsapp' && config.whatsappEnabled && n.title && n.text) {
+          processedNotifSet.add(key);
+          if (processedNotifSet.size > 200) processedNotifSet.clear();
+
+          const sender = n.title.replace(/\s*\(\d+\s*messages?\)/i, '').trim();
+          const replyText = config.presets[config.activePreset] || config.presets.drive;
+          console.log(`[AutoReply Phone Daemon] Auto-replying to WhatsApp from ${sender}`);
+          await phoneController.whatsappSend(sender, replyText);
+
+          const log = dbManager.addSocialLog({
+            platform: 'whatsapp',
+            type: 'auto_reply',
+            recipient: sender,
+            recipientName: sender,
+            incomingTextOrCall: `Incoming WhatsApp: "${n.text}"`,
+            actionTaken: `Auto-replied with ${config.activePreset.toUpperCase()} Mode Preset (Android Hook)`,
+            messageSent: replyText,
+            status: 'Delivered'
+          });
+          broadcastToClients({ type: 'SOCIAL_MESSAGE_SENT', log });
+        }
+
+        // Auto-reply to incoming Instagram DM notification on phone
+        if (n.package === 'com.instagram.android' && config.instagramEnabled && n.title && n.text) {
+          processedNotifSet.add(key);
+          if (processedNotifSet.size > 200) processedNotifSet.clear();
+
+          const sender = n.title.split(/[:\s]/)[0].trim();
+          const replyText = config.presets[config.activePreset] || config.presets.drive;
+          console.log(`[AutoReply Phone Daemon] Auto-replying to Instagram DM from ${sender}`);
+          await phoneController.instagramSend(sender, replyText);
+
+          const log = dbManager.addSocialLog({
+            platform: 'instagram',
+            type: 'auto_reply',
+            recipient: sender,
+            recipientName: sender,
+            incomingTextOrCall: `Incoming Instagram DM: "${n.text}"`,
+            actionTaken: `Auto-replied with ${config.activePreset.toUpperCase()} Mode Preset (Android Hook)`,
+            messageSent: replyText,
+            status: 'Delivered'
+          });
+          broadcastToClients({ type: 'SOCIAL_MESSAGE_SENT', log });
+        }
+      }
+    }
+  } catch(e) {}
+}, 6000);
 
 // --- WhatsApp Web Client Routes ---
 
