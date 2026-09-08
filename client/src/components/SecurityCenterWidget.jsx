@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Camera, Mic, Lock, Smartphone, Key, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
 
-export default function SecurityCenterWidget({ onClose, hasFaceProfile = false, onTriggerFaceEnroll }) {
+export default function SecurityCenterWidget({ onClose, hasFaceProfile = false, onTriggerFaceEnroll, onLockSystem }) {
   const [activeTab, setActiveTab] = useState('face'); // face, voice, devices, encryption
   const [encryptionActive, setEncryptionActive] = useState(true);
   const [trustedDevices, setTrustedDevices] = useState([
@@ -31,11 +31,23 @@ export default function SecurityCenterWidget({ onClose, hasFaceProfile = false, 
             <p className="text-xs text-slate-400">Biometrics, Whitelists & Encryption Shield</p>
           </div>
         </div>
-        {onClose && (
-          <button onClick={onClose} className="p-2 rounded-lg bg-slate-800/60 hover:bg-rose-500/20 hover:text-rose-400 text-slate-400">
-            <XCircle className="w-5 h-5" />
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {onLockSystem && (
+            <button
+              onClick={onLockSystem}
+              className="px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/35 border border-rose-500/50 hover:border-rose-400 text-rose-300 hover:text-rose-100 flex items-center gap-1.5 text-xs font-mono font-bold transition-all shadow-[0_0_12px_rgba(244,63,94,0.25)] cursor-pointer"
+              title="Lock JASPER OS with Biometrics"
+            >
+              <Lock className="w-3.5 h-3.5 text-rose-400" />
+              <span>Lock Workstation</span>
+            </button>
+          )}
+          {onClose && (
+            <button onClick={onClose} className="p-2 rounded-lg bg-slate-800/60 hover:bg-rose-500/20 hover:text-rose-400 text-slate-400">
+              <XCircle className="w-5 h-5" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Tabs */}

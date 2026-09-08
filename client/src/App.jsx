@@ -2008,7 +2008,7 @@ export default function App() {
 
       {/* Security lock state */}
       {isLocked && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center p-3 bg-black/95 backdrop-blur-lg overflow-y-auto">
+        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-3 bg-black/95 backdrop-blur-lg overflow-y-auto">
           <div className="hud-panel max-w-md w-[92vw] sm:w-full p-5 sm:p-8 font-mono text-center flex flex-col gap-5 relative select-none my-auto">
             <div className="absolute inset-x-0 top-0 h-0.5 bg-cyan-500/20 pointer-events-none" />
             
