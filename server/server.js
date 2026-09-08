@@ -2792,6 +2792,16 @@ app.get('/api/blender/status', async (req, res) => {
   }
 });
 
+// Get latest generated 3D model and render
+app.get('/api/blender/latest', async (req, res) => {
+  try {
+    const latest = await blenderController.getLatestAsset();
+    res.json(latest);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Configure custom Blender binary path
 app.post('/api/blender/path', async (req, res) => {
   const { path: blenderPath } = req.body;

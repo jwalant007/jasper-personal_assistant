@@ -73,6 +73,18 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
     if (initialQuery) {
       setQuery(initialQuery);
       handleAskQuery(initialQuery);
+    } else {
+      // Auto-fetch latest synthesized 3D asset from Blender Graphics Core
+      fetch(`${getApiBase()}/api/blender/latest`)
+        .then(res => res.json())
+        .then(data => {
+          if (data?.latest?.glbUrl) {
+            setBlenderModelUrl(data.latest.glbUrl);
+            if (data.latest.previewUrl) setBlenderPreviewUrl(data.latest.previewUrl);
+            setBlenderDetails(data.latest);
+          }
+        })
+        .catch(() => {});
     }
   }, [initialQuery]);
 

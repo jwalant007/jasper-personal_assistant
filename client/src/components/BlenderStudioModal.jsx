@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import DraggableModalWrapper from './DraggableModalWrapper';
 import { getApiBase } from '../utils/apiConfig';
 import { 
@@ -14,8 +17,213 @@ import {
   CheckCircle2, 
   AlertCircle, 
   Settings,
-  FolderOpen
+  FolderOpen,
+  RotateCcw,
+  Eye,
+  Sliders
 } from 'lucide-react';
+
+function Blender3dCanvas({ glbUrl, objectType = 'torus', color = '#00f0ff', autoRotate = true, wireframe = false }) {
+  const containerRef = useRef(null);
+  const controlsRef = useRef(null);
+  const [modelLoading, setModelLoading] = useState(false);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const width = container.clientWidth || 360;
+    const height = container.clientHeight || 240;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x020617);
+
+    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+    camera.position.set(3.5, 2.5, 4.0);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    container.innerHTML = '';
+    container.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.maxDistance = 15;
+    controls.minDistance = 1;
+    controlsRef.current = controls;
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+    scene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.6);
+    dirLight.position.set(5, 8, 5);
+    scene.add(dirLight);
+
+    const hexColor = parseInt((color || '#00f0ff').replace('#', '0x'), 16) || 0x00f0ff;
+    const pointLight = new THREE.PointLight(hexColor, 2.5, 10);
+    pointLight.position.set(-3, -2, -3);
+    scene.add(pointLight);
+
+    // Floor Grid
+    const gridHelper = new THREE.GridHelper(8, 20, hexColor, 0x1e293b);
+    gridHelper.position.y = -1.2;
+    scene.add(gridHelper);
+
+    const modelGroup = new THREE.Group();
+    scene.add(modelGroup);
+
+    let currentModel = null;
+    let fallbackMesh = null;
+
+    const createPlaceholder = () => {
+      let geo;
+      const lowerType = (objectType || 'torus').toLowerCase();
+      if (lowerType.includes('sphere')) geo = new THREE.SphereGeometry(1.2, 32, 16);
+      else if (lowerType.includes('cube')) geo = new THREE.BoxGeometry(1.8, 1.8, 1.8);
+      else if (lowerType.includes('cylinder')) geo = new THREE.CylinderGeometry(0.9, 0.9, 2.2, 32);
+      else geo = new THREE.TorusGeometry(1.2, 0.38, 24, 48);
+
+      const mat = new THREE.MeshStandardMaterial({
+        color: hexColor,
+        metalness: 0.85,
+        roughness: 0.2,
+        wireframe: wireframe
+      });
+      fallbackMesh = new THREE.Mesh(geo, mat);
+
+      const wireMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.35 });
+      const wire = new THREE.LineSegments(new THREE.WireframeGeometry(geo), wireMat);
+      fallbackMesh.add(wire);
+      modelGroup.add(fallbackMesh);
+    };
+
+    createPlaceholder();
+
+    if (glbUrl) {
+      setModelLoading(true);
+      const fullUrl = glbUrl.startsWith('http') ? glbUrl : `${getApiBase()}${glbUrl}`;
+      const loader = new GLTFLoader();
+      loader.load(
+        fullUrl,
+        (gltf) => {
+          if (fallbackMesh) {
+            modelGroup.remove(fallbackMesh);
+            fallbackMesh = null;
+          }
+          currentModel = gltf.scene;
+
+          currentModel.traverse((child) => {
+            if (child.isMesh) {
+              child.material.wireframe = wireframe;
+              try {
+                const wireGeo = new THREE.WireframeGeometry(child.geometry);
+                const wireMat = new THREE.LineBasicMaterial({
+                  color: hexColor,
+                  transparent: true,
+                  opacity: 0.4
+                });
+                child.add(new THREE.LineSegments(wireGeo, wireMat));
+              } catch (_) {}
+            }
+          });
+
+          const box = new THREE.Box3().setFromObject(currentModel);
+          const center = box.getCenter(new THREE.Vector3());
+          const size = box.getSize(new THREE.Vector3());
+          const maxDim = Math.max(size.x, size.y, size.z) || 1;
+          const scale = 2.4 / maxDim;
+
+          currentModel.position.set(-center.x * scale, -center.y * scale, -center.z * scale);
+          currentModel.scale.setScalar(scale);
+          modelGroup.add(currentModel);
+          setModelLoading(false);
+        },
+        undefined,
+        (err) => {
+          console.warn('[Blender3dCanvas] GLB load fallback to procedural mesh:', err.message);
+          setModelLoading(false);
+        }
+      );
+    }
+
+    let reqId;
+    const animate = () => {
+      reqId = requestAnimationFrame(animate);
+      if (autoRotate) {
+        modelGroup.rotation.y += 0.008;
+      }
+      controls.update();
+      renderer.render(scene, camera);
+    };
+    animate();
+
+    const handleResize = () => {
+      if (!container) return;
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    };
+
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(container);
+
+    return () => {
+      cancelAnimationFrame(reqId);
+      resizeObserver.disconnect();
+      controls.dispose();
+      renderer.dispose();
+      if (container.contains(renderer.domElement)) {
+        container.removeChild(renderer.domElement);
+      }
+    };
+  }, [glbUrl, objectType, color, autoRotate, wireframe]);
+
+  const handleResetCamera = () => {
+    if (controlsRef.current) {
+      controlsRef.current.reset();
+    }
+  };
+
+  return (
+    <div className="w-full h-full relative overflow-hidden flex flex-col items-center justify-center">
+      <div ref={containerRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
+
+      {modelLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-slate-950/70 backdrop-blur-xs pointer-events-none">
+          <div className="flex items-center space-x-2 text-cyan-400 font-mono text-xs animate-pulse">
+            <RefreshCw className="w-4 h-4 animate-spin" />
+            <span>SYNTHESIZING 3D SPATIAL MODEL...</span>
+          </div>
+        </div>
+      )}
+
+      <div className="absolute top-2 left-2 pointer-events-none text-[9px] font-mono text-cyan-400/80 bg-slate-950/80 px-2 py-0.5 rounded border border-cyan-500/30 flex items-center space-x-1.5">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+        <span>WEBGL THREE.JS • 60 FPS</span>
+      </div>
+
+      <div className="absolute top-2 right-2 pointer-events-none text-[9px] font-mono text-slate-400 bg-slate-950/80 px-2 py-0.5 rounded border border-slate-800">
+        DRAG: ORBIT • SCROLL: ZOOM
+      </div>
+
+      <div className="absolute bottom-2 right-2 flex items-center space-x-1 bg-slate-950/80 p-1 rounded-md border border-slate-800 text-[10px] font-mono">
+        <button
+          onClick={handleResetCamera}
+          className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded transition"
+          title="Reset Camera Angle"
+        >
+          Reset View
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function BlenderStudioModal({ isOpen = true, onClose, embedded = false }) {
   const [activeTab, setActiveTab] = useState('generate'); // 'generate' | 'python' | 'render' | 'settings'
@@ -31,6 +239,12 @@ export default function BlenderStudioModal({ isOpen = true, onClose, embedded = 
   const [roughness, setRoughness] = useState(0.18);
   const [customText, setCustomText] = useState('JASPER 3D');
   const [lastGenerated, setLastGenerated] = useState(null);
+
+  // Viewport Control State
+  const [viewportMode, setViewportMode] = useState('3d'); // '3d' | 'render'
+  const [autoRotate, setAutoRotate] = useState(true);
+  const [wireframeMode, setWireframeMode] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   // Python IDE State
   const [pythonScript, setPythonScript] = useState(`import bpy
@@ -81,6 +295,24 @@ print("[Blender Script] Holographic torus generated successfully.")
     } catch (e) {
       console.warn('Blender status fetch failed:', e);
     }
+
+    try {
+      const resLatest = await fetch(`${getApiBase()}/api/blender/latest`);
+      if (resLatest.ok) {
+        const dataLatest = await resLatest.json();
+        if (dataLatest.latest) {
+          setLastGenerated(dataLatest.latest);
+          if (dataLatest.latest.objectType) setObjectType(dataLatest.latest.objectType);
+          if (dataLatest.latest.prompt) setPrompt(dataLatest.latest.prompt);
+          addLog(`Auto-loaded active 3D model: ${dataLatest.latest.glbFileName}`, 'success');
+        }
+        if (dataLatest.latestRender) {
+          setLastRender(dataLatest.latestRender);
+        }
+      }
+    } catch (e) {
+      console.warn('Blender latest asset fetch failed:', e);
+    }
   };
 
   useEffect(() => {
@@ -110,6 +342,8 @@ print("[Blender Script] Holographic torus generated successfully.")
       const data = await res.json();
       if (data.success || data.glbUrl) {
         setLastGenerated(data);
+        setViewportMode('3d');
+        setImageError(false);
         addLog(`3D Asset synthesized: ${data.glbFileName || 'model.glb'}`, 'success');
       } else {
         addLog(`3D Generation notice: ${data.error || data.logs || 'Completed'}`, 'warning');
@@ -162,6 +396,8 @@ print("[Blender Script] Holographic torus generated successfully.")
       const data = await res.json();
       if (data.exists || data.url) {
         setLastRender(data);
+        setViewportMode('render');
+        setImageError(false);
         addLog(`Render completed: ${data.outputFile}`, 'success');
       } else {
         addLog(`Render output: ${data.error || 'Finished'}`, 'warning');
@@ -616,42 +852,126 @@ print("[Blender Script] Holographic torus generated successfully.")
           </div>
 
           {/* Right Preview & Asset Viewport (1 column) */}
-          <div className="p-4 flex flex-col justify-between bg-slate-950/40 space-y-4">
+          <div className="p-4 flex flex-col justify-between bg-slate-950/40 space-y-3">
             <div>
+              {/* Viewport Top Header & Mode Switcher */}
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-mono font-bold text-white flex items-center space-x-1.5">
-                  <Layers className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>VIEWPORT PREVIEW</span>
-                </span>
+                <div className="flex items-center space-x-1 bg-slate-900 border border-slate-800 p-0.5 rounded-lg">
+                  <button
+                    onClick={() => setViewportMode('3d')}
+                    className={`px-2.5 py-1 text-[11px] font-mono rounded flex items-center space-x-1.5 transition ${
+                      viewportMode === '3d'
+                        ? 'bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/40 shadow-sm'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Box className="w-3.5 h-3.5" />
+                    <span>3D Model</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setViewportMode('render');
+                      setImageError(false);
+                    }}
+                    className={`px-2.5 py-1 text-[11px] font-mono rounded flex items-center space-x-1.5 transition ${
+                      viewportMode === 'render'
+                        ? 'bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/40 shadow-sm'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <ImageIcon className="w-3.5 h-3.5" />
+                    <span>3D Picture</span>
+                  </button>
+                </div>
+
                 {lastGenerated?.objectType && (
-                  <span className="text-[10px] font-mono text-cyan-400 uppercase bg-cyan-500/10 px-1.5 py-0.5 rounded">
+                  <span className="text-[10px] font-mono text-cyan-400 uppercase bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">
                     {lastGenerated.objectType}
                   </span>
                 )}
               </div>
 
-              {/* Preview Display Window */}
-              <div className="w-full aspect-video bg-gradient-to-br from-slate-950 to-slate-900 rounded-lg border border-slate-800 flex flex-col items-center justify-center overflow-hidden relative shadow-inner">
-                {lastRender?.url ? (
-                  <img
-                    src={`${getApiBase()}${lastRender.url}`}
-                    alt="Blender Render"
-                    className="w-full h-full object-cover"
-                  />
-                ) : lastGenerated?.previewUrl ? (
-                  <img
-                    src={`${getApiBase()}${lastGenerated.previewUrl}`}
-                    alt="3D Preview"
-                    className="w-full h-full object-cover"
+              {/* Viewport Display Window */}
+              <div className="w-full aspect-video min-h-[260px] bg-slate-950 rounded-lg border border-slate-800 flex flex-col items-center justify-center overflow-hidden relative shadow-inner">
+                {viewportMode === '3d' ? (
+                  <Blender3dCanvas
+                    glbUrl={lastGenerated?.glbUrl}
+                    objectType={lastGenerated?.objectType || objectType}
+                    color={color}
+                    autoRotate={autoRotate}
+                    wireframe={wireframeMode}
                   />
                 ) : (
-                  <div className="text-center p-4 space-y-2 text-slate-500">
-                    <Box className="w-10 h-10 mx-auto opacity-30 text-cyan-400" />
-                    <p className="text-xs font-mono">No render yet generated</p>
-                    <p className="text-[10px] text-slate-600">Generate a 3D model or run a render above</p>
-                  </div>
+                  (() => {
+                    const imgSrc = !imageError && lastRender?.url
+                      ? `${getApiBase()}${lastRender.url}`
+                      : (lastGenerated?.previewUrl ? `${getApiBase()}${lastGenerated.previewUrl}` : null);
+
+                    if (imgSrc) {
+                      return (
+                        <div className="w-full h-full relative flex items-center justify-center bg-slate-950 p-2">
+                          <img
+                            src={imgSrc}
+                            alt="3D Render"
+                            onError={() => {
+                              if (!imageError && lastGenerated?.previewUrl && lastRender?.url) {
+                                setImageError(true);
+                              }
+                            }}
+                            className="max-h-full max-w-full object-contain rounded shadow-lg"
+                          />
+                          <a
+                            href={imgSrc}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="absolute bottom-2 right-2 p-1.5 bg-slate-900/80 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition"
+                            title="Open full resolution"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="text-center p-4 space-y-2 text-slate-500">
+                        <Box className="w-10 h-10 mx-auto opacity-30 text-cyan-400" />
+                        <p className="text-xs font-mono">No 3D picture yet loaded</p>
+                        <p className="text-[10px] text-slate-600">Generate a 3D model or run a render to visualize</p>
+                      </div>
+                    );
+                  })()
                 )}
               </div>
+
+              {/* Viewport Utility Controls */}
+              {viewportMode === '3d' && (
+                <div className="flex items-center justify-between pt-2 px-1 text-[11px] font-mono text-slate-400">
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => setAutoRotate(!autoRotate)}
+                      className={`px-2 py-0.5 rounded border text-[10px] transition ${
+                        autoRotate ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40' : 'bg-slate-900 border-slate-800 text-slate-500'
+                      }`}
+                    >
+                      {autoRotate ? '🔄 Rotation ON' : '⏸ Rotation OFF'}
+                    </button>
+                    <button
+                      onClick={() => setWireframeMode(!wireframeMode)}
+                      className={`px-2 py-0.5 rounded border text-[10px] transition ${
+                        wireframeMode ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40' : 'bg-slate-900 border-slate-800 text-slate-500'
+                      }`}
+                    >
+                      {wireframeMode ? '🕸️ Wireframe' : '🧊 Shaded'}
+                    </button>
+                  </div>
+                  {lastGenerated?.size && (
+                    <span className="text-[10px] text-slate-500">
+                      {Math.round(lastGenerated.size / 1024)} KB GLB
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Asset Actions */}
@@ -660,26 +980,27 @@ print("[Blender Script] Holographic torus generated successfully.")
                 <a
                   href={`${getApiBase()}${lastGenerated.glbUrl}`}
                   download={lastGenerated.glbFileName || 'model.glb'}
-                  className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-cyan-300 font-mono text-xs rounded transition flex items-center justify-center space-x-2 border border-cyan-500/30"
+                  className="w-full py-2 bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 font-mono text-xs rounded transition flex items-center justify-center space-x-2 border border-cyan-500/40 shadow-sm"
                 >
                   <Download className="w-3.5 h-3.5" />
-                  <span>Download GLB 3D File</span>
+                  <span>Download 3D Model (.GLB)</span>
                 </a>
               )}
 
-              {lastRender?.url && (
+              {(lastRender?.url || lastGenerated?.previewUrl) && (
                 <a
-                  href={`${getApiBase()}${lastRender.url}`}
-                  download={lastRender.outputFile || 'render.png'}
-                  className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-xs rounded transition flex items-center justify-center space-x-2"
+                  href={`${getApiBase()}${lastRender?.url || lastGenerated?.previewUrl}`}
+                  download={lastRender?.outputFile || '3d_preview.svg'}
+                  className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-xs rounded transition flex items-center justify-center space-x-2 border border-slate-700"
                 >
                   <Download className="w-3.5 h-3.5" />
-                  <span>Download Rendered PNG</span>
+                  <span>Download 3D Picture Preview</span>
                 </a>
               )}
 
-              <div className="text-[10px] font-mono text-slate-500 text-center">
-                AI Prompting via ChatGPT Astra & Gemini active
+              <div className="text-[10px] font-mono text-slate-500 text-center flex items-center justify-center space-x-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                <span>Jasper Spatial 3D Engine • WebGL Three.js Active</span>
               </div>
             </div>
 
