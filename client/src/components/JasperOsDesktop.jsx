@@ -197,7 +197,7 @@ function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFo
       onMouseDown={() => onFocus(id)}
       onTouchStart={() => onFocus(id)}
       style={windowStyle}
-      className={`absolute flex flex-col rounded-xl bg-neutral-950/95 sm:bg-neutral-950/85 border border-amber-500/40 backdrop-blur-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] overflow-hidden transition-shadow duration-200 ${
+      className={`absolute flex flex-col rounded-xl bg-black border border-neutral-800 backdrop-blur-2xl shadow-[0_10px_40px_rgba(0,0,0,1)] overflow-hidden transition-shadow duration-200 ${
         isDragging ? 'ring-2 ring-amber-400 shadow-[0_0_50px_rgba(245,197,66,0.4)] select-none' : ''
       }`}
     >
@@ -205,7 +205,7 @@ function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFo
       <div
         onMouseDown={handleHeaderMouseDown}
         onTouchStart={handleHeaderTouchStart}
-        className="px-3 py-2 sm:px-3.5 sm:py-2 bg-gradient-to-r from-amber-950/90 via-neutral-900/95 to-amber-950/90 border-b border-amber-500/30 flex items-center justify-between cursor-grab active:cursor-grabbing select-none backdrop-blur-xl shrink-0"
+        className="px-3 py-2 sm:px-3.5 sm:py-2 bg-black border-b border-neutral-800 flex items-center justify-between cursor-grab active:cursor-grabbing select-none backdrop-blur-xl shrink-0"
       >
         <div className="flex items-center gap-1.5 sm:gap-2 text-amber-300 font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wider truncate max-w-[60%]">
           <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 shrink-0" />
@@ -238,7 +238,7 @@ function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFo
       </div>
 
       {/* App Window Body */}
-      <div className="flex-1 overflow-y-auto p-2 sm:p-3 text-slate-100 font-sans custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-2 sm:p-3 text-slate-100 font-sans custom-scrollbar bg-black">
         {children}
       </div>
 
@@ -331,13 +331,13 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
   });
 
   return (
-    <div className="relative w-full h-full overflow-hidden bg-[#020612] text-slate-100 font-sans selection:bg-cyan-500/30">
+    <div className="relative w-full h-full overflow-hidden bg-black text-slate-100 font-sans selection:bg-cyan-500/30">
       {/* Dynamic Ambient Background Grid */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-950/20 via-slate-950 to-black pointer-events-none" />
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#00f0ff08_1px,transparent_1px),linear-gradient(to_bottom,#00f0ff08_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none" />
+      <div className="absolute inset-0 bg-black pointer-events-none" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#00f0ff05_1px,transparent_1px),linear-gradient(to_bottom,#00f0ff05_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none opacity-40" />
 
       {/* TOP GLASS SYSTEM TASKBAR */}
-      <div className="absolute top-0 left-0 right-0 h-12 bg-neutral-950/85 border-b border-amber-500/25 backdrop-blur-2xl z-50 flex items-center justify-between px-4">
+      <div className="absolute top-0 left-0 right-0 h-12 bg-black/95 border-b border-neutral-800 backdrop-blur-2xl z-50 flex items-center justify-between px-4">
         {/* Left: Start Launcher & App Categories */}
         <div className="flex items-center gap-3">
           <button
@@ -421,7 +421,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
           </button>
 
           {/* Live System Telemetry & Clock */}
-          <div className="hidden lg:flex items-center gap-3 text-neutral-300 bg-neutral-900/60 border border-amber-500/30 px-3 py-1 rounded-lg backdrop-blur-md font-mono text-[11px]">
+          <div className="hidden lg:flex items-center gap-3 text-neutral-300 bg-black border border-neutral-800 px-3 py-1 rounded-lg backdrop-blur-md font-mono text-[11px]">
             <span className="flex items-center gap-1 text-amber-400"><Cpu className="w-3.5 h-3.5" /> CPU: 12%</span>
             <span className="flex items-center gap-1 text-amber-400"><HardDrive className="w-3.5 h-3.5" /> RAM: 3.8GB</span>
           </div>
@@ -445,7 +445,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
             </button>
           )}
 
-          <div className="text-amber-200 font-mono font-bold text-[11px] px-2.5 py-1 bg-neutral-900/80 border border-amber-500/30 rounded-lg">
+          <div className="text-amber-200 font-mono font-bold text-[11px] px-2.5 py-1 bg-black border border-neutral-800 rounded-lg">
             {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </div>
         </div>
@@ -453,7 +453,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
 
       {/* OS APP CENTER & START LAUNCHER DRAWER */}
       {showStartMenu && (
-        <div className="absolute top-14 left-2 right-2 sm:left-4 sm:right-auto w-auto sm:w-96 max-w-[calc(100vw-16px)] bg-neutral-950/95 border border-amber-400/60 rounded-2xl p-3 sm:p-4 shadow-[0_0_50px_rgba(245,197,66,0.35)] backdrop-blur-3xl z-50 animate-in fade-in slide-in-from-top-2 max-h-[82vh] flex flex-col">
+        <div className="absolute top-14 left-2 right-2 sm:left-4 sm:right-auto w-auto sm:w-96 max-w-[calc(100vw-16px)] bg-black border border-neutral-800 rounded-2xl p-3 sm:p-4 shadow-[0_0_50px_rgba(0,0,0,1)] backdrop-blur-3xl z-50 animate-in fade-in slide-in-from-top-2 max-h-[82vh] flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-amber-500/30 pb-3 mb-3">
             <div className="flex items-center gap-3">
@@ -481,7 +481,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
               value={appSearchQuery}
               onChange={(e) => setAppSearchQuery(e.target.value)}
               placeholder="Search JASPER OS Native Apps..."
-              className="w-full pl-9 pr-3 py-1.5 bg-neutral-900/80 border border-amber-500/40 rounded-xl text-xs font-mono text-amber-200 placeholder-amber-500/50 focus:outline-none focus:border-amber-400"
+              className="w-full pl-9 pr-3 py-1.5 bg-black border border-neutral-800 rounded-xl text-xs font-mono text-amber-200 placeholder-amber-500/50 focus:outline-none focus:border-amber-400"
             />
           </div>
 
@@ -532,11 +532,11 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
               <button
                 key={app.id}
                 onClick={() => launchApp(app.id)}
-                className={`p-3 rounded-2xl bg-neutral-950/70 hover:bg-amber-500/20 border border-amber-500/25 hover:border-amber-400/70 backdrop-blur-md flex flex-col items-center justify-center gap-2 transition-all group hover:scale-105 hover:shadow-[0_0_20px_rgba(245,197,66,0.25)] ${
+                className={`p-3 rounded-2xl bg-black hover:bg-neutral-900/80 border border-neutral-800/80 hover:border-amber-400/70 backdrop-blur-md flex flex-col items-center justify-center gap-2 transition-all group hover:scale-105 hover:shadow-[0_0_20px_rgba(245,197,66,0.25)] ${
                   isRunning ? 'border-amber-400/80 bg-amber-500/20 shadow-[0_0_15px_rgba(245,197,66,0.2)]' : ''
                 }`}
               >
-                <div className="p-3 rounded-xl bg-neutral-900 border border-amber-500/40 text-amber-300 group-hover:text-amber-100 group-hover:border-amber-300 transition-all shadow-[0_0_10px_rgba(245,197,66,0.15)] relative">
+                <div className="p-3 rounded-xl bg-[#050505] border border-neutral-800 text-amber-300 group-hover:text-amber-100 group-hover:border-amber-300 transition-all shadow-[0_0_10px_rgba(0,0,0,0.8)] relative">
                   <AppIcon className="w-6 h-6" />
                   {isRunning && (
                     <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 border border-black shadow-[0_0_8px_#ffd700]" />
@@ -576,7 +576,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
       </div>
 
       {/* BOTTOM OS NATIVE APP DOCK */}
-      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 h-14 bg-neutral-950/80 border border-amber-500/40 rounded-2xl px-4 flex items-center gap-2 backdrop-blur-2xl shadow-[0_10px_35px_rgba(245,197,66,0.2)] z-50 max-w-[90vw] overflow-x-auto custom-scrollbar">
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 h-14 bg-black/95 border border-neutral-800 rounded-2xl px-4 flex items-center gap-2 backdrop-blur-2xl shadow-[0_10px_35px_rgba(0,0,0,1)] z-50 max-w-[90vw] overflow-x-auto custom-scrollbar">
         {JASPER_OS_APPS_REGISTRY.slice(0, 10).map((app) => {
           const AppIcon = app.icon;
           const isRunning = openWindows[app.id];
