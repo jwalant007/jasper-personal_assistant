@@ -1038,6 +1038,46 @@ class GeminiClient {
     return [];
   }
 
+  /**
+   * Generates content for general AI requests, math solving, code refactoring, and AI search.
+   * Provides full failover across Gemini, ChatGPT, Ollama, server agentEngine, and offline mode.
+   */
+  async generateContent(prompt, onLog = () => {}) {
+    const logger = typeof onLog === 'function' ? onLog : () => {};
+
+    // 1. If cloud keys (Gemini or ChatGPT) or Ollama provider are configured, use sendQuery
+    try {
+      if (this.hasKey() || this.provider === 'ollama') {
+        const response = await this.sendQuery(prompt, logger);
+        if (response && typeof response === 'string' && response.trim().length > 0) {
+          return response;
+        }
+      }
+    } catch (err) {
+      console.warn('[GeminiClient generateContent sendQuery failed, trying backend fallback]:', err);
+    }
+
+    // 2. Fallback to server agentEngine API endpoint
+    try {
+      const res = await fetch(`${getApiBase()}/api/agent/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: prompt, userKey: this.apiKey || this.chatGptKey || '' })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.response) {
+          return data.response;
+        }
+      }
+    } catch (serverErr) {
+      console.warn('[GeminiClient generateContent server fallback failed]:', serverErr);
+    }
+
+    // 3. Offline heuristic engine fallback
+    return this.handleFallbackOfflineMode(prompt, logger);
+  }
+
   async sendQuery(userText, onLog, attachments = []) {
     // Search semantic memory vector store for relevance
     const relevantMemories = await this.fetchSemanticMemories(userText);
