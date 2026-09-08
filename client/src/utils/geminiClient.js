@@ -500,6 +500,8 @@ class GeminiClient {
                   localStorage.getItem('jasper_gemini_api_key') || 
                   localStorage.getItem('gemini_api_key') || 
                   envKey;
+    this.chatGptKey = '';
+    this.chatGptModel = '';
     this.provider = localStorage.getItem('jasper_ai_provider') || (this.apiKey ? 'gemini' : 'ollama');
     this.ollamaModel = localStorage.getItem('jasper_ollama_model') || 'llama3.2';
     this.chatHistory = [];
@@ -513,13 +515,10 @@ class GeminiClient {
 
   setChatGptKey(key) {
     this.chatGptKey = key;
-    localStorage.setItem('jasper_chatgpt_key', key);
-    localStorage.setItem('jasper_openai_key', key);
   }
 
   setChatGptModel(model) {
     this.chatGptModel = model;
-    localStorage.setItem('jasper_chatgpt_model', model);
   }
 
   setProvider(provider) {
@@ -533,10 +532,7 @@ class GeminiClient {
   }
 
   hasKey() {
-    if (this.provider === 'chatgpt' || this.provider === 'astra') {
-      return !!this.chatGptKey;
-    }
-    return !!this.apiKey || !!this.chatGptKey;
+    return !!this.apiKey;
   }
 
   // Local tool executors calling backend Express routes

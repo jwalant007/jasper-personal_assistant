@@ -94,10 +94,6 @@ export default function App() {
     isMobileLayout,
     apiKey,
     setApiKey,
-    chatGptKey,
-    setChatGptKey,
-    chatGptModel,
-    setChatGptModel,
     aiProvider,
     setAiProvider,
     ollamaModel,
@@ -1099,8 +1095,6 @@ export default function App() {
   const handleSaveKey = (e) => {
     e.preventDefault();
     geminiClient.setApiKey(apiKey);
-    geminiClient.setChatGptKey(chatGptKey);
-    geminiClient.setChatGptModel(chatGptModel);
     geminiClient.setProvider(aiProvider);
     geminiClient.setOllamaModel(ollamaModel);
     setServerIp(serverIp);

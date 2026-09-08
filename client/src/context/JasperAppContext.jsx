@@ -102,10 +102,6 @@ export function JasperAppProvider({ children }) {
     // AI Settings
     apiKey,
     setApiKey,
-    chatGptKey,
-    setChatGptKey,
-    chatGptModel,
-    setChatGptModel,
     aiProvider,
     setAiProvider,
     ollamaModel,
