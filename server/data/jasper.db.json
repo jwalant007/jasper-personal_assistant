@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-08-31T12:21:53.463Z",
+  "lastUpdated": "2026-09-08T16:11:56.200Z",
   "memories": [
     {
       "id": 1,
@@ -170,6 +170,110 @@
     ]
   },
   "social_logs": [
+    {
+      "id": "LOG-1788883916199-199",
+      "platform": "instagram",
+      "type": "call_auto_reply",
+      "recipient": "@sarah_lead",
+      "recipientName": "Sarah (Office Boss)",
+      "incomingTextOrCall": "Incoming Instagram Call",
+      "actionTaken": "Declined Call & Auto-Replied with DRIVE Mode Preset",
+      "messageSent": "🚗 Drive Mode: I'm currently driving. JASPER AI has recorded your message and I will reply as soon as I park.",
+      "status": "Delivered",
+      "timestamp": "09:41 pm",
+      "date": "2026-09-08T16:11:56.200Z"
+    },
+    {
+      "id": "LOG-1788883915357-172",
+      "platform": "whatsapp",
+      "type": "call_auto_reply",
+      "recipient": "+91 98200 12345",
+      "recipientName": "Mom",
+      "incomingTextOrCall": "Incoming WhatsApp Call",
+      "actionTaken": "Declined Call & Auto-Replied with DRIVE Mode Preset",
+      "messageSent": "🚗 Drive Mode: I'm currently driving. JASPER AI has recorded your message and I will reply as soon as I park.",
+      "status": "Delivered",
+      "timestamp": "09:41 pm",
+      "date": "2026-09-08T16:11:55.357Z"
+    },
+    {
+      "id": "LOG-1788883914926-917",
+      "platform": "instagram",
+      "type": "direct_send",
+      "recipient": "@alex_mechanic",
+      "recipientName": "Alex (Auto Mechanic)",
+      "incomingTextOrCall": "Direct Automated Dispatch (from @jwalantbhatt_07)",
+      "actionTaken": "Automated Instagram DM Sent via @jwalantbhatt_07",
+      "messageSent": "💼 Deep Work Mode: Currently in a meeting. Will review your DM shortly.",
+      "status": "Delivered",
+      "timestamp": "09:41 pm",
+      "date": "2026-09-08T16:11:54.927Z"
+    },
+    {
+      "id": "LOG-1788883914571-623",
+      "platform": "whatsapp",
+      "type": "direct_send",
+      "recipient": "+91 98200 12345",
+      "recipientName": "Mom",
+      "incomingTextOrCall": "Direct Automated Dispatch (from +91 7984173128)",
+      "actionTaken": "Automated WhatsApp Message Sent via +91 7984173128",
+      "messageSent": "🚗 Drive Mode: I am driving right now. Will call you back as soon as I reach.",
+      "status": "Delivered",
+      "timestamp": "09:41 pm",
+      "date": "2026-09-08T16:11:54.573Z"
+    },
+    {
+      "id": "LOG-1788883815380-267",
+      "platform": "whatsapp",
+      "type": "call_auto_reply",
+      "recipient": "+91 98200 12345",
+      "recipientName": "Mom",
+      "incomingTextOrCall": "Incoming WhatsApp Call",
+      "actionTaken": "Declined Call & Auto-Replied with DRIVE Mode Preset",
+      "messageSent": "🚗 Drive Mode: I'm currently driving. JASPER AI has recorded your message and I will reply as soon as I park.",
+      "status": "Delivered",
+      "timestamp": "09:40 pm",
+      "date": "2026-09-08T16:10:15.380Z"
+    },
+    {
+      "id": "LOG-1788883806655-420",
+      "platform": "instagram",
+      "type": "call_auto_reply",
+      "recipient": "@alex_mechanic",
+      "recipientName": "Alex (Mechanic)",
+      "incomingTextOrCall": "Incoming Instagram Call",
+      "actionTaken": "Declined Call & Auto-Replied with DRIVE Mode Preset",
+      "messageSent": "🚗 Drive Mode: I'm currently driving. JASPER AI has recorded your message and I will reply as soon as I park.",
+      "status": "Delivered",
+      "timestamp": "09:40 pm",
+      "date": "2026-09-08T16:10:06.656Z"
+    },
+    {
+      "id": "LOG-1788883798605-853",
+      "platform": "whatsapp",
+      "type": "auto_reply",
+      "recipient": "Mom (WhatsApp)",
+      "recipientName": "Mom (WhatsApp)",
+      "incomingTextOrCall": "Incoming WhatsApp: \"See you tomorrow at 8 PM for dinner!\"",
+      "actionTaken": "Auto-replied with DRIVE Mode Preset (Android Hook)",
+      "messageSent": "🚗 Drive Mode: I'm currently driving. JASPER AI has recorded your message and I will reply as soon as I park.",
+      "status": "Delivered",
+      "timestamp": "09:39 pm",
+      "date": "2026-09-08T16:09:58.605Z"
+    },
+    {
+      "id": "LOG-1788883162813-837",
+      "platform": "whatsapp",
+      "type": "direct_send",
+      "recipient": "79841 73128",
+      "recipientName": "79841 73128",
+      "incomingTextOrCall": "Direct Automated Dispatch (from +91 7984173128)",
+      "actionTaken": "Automated WhatsApp Message Sent via +91 7984173128",
+      "messageSent": "hello i am jasper , jwalant bhatt is busy",
+      "status": "Delivered",
+      "timestamp": "09:29 pm",
+      "date": "2026-09-08T15:59:22.876Z"
+    },
     {
       "id": "LOG-1788177851847-722",
       "platform": "whatsapp",
