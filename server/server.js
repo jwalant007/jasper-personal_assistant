@@ -2573,19 +2573,22 @@ app.post('/api/pc/remote/key', async (req, res) => {
 // OLLAMA LOCAL SERVER HEALTH & PROXY ROUTE
 // -------------------------------------------------------------
 app.get('/api/ollama/status', async (req, res) => {
+  let replied = false;
+  const reply = (data) => {
+    if (!replied && !res.headersSent) {
+      replied = true;
+      res.json(data);
+    }
+  };
   try {
     const http = require('http');
     const check = http.get('http://127.0.0.1:11434/api/tags', { timeout: 2000 }, (ollamaRes) => {
-      if (ollamaRes.statusCode === 200) {
-        res.json({ online: true });
-      } else {
-        res.json({ online: false });
-      }
+      reply({ online: ollamaRes.statusCode === 200 });
     });
-    check.on('error', () => res.json({ online: false }));
-    check.on('timeout', () => { check.destroy(); res.json({ online: false }); });
+    check.on('error', () => reply({ online: false }));
+    check.on('timeout', () => { check.destroy(); reply({ online: false }); });
   } catch (err) {
-    res.json({ online: false });
+    reply({ online: false });
   }
 });
 
