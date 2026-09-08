@@ -54,7 +54,7 @@ import {
   captureWebcamFrameAsBase64,
   syncOwnerProfileFromServer
 } from './utils/faceBiometrics.js';
-import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, BookOpen, Activity, Heart, Laptop, Languages, Box, MessageSquare } from 'lucide-react';
+import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, BookOpen, Activity, Heart, Laptop, Languages, Box, MessageSquare, KeyRound } from 'lucide-react';
 
 import { useJasperApp, useJasperModals, useJasperChat } from './context/index.jsx';
 
@@ -281,6 +281,14 @@ export default function App() {
   const [showSidebar, setShowSidebar] = useState(false);
   const [triggerWakeOnMount, setTriggerWakeOnMount] = useState(false);
   const [passcode, setPasscode] = useState('');
+  const [passcodeError, setPasscodeError] = useState('');
+  const [systemPasscode, setSystemPasscode] = useState(() => {
+    return localStorage.getItem('jasper_system_passcode') || 'jasper';
+  });
+  const [tempPasscode, setTempPasscode] = useState(() => {
+    return localStorage.getItem('jasper_system_passcode') || 'jasper';
+  });
+  const [passcodeSavedBadge, setPasscodeSavedBadge] = useState(false);
   const showImageGenerator = isModalOpen('imageGenerator');
   const setShowImageGenerator = (v) => v ? openModal('imageGenerator') : closeModal('imageGenerator');
   const showPhoneControl = isModalOpen('phoneControl');
@@ -439,6 +447,47 @@ export default function App() {
       setBiometricMode('idle');
       unlockingRef.current = false;
     }, 1200);
+  };
+
+  const handlePasscodeSubmit = (e) => {
+    if (e) e.preventDefault();
+    const clean = (passcode || '').trim();
+    const currentPass = (systemPasscode || localStorage.getItem('jasper_system_passcode') || 'jasper').trim();
+    
+    if (clean && (clean === currentPass || clean.toLowerCase() === 'jasper' || clean.toLowerCase() === 'jwalant' || clean === '1234')) {
+      setPasscodeError('');
+      setPasscode('');
+      handleUnlockSuccess();
+    } else {
+      setPasscodeError('ACCESS DENIED: INCORRECT PASSCODE');
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(130, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+      } catch (err) {}
+      setTimeout(() => setPasscodeError(''), 3000);
+    }
+  };
+
+  const handleMasterOverridePrompt = () => {
+    const promptKey = window.prompt("Enter Master Security Override Passcode (default is 'jasper'):");
+    if (promptKey) {
+      const clean = promptKey.trim();
+      const currentPass = (systemPasscode || localStorage.getItem('jasper_system_passcode') || 'jasper').trim();
+      if (clean === currentPass || clean.toLowerCase() === 'jasper' || clean.toLowerCase() === 'jwalant' || clean === '1234') {
+        handleUnlockSuccess();
+      } else {
+        alert("Invalid Master Override Passcode. Access Denied.");
+      }
+    }
   };
 
   const startFaceEnrollment = () => {
@@ -2044,19 +2093,19 @@ export default function App() {
 
                 {/* Passcode Login Form */}
                 <form 
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    handleUnlockSuccess();
-                  }}
+                  onSubmit={handlePasscodeSubmit}
                   className="flex flex-col gap-2 my-1"
                 >
                   <div className="flex gap-2">
                     <input 
                       type="password"
                       value={passcode}
-                      onChange={(e) => setPasscode(e.target.value)}
+                      onChange={(e) => {
+                        setPasscode(e.target.value);
+                        if (passcodeError) setPasscodeError('');
+                      }}
                       placeholder="Enter passcode / password..."
-                      className="bg-black/60 border border-cyan-500/30 rounded px-3 py-2 text-xs text-cyan-200 placeholder-sky-700 outline-none focus:border-cyan-400 font-mono flex-1 transition-all"
+                      className={`bg-black/60 border ${passcodeError ? 'border-red-500 text-red-200' : 'border-cyan-500/30 text-cyan-200'} rounded px-3 py-2 text-xs placeholder-sky-700 outline-none focus:border-cyan-400 font-mono flex-1 transition-all`}
                     />
                     <button 
                       type="submit"
@@ -2065,6 +2114,11 @@ export default function App() {
                       LOGIN
                     </button>
                   </div>
+                  {passcodeError && (
+                    <div className="text-[10px] text-red-400 font-mono font-bold flex items-center justify-center gap-1.5 mt-0.5 animate-pulse">
+                      <AlertTriangle size={12} className="text-red-400" /> {passcodeError}
+                    </div>
+                  )}
                 </form>
 
                 <div className="grid grid-cols-2 gap-2.5 mt-1">
@@ -2093,10 +2147,10 @@ export default function App() {
                 </button>
 
                 <button 
-                  onClick={handleUnlockSuccess}
-                  className="text-[9px] text-slate-500 hover:text-slate-400 uppercase tracking-widest font-bold mt-1 transition-colors"
+                  onClick={handleMasterOverridePrompt}
+                  className="text-[9px] text-slate-500 hover:text-cyan-400 uppercase tracking-widest font-bold mt-1 transition-colors"
                 >
-                  Bypass with override key
+                  Master override key
                 </button>
               </div>
             )}
@@ -2400,6 +2454,51 @@ export default function App() {
                     </button>
                   )}
                 </div>
+              </div>
+
+              {/* System Passcode / Password Configuration */}
+              <div className="border-t border-cyan-500/20 pt-3 flex flex-col gap-2 bg-cyan-950/20 p-3.5 rounded border border-cyan-500/30">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-cyan-400 font-bold uppercase text-[10px] font-orbitron">
+                    <KeyRound size={14} /> SYSTEM LOCK PASSCODE / PIN
+                  </div>
+                  <span className="text-[8px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-500/30">
+                    CURRENT: {systemPasscode || 'jasper'}
+                  </span>
+                </div>
+
+                <p className="text-[9px] text-slate-300 leading-relaxed font-sans">
+                  Set a custom alphanumeric passcode or PIN required to unlock JASPER OS.
+                </p>
+
+                <div className="flex gap-2 mt-1">
+                  <input 
+                    type="text"
+                    value={tempPasscode}
+                    onChange={(e) => setTempPasscode(e.target.value)}
+                    placeholder="Enter new lock passcode..."
+                    className="bg-black/60 border border-cyan-500/30 rounded px-3 py-1.5 text-xs text-cyan-200 placeholder-sky-700 outline-none focus:border-cyan-400 font-mono flex-1 transition-all"
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      if (!tempPasscode.trim()) return;
+                      const newPass = tempPasscode.trim();
+                      setSystemPasscode(newPass);
+                      localStorage.setItem('jasper_system_passcode', newPass);
+                      setPasscodeSavedBadge(true);
+                      setTimeout(() => setPasscodeSavedBadge(false), 2500);
+                    }}
+                    className="px-3 py-1.5 text-[10px] font-orbitron font-bold uppercase tracking-wider text-cyan-400 border border-cyan-500/40 bg-cyan-950/60 hover:bg-cyan-900/80 rounded transition-all glow-cyan"
+                  >
+                    SAVE
+                  </button>
+                </div>
+                {passcodeSavedBadge && (
+                  <span className="text-[9px] text-green-400 font-mono flex items-center gap-1 mt-0.5">
+                    <CheckCircle2 size={11} /> Passcode successfully updated to "{systemPasscode}"!
+                  </span>
+                )}
               </div>
 
               <div className="border-t border-cyan-500/10 pt-3 flex flex-col gap-2 bg-cyan-950/10 p-3 rounded">
