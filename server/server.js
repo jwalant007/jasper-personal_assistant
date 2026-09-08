@@ -2281,7 +2281,15 @@ app.post('/api/ollama/query', async (req, res) => {
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(postData)
       },
-      timeout: 25000
+      timeout: 60000
+    };
+
+    let replied = false;
+    const reply = (payload) => {
+      if (!replied && !res.headersSent) {
+        replied = true;
+        res.json(payload);
+      }
     };
 
     const ollamaReq = http.request(options, (ollamaRes) => {
@@ -2291,24 +2299,25 @@ app.post('/api/ollama/query', async (req, res) => {
         try {
           const parsed = JSON.parse(data);
           const responseText = parsed.response ? parsed.response.trim() : 'Command executed, Sir.';
-          res.json({ success: true, response: responseText, model: model });
+          reply({ success: true, response: responseText, model: model });
         } catch (err) {
-          res.json({ success: true, response: '[Ollama Local] Model output: ' + data });
+          reply({ success: true, response: '[Ollama Local] Model output: ' + data });
         }
       });
     });
 
     ollamaReq.on('error', async (err) => {
-      console.log('[Ollama] Local Ollama not active on 11434. Routing query to Jasper Local Agent Core...');
+      if (replied) return;
+      console.log('[Ollama] Local Ollama error or not responding on 11434. Routing query to Jasper Local Agent Core...');
       try {
         const agentRes = await agentEngine.processQuery({ query: prompt });
-        res.json({
+        reply({
           success: true,
           response: agentRes.response,
           model: 'jasper-local-core'
         });
       } catch (agentErr) {
-        res.json({
+        reply({
           success: true,
           response: `Good day, Sir. All Jasper core systems are active and standing by.`,
           model: 'jasper-local-core'
@@ -2317,12 +2326,14 @@ app.post('/api/ollama/query', async (req, res) => {
     });
 
     ollamaReq.on('timeout', async () => {
+      if (replied) return;
+      console.log('[Ollama] Request timed out. Destroying request and falling back to Jasper Core...');
       ollamaReq.destroy();
       try {
         const agentRes = await agentEngine.processQuery({ query: prompt });
-        res.json({ success: true, response: agentRes.response, model: 'jasper-local-core' });
+        reply({ success: true, response: agentRes.response, model: 'jasper-local-core' });
       } catch (_) {
-        res.json({ success: true, response: `Directive processed, Sir.`, model: 'jasper-local-core' });
+        reply({ success: true, response: `Directive processed, Sir.`, model: 'jasper-local-core' });
       }
     });
 
