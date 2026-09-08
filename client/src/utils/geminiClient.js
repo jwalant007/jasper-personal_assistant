@@ -495,15 +495,13 @@ export function getOpenAiTools() {
 
 class GeminiClient {
   constructor() {
+    const envKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GEMINI_API_KEY) || '';
     this.apiKey = localStorage.getItem('jasper_gemini_key') || 
                   localStorage.getItem('jasper_gemini_api_key') || 
-                  localStorage.getItem('gemini_api_key') || '';
-    this.chatGptKey = localStorage.getItem('jasper_chatgpt_key') || 
-                      localStorage.getItem('jasper_openai_key') || 
-                      localStorage.getItem('openai_api_key') || '';
-    this.chatGptModel = localStorage.getItem('jasper_chatgpt_model') || 'gpt-6-astra';
-    this.provider = localStorage.getItem('jasper_ai_provider') || (this.chatGptKey ? 'chatgpt' : 'gemini');
-    this.ollamaModel = localStorage.getItem('jasper_ollama_model') || 'llama3';
+                  localStorage.getItem('gemini_api_key') || 
+                  envKey;
+    this.provider = localStorage.getItem('jasper_ai_provider') || (this.apiKey ? 'gemini' : 'ollama');
+    this.ollamaModel = localStorage.getItem('jasper_ollama_model') || 'llama3.2';
     this.chatHistory = [];
   }
 
