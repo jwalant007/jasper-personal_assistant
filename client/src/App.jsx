@@ -2572,6 +2572,7 @@ export default function App() {
       {showAvatar && (
         <DraggableModalWrapper isOpen={showAvatar} onClose={() => setShowAvatar(false)} title="Live AI Avatar & Synthesizer">
           <AiAvatarWidget 
+            jasperState={jasperState}
             isSpeaking={jasperState === 'speaking'} 
             isListening={jasperState === 'listening'} 
             onClose={() => setShowAvatar(false)} 
@@ -2583,20 +2584,15 @@ export default function App() {
       {showSecurity && (
         <DraggableModalWrapper isOpen={showSecurity} onClose={() => setShowSecurity(false)} title="Biometric Security Center">
           <SecurityCenterWidget 
-            hasFaceProfile={hasOwnerProfile()} 
-            onTriggerFaceEnroll={() => {
-              setShowSecurity(false);
-              setIsLocked(true);
-              setBiometricMode('face_enroll');
-            }} 
             onClose={() => setShowSecurity(false)} 
+            onLog={(msg, type) => addLog(msg, type)}
           />
         </DraggableModalWrapper>
       )}
 
-      {/* 9. Automation Builder Modal */}
+      {/* 9. Smart Automation Builder Modal */}
       {showAutomation && (
-        <DraggableModalWrapper isOpen={showAutomation} onClose={() => setShowAutomation(false)} title="Automation Studio">
+        <DraggableModalWrapper isOpen={showAutomation} onClose={() => setShowAutomation(false)} title="Autonomous System Automation Engine">
           <AutomationBuilderWidget onClose={() => setShowAutomation(false)} />
         </DraggableModalWrapper>
       )}
@@ -2612,6 +2608,9 @@ export default function App() {
               if (target === 'devicesmaster') setShowDevicesMasterHub(true);
               if (target === 'aimaster') setShowAiMasterHub(true);
               if (target === 'sports') setShowSportsHub(true);
+              if (target === 'weather') {
+                handleCommand('Give me a full local weather forecast and atmospheric report.');
+              }
             }}
           />
         </DraggableModalWrapper>

@@ -58,9 +58,10 @@ class TvController {
     }
   }
 
-  checkPort(port = 55000, timeout = 1000) {
+  checkPort(port = 55000, ip = null, timeout = 1200) {
+    const targetIp = ip || this.config.ip;
     return new Promise((resolve) => {
-      if (!this.config.ip) return resolve(false);
+      if (!targetIp) return resolve(false);
       const socket = new net.Socket();
       socket.setTimeout(timeout);
       socket.on('connect', () => {
@@ -72,20 +73,39 @@ class TvController {
         socket.destroy();
         resolve(false);
       });
-      socket.connect(port, this.config.ip);
+      socket.connect(port, targetIp);
     });
+  }
+
+  async detectActivePort(ip = null) {
+    const targetIp = ip || this.config.ip;
+    // Check ports in parallel with short timeout: 55000 (legacy), 8002 (WSS), 8001 (WS), 7676 (UPnP)
+    const [p55000, p8002, p8001, p7676] = await Promise.all([
+      this.checkPort(55000, targetIp),
+      this.checkPort(8002, targetIp),
+      this.checkPort(8001, targetIp),
+      this.checkPort(7676, targetIp)
+    ]);
+
+    if (p55000) return { port: 55000, protocol: 'legacy-55000', online: true };
+    if (p8002) return { port: 8002, protocol: 'websocket-8002', online: true };
+    if (p8001) return { port: 8001, protocol: 'websocket-8001', online: true };
+    if (p7676) return { port: 7676, protocol: 'upnp-7676', online: true };
+    return { port: this.config.port || 55000, protocol: this.activeProtocol || 'legacy-55000', online: false };
   }
 
   async connect(ip, mac) {
     if (ip) this.config.ip = ip;
     if (mac) this.config.mac = mac;
-    this.config.port = 55000;
+
+    const detection = await this.detectActivePort(this.config.ip);
+    this.config.port = detection.port;
+    this.activeProtocol = detection.protocol;
     this.saveConfig();
 
-    console.log(`[TV Controller] Connecting to Samsung TV at ${this.config.ip}:55000...`);
-    const p55000 = await this.checkPort(55000);
+    console.log(`[TV Controller] Connecting to Samsung TV at ${this.config.ip}:${detection.port} (${detection.protocol}, online: ${detection.online})...`);
 
-    if (p55000) {
+    if (detection.online && detection.port === 55000) {
       try {
         await this.sendLegacyKeyCommand('KEY_VOLUP');
       } catch (e) {}
@@ -93,9 +113,12 @@ class TvController {
 
     return {
       success: true,
-      port: 55000,
-      protocol: 'legacy-55000',
-      message: `Connected to Samsung TV on Port 55000 (${this.config.ip}).`
+      port: detection.port,
+      protocol: detection.protocol,
+      online: detection.online,
+      message: detection.online 
+        ? `Connected to Samsung TV on Port ${detection.port} (${this.config.ip}).`
+        : `Registered Samsung TV at ${this.config.ip}. TV appears to be in standby or offline.`
     };
   }
 
@@ -162,19 +185,68 @@ class TvController {
 
       client.on('error', (err) => {
         console.warn('[TV Controller Socket Notice]:', err.message);
-        resolve({ success: true, key: keyName, protocol: 'legacy-55000' });
+        resolve({ success: true, key: keyName, protocol: 'legacy-55000', notice: err.message });
       });
     });
   }
 
+  /**
+   * UPnP RenderingControl SOAP request helper (for TV volume / mute over Port 7676)
+   */
+  async sendUpnpCommand(action, bodyXml, serviceType = 'RenderingControl:1', servicePath = '/smp_4_') {
+    const http = require('http');
+    return new Promise((resolve) => {
+      const xml = '<?xml version="1.0" encoding="utf-8"?>' +
+        '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">' +
+        '<s:Body>' +
+        `<u:${action} xmlns:u="urn:schemas-upnp-org:service:${serviceType}">` +
+        bodyXml +
+        `</u:${action}>` +
+        '</s:Body>' +
+        '</s:Envelope>';
+
+      const req = http.request({
+        host: this.config.ip,
+        port: 7676,
+        path: servicePath,
+        method: 'POST',
+        timeout: 2500,
+        headers: {
+          'Content-Type': 'text/xml; charset="utf-8"',
+          'SOAPACTION': `"urn:schemas-upnp-org:service:${serviceType}#${action}"`,
+          'Content-Length': Buffer.byteLength(xml)
+        }
+      }, (res) => {
+        let d = '';
+        res.on('data', c => d += c);
+        res.on('end', () => resolve({ success: res.statusCode === 200, status: res.statusCode, data: d }));
+      });
+
+      req.on('timeout', () => {
+        req.destroy();
+        resolve({ success: false, error: 'UPnP timeout' });
+      });
+      req.on('error', (e) => resolve({ success: false, error: e.message }));
+      req.write(xml);
+      req.end();
+    });
+  }
+
   async sendKey(keyName) {
-    console.log(`[TV Controller] Transmitting key: ${keyName} to TV at ${this.config.ip}:55000`);
+    console.log(`[TV Controller] Transmitting key: ${keyName} to TV at ${this.config.ip}`);
     
+    // Check if UPnP RenderingControl can handle volume/mute
+    if (keyName === 'KEY_MUTE') {
+      try {
+        await this.sendUpnpCommand('SetMute', '<InstanceID>0</InstanceID><Channel>Master</Channel><DesiredMute>1</DesiredMute>');
+      } catch (_) {}
+    }
+
     // Transmit legacy key command over Port 55000
     await this.sendLegacyKeyCommand(keyName, 'iphone.iapp.samsung');
     await this.sendLegacyKeyCommand(keyName, 'iphone.PC.samsung');
 
-    return { success: true, key: keyName, port: 55000, protocol: 'legacy-55000' };
+    return { success: true, key: keyName, port: this.config.port || 55000, protocol: this.activeProtocol || 'legacy-55000' };
   }
 
   wakeOnLan() {
@@ -189,15 +261,15 @@ class TvController {
   }
 
   async getStatus() {
-    const p55000 = await this.checkPort(55000);
+    const detection = await this.detectActivePort(this.config.ip);
     return {
-      status: p55000 ? 'connected' : 'connected',
-      isVirtual: false,
-      model: 'Samsung TV (Port 55000)',
+      status: detection.online ? 'connected' : 'disconnected',
+      isVirtual: !detection.online,
+      model: `Samsung TV (${detection.protocol})`,
       ip: this.config.ip || '192.168.29.229',
-      port: 55000,
+      port: detection.port,
       mac: this.config.mac || '14:49:e0:20:f0:81',
-      protocol: 'legacy-55000',
+      protocol: detection.protocol,
       hasToken: true
     };
   }

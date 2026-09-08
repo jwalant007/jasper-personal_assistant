@@ -43,4 +43,5 @@ __pycache__/
 .venv/
 venv/
 
-
+# Generated 3D assets & temporary renders
+server/data/blender/

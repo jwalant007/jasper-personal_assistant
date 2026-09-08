@@ -376,6 +376,214 @@ print("[JASPER BLENDER] Render completed successfully.")
   }
 
   /**
+   * Embedded Procedural Binary GLB (glTF 2.0) Synthesizer
+   * Enables instant 3D model generation and holographic visualization
+   * without requiring external Blender installation.
+   */
+  createProceduralGlb({ objectType = 'torus', prompt = '', color = '#00F0FF', metallic = 0.85, roughness = 0.15 } = {}) {
+    let r = 0.0, g = 0.94, b = 1.0;
+    if (color && color.startsWith('#') && color.length === 7) {
+      r = parseInt(color.slice(1, 3), 16) / 255.0;
+      g = parseInt(color.slice(3, 5), 16) / 255.0;
+      b = parseInt(color.slice(5, 7), 16) / 255.0;
+    }
+
+    const positions = [];
+    const normals = [];
+    const indices = [];
+
+    const lower = (prompt + ' ' + objectType).toLowerCase();
+
+    if (lower.includes('sphere') || lower.includes('ball') || lower.includes('atom') || lower.includes('planet') || lower.includes('globe') || lower.includes('molecule') || objectType === 'sphere') {
+      // UV Sphere
+      const radius = 1.5;
+      const widthSegments = 24;
+      const heightSegments = 16;
+      for (let y = 0; y <= heightSegments; y++) {
+        const v = y / heightSegments;
+        const theta = v * Math.PI;
+        for (let x = 0; x <= widthSegments; x++) {
+          const u = x / widthSegments;
+          const phi = u * Math.PI * 2;
+          const px = -radius * Math.sin(theta) * Math.cos(phi);
+          const py = radius * Math.cos(theta);
+          const pz = radius * Math.sin(theta) * Math.sin(phi);
+          positions.push(px, py, pz);
+          normals.push(px / radius, py / radius, pz / radius);
+        }
+      }
+      for (let y = 0; y < heightSegments; y++) {
+        for (let x = 0; x < widthSegments; x++) {
+          const first = y * (widthSegments + 1) + x;
+          const second = first + widthSegments + 1;
+          indices.push(first, second, first + 1);
+          indices.push(second, second + 1, first + 1);
+        }
+      }
+    } else if (lower.includes('cube') || lower.includes('box') || lower.includes('engine') || lower.includes('tesseract') || objectType === 'cube') {
+      // 3D Box
+      const s = 1.2;
+      const cubeVerts = [
+        -s, -s,  s,   s, -s,  s,   s,  s,  s,  -s,  s,  s,
+        -s, -s, -s,  -s,  s, -s,   s,  s, -s,   s, -s, -s,
+        -s,  s, -s,  -s,  s,  s,   s,  s,  s,   s,  s, -s,
+        -s, -s, -s,   s, -s, -s,   s, -s,  s,  -s, -s,  s,
+         s, -s, -s,   s,  s, -s,   s,  s,  s,   s, -s,  s,
+        -s, -s, -s,  -s, -s,  s,  -s,  s,  s,  -s,  s, -s
+      ];
+      const cubeNorms = [
+        0, 0, 1,  0, 0, 1,  0, 0, 1,  0, 0, 1,
+        0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1,
+        0, 1, 0,  0, 1, 0,  0, 1, 0,  0, 1, 0,
+        0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0,
+        1, 0, 0,  1, 0, 0,  1, 0, 0,  1, 0, 0,
+       -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0
+      ];
+      for (let i = 0; i < cubeVerts.length; i++) positions.push(cubeVerts[i]);
+      for (let i = 0; i < cubeNorms.length; i++) normals.push(cubeNorms[i]);
+      for (let i = 0; i < 6; i++) {
+        const offset = i * 4;
+        indices.push(offset, offset + 1, offset + 2);
+        indices.push(offset, offset + 2, offset + 3);
+      }
+    } else if (lower.includes('cylinder') || lower.includes('pipe') || objectType === 'cylinder') {
+      // Cylinder
+      const r_cyl = 1.0, h_cyl = 2.4;
+      const segs = 24;
+      for (let i = 0; i <= segs; i++) {
+        const angle = (i / segs) * Math.PI * 2;
+        const x = Math.cos(angle) * r_cyl;
+        const z = Math.sin(angle) * r_cyl;
+        positions.push(x, h_cyl / 2, z);
+        normals.push(x, 0, z);
+        positions.push(x, -h_cyl / 2, z);
+        normals.push(x, 0, z);
+      }
+      for (let i = 0; i < segs; i++) {
+        const a = i * 2;
+        indices.push(a, a + 1, a + 2);
+        indices.push(a + 1, a + 3, a + 2);
+      }
+    } else {
+      // Parametric Torus (Default for Torus, Arc Reactor, Quantum Core, Orb)
+      const R = 1.3, tube = 0.4;
+      const radialSegments = 24, tubularSegments = 36;
+      for (let j = 0; j <= radialSegments; j++) {
+        const v = (j / radialSegments) * Math.PI * 2;
+        for (let i = 0; i <= tubularSegments; i++) {
+          const u = (i / tubularSegments) * Math.PI * 2;
+          const x = (R + tube * Math.cos(v)) * Math.cos(u);
+          const y = (R + tube * Math.cos(v)) * Math.sin(u);
+          const z = tube * Math.sin(v);
+          positions.push(x, y, z);
+          normals.push(Math.cos(v) * Math.cos(u), Math.cos(v) * Math.sin(u), Math.sin(v));
+        }
+      }
+      for (let j = 1; j <= radialSegments; j++) {
+        for (let i = 1; i <= tubularSegments; i++) {
+          const a = (tubularSegments + 1) * j + i - 1;
+          const b = (tubularSegments + 1) * (j - 1) + i - 1;
+          const c = (tubularSegments + 1) * (j - 1) + i;
+          const d = (tubularSegments + 1) * j + i;
+          indices.push(a, b, d);
+          indices.push(b, c, d);
+        }
+      }
+    }
+
+    const posBuf = Buffer.from(new Float32Array(positions).buffer);
+    const normBuf = Buffer.from(new Float32Array(normals).buffer);
+    const idxBuf = Buffer.from(new Uint16Array(indices).buffer);
+    const padIdx = (4 - (idxBuf.length % 4)) % 4;
+    const paddedIdxBuf = padIdx ? Buffer.concat([idxBuf, Buffer.alloc(padIdx)]) : idxBuf;
+    const binBuffer = Buffer.concat([posBuf, normBuf, paddedIdxBuf]);
+
+    let minX = Infinity, minY = Infinity, minZ = Infinity;
+    let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+    for (let i = 0; i < positions.length; i += 3) {
+      minX = Math.min(minX, positions[i]);
+      maxX = Math.max(maxX, positions[i]);
+      minY = Math.min(minY, positions[i+1]);
+      maxY = Math.max(maxY, positions[i+1]);
+      minZ = Math.min(minZ, positions[i+2]);
+      maxZ = Math.max(maxZ, positions[i+2]);
+    }
+
+    const gltf = {
+      asset: { version: '2.0', generator: 'Jasper Embedded Procedural 3D Engine' },
+      scene: 0,
+      scenes: [{ nodes: [0] }],
+      nodes: [{ mesh: 0 }],
+      materials: [{
+        name: 'JasperHologramMaterial',
+        pbrMetallicRoughness: {
+          baseColorFactor: [r, g, b, 1.0],
+          metallicFactor: metallic,
+          roughnessFactor: roughness
+        }
+      }],
+      meshes: [{
+        primitives: [{
+          attributes: { POSITION: 0, NORMAL: 1 },
+          indices: 2,
+          material: 0
+        }]
+      }],
+      accessors: [
+        {
+          bufferView: 0,
+          byteOffset: 0,
+          componentType: 5126,
+          count: positions.length / 3,
+          type: 'VEC3',
+          min: [minX, minY, minZ],
+          max: [maxX, maxY, maxZ]
+        },
+        {
+          bufferView: 1,
+          byteOffset: 0,
+          componentType: 5126,
+          count: normals.length / 3,
+          type: 'VEC3'
+        },
+        {
+          bufferView: 2,
+          byteOffset: 0,
+          componentType: 5123,
+          count: indices.length,
+          type: 'SCALAR'
+        }
+      ],
+      bufferViews: [
+        { buffer: 0, byteOffset: 0, byteLength: posBuf.length, target: 34962 },
+        { buffer: 0, byteOffset: posBuf.length, byteLength: normBuf.length, target: 34962 },
+        { buffer: 0, byteOffset: posBuf.length + normBuf.length, byteLength: idxBuf.length, target: 34963 }
+      ],
+      buffers: [{ byteLength: binBuffer.length }]
+    };
+
+    let jsonStr = JSON.stringify(gltf);
+    while (jsonStr.length % 4 !== 0) jsonStr += ' ';
+    const jsonBuf = Buffer.from(jsonStr, 'utf8');
+
+    const totalLength = 12 + 8 + jsonBuf.length + 8 + binBuffer.length;
+    const header = Buffer.alloc(12);
+    header.writeUInt32LE(0x46546C67, 0); // glTF magic
+    header.writeUInt32LE(2, 4);          // version 2
+    header.writeUInt32LE(totalLength, 8); // total byteLength
+
+    const jsonHeader = Buffer.alloc(8);
+    jsonHeader.writeUInt32LE(jsonBuf.length, 0);
+    jsonHeader.writeUInt32LE(0x4E4F534A, 4); // JSON chunk
+
+    const binHeader = Buffer.alloc(8);
+    binHeader.writeUInt32LE(binBuffer.length, 0);
+    binHeader.writeUInt32LE(0x004E4942, 4); // BIN chunk
+
+    return Buffer.concat([header, jsonHeader, jsonBuf, binHeader, binBuffer]);
+  }
+
+  /**
    * Procedurally generate a 3D model, setup lighting/camera, and export as web-ready GLB
    */
   async generate3DModel({
@@ -399,6 +607,47 @@ print("[JASPER BLENDER] Render completed successfully.")
       r = parseInt(color.slice(1, 3), 16) / 255.0;
       g = parseInt(color.slice(3, 5), 16) / 255.0;
       b = parseInt(color.slice(5, 7), 16) / 255.0;
+    }
+
+    // Auto-detect Blender binary if not already cached
+    if (!this.cachedPath) {
+      await this.detectBlender();
+    }
+
+    // FALLBACK ENGINE: If Blender is not installed, synthesize valid GLB via embedded engine
+    if (!this.cachedPath) {
+      console.log(`[BlenderController] Blender binary not detected on system; synthesizing 3D ${objectType} model via Jasper Embedded Procedural 3D Engine...`);
+      try {
+        const glbBuffer = this.createProceduralGlb({ objectType, prompt, color, metallic, roughness });
+        fs.writeFileSync(exportPath, glbBuffer);
+
+        // Generate SVG preview placeholder
+        const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="960" height="720" viewBox="0 0 960 720">
+          <rect width="960" height="720" fill="#030712"/>
+          <circle cx="480" cy="360" r="220" fill="none" stroke="${color}" stroke-width="6" stroke-dasharray="16 12" opacity="0.8"/>
+          <circle cx="480" cy="360" r="160" fill="none" stroke="#38bdf8" stroke-width="4" opacity="0.6"/>
+          <circle cx="480" cy="360" r="80" fill="${color}" fill-opacity="0.2" stroke="${color}" stroke-width="2"/>
+          <text x="480" y="370" font-family="monospace" font-size="28" font-weight="bold" fill="#f8fafc" text-anchor="middle" letter-spacing="4">JASPER 3D HOLOGRAM</text>
+          <text x="480" y="415" font-family="monospace" font-size="16" fill="${color}" text-anchor="middle" letter-spacing="2">${objectType.toUpperCase()} • ${prompt.replace(/</g, '').replace(/>/g, '')}</text>
+        </svg>`;
+        const svgPath = previewPath.replace(/\.png$/, '.svg');
+        fs.writeFileSync(svgPath, svgContent, 'utf8');
+
+        return {
+          success: true,
+          objectType,
+          prompt,
+          color,
+          glbFileName: exportFileName,
+          glbUrl: `/api/blender/export/${exportFileName}`,
+          previewUrl: `/api/blender/render/${path.basename(svgPath)}`,
+          engine: 'Jasper Embedded Procedural 3D Engine',
+          isEmbedded: true,
+          message: '3D Asset synthesized successfully using Jasper Embedded Procedural 3D Engine. (Blender can be installed in the background for Cycles raytracing).'
+        };
+      } catch (embErr) {
+        console.error('[BlenderController] Procedural fallback error:', embErr);
+      }
     }
 
     const script = `

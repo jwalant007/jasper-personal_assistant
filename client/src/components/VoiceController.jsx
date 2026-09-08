@@ -282,6 +282,11 @@ const VoiceController = forwardRef(({
 
   useImperativeHandle(ref, () => ({
     toggleListening,
+    startListening: startListeningWithChime,
+    stopListening: () => {
+      if (recognition) recognition.abort();
+      setIsListening(false);
+    },
     isListening,
     playSuccess: () => playChime('success'),
     playError: () => playChime('sleep')
