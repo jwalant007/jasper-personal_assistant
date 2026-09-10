@@ -27,7 +27,7 @@ export default function DevicesMasterHubWidget({ onClose }) {
             <h2 className="text-xl font-bold tracking-wider text-cyan-300 uppercase font-orbitron flex items-center gap-2">
               Smart Devices Master Hub
             </h2>
-            <p className="text-xs text-slate-400 font-mono">Android Phone Uplink • Samsung Smart TV Remote • Fitband Health Telemetry</p>
+            <p className="text-xs text-slate-400 font-mono">Android Phone Uplink • Videocon d2h STB (HDMI-CEC) • Fitband Health Telemetry</p>
           </div>
         </div>
 
@@ -42,7 +42,7 @@ export default function DevicesMasterHubWidget({ onClose }) {
       <div className="flex gap-2 mb-4 bg-slate-900/80 p-1.5 rounded-xl border border-slate-800">
         {[
           { id: 'phone', label: 'Android Smartphone Uplink', icon: Smartphone, color: 'text-cyan-400' },
-          { id: 'tv', label: 'Samsung Smart TV Remote', icon: Tv, color: 'text-purple-400' },
+          { id: 'tv', label: 'Videocon d2h STB (HDMI-CEC)', icon: Radio, color: 'text-orange-400' },
           { id: 'health', label: 'Fitband Health Telemetry', icon: Heart, color: 'text-rose-400' }
         ].map(tab => {
           const Icon = tab.icon;

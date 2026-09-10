@@ -256,11 +256,11 @@ const TOOL_REGISTRY = {
 
   control_device: {
     name: 'control_device',
-    description: 'Control a connected smart device (TV, phone, lights)',
+    description: 'Control a connected smart device (TV, d2h set-top box, phone, lights)',
     permissionLevel: 1,
-    parameters: { device: "'tv'|'phone'|'lights'", action: 'string' },
+    parameters: { device: "'tv'|'d2h'|'phone'|'lights'", action: 'string' },
     async handler({ device, action }) {
-      if (device === 'tv') {
+      if (device === 'tv' || device === 'd2h') {
         const result = await tvController.sendKey(action);
         return { success: result, device, action };
       }
@@ -268,6 +268,17 @@ const TOOL_REGISTRY = {
         return { success: false, error: 'Use specific phone action tools' };
       }
       return { success: false, error: `Device '${device}' not supported yet` };
+    }
+  },
+
+  tune_d2h_channel: {
+    name: 'tune_d2h_channel',
+    description: 'Tune the Videocon d2h set-top box to a specific channel number via HDMI-CEC',
+    permissionLevel: 1,
+    parameters: { channel: 'string or number' },
+    async handler({ channel }) {
+      const result = await tvController.tuneChannel(channel);
+      return result;
     }
   },
 

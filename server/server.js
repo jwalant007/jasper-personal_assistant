@@ -1051,6 +1051,47 @@ app.post('/api/tv/wol', async (req, res) => {
   }
 });
 
+// Videocon d2h Set-Top Box Channel Direct Tuning via HDMI-CEC
+app.post(['/api/tv/channel', '/api/d2h/tune'], async (req, res) => {
+  const { channel } = req.body;
+  if (!channel) {
+    return res.status(400).json({ error: 'Channel number is required' });
+  }
+
+  try {
+    const result = await tvController.tuneChannel(channel);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Launch OTT Application on TV / STB
+app.post('/api/tv/app', async (req, res) => {
+  const { appName } = req.body;
+  if (!appName) {
+    return res.status(400).json({ error: 'App name is required' });
+  }
+
+  try {
+    const result = await tvController.launchApp(appName);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Switch TV HDMI Input Source
+app.post('/api/tv/source', async (req, res) => {
+  const { port } = req.body;
+  try {
+    const result = await tvController.switchHdmiSource(port || 1);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 const iconCache = {};
 
 async function getAppIconUrl(packageName) {

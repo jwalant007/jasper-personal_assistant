@@ -53,7 +53,7 @@ const JASPER_OS_APPS_REGISTRY = [
   { id: 'calculator', title: 'JASPER Scientific Calculator App', category: 'Productivity & Tools', icon: Calculator, component: JasperCalculatorApp, defaultSize: { w: 640, h: 500 } },
   { id: 'blenderStudio', title: 'Blender 3D Graphics Studio', category: 'Creative & AI', icon: Box, component: (props) => <BlenderStudioModal {...props} embedded={true} />, defaultSize: { w: 860, h: 600 } },
   { id: 'diagnostics', title: 'System Diagnostics & Telemetry App', category: 'System & Hardware', icon: Activity, component: DiagnosticWidget, defaultSize: { w: 450, h: 500 } },
-  { id: 'tvRemote', title: 'Smart TV Controller App', category: 'Hardware Control', icon: Tv, component: TvRemoteWidget, defaultSize: { w: 400, h: 480 } },
+  { id: 'tvRemote', title: 'Videocon d2h STB Controller App', category: 'Hardware Control', icon: Radio, component: TvRemoteWidget, defaultSize: { w: 420, h: 540 } },
   { id: 'pcHub', title: 'PC Command Center App', category: 'Hardware Control', icon: Monitor, component: PcMasterHubWidget, defaultSize: { w: 640, h: 500 } },
   { id: 'phoneControl', title: 'Android Device Link App', category: 'Hardware Control', icon: Smartphone, component: PhoneControlWidget, defaultSize: { w: 440, h: 480 } },
   { id: 'security', title: 'Biometric Security & Firewall App', category: 'System & Hardware', icon: Shield, component: SecurityCenterWidget, defaultSize: { w: 480, h: 500 } },

@@ -3,6 +3,13 @@ const path = require('path');
 const net = require('net');
 const os = require('os');
 const wol = require('wake_on_lan');
+let Samsung = null;
+try {
+  const pkg = require('samsung-tv-control');
+  Samsung = pkg.Samsung || pkg.default || pkg;
+} catch (e) {
+  console.warn('[TvController] samsung-tv-control import note:', e.message);
+}
 
 const CONFIG_PATH = path.join(__dirname, 'tv-config.json');
 
@@ -293,7 +300,7 @@ class TvController {
   }
 
   async sendKey(keyName) {
-    console.log(`[TV Controller] Transmitting key: ${keyName} to TV at ${this.config.ip}`);
+    console.log(`[TV / d2h STB Controller] Transmitting key: ${keyName} to TV at ${this.config.ip}`);
     
     // Check if UPnP RenderingControl can handle volume/mute
     if (keyName === 'KEY_MUTE') {
@@ -302,11 +309,113 @@ class TvController {
       } catch (_) {}
     }
 
-    // Transmit legacy key command over Port 55000
-    await this.sendLegacyKeyCommand(keyName, 'iphone.iapp.samsung');
-    await this.sendLegacyKeyCommand(keyName, 'iphone.PC.samsung');
+    let sentViaPackage = false;
+    if (Samsung) {
+      try {
+        const tv = new Samsung({
+          ip: this.config.ip || '192.168.29.229',
+          mac: this.config.mac || '14:49:e0:20:f0:81',
+          port: 55000,
+          nameApp: 'JASPER Assistant',
+          saveToken: false
+        });
+
+        await new Promise((resolve) => {
+          tv.sendKey(keyName, (err, res) => {
+            if (!err) {
+              console.log(`[samsung-tv-control] Sent ${keyName} successfully to ${this.config.ip}!`);
+              sentViaPackage = true;
+            } else {
+              console.warn('[samsung-tv-control error]:', err?.message || err);
+            }
+            resolve(true);
+          });
+        });
+      } catch (err) {
+        console.warn('[samsung-tv-control exception]:', err.message);
+      }
+    }
+
+    // Fallback: also send manual legacy packet
+    if (!sentViaPackage) {
+      await this.sendLegacyKeyCommand(keyName, 'iphone..iapp.samsung');
+    }
 
     return { success: true, key: keyName, port: this.config.port || 55000, protocol: this.activeProtocol || 'legacy-55000' };
+  }
+
+  /**
+   * Switch TV input directly to HDMI (HDMI 1, HDMI 2, HDMI 3, HDMI 4, or source menu)
+   */
+  async switchHdmiSource(portOrAction = 1) {
+    console.log(`[TV Controller] Switching HDMI source: ${portOrAction}...`);
+    
+    if (String(portOrAction).toLowerCase() === 'source') {
+      await this.sendKey('KEY_SOURCE');
+      return { success: true, action: 'KEY_SOURCE' };
+    }
+
+    if (String(portOrAction).toLowerCase() === 'cycle' || String(portOrAction).toLowerCase() === 'hdmi') {
+      await this.sendKey('KEY_HDMI');
+      return { success: true, action: 'KEY_HDMI' };
+    }
+
+    const portNum = parseInt(portOrAction, 10) || 1;
+    const hdmiKey = `KEY_HDMI${portNum}`;
+    
+    // Send discrete HDMI key (e.g. KEY_HDMI1, KEY_HDMI2, etc.)
+    await this.sendKey(hdmiKey);
+    
+    return { success: true, port: portNum, key: hdmiKey };
+  }
+
+  /**
+   * Tune to a specific d2h set-top box channel via HDMI-CEC numeric keystrokes
+   */
+  async tuneChannel(channelStr) {
+    const raw = String(channelStr).replace(/\D/g, '');
+    if (!raw) return { success: false, error: 'Invalid channel number' };
+
+    console.log(`[d2h STB via HDMI-CEC] Tuning to channel ${raw}...`);
+    const sent = [];
+    for (const digit of raw.split('')) {
+      const key = `KEY_${digit}`;
+      await this.sendKey(key);
+      sent.push(key);
+      await new Promise(r => setTimeout(r, 280));
+    }
+    // Optional enter to confirm channel switch immediately
+    await new Promise(r => setTimeout(r, 200));
+    await this.sendKey('KEY_ENTER');
+    return { success: true, channel: raw, keysSent: sent };
+  }
+
+  /**
+   * Launch an OTT application on TV / Set-Top Box (JioCinema, Hotstar, Netflix, Prime, SonyLIV, ZEE5, etc.)
+   */
+  async launchApp(appName) {
+    const norm = String(appName).toLowerCase().replace(/[^a-z0-9]/g, '');
+    console.log(`[TV Controller / JioFiber OTT] Launching app: ${norm}`);
+
+    const directKeyMap = {
+      'netflix': 'KEY_NETFLIX',
+      'youtube': 'KEY_YOUTUBE',
+      'prime': 'KEY_AMAZON',
+      'primevideo': 'KEY_AMAZON',
+      'amazon': 'KEY_AMAZON',
+      'amazonprime': 'KEY_AMAZON'
+    };
+
+    if (directKeyMap[norm]) {
+      const key = directKeyMap[norm];
+      await this.sendKey(key);
+      return { success: true, app: norm, method: 'direct_key', key };
+    }
+
+    // For JioCinema, Disney+ Hotstar, SonyLIV, ZEE5, JioTV+:
+    // Send Smart Hub / Home key to bring up the TV & STB app launcher dock
+    await this.sendKey('KEY_HOME');
+    return { success: true, app: norm, method: 'smart_hub', key: 'KEY_HOME' };
   }
 
   wakeOnLan() {
@@ -345,7 +454,9 @@ class TvController {
       mac: this.config.mac || '14:49:e0:20:f0:81',
       protocol: detection.protocol,
       hasToken: verified,
-      portOpen: detection.online
+      portOpen: detection.online,
+      d2hBridge: 'HDMI-CEC',
+      d2hSupported: true
     };
   }
 }

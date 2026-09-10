@@ -175,6 +175,34 @@ const TOOLS_CONFIG = [
         }
       },
       {
+        name: 'tune_d2h_channel',
+        description: 'Tunes the Videocon d2h set-top box to a specific channel number via HDMI-CEC.',
+        parameters: {
+          type: 'OBJECT',
+          properties: {
+            channel: {
+              type: 'STRING',
+              description: 'The numeric channel number to tune to on the d2h box (e.g. "101", "202", "501").'
+            }
+          },
+          required: ['channel']
+        }
+      },
+      {
+        name: 'launch_ott_app',
+        description: 'Launches a JioFiber bundled OTT streaming application on the TV (e.g. JioCinema, Disney+ Hotstar, Netflix, Prime Video, YouTube, SonyLIV, ZEE5, JioTV+).',
+        parameters: {
+          type: 'OBJECT',
+          properties: {
+            appName: {
+              type: 'STRING',
+              description: 'The OTT app name. Options: "jiocinema", "hotstar", "netflix", "prime", "youtube", "sonyliv", "zee5", "jiotv", "appletv", "discovery".'
+            }
+          },
+          required: ['appName']
+        }
+      },
+      {
         name: 'wake_pc',
         description: 'Sends a Wake-on-LAN (WoL) Magic Packet over Wi-Fi/Ethernet to remotely power on or wake the host Windows PC/Laptop. Accepts optional MAC address.',
         parameters: {
@@ -662,6 +690,37 @@ class GeminiClient {
           }
         } catch (e) {
           return { status: 'pc_offline', message: 'Laptop backend is offline. TV remote control requires laptop online.' };
+        }
+      }
+
+      if (name === 'tune_d2h_channel') {
+        try {
+          const res = await fetch(`${getApiBase()}/api/tv/channel`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ channel: args.channel })
+          });
+          if (res.ok) {
+            onLog(`[d2h LINK] Tuned to Channel: ${args.channel}`, 'success');
+            return { status: 'success', channel: args.channel };
+          }
+        } catch (e) {
+          return { status: 'error', message: e.message };
+        }
+      }
+
+      if (name === 'launch_ott_app') {
+        try {
+          const res = await fetch(`${getApiBase()}/api/tv/app`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ appName: args.appName })
+          });
+          const data = await res.json();
+          onLog(`[JioFiber OTT] Launching ${args.appName} on TV...`, 'success');
+          return { status: 'success', appName: args.appName, ...data };
+        } catch (e) {
+          return { status: 'error', message: e.message };
         }
       }
 
@@ -1712,6 +1771,66 @@ class GeminiClient {
     if (raw.includes('open youtube')) {
       await this.executeTool('launch_pc_app', { url: 'https://youtube.com' }, onLog);
       return "Opening YouTube, Sir.";
+    }
+
+    // Videocon d2h Set-Top Box controls (HDMI-CEC)
+    const channelMatch = raw.match(/(?:tune to|change to|go to|channel)\s+(?:channel\s+)?(\d{1,4})/i) ||
+                         raw.match(/d2h\s+(?:channel\s+)?(\d{1,4})/i);
+    if (channelMatch) {
+      const ch = channelMatch[1];
+      await this.executeTool('tune_d2h_channel', { channel: ch }, onLog);
+      return `Tuning Videocon d2h to channel ${ch}, Sir.`;
+    }
+    if (raw.includes('next channel') || raw.includes('channel up') || raw.includes('d2h next')) {
+      await this.executeTool('send_tv_command', { keyName: 'KEY_CHUP' }, onLog);
+      return "Changing to next channel on Videocon d2h, Sir.";
+    }
+    if (raw.includes('previous channel') || raw.includes('prev channel') || raw.includes('channel down') || raw.includes('d2h prev')) {
+      await this.executeTool('send_tv_command', { keyName: 'KEY_CHDOWN' }, onLog);
+      return "Changing to previous channel on Videocon d2h, Sir.";
+    }
+    if (raw.includes('d2h guide') || raw.includes('open guide') || raw.includes('epg') || raw.includes('tv guide')) {
+      await this.executeTool('send_tv_command', { keyName: 'KEY_GUIDE' }, onLog);
+      return "Opening Videocon d2h Program Guide, Sir.";
+    }
+    if (raw.includes('d2h menu') || raw.includes('open menu') || raw.includes('stb menu')) {
+      await this.executeTool('send_tv_command', { keyName: 'KEY_MENU' }, onLog);
+      return "Opening Videocon d2h Menu, Sir.";
+    }
+    if (raw.includes('d2h info') || raw.includes('channel info') || raw.includes('show info')) {
+      await this.executeTool('send_tv_command', { keyName: 'KEY_INFO' }, onLog);
+      return "Displaying channel information on Videocon d2h, Sir.";
+    }
+    if (raw.includes('switch to d2h') || raw.includes('open d2h') || raw.includes('d2h hdmi') || raw.includes('tv input d2h')) {
+      await this.executeTool('send_tv_command', { keyName: 'KEY_HDMI1' }, onLog);
+      await this.executeTool('send_tv_command', { keyName: 'KEY_SOURCE' }, onLog);
+      return "Switching television display source to Videocon d2h HDMI, Sir.";
+    }
+
+    // JioFiber Bundled OTT Apps
+    const ottTriggers = [
+      { trigger: 'jiocinema', id: 'jiocinema', name: 'JioCinema' },
+      { trigger: 'jio cinema', id: 'jiocinema', name: 'JioCinema' },
+      { trigger: 'hotstar', id: 'hotstar', name: 'Disney+ Hotstar' },
+      { trigger: 'disney', id: 'hotstar', name: 'Disney+ Hotstar' },
+      { trigger: 'sonyliv', id: 'sonyliv', name: 'SonyLIV' },
+      { trigger: 'sony liv', id: 'sonyliv', name: 'SonyLIV' },
+      { trigger: 'zee5', id: 'zee5', name: 'ZEE5' },
+      { trigger: 'zee 5', id: 'zee5', name: 'ZEE5' },
+      { trigger: 'prime video', id: 'prime', name: 'Amazon Prime Video' },
+      { trigger: 'amazon prime', id: 'prime', name: 'Amazon Prime Video' },
+      { trigger: 'netflix', id: 'netflix', name: 'Netflix' },
+      { trigger: 'jiotv', id: 'jiotv', name: 'JioTV+' },
+      { trigger: 'jio tv', id: 'jiotv', name: 'JioTV+' },
+      { trigger: 'discovery plus', id: 'discovery', name: 'Discovery+' },
+      { trigger: 'apple tv', id: 'appletv', name: 'Apple TV+' }
+    ];
+
+    for (const ott of ottTriggers) {
+      if (raw.includes(`open ${ott.trigger}`) || raw.includes(`launch ${ott.trigger}`) || raw.includes(`play ${ott.trigger}`)) {
+        await this.executeTool('launch_ott_app', { appName: ott.id }, onLog);
+        return `Launching ${ott.name} on your television, Sir.`;
+      }
     }
 
     // TV power/keys
