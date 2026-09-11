@@ -794,6 +794,7 @@ export default function App() {
     const interval = setInterval(() => {
       const now = Date.now();
       setReminders(prev => {
+        if (!prev || prev.length === 0) return prev;
         const expired = prev.filter(r => r.targetTime <= now);
         const active = prev.filter(r => r.targetTime > now);
         
@@ -803,7 +804,6 @@ export default function App() {
         }
         return active;
       });
-      setTick(t => t + 1);
     }, 1000);
 
     return () => clearInterval(interval);

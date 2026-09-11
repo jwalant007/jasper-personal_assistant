@@ -9,86 +9,93 @@ import { getApiBase } from '../utils/apiConfig';
 import { playJarvisPowerUp, setJarvisPlasmaHum } from '../utils/jarvisAudioSynth';
 
 /**
- * 4K ULTRA-HIGH RESOLUTION PBR TEXTURE GENERATOR (4096 x 4096)
+ * ULTRA-HIGH PERFORMANCE PBR TEXTURE GENERATOR & HARDWARE TILE CACHE
  */
-function createPhotorealistic4kSuitTextures(suitType, primaryHex, secondaryHex) {
-  const TEX_SIZE = 4096;
+const suitTextureCache = new Map();
+
+function getPhotorealisticSuitTextures(suitType, primaryHex, secondaryHex) {
+  const cacheKey = `${suitType}_${primaryHex}_${secondaryHex}`;
+  if (suitTextureCache.has(cacheKey)) {
+    return suitTextureCache.get(cacheKey);
+  }
+
+  const TEX_SIZE = 1024; // High-res fidelity with 16x faster rendering and 0ms cache hits
 
   const colorCanvas = document.createElement('canvas');
   colorCanvas.width = TEX_SIZE;
   colorCanvas.height = TEX_SIZE;
-  const ctx = colorCanvas.getContext('2d');
+  const ctx = colorCanvas.getContext('2d', { willReadFrequently: false });
 
   ctx.fillStyle = primaryHex;
   ctx.fillRect(0, 0, TEX_SIZE, TEX_SIZE);
 
-  // Micro-woven Carbon Nanofiber Pattern at 4K Resolution
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.18)';
-  for (let y = 0; y < TEX_SIZE; y += 12) {
-    for (let x = (y % 24 === 0 ? 0 : 6); x < TEX_SIZE; x += 12) {
-      ctx.fillRect(x, y, 6, 6);
-    }
-  }
+  // Hardware-accelerated carbon nanofiber pattern tile (replaces 260,000 synchronous draw calls)
+  const tileCanvas = document.createElement('canvas');
+  tileCanvas.width = 16;
+  tileCanvas.height = 16;
+  const tCtx = tileCanvas.getContext('2d');
+  tCtx.fillStyle = 'rgba(0, 0, 0, 0.18)';
+  tCtx.fillRect(0, 0, 8, 8);
+  tCtx.fillRect(8, 8, 8, 8);
+  tCtx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+  tCtx.fillRect(4, 4, 4, 4);
+  tCtx.fillRect(12, 12, 4, 4);
 
-  // Cross-hatch nano threads
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
-  for (let y = 3; y < TEX_SIZE; y += 12) {
-    for (let x = (y % 24 === 3 ? 3 : 9); x < TEX_SIZE; x += 12) {
-      ctx.fillRect(x, y, 3, 3);
-    }
-  }
+  const pattern = ctx.createPattern(tileCanvas, 'repeat');
+  ctx.fillStyle = pattern;
+  ctx.fillRect(0, 0, TEX_SIZE, TEX_SIZE);
 
   // Suit specific stealth panels
   if (suitType === 'upgraded') {
     ctx.fillStyle = secondaryHex;
     ctx.beginPath();
-    ctx.moveTo(0, 1000);
-    ctx.lineTo(960, 1120);
-    ctx.lineTo(1120, 3000);
-    ctx.lineTo(0, 3200);
+    ctx.moveTo(0, TEX_SIZE * 0.25);
+    ctx.lineTo(TEX_SIZE * 0.24, TEX_SIZE * 0.28);
+    ctx.lineTo(TEX_SIZE * 0.28, TEX_SIZE * 0.75);
+    ctx.lineTo(0, TEX_SIZE * 0.8);
     ctx.fill();
 
     ctx.beginPath();
-    ctx.moveTo(TEX_SIZE, 1000);
-    ctx.lineTo(TEX_SIZE - 960, 1120);
-    ctx.lineTo(TEX_SIZE - 1120, 3000);
-    ctx.lineTo(TEX_SIZE, 3200);
+    ctx.moveTo(TEX_SIZE, TEX_SIZE * 0.25);
+    ctx.lineTo(TEX_SIZE * 0.76, TEX_SIZE * 0.28);
+    ctx.lineTo(TEX_SIZE * 0.72, TEX_SIZE * 0.75);
+    ctx.lineTo(TEX_SIZE, TEX_SIZE * 0.8);
     ctx.fill();
 
-    ctx.fillRect(1120, 2080, 1856, 1120);
+    ctx.fillRect(TEX_SIZE * 0.28, TEX_SIZE * 0.52, TEX_SIZE * 0.44, TEX_SIZE * 0.28);
   } else if (suitType === 'classic') {
-    ctx.fillStyle = secondaryHex; // Deep Spider-Man webbed blue
+    ctx.fillStyle = secondaryHex;
     ctx.beginPath();
-    ctx.moveTo(0, 1050);
-    ctx.lineTo(920, 1150);
-    ctx.lineTo(1080, 3000);
-    ctx.lineTo(0, 3200);
+    ctx.moveTo(0, TEX_SIZE * 0.26);
+    ctx.lineTo(TEX_SIZE * 0.23, TEX_SIZE * 0.29);
+    ctx.lineTo(TEX_SIZE * 0.27, TEX_SIZE * 0.75);
+    ctx.lineTo(0, TEX_SIZE * 0.8);
     ctx.fill();
 
     ctx.beginPath();
-    ctx.moveTo(TEX_SIZE, 1050);
-    ctx.lineTo(TEX_SIZE - 920, 1150);
-    ctx.lineTo(TEX_SIZE - 1080, 3000);
-    ctx.lineTo(TEX_SIZE, 3200);
+    ctx.moveTo(TEX_SIZE, TEX_SIZE * 0.26);
+    ctx.lineTo(TEX_SIZE * 0.77, TEX_SIZE * 0.29);
+    ctx.lineTo(TEX_SIZE * 0.73, TEX_SIZE * 0.75);
+    ctx.lineTo(TEX_SIZE, TEX_SIZE * 0.8);
     ctx.fill();
 
-    ctx.fillRect(1080, 2100, 1936, 1100);
+    ctx.fillRect(TEX_SIZE * 0.27, TEX_SIZE * 0.52, TEX_SIZE * 0.46, TEX_SIZE * 0.28);
   } else if (suitType === 'ironspider') {
     ctx.strokeStyle = '#ffd700';
-    ctx.lineWidth = 14;
-    ctx.strokeRect(400, 400, 3296, 3296);
-    ctx.strokeRect(800, 800, 2496, 2496);
+    ctx.lineWidth = 4;
+    ctx.strokeRect(TEX_SIZE * 0.1, TEX_SIZE * 0.1, TEX_SIZE * 0.8, TEX_SIZE * 0.8);
+    ctx.strokeRect(TEX_SIZE * 0.2, TEX_SIZE * 0.2, TEX_SIZE * 0.6, TEX_SIZE * 0.6);
   } else if (suitType === 'miles') {
     ctx.fillStyle = '#ff0033';
-    ctx.fillRect(0, 1800, TEX_SIZE, 80);
-    ctx.fillRect(0, 2800, TEX_SIZE, 80);
+    ctx.fillRect(0, TEX_SIZE * 0.45, TEX_SIZE, 20);
+    ctx.fillRect(0, TEX_SIZE * 0.7, TEX_SIZE, 20);
   } else if (suitType === '2099') {
     ctx.strokeStyle = '#ff0055';
-    ctx.lineWidth = 16;
+    ctx.lineWidth = 4;
     for (let i = 0; i < 6; i++) {
       ctx.beginPath();
-      ctx.moveTo(0, 500 + i * 500);
-      ctx.lineTo(TEX_SIZE, 700 + i * 500);
+      ctx.moveTo(0, (TEX_SIZE * 0.12) + i * (TEX_SIZE * 0.12));
+      ctx.lineTo(TEX_SIZE, (TEX_SIZE * 0.18) + i * (TEX_SIZE * 0.12));
       ctx.stroke();
     }
   }
@@ -107,18 +114,18 @@ function createPhotorealistic4kSuitTextures(suitType, primaryHex, secondaryHex) 
 
   // Web Lattice
   ctx.strokeStyle = 'rgba(10, 10, 15, 0.85)';
-  ctx.lineWidth = 8;
+  ctx.lineWidth = 2.5;
   const centerX = TEX_SIZE / 2;
-  const centerY = 1280;
+  const centerY = TEX_SIZE * 0.31;
 
   for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 16) {
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);
-    ctx.lineTo(centerX + Math.cos(angle) * 2800, centerY + Math.sin(angle) * 2800);
+    ctx.lineTo(centerX + Math.cos(angle) * (TEX_SIZE * 0.7), centerY + Math.sin(angle) * (TEX_SIZE * 0.7));
     ctx.stroke();
   }
 
-  for (let r = 160; r < 2800; r += 160) {
+  for (let r = 40; r < TEX_SIZE * 0.7; r += 40) {
     ctx.beginPath();
     ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
     ctx.stroke();
@@ -127,47 +134,53 @@ function createPhotorealistic4kSuitTextures(suitType, primaryHex, secondaryHex) 
   const mapTexture = new THREE.CanvasTexture(colorCanvas);
   mapTexture.wrapS = THREE.RepeatWrapping;
   mapTexture.wrapT = THREE.RepeatWrapping;
-  mapTexture.anisotropy = 16;
+  mapTexture.anisotropy = 4;
 
-  // 2. NORMAL BUMP MAP
+  // 2. NORMAL BUMP MAP (Hardware Tiled Pattern)
   const normalCanvas = document.createElement('canvas');
-  normalCanvas.width = TEX_SIZE;
-  normalCanvas.height = TEX_SIZE;
+  normalCanvas.width = 512;
+  normalCanvas.height = 512;
   const nCtx = normalCanvas.getContext('2d');
-
   nCtx.fillStyle = 'rgb(128, 128, 255)';
-  nCtx.fillRect(0, 0, TEX_SIZE, TEX_SIZE);
+  nCtx.fillRect(0, 0, 512, 512);
 
-  nCtx.fillStyle = 'rgb(160, 128, 240)';
-  for (let y = 0; y < TEX_SIZE; y += 8) {
-    for (let x = (y % 16 === 0 ? 0 : 4); x < TEX_SIZE; x += 8) {
-      nCtx.fillRect(x, y, 4, 4);
-    }
-  }
+  const nTile = document.createElement('canvas');
+  nTile.width = 8;
+  nTile.height = 8;
+  const ntCtx = nTile.getContext('2d');
+  ntCtx.fillStyle = 'rgb(160, 128, 240)';
+  ntCtx.fillRect(0, 0, 4, 4);
+  ntCtx.fillRect(4, 4, 4, 4);
+
+  const nPattern = nCtx.createPattern(nTile, 'repeat');
+  nCtx.fillStyle = nPattern;
+  nCtx.fillRect(0, 0, 512, 512);
 
   const normalTexture = new THREE.CanvasTexture(normalCanvas);
   normalTexture.wrapS = THREE.RepeatWrapping;
   normalTexture.wrapT = THREE.RepeatWrapping;
-  normalTexture.anisotropy = 16;
+  normalTexture.anisotropy = 4;
 
-  // 3. ROUGHNESS & METALLIC MAPS
+  // 3. ROUGHNESS & METALLIC MAPS (512x512)
   const roughCanvas = document.createElement('canvas');
-  roughCanvas.width = 2048;
-  roughCanvas.height = 2048;
+  roughCanvas.width = 512;
+  roughCanvas.height = 512;
   const rCtx = roughCanvas.getContext('2d');
   rCtx.fillStyle = 'rgb(115, 115, 115)';
-  rCtx.fillRect(0, 0, 2048, 2048);
+  rCtx.fillRect(0, 0, 512, 512);
   const roughnessTexture = new THREE.CanvasTexture(roughCanvas);
 
   const metalCanvas = document.createElement('canvas');
-  metalCanvas.width = 2048;
-  metalCanvas.height = 2048;
+  metalCanvas.width = 512;
+  metalCanvas.height = 512;
   const mCtx = metalCanvas.getContext('2d');
   mCtx.fillStyle = 'rgb(38, 38, 38)';
-  mCtx.fillRect(0, 0, 2048, 2048);
+  mCtx.fillRect(0, 0, 512, 512);
   const metalnessTexture = new THREE.CanvasTexture(metalCanvas);
 
-  return { mapTexture, normalTexture, roughnessTexture, metalnessTexture };
+  const result = { mapTexture, normalTexture, roughnessTexture, metalnessTexture };
+  suitTextureCache.set(cacheKey, result);
+  return result;
 }
 
 /**
@@ -1063,6 +1076,18 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
   const controlsRef = useRef(null);
   const uniformsListRef = useRef([]);
 
+  // Live dynamic refs to decouple animation from WebGL scene re-creation
+  const time4dRef = useRef(time4d);
+  time4dRef.current = time4d;
+  const timeSpeed4dRef = useRef(timeSpeed4d);
+  timeSpeed4dRef.current = timeSpeed4d;
+  const is4dPlayingRef = useRef(is4dPlaying);
+  is4dPlayingRef.current = is4dPlaying;
+  const autoRotateRef = useRef(autoRotate);
+  autoRotateRef.current = autoRotate;
+  const bloomEnabledRef = useRef(bloomEnabled);
+  bloomEnabledRef.current = bloomEnabled;
+
   const [activeCameraPreset, setActiveCameraPreset] = useState('full');
   const [webglError, setWebglError] = useState(false);
 
@@ -1264,7 +1289,7 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
         particleColor = 0x00f3ff;
       }
 
-      const { mapTexture, normalTexture, roughnessTexture, metalnessTexture } = createPhotorealistic4kSuitTextures(
+      const { mapTexture, normalTexture, roughnessTexture, metalnessTexture } = getPhotorealisticSuitTextures(
         spidermanSuit,
         primaryHex,
         secondaryHex
@@ -1423,7 +1448,7 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
       hologramGroup.add(pedestal);
 
       animateCallback = (time) => {
-        if (autoRotate && controlsRef.current) {
+        if (autoRotateRef.current && controlsRef.current) {
           hologramGroup.rotation.y += 0.005;
         }
 
@@ -1749,7 +1774,8 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
       }
 
       if (is4dEnabled && tesseractGroup) {
-        const effective4dTime = is4dPlaying ? time * timeSpeed4d + time4d : time4d;
+        const curTime4d = time4dRef.current;
+        const effective4dTime = is4dPlayingRef.current ? time * timeSpeed4dRef.current + curTime4d : curTime4d;
         tesseractGroup.rotation.y = effective4dTime * 0.4;
         tesseractGroup.rotation.x = effective4dTime * 0.25;
         tesseractGroup.rotation.z = Math.sin(effective4dTime * 0.5) * 0.2;
@@ -1757,7 +1783,7 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
         hologramGroup.position.y = Math.sin(effective4dTime * 1.5) * 0.08;
       }
 
-      if (bloomEnabled) {
+      if (bloomEnabledRef.current) {
         composer.render();
       } else {
         renderer.render(scene, camera);
@@ -1778,7 +1804,7 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
       }
       if (renderer) renderer.dispose();
     };
-  }, [mode, spidermanSuit, poseMode, autoRotate, bloomEnabled, webFiring, explodedView, nanotechReassembling, is4dEnabled, time4d, timeSpeed4d, is4dPlaying, starkReticles, sfxEnabled]);
+  }, [mode, spidermanSuit, poseMode, webFiring, explodedView, nanotechReassembling, is4dEnabled, starkReticles, blenderModelUrl]);
 
   if (webglError) {
     return (
@@ -1832,4 +1858,4 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
   );
 });
 
-export default Hologram3dCanvas;
+export default React.memo(Hologram3dCanvas);

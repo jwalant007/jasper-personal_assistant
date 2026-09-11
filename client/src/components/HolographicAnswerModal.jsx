@@ -88,13 +88,13 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
     }
   }, [initialQuery]);
 
-  // 4D Temporal Time Slider Loop
+  // 4D Temporal Time Slider Loop (Smooth UI slider update while Three.js animates at 60 FPS)
   useEffect(() => {
     let interval;
     if (is4dEnabled && is4dPlaying) {
       interval = setInterval(() => {
-        setTime4d(prev => (prev >= 10.0 ? 0 : prev + 0.1 * timeSpeed4d));
-      }, 100);
+        setTime4d(prev => (prev >= 10.0 ? 0 : Number((prev + 0.2 * timeSpeed4d).toFixed(2))));
+      }, 200);
     }
     return () => clearInterval(interval);
   }, [is4dEnabled, is4dPlaying, timeSpeed4d]);
