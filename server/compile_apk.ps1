@@ -12,9 +12,16 @@ $env:JAVA_HOME = $jdkPath
 $env:ANDROID_HOME = "C:\Users\Jwalant\android-sdk"
 
 Write-Host "[APK Builder] Using JAVA_HOME: $env:JAVA_HOME"
+Write-Host "[APK Builder] Copying updated Web assets into Capacitor Android..."
+Set-Location "c:\Users\Jwalant\.gemini\antigravity\scratch\jasper-assistant\client"
+& npx.cmd cap copy android
+
 Write-Host "[APK Builder] Compiling native Android APK with explicit target :app:assembleDebug..."
 Set-Location "c:\Users\Jwalant\.gemini\antigravity\scratch\jasper-assistant\client\android"
 & ".\gradlew.bat" :app:assembleDebug
+if ($LASTEXITCODE -ne 0) {
+    throw "Gradle build failed with exit code $LASTEXITCODE"
+}
 
 $apkFile = Get-ChildItem -Path "app\build\outputs" -Recurse -Filter "*.apk" | Select-Object -First 1
 if ($apkFile) {

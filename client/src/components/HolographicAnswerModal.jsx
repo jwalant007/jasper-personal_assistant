@@ -59,7 +59,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
   );
   const [isLoading, setIsLoading] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [spidermanSuit, setSpidermanSuit] = useState('stark_blueprint');
+  const [spidermanSuit, setSpidermanSuit] = useState('upgraded');
 
   // BLENDER 3D GRAPHICS INTEGRATION STATES
   const [blenderModelUrl, setBlenderModelUrl] = useState(null);
@@ -112,13 +112,13 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
   ];
 
   const suitPresets = [
-    { id: 'stark_blueprint', label: 'Stark Workshop Wireframe', color: 'text-cyan-300', badge: '⚡ Stark Workshop Wireframe' },
-    { id: 'upgraded', label: 'Upgraded Red & Black', color: 'text-rose-400', badge: '🕷️ Red & Black (Far From Home)' },
-    { id: 'classic', label: 'Classic Red & Blue', color: 'text-cyan-400', badge: '🔴 Peter Parker' },
-    { id: 'ironspider', label: 'Iron Spider Nanotech', color: 'text-amber-400', badge: '⚡ Gold Nanotech' },
-    { id: 'symbiote', label: 'Symbiote Black', color: 'text-slate-300', badge: '🖤 Black Suit' },
-    { id: 'miles', label: 'Miles Morales', color: 'text-rose-400', badge: '🕷️ Red/Black Web' },
-    { id: '2099', label: 'Spider-Man 2099', color: 'text-purple-400', badge: '🤖 Miguel O\'Hara' }
+    { id: 'upgraded', label: 'Upgraded Red & Black', color: 'text-rose-400', badge: '🕷️ Red & Black (MCU Upgraded)' },
+    { id: 'classic', label: 'Classic Red & Blue', color: 'text-cyan-400', badge: '🔴 Peter Parker Classic' },
+    { id: 'ironspider', label: 'Iron Spider Nanotech', color: 'text-amber-400', badge: '⚡ Gold Nanotech & Waldoes' },
+    { id: 'symbiote', label: 'Symbiote Black', color: 'text-slate-300', badge: '🖤 Black Symbiote Suit' },
+    { id: 'miles', label: 'Miles Morales', color: 'text-rose-400', badge: '🕷️ Red & Black Web' },
+    { id: '2099', label: 'Spider-Man 2099', color: 'text-purple-400', badge: '🤖 Miguel O\'Hara' },
+    { id: 'stark_blueprint', label: 'Stark Workshop Wireframe', color: 'text-cyan-300', badge: '⚡ Stark Workshop Wireframe' }
   ];
 
   const handleAskQuery = async (queryText) => {
@@ -126,61 +126,106 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
     if (!q.trim() || isLoading) return;
 
     setIsLoading(true);
-    setResponseText('Processing neural analysis and synthesizing 3D graphic model via Blender Engine...');
+    setResponseText('Processing neural analysis and synthesizing 3D graphic model...');
 
     const lower = q.toLowerCase();
     if (lower.includes('4d') || lower.includes('fourth dimension') || lower.includes('temporal') || lower.includes('time warp') || lower.includes('tesseract')) {
       setIs4dEnabled(true);
     }
 
-    const legacyModes = [
-      { key: 'spiderman', terms: ['spider', 'web', 'spiderman'] },
-      { key: 'ironman', terms: ['iron man', 'arc core', 'mark 85'] },
-      { key: 'v8engine', terms: ['v8', 'piston', 'combustion engine'] },
-      { key: 'cyberdrone', terms: ['cyberdrone', 'quadcopter'] },
-      { key: 'quantumvortex', terms: ['wormhole', 'vortex'] },
-      { key: 'atom', terms: ['atomic core', 'quantum particle'] },
-      { key: 'dna', terms: ['dna sequence', 'double helix'] },
-      { key: 'planet', terms: ['planetary globe', 'solar planet'] }
-    ];
+    // Direct Spider-Man detection to guarantee authentic suit rendering without torus/ring fallback
+    const isSpiderQuery = 
+      lower.includes('spider') || 
+      lower.includes('spiderman') || 
+      lower.includes('spider-man') || 
+      lower.includes('peter parker') || 
+      lower.includes('miles morales') || 
+      lower.includes('iron spider') ||
+      lower.includes('spider suit') ||
+      (lower.includes('suit') && !lower.includes('iron man'));
 
-    const matchedLegacy = legacyModes.find(m => m.terms.some(t => lower.includes(t)));
+    if (isSpiderQuery) {
+      setActive3dMode('spiderman');
+      setBlenderModelUrl(null); // Clear any previously loaded Blender torus ring
+      setIsBlenderSynthesizing(false);
 
-    if (matchedLegacy && !lower.includes('blender') && !lower.includes('show') && !lower.includes('model')) {
-      setActive3dMode(matchedLegacy.key);
+      let detectedSuit = 'upgraded';
+      let suitCommentary = 'Spider-Man Upgraded Red & Black nanotech suit';
+
+      if (lower.includes('iron spider') || lower.includes('gold nanotech') || lower.includes('waldoes')) {
+        detectedSuit = 'ironspider';
+        suitCommentary = 'Iron Spider Stark nanotech suit with golden articulated waldoes';
+      } else if (lower.includes('miles') || lower.includes('morales') || lower.includes('spider-verse')) {
+        detectedSuit = 'miles';
+        suitCommentary = 'Miles Morales custom black & neon-crimson stealth suit';
+      } else if (lower.includes('symbiote') || lower.includes('black suit') || lower.includes('venom')) {
+        detectedSuit = 'symbiote';
+        suitCommentary = 'Symbiote Alien adaptive dark weave suit';
+      } else if (lower.includes('2099') || lower.includes('miguel')) {
+        detectedSuit = '2099';
+        suitCommentary = 'Spider-Man 2099 Miguel O\'Hara futuristic cyber suit';
+      } else if (lower.includes('classic') || lower.includes('blue') || lower.includes('peter')) {
+        detectedSuit = 'classic';
+        suitCommentary = 'Peter Parker classic red & blue webbed hero suit';
+      } else if (lower.includes('blueprint') || lower.includes('wireframe') || lower.includes('stark')) {
+        detectedSuit = 'stark_blueprint';
+        suitCommentary = 'Stark Workshop wireframe telemetry suit schematic';
+      }
+
+      setSpidermanSuit(detectedSuit);
+      triggerNanotechReassembly();
+      setResponseText(`Sir, synthesized 3D holographic projection of the ${suitCommentary}. Initialized carbon-nanotube weave, Stark dual web-shooters, and high-tensile micro-mesh optics.`);
     } else {
-      // 🎨 Engage Blender 3D Graphics Engine for custom 3D requests
-      setActive3dMode('blender');
-      setIsBlenderSynthesizing(true);
+      const legacyModes = [
+        { key: 'ironman', terms: ['iron man', 'arc core', 'mark 85', 'tony stark'] },
+        { key: 'v8engine', terms: ['v8', 'piston', 'combustion engine', 'motor engine'] },
+        { key: 'cyberdrone', terms: ['cyberdrone', 'quadcopter', 'drone'] },
+        { key: 'quantumvortex', terms: ['wormhole', 'vortex', 'singularity'] },
+        { key: 'atom', terms: ['atomic core', 'quantum particle', 'nucleus'] },
+        { key: 'dna', terms: ['dna sequence', 'double helix', 'chromosome'] },
+        { key: 'planet', terms: ['planetary globe', 'solar planet', 'earth', 'mars'] }
+      ];
 
-      fetch(`${getApiBase()}/api/blender/generate-3d`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: q,
-          objectType: 'auto',
-          color: '#00f0ff',
-          metallic: 0.85,
-          roughness: 0.18,
-          renderPreview: true
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.glbUrl) {
-          setBlenderModelUrl(data.glbUrl);
-        }
-        if (data.previewUrl) {
-          setBlenderPreviewUrl(data.previewUrl);
-        }
-        setBlenderDetails(data);
-      })
-      .catch(err => {
-        console.warn('[Hologram Modal] Blender synthesis notice:', err.message);
-      })
-      .finally(() => {
+      const matchedLegacy = legacyModes.find(m => m.terms.some(t => lower.includes(t)));
+
+      if (matchedLegacy && !lower.includes('blender procedural')) {
+        setActive3dMode(matchedLegacy.key);
+        setBlenderModelUrl(null);
         setIsBlenderSynthesizing(false);
-      });
+      } else {
+        // 🎨 Engage Blender 3D Graphics Engine for custom 3D requests
+        setActive3dMode('blender');
+        setIsBlenderSynthesizing(true);
+
+        fetch(`${getApiBase()}/api/blender/generate-3d`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt: q,
+            objectType: 'auto',
+            color: '#00f0ff',
+            metallic: 0.85,
+            roughness: 0.18,
+            renderPreview: true
+          })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.glbUrl) {
+            setBlenderModelUrl(data.glbUrl);
+          }
+          if (data.previewUrl) {
+            setBlenderPreviewUrl(data.previewUrl);
+          }
+          setBlenderDetails(data);
+        })
+        .catch(err => {
+          console.warn('[Hologram Modal] Blender synthesis notice:', err.message);
+        })
+        .finally(() => {
+          setIsBlenderSynthesizing(false);
+        });
+      }
     }
 
     try {

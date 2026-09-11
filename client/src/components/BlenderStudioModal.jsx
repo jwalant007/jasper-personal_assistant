@@ -84,8 +84,8 @@ function Blender3dCanvas({ glbUrl, objectType = 'torus', color = '#00f0ff', auto
       const lowerType = (objectType || 'torus').toLowerCase();
       if (lowerType.includes('sphere')) geo = new THREE.SphereGeometry(1.2, 32, 16);
       else if (lowerType.includes('cube')) geo = new THREE.BoxGeometry(1.8, 1.8, 1.8);
-      else if (lowerType.includes('cylinder')) geo = new THREE.CylinderGeometry(0.9, 0.9, 2.2, 32);
-      else geo = new THREE.TorusGeometry(1.2, 0.38, 24, 48);
+      else if (lowerType.includes('spider') || lowerType.includes('suit') || lowerType.includes('hero')) geo = new THREE.CapsuleGeometry(0.8, 1.6, 16, 32);
+      else geo = new THREE.BoxGeometry(1.8, 1.8, 1.8);
 
       const mat = new THREE.MeshStandardMaterial({
         color: hexColor,

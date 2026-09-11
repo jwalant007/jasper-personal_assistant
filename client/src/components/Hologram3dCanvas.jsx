@@ -56,6 +56,23 @@ function createPhotorealistic4kSuitTextures(suitType, primaryHex, secondaryHex) 
     ctx.fill();
 
     ctx.fillRect(1120, 2080, 1856, 1120);
+  } else if (suitType === 'classic') {
+    ctx.fillStyle = secondaryHex; // Deep Spider-Man webbed blue
+    ctx.beginPath();
+    ctx.moveTo(0, 1050);
+    ctx.lineTo(920, 1150);
+    ctx.lineTo(1080, 3000);
+    ctx.lineTo(0, 3200);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(TEX_SIZE, 1050);
+    ctx.lineTo(TEX_SIZE - 920, 1150);
+    ctx.lineTo(TEX_SIZE - 1080, 3000);
+    ctx.lineTo(TEX_SIZE, 3200);
+    ctx.fill();
+
+    ctx.fillRect(1080, 2100, 1936, 1100);
   } else if (suitType === 'ironspider') {
     ctx.strokeStyle = '#ffd700';
     ctx.lineWidth = 14;
@@ -605,6 +622,420 @@ function createPhotorealisticIronManSuitGroup(isBlueprint, primaryMat, secondary
   return figureGroup;
 }
 
+/**
+ * HYPER-REALISTIC ANATOMICAL SPIDER-MAN SUIT GEOMETRY
+ * Sculpted athletic hero proportions, iconic Spider-Man mask with expressive reflective lenses,
+ * 3D raised Spider Emblem on chest (no arc reactor!), Stark wrist web-shooters with emitters,
+ * signature "thwip" web-slinging hand gesture, and optional Iron Spider articulated golden waldoes.
+ */
+function createPhotorealisticSpiderManSuitGroup(
+  isBlueprint,
+  primaryMat,
+  secondaryMat,
+  bootMat,
+  isCrouch,
+  expOffset,
+  isIronSpider,
+  eyeColor = 0xffffff,
+  eyeFrameColor = 0x090a0e,
+  emblemColor = 0x08080a
+) {
+  const figureGroup = new THREE.Group();
+  figureGroup.position.set(0, isCrouch ? -0.4 : 0, 0);
+
+  // 1. SPIDER-MAN MASK & EYE LENSES
+  const headGroup = new THREE.Group();
+  headGroup.position.set(0, (isCrouch ? 1.35 : 1.65) + expOffset * 0.9, (isCrouch ? 0.25 : 0) + expOffset * 0.3);
+  if (isCrouch) headGroup.rotation.x = -0.22;
+
+  // Sleek, organic superhero head profile
+  const headGeo = new THREE.SphereGeometry(0.36, 64, 64);
+  headGeo.scale(0.82, 1.10, 0.92);
+  const headMesh = new THREE.Mesh(headGeo, primaryMat);
+  headGroup.add(headMesh);
+
+  // Iconic Spider-Man Lenses with expressive black/gold frame and glowing white inner mesh
+  [-0.13, 0.13].forEach((xOffset) => {
+    const isRight = xOffset > 0;
+    const eyeGroup = new THREE.Group();
+    eyeGroup.position.set(xOffset, 0.08, 0.29);
+    eyeGroup.rotation.y = xOffset * -0.32;
+    eyeGroup.rotation.z = (isRight ? -1 : 1) * 0.08;
+
+    // Outer bold lens frame
+    const frameShape = new THREE.Shape();
+    frameShape.moveTo(0, 0.09);
+    frameShape.lineTo(0.14, 0.04);
+    frameShape.lineTo(0.12, -0.06);
+    frameShape.lineTo(-0.02, -0.08);
+    frameShape.lineTo(-0.11, 0.01);
+    frameShape.closePath();
+
+    const frameGeo = new THREE.ExtrudeGeometry(frameShape, { depth: 0.025, bevelEnabled: true, bevelSize: 0.008, bevelThickness: 0.008 });
+    frameGeo.scale(0.85, 0.85, 0.85);
+    const frameMat = isBlueprint
+      ? new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true, blending: THREE.AdditiveBlending })
+      : new THREE.MeshPhysicalMaterial({
+          color: eyeFrameColor,
+          roughness: 0.25,
+          metalness: isIronSpider ? 0.9 : 0.4
+        });
+    const frameMesh = new THREE.Mesh(frameGeo, frameMat);
+    eyeGroup.add(frameMesh);
+
+    // Inner bright reflective lens
+    const lensShape = new THREE.Shape();
+    lensShape.moveTo(0, 0.075);
+    lensShape.lineTo(0.12, 0.03);
+    lensShape.lineTo(0.10, -0.045);
+    lensShape.lineTo(-0.015, -0.065);
+    lensShape.lineTo(-0.09, 0.005);
+    lensShape.closePath();
+
+    const lensGeo = new THREE.ExtrudeGeometry(lensShape, { depth: 0.02, bevelEnabled: false });
+    lensGeo.scale(0.85, 0.85, 0.85);
+    const lensMat = isBlueprint
+      ? new THREE.MeshBasicMaterial({ color: 0x00ffff, blending: THREE.AdditiveBlending })
+      : new THREE.MeshPhysicalMaterial({
+          color: eyeColor,
+          emissive: eyeColor,
+          emissiveIntensity: 1.5,
+          clearcoat: 1.0,
+          roughness: 0.05
+        });
+    const lensMesh = new THREE.Mesh(lensGeo, lensMat);
+    lensMesh.position.z = 0.006;
+    eyeGroup.add(lensMesh);
+
+    headGroup.add(eyeGroup);
+  });
+
+  figureGroup.add(headGroup);
+
+  // 2. ATHLETIC TORSO & 3D RAISED SPIDER EMBLEM (NO ARC REACTOR!)
+  const torsoGroup = new THREE.Group();
+  torsoGroup.position.set(0, isCrouch ? 0.45 : 0.65, isCrouch ? 0.15 : 0);
+  if (isCrouch) torsoGroup.rotation.x = 0.45;
+
+  // Athletic Pectoral & Upper Torso
+  const chestGeo = new THREE.BoxGeometry(0.86, 0.52, 0.38, 12, 8, 8);
+  const chestMesh = new THREE.Mesh(chestGeo, primaryMat);
+  chestMesh.position.set(0, 0.30, 0.04);
+  torsoGroup.add(chestMesh);
+
+  // Side flank panels (Blue / Black / Accent contrast)
+  [-0.38, 0.38].forEach((xSide) => {
+    const flankGeo = new THREE.BoxGeometry(0.18, 0.46, 0.34, 4, 4, 4);
+    const flankMesh = new THREE.Mesh(flankGeo, secondaryMat);
+    flankMesh.position.set(xSide, 0.28, 0.03);
+    torsoGroup.add(flankMesh);
+  });
+
+  // 3D RAISED SPIDER EMBLEM ON CHEST
+  const emblemMat = isBlueprint
+    ? new THREE.MeshBasicMaterial({ color: 0x00ffff, blending: THREE.AdditiveBlending })
+    : new THREE.MeshPhysicalMaterial({
+        color: emblemColor,
+        emissive: isIronSpider ? 0xffd700 : emblemColor,
+        emissiveIntensity: isIronSpider ? 0.6 : 0.15,
+        metalness: isIronSpider ? 0.95 : 0.6,
+        roughness: 0.15,
+        clearcoat: 1.0
+      });
+
+  const spiderGroup = new THREE.Group();
+  spiderGroup.position.set(0, 0.30, 0.24);
+
+  // Spider Body (Thorax & Abdomen)
+  const thoraxGeo = new THREE.SphereGeometry(0.045, 16, 16);
+  thoraxGeo.scale(0.8, 1.4, 0.5);
+  const thoraxMesh = new THREE.Mesh(thoraxGeo, emblemMat);
+  thoraxMesh.position.set(0, 0.04, 0);
+  spiderGroup.add(thoraxMesh);
+
+  const abdomenGeo = new THREE.SphereGeometry(0.055, 16, 16);
+  abdomenGeo.scale(0.9, 1.8, 0.5);
+  const abdomenMesh = new THREE.Mesh(abdomenGeo, emblemMat);
+  abdomenMesh.position.set(0, -0.05, 0);
+  spiderGroup.add(abdomenMesh);
+
+  // 8 Stylized Spider Legs spreading across the chest
+  const legPairs = [
+    // Upper legs
+    { angle1: 0.55, len1: 0.16, angle2: 1.15, len2: 0.22, yOffset: 0.06 },
+    { angle1: 0.35, len1: 0.18, angle2: 0.85, len2: 0.25, yOffset: 0.02 },
+    // Lower legs
+    { angle1: -0.25, len1: 0.18, angle2: -0.65, len2: 0.24, yOffset: -0.04 },
+    { angle1: -0.45, len1: 0.16, angle2: -0.95, len2: 0.22, yOffset: -0.08 }
+  ];
+
+  legPairs.forEach(({ angle1, len1, angle2, len2, yOffset }) => {
+    [-1, 1].forEach((side) => {
+      const legPart1Geo = new THREE.BoxGeometry(len1, 0.02, 0.015);
+      const leg1 = new THREE.Mesh(legPart1Geo, emblemMat);
+      leg1.position.set(side * (len1 / 2 + 0.03), yOffset, 0);
+      leg1.rotation.z = side * angle1;
+
+      const legPart2Geo = new THREE.BoxGeometry(len2, 0.018, 0.015);
+      const leg2 = new THREE.Mesh(legPart2Geo, emblemMat);
+      leg2.position.set(side * len1, 0, 0);
+      leg2.rotation.z = side * (angle2 - angle1);
+      leg1.add(leg2);
+
+      spiderGroup.add(leg1);
+    });
+  });
+
+  torsoGroup.add(spiderGroup);
+
+  // Athletic Abdomen & Waist Taper
+  for (let a = 0; a < 4; a++) {
+    const abGeo = new THREE.BoxGeometry(0.68 - a * 0.05, 0.12, 0.32 - a * 0.02, 8, 4, 4);
+    const abMesh = new THREE.Mesh(abGeo, a % 2 === 0 ? primaryMat : secondaryMat);
+    abMesh.position.set(0, -0.04 - a * 0.14, 0.03);
+    torsoGroup.add(abMesh);
+  }
+
+  // Web Shooter Utility Belt
+  const beltGeo = new THREE.BoxGeometry(0.62, 0.06, 0.33);
+  const beltMat = isBlueprint
+    ? new THREE.MeshBasicMaterial({ color: 0x00ffff })
+    : new THREE.MeshPhysicalMaterial({ color: isIronSpider ? 0xffd700 : 0x111318, metalness: 0.8, roughness: 0.2 });
+  const belt = new THREE.Mesh(beltGeo, beltMat);
+  belt.position.set(0, -0.48, 0.02);
+  torsoGroup.add(belt);
+
+  // Spare web fluid cartridges on belt
+  [-0.22, -0.11, 0.11, 0.22].forEach((xCart) => {
+    const cartGeo = new THREE.CylinderGeometry(0.025, 0.025, 0.08, 12);
+    const cartMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.9, roughness: 0.2 });
+    const cart = new THREE.Mesh(cartGeo, cartMat);
+    cart.position.set(xCart, -0.48, 0.18);
+    cart.rotation.x = Math.PI / 2;
+    torsoGroup.add(cart);
+  });
+
+  figureGroup.add(torsoGroup);
+
+  // 3. ARMS WITH STARK WRIST WEB-SHOOTERS & "THWIP" GESTURE HANDS
+  const rArmGroup = new THREE.Group();
+  rArmGroup.position.set(0.56 + expOffset * 0.8, (isCrouch ? 0.72 : 0.90) + expOffset * 0.2, (isCrouch ? 0.2 : 0) + expOffset * 0.5);
+  if (isCrouch) {
+    rArmGroup.rotation.x = -1.10;
+    rArmGroup.rotation.y = 0.22;
+    rArmGroup.rotation.z = -0.20;
+  }
+
+  const shoulderGeo = new THREE.SphereGeometry(0.24, 32, 32);
+  const shoulder = new THREE.Mesh(shoulderGeo, primaryMat);
+  shoulder.position.set(0.06, 0.02, 0);
+  rArmGroup.add(shoulder);
+
+  const rBicepGeo = new THREE.CylinderGeometry(0.14, 0.12, 0.38, 16);
+  const rBicep = new THREE.Mesh(rBicepGeo, secondaryMat);
+  rBicep.position.set(0.10, -0.28, 0.02);
+  rArmGroup.add(rBicep);
+
+  const rForearmGeo = new THREE.CylinderGeometry(0.12, 0.10, 0.42, 16);
+  const rForearm = new THREE.Mesh(rForearmGeo, primaryMat);
+  rForearm.position.set(0.16, -0.66, 0.08);
+  rArmGroup.add(rForearm);
+
+  // Wrist Web-Shooter Unit (Stark Micro-Dispenser)
+  const shooterGeo = new THREE.BoxGeometry(0.10, 0.12, 0.07);
+  const shooterMat = new THREE.MeshStandardMaterial({ color: isIronSpider ? 0xffd700 : 0x222630, metalness: 0.95, roughness: 0.15 });
+  const rShooter = new THREE.Mesh(shooterGeo, shooterMat);
+  rShooter.position.set(0.16, -0.84, 0.14);
+  rArmGroup.add(rShooter);
+
+  const nozzleGeo = new THREE.CylinderGeometry(0.02, 0.025, 0.03, 16);
+  const nozzleMat = new THREE.MeshPhysicalMaterial({ color: 0x00f3ff, emissive: 0x00f3ff, emissiveIntensity: 2.5 });
+  const rNozzle = new THREE.Mesh(nozzleGeo, nozzleMat);
+  rNozzle.position.set(0.16, -0.89, 0.16);
+  rNozzle.rotation.x = Math.PI / 2;
+  rArmGroup.add(rNozzle);
+
+  // Hand sculpted in Spider-Man "Thwip" gesture (Middle/Ring folded, Index/Pinky extended)
+  const rHandGroup = new THREE.Group();
+  rHandGroup.position.set(0.16, -0.92, 0.12);
+  
+  const palmGeo = new THREE.BoxGeometry(0.12, 0.14, 0.06);
+  const rPalm = new THREE.Mesh(palmGeo, primaryMat);
+  rHandGroup.add(rPalm);
+
+  // Index & Pinky extended fingers
+  [-0.04, 0.04].forEach((xFin) => {
+    const finGeo = new THREE.CylinderGeometry(0.018, 0.015, 0.14, 8);
+    const finger = new THREE.Mesh(finGeo, primaryMat);
+    finger.position.set(xFin, -0.12, 0.01);
+    rHandGroup.add(finger);
+  });
+
+  // Middle & Ring folded fingers
+  [-0.014, 0.014].forEach((xFin) => {
+    const finFoldGeo = new THREE.CylinderGeometry(0.018, 0.016, 0.07, 8);
+    const finger = new THREE.Mesh(finFoldGeo, primaryMat);
+    finger.position.set(xFin, -0.07, 0.035);
+    finger.rotation.x = Math.PI / 2.5;
+    rHandGroup.add(finger);
+  });
+
+  rArmGroup.add(rHandGroup);
+  figureGroup.add(rArmGroup);
+
+  // Left Arm
+  const lArmGroup = new THREE.Group();
+  lArmGroup.position.set(-0.56 - expOffset * 0.8, (isCrouch ? 0.72 : 0.90) + expOffset * 0.2, (isCrouch ? 0.1 : 0) + expOffset * 0.5);
+  if (isCrouch) {
+    lArmGroup.rotation.x = 0.80;
+    lArmGroup.rotation.y = -0.40;
+    lArmGroup.rotation.z = 0.40;
+  }
+
+  const lShoulder = new THREE.Mesh(shoulderGeo, primaryMat);
+  lShoulder.position.set(-0.06, 0.02, 0);
+  lArmGroup.add(lShoulder);
+
+  const lBicep = new THREE.Mesh(rBicepGeo, secondaryMat);
+  lBicep.position.set(-0.10, -0.28, 0.02);
+  lArmGroup.add(lBicep);
+
+  const lForearm = new THREE.Mesh(rForearmGeo, primaryMat);
+  lForearm.position.set(-0.16, -0.66, 0.08);
+  lArmGroup.add(lForearm);
+
+  const lShooter = new THREE.Mesh(shooterGeo, shooterMat);
+  lShooter.position.set(-0.16, -0.84, 0.14);
+  lArmGroup.add(lShooter);
+
+  const lNozzle = new THREE.Mesh(nozzleGeo, nozzleMat);
+  lNozzle.position.set(-0.16, -0.89, 0.16);
+  lNozzle.rotation.x = Math.PI / 2;
+  lArmGroup.add(lNozzle);
+
+  const lHandGroup = new THREE.Group();
+  lHandGroup.position.set(-0.16, -0.92, 0.12);
+  const lPalm = new THREE.Mesh(palmGeo, primaryMat);
+  lHandGroup.add(lPalm);
+
+  [-0.04, 0.04].forEach((xFin) => {
+    const finGeo = new THREE.CylinderGeometry(0.018, 0.015, 0.14, 8);
+    const finger = new THREE.Mesh(finGeo, primaryMat);
+    finger.position.set(xFin, -0.12, 0.01);
+    lHandGroup.add(finger);
+  });
+
+  [-0.014, 0.014].forEach((xFin) => {
+    const finFoldGeo = new THREE.CylinderGeometry(0.018, 0.016, 0.07, 8);
+    const finger = new THREE.Mesh(finFoldGeo, primaryMat);
+    finger.position.set(xFin, -0.07, 0.035);
+    finger.rotation.x = Math.PI / 2.5;
+    lHandGroup.add(finger);
+  });
+
+  lArmGroup.add(lHandGroup);
+  figureGroup.add(lArmGroup);
+
+  // 4. ATHLETIC LEGS & WEB-RUNNER BOOTS
+  [-0.24, 0.24].forEach((xPos, idx) => {
+    const sideMult = idx === 0 ? -1 : 1;
+    const legGroup = new THREE.Group();
+    legGroup.position.set(xPos + sideMult * expOffset * 0.6, (isCrouch ? -0.05 : 0.10) - expOffset * 0.6, 0);
+
+    if (isCrouch) legGroup.rotation.x = -0.72;
+
+    const thighGeo = new THREE.CylinderGeometry(0.20, 0.15, 0.62, 16, 8);
+    const thighMesh = new THREE.Mesh(thighGeo, secondaryMat);
+    thighMesh.position.set(0, -0.30, 0);
+    legGroup.add(thighMesh);
+
+    const kneeGeo = new THREE.SphereGeometry(0.14, 16, 16);
+    const kneeMesh = new THREE.Mesh(kneeGeo, primaryMat);
+    kneeMesh.position.set(0, -0.64, 0.06);
+    legGroup.add(kneeMesh);
+
+    const shinGeo = new THREE.CylinderGeometry(0.15, 0.12, 0.58, 16, 8);
+    const shinMesh = new THREE.Mesh(shinGeo, primaryMat);
+    shinMesh.position.set(0, -0.96, 0.02);
+    legGroup.add(shinMesh);
+
+    const bootGeo = new THREE.BoxGeometry(0.18, 0.32, 0.28, 8, 8, 8);
+    const bootMesh = new THREE.Mesh(bootGeo, bootMat);
+    bootMesh.position.set(0, -1.24, isCrouch ? -0.16 : 0.05);
+    legGroup.add(bootMesh);
+
+    figureGroup.add(legGroup);
+  });
+
+  // 5. IRON SPIDER GOLDEN MECHANICAL WALDOES (NANOTECH LEGS)
+  if (isIronSpider) {
+    const waldoMat = isBlueprint
+      ? new THREE.MeshBasicMaterial({ color: 0xffd700, wireframe: true, blending: THREE.AdditiveBlending })
+      : new THREE.MeshPhysicalMaterial({
+          color: 0xffd700,
+          metalness: 0.98,
+          roughness: 0.12,
+          clearcoat: 1.0,
+          emissive: 0xffaa00,
+          emissiveIntensity: 0.25
+        });
+
+    const dorsalPackGeo = new THREE.BoxGeometry(0.32, 0.40, 0.14);
+    const dorsalPack = new THREE.Mesh(dorsalPackGeo, waldoMat);
+    dorsalPack.position.set(0, 0.28, -0.22);
+    torsoGroup.add(dorsalPack);
+
+    // 4 Articulated Golden Mechanical Spider Legs
+    const waldoConfigs = [
+      // Top Right
+      { root: [0.12, 0.40, -0.24], rot: [0.6, 0.4, 0.8], segs: [0.65, 0.75, 0.55] },
+      // Top Left
+      { root: [-0.12, 0.40, -0.24], rot: [0.6, -0.4, -0.8], segs: [0.65, 0.75, 0.55] },
+      // Bottom Right
+      { root: [0.12, 0.16, -0.24], rot: [-0.4, 0.5, 0.6], segs: [0.55, 0.65, 0.50] },
+      // Bottom Left
+      { root: [-0.12, 0.16, -0.24], rot: [-0.4, -0.5, -0.6], segs: [0.55, 0.65, 0.50] }
+    ];
+
+    waldoConfigs.forEach(({ root, rot, segs }) => {
+      const armRoot = new THREE.Group();
+      armRoot.position.set(...root);
+      armRoot.rotation.set(...rot);
+
+      let currentParent = armRoot;
+      segs.forEach((len, segIdx) => {
+        const segGeo = new THREE.CylinderGeometry(0.04 - segIdx * 0.008, 0.03 - segIdx * 0.008, len, 12);
+        const segMesh = new THREE.Mesh(segGeo, waldoMat);
+        segMesh.position.y = len / 2;
+        currentParent.add(segMesh);
+
+        if (segIdx < segs.length - 1) {
+          const jointGeo = new THREE.SphereGeometry(0.05 - segIdx * 0.008, 16, 16);
+          const jointMesh = new THREE.Mesh(jointGeo, waldoMat);
+          jointMesh.position.y = len;
+          currentParent.add(jointMesh);
+
+          const nextGroup = new THREE.Group();
+          nextGroup.position.y = len;
+          nextGroup.rotation.z = segIdx === 0 ? 0.8 : -1.1;
+          currentParent.add(nextGroup);
+          currentParent = nextGroup;
+        } else {
+          // Sharp nano-blade tip
+          const tipGeo = new THREE.ConeGeometry(0.035, 0.18, 12);
+          const tipMesh = new THREE.Mesh(tipGeo, waldoMat);
+          tipMesh.position.y = len + 0.08;
+          currentParent.add(tipMesh);
+        }
+      });
+
+      torsoGroup.add(armRoot);
+    });
+  }
+
+  return figureGroup;
+}
+
 const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
   {
     mode = 'spiderman',
@@ -783,6 +1214,15 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
         secondaryHex = '#111318';
         primaryColor = 0xe60026;
         secondaryColor = 0x111318;
+      } else if (spidermanSuit === 'classic') {
+        primaryHex = '#e60026';
+        secondaryHex = '#0044cc';
+        primaryColor = 0xe60026;
+        secondaryColor = 0x0044cc;
+        eyeColor = 0xffffff;
+        eyeFrameColor = 0x050508;
+        emblemColor = 0x0a0a0e;
+        particleColor = 0x0055ff;
       } else if (spidermanSuit === 'ironspider') {
         primaryHex = '#d60029';
         secondaryHex = '#101726';
@@ -873,7 +1313,18 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
       const isCrouch = poseMode === 'crouch';
       const expOffset = explodedView ? 0.85 : 0.0;
 
-      const figureGroup = createPhotorealisticIronManSuitGroup(isBlueprint, primaryMat, secondaryMat, bootMat, isCrouch, expOffset);
+      const figureGroup = createPhotorealisticSpiderManSuitGroup(
+        isBlueprint,
+        primaryMat,
+        secondaryMat,
+        bootMat,
+        isCrouch,
+        expOffset,
+        isIronSpider,
+        eyeColor,
+        eyeFrameColor,
+        emblemColor
+      );
       hologramGroup.add(figureGroup);
 
       // --- EXPLODED BLUEPRINT TELEMETRY CONNECTING LINES ---
@@ -892,35 +1343,35 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
         });
       }
 
-      // --- STARK WORKFRAME GLOWING JOINT NODES & 3D SPATIAL TELEMETRY ---
+      // --- STARK SPATIAL BLUEPRINT TELEMETRY NODES (CLEAN DIAMOND MARKERS, NO TORUS RINGS) ---
       if (isBlueprint) {
         const spatialGroup = createStarkSpatialTelemetryGroup();
         figureGroup.add(spatialGroup);
 
         const nodeMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, blending: THREE.AdditiveBlending });
         const nodePositions = [
-          new THREE.Vector3(0, 0.72, 0.38), // Chest Arc Core
+          new THREE.Vector3(0, 0.95, 0.24), // Center Spider Core
           new THREE.Vector3(0, 1.45, 0.26), // Visor
-          new THREE.Vector3(0.58, 0.92, 0.1), // R Shoulder
-          new THREE.Vector3(-0.58, 0.92, 0.1), // L Shoulder
-          new THREE.Vector3(0.83, 0.2, 0.22), // R Wrist
-          new THREE.Vector3(-0.83, 0.2, 0.22), // L Wrist
-          new THREE.Vector3(0.26, -0.32, 0), // R Hip/Knee
-          new THREE.Vector3(-0.26, -0.32, 0) // L Hip/Knee
+          new THREE.Vector3(0.56, 0.90, 0.1), // R Shoulder
+          new THREE.Vector3(-0.56, 0.90, 0.1), // L Shoulder
+          new THREE.Vector3(0.72, 0.2, 0.20), // R Web Shooter
+          new THREE.Vector3(-0.72, 0.2, 0.20), // L Web Shooter
+          new THREE.Vector3(0.24, -0.30, 0), // R Hip/Knee
+          new THREE.Vector3(-0.24, -0.30, 0) // L Hip/Knee
         ];
 
         nodePositions.forEach(pos => {
-          const sphereGeo = new THREE.SphereGeometry(0.08, 24, 24);
+          const sphereGeo = new THREE.SphereGeometry(0.06, 16, 16);
           const sphere = new THREE.Mesh(sphereGeo, nodeMat);
           sphere.position.copy(pos);
           figureGroup.add(sphere);
 
-          const ringGeo = new THREE.TorusGeometry(0.14, 0.015, 16, 32);
-          const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, blending: THREE.AdditiveBlending });
-          const ring = new THREE.Mesh(ringGeo, ringMat);
-          ring.position.copy(pos);
-          ring.rotation.x = Math.PI / 2;
-          figureGroup.add(ring);
+          // Sleek diamond reticle marker (replacing torus rings)
+          const diamondGeo = new THREE.OctahedronGeometry(0.08, 0);
+          const diamondMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true, blending: THREE.AdditiveBlending });
+          const diamond = new THREE.Mesh(diamondGeo, diamondMat);
+          diamond.position.copy(pos);
+          figureGroup.add(diamond);
         });
       }
 
@@ -960,11 +1411,10 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
         hologramGroup.add(webTube);
       }
 
-      const scanLineGeo = new THREE.RingGeometry(0.1, 2.8, 120);
-      const scanLineMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, side: THREE.DoubleSide, transparent: true, opacity: 0.8 });
-      const scanLineMesh = new THREE.Mesh(scanLineGeo, scanLineMat);
-      scanLineMesh.rotation.x = Math.PI / 2;
-      hologramGroup.add(scanLineMesh);
+      // Futuristic Holographic Floor Grid Projector (NO floating scan ring!)
+      const floorGrid = new THREE.GridHelper(4.8, 16, 0x00f3ff, 0x0f2744);
+      floorGrid.position.set(0, -1.64, 0);
+      hologramGroup.add(floorGrid);
 
       const pedestalGeo = new THREE.CylinderGeometry(2.3, 2.7, 0.3, 64);
       const pedestalMat = new THREE.MeshStandardMaterial({ color: 0x111827, metalness: 0.9, roughness: 0.2 });
@@ -972,18 +1422,10 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
       pedestal.position.set(0, -1.65, 0);
       hologramGroup.add(pedestal);
 
-      let scanY = -1.65;
-      let scanDir = 1;
-
       animateCallback = (time) => {
         if (autoRotate && controlsRef.current) {
           hologramGroup.rotation.y += 0.005;
         }
-
-        scanY += 0.025 * scanDir;
-        if (scanY > 2.2) scanDir = -1;
-        if (scanY < -1.65) scanDir = 1;
-        scanLineMesh.position.y = scanY;
 
         uniformsListRef.current.forEach(u => {
           if (u.uTime) u.uTime.value = time;
@@ -1184,8 +1626,8 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
       const { group: reticles, ring1, ring2 } = createStarkTargetLockReticleGroup();
       blenderGroup.add(reticles);
 
-      // Procedural base mesh displayed while GLB loads or as fallback
-      const baseGeo = new THREE.TorusGeometry(1.3, 0.35, 32, 80);
+      // Procedural holographic beacon wireframe cube displayed while GLB loads or as fallback (NO torus ring!)
+      const baseGeo = new THREE.BoxGeometry(1.6, 1.6, 1.6);
       const baseMat = new THREE.MeshPhysicalMaterial({
         color: 0x00f3ff,
         emissive: 0x00f3ff,

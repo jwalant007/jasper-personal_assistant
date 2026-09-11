@@ -405,6 +405,27 @@ class BlenderController {
           <ellipse cx="0" cy="100" rx="110" ry="38" fill="none" stroke="${color}" stroke-width="2" stroke-dasharray="8 6" opacity="0.8"/>
         </g>
       `;
+    } else if (lower.includes('spider') || lower.includes('spiderman') || lower.includes('suit') || lower.includes('hero') || lower.includes('costume')) {
+      // Spider-Man Mask & 3D Suit Blueprint
+      shapeSvg = `
+        <g transform="translate(480, 360)">
+          <defs>
+            <radialGradient id="spiderGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#ff1a40" stop-opacity="0.9"/>
+              <stop offset="60%" stop-color="#880015" stop-opacity="0.6"/>
+              <stop offset="100%" stop-color="#050a14" stop-opacity="0.0"/>
+            </radialGradient>
+          </defs>
+          <ellipse cx="0" cy="-20" rx="110" ry="140" fill="url(#spiderGlow)" stroke="#ff1a40" stroke-width="4"/>
+          <line x1="0" y1="-160" x2="0" y2="120" stroke="#ff4d6d" stroke-width="1.5" opacity="0.6"/>
+          <line x1="-110" y1="-20" x2="110" y2="-20" stroke="#ff4d6d" stroke-width="1.5" opacity="0.6"/>
+          <line x1="-80" y1="-120" x2="80" y2="80" stroke="#ff4d6d" stroke-width="1.5" opacity="0.4"/>
+          <line x1="80" y1="-120" x2="-80" y2="80" stroke="#ff4d6d" stroke-width="1.5" opacity="0.4"/>
+          <path d="M -20,-45 L -85,-30 L -70,5 L -18,-15 Z" fill="#ffffff" stroke="#000000" stroke-width="6"/>
+          <path d="M 20,-45 L 85,-30 L 70,5 L 18,-15 Z" fill="#ffffff" stroke="#000000" stroke-width="6"/>
+          <path d="M 0,90 L -12,110 L -35,95 L -10,120 L -30,135 L 0,130 L 30,135 L 10,120 L 35,95 L 12,110 Z" fill="#00f3ff" opacity="0.9"/>
+        </g>
+      `;
     } else {
       // 3D Torus / Arc Reactor / Hologram Ring
       shapeSvg = `
@@ -730,7 +751,70 @@ print("[JASPER BLENDER] Render completed successfully.")
 
     const lower = (prompt + ' ' + objectType).toLowerCase();
 
-    if (lower.includes('sphere') || lower.includes('ball') || lower.includes('atom') || lower.includes('planet') || lower.includes('globe') || lower.includes('molecule') || objectType === 'sphere') {
+    // Default to Spider-Man crimson if prompt references Spider-Man and color wasn't customized
+    if ((lower.includes('spider') || lower.includes('spiderman')) && color === '#00F0FF') {
+      r = 0.90; g = 0.05; b = 0.15;
+    }
+
+    if (lower.includes('spider') || lower.includes('spiderman') || lower.includes('spider-man') || lower.includes('suit') || lower.includes('hero') || lower.includes('character') || lower.includes('costume')) {
+      // Procedural 3D Spider-Man Suit / Hero Character Mesh
+      const addBox = (cx, cy, cz, sx, sy, sz) => {
+        const hx = sx / 2, hy = sy / 2, hz = sz / 2;
+        const baseIdx = positions.length / 3;
+        const boxVerts = [
+          // Front
+          cx - hx, cy - hy, cz + hz,   cx + hx, cy - hy, cz + hz,   cx + hx, cy + hy, cz + hz,   cx - hx, cy + hy, cz + hz,
+          // Back
+          cx - hx, cy - hy, cz - hz,   cx - hx, cy + hy, cz - hz,   cx + hx, cy + hy, cz - hz,   cx + hx, cy - hy, cz - hz,
+          // Top
+          cx - hx, cy + hy, cz - hz,   cx - hx, cy + hy, cz + hz,   cx + hx, cy + hy, cz + hz,   cx + hx, cy + hy, cz - hz,
+          // Bottom
+          cx - hx, cy - hy, cz - hz,   cx + hx, cy - hy, cz - hz,   cx + hx, cy - hy, cz + hz,   cx - hx, cy - hy, cz + hz,
+          // Right
+          cx + hx, cy - hy, cz - hz,   cx + hx, cy + hy, cz - hz,   cx + hx, cy + hy, cz + hz,   cx + hx, cy - hy, cz + hz,
+          // Left
+          cx - hx, cy - hy, cz - hz,   cx - hx, cy - hy, cz + hz,   cx - hx, cy + hy, cz + hz,   cx - hx, cy + hy, cz - hz
+        ];
+        const boxNorms = [
+          0, 0, 1,  0, 0, 1,  0, 0, 1,  0, 0, 1,
+          0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1,
+          0, 1, 0,  0, 1, 0,  0, 1, 0,  0, 1, 0,
+          0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0,
+          1, 0, 0,  1, 0, 0,  1, 0, 0,  1, 0, 0,
+         -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0
+        ];
+        for (let i = 0; i < boxVerts.length; i++) positions.push(boxVerts[i]);
+        for (let i = 0; i < boxNorms.length; i++) normals.push(boxNorms[i]);
+        for (let i = 0; i < 6; i++) {
+          const offset = baseIdx + i * 4;
+          indices.push(offset, offset + 1, offset + 2);
+          indices.push(offset, offset + 2, offset + 3);
+        }
+      };
+
+      // Mask & Head
+      addBox(0, 1.35, 0, 0.44, 0.52, 0.42);
+      // Hero Torso & Pectorals
+      addBox(0, 0.70, 0, 0.76, 0.68, 0.38);
+      // Chest Spider Emblem
+      addBox(0, 0.78, 0.20, 0.30, 0.28, 0.04);
+      // Waist / Belt
+      addBox(0, 0.20, 0, 0.60, 0.24, 0.34);
+      // Left Arm & Forearm
+      addBox(-0.52, 0.65, 0, 0.20, 0.72, 0.22);
+      addBox(-0.52, 0.25, 0.06, 0.18, 0.16, 0.14);
+      // Right Arm & Web Shooter
+      addBox(0.52, 0.65, 0.10, 0.20, 0.72, 0.22);
+      addBox(0.52, 0.25, 0.24, 0.16, 0.16, 0.14);
+      // Left Leg
+      addBox(-0.20, -0.65, 0, 0.24, 1.25, 0.26);
+      // Right Leg
+      addBox(0.20, -0.65, 0, 0.24, 1.25, 0.26);
+      // Left Boot
+      addBox(-0.20, -1.35, 0.06, 0.24, 0.22, 0.36);
+      // Right Boot
+      addBox(0.20, -1.35, 0.06, 0.24, 0.22, 0.36);
+    } else if (lower.includes('sphere') || lower.includes('ball') || lower.includes('atom') || lower.includes('planet') || lower.includes('globe') || lower.includes('molecule') || objectType === 'sphere') {
       // UV Sphere
       const radius = 1.5;
       const widthSegments = 24;
@@ -1068,6 +1152,8 @@ if resolved_type == 'auto':
         resolved_type = 'sphere'
     elif any(k in prompt_lower for k in ['cylinder', 'capsule', 'pillar', 'pipe']):
         resolved_type = 'cylinder'
+    elif any(k in prompt_lower for k in ['spider', 'spiderman', 'spider-man', 'suit', 'hero', 'peter', 'parker', 'morales']):
+        resolved_type = 'spiderman'
     elif any(k in prompt_lower for k in ['text', 'title', 'logo', 'word', 'name']):
         resolved_type = 'text'
     else:
@@ -1075,7 +1161,37 @@ if resolved_type == 'auto':
 
 target_obj = None
 
-if resolved_type == 'cube':
+if resolved_type == 'spiderman':
+    # Spider-Man Hero Torso
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.5))
+    target_obj = bpy.context.active_object
+    target_obj.scale = (0.75, 0.45, 0.8)
+    # Head & Mask
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.38, segments=32, ring_count=16, location=(0, 0, 1.35))
+    head = bpy.context.active_object
+    head.scale = (0.85, 1.05, 0.9)
+    head.data.materials.append(mat)
+    # Left Arm
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-0.56, 0, 0.45))
+    l_arm = bpy.context.active_object
+    l_arm.scale = (0.20, 0.22, 0.72)
+    l_arm.data.materials.append(mat)
+    # Right Arm with Web Shooter
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.56, 0.1, 0.45))
+    r_arm = bpy.context.active_object
+    r_arm.scale = (0.20, 0.22, 0.72)
+    r_arm.data.materials.append(mat)
+    # Left Leg
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-0.20, 0, -0.65))
+    l_leg = bpy.context.active_object
+    l_leg.scale = (0.24, 0.26, 1.1)
+    l_leg.data.materials.append(mat)
+    # Right Leg
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.20, 0, -0.65))
+    r_leg = bpy.context.active_object
+    r_leg.scale = (0.24, 0.26, 1.1)
+    r_leg.data.materials.append(mat)
+elif resolved_type == 'cube':
     bpy.ops.mesh.primitive_cube_add(size=2.0, location=(0, 0, 0))
     target_obj = bpy.context.active_object
     mod = target_obj.modifiers.new(name="Bevel", type='BEVEL')
