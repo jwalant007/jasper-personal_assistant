@@ -2925,6 +2925,96 @@ app.post('/api/blender/launch', (req, res) => {
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
+// -------------------------------------------------------------
+// GPS CONTACTS TRACKING & SPATIAL RADAR API
+// -------------------------------------------------------------
+const contactLocationsFilePath = path.join(__dirname, 'data', 'contact_locations.json');
+
+const readContactLocations = () => {
+  try {
+    if (fs.existsSync(contactLocationsFilePath)) {
+      return JSON.parse(fs.readFileSync(contactLocationsFilePath, 'utf8'));
+    }
+  } catch (e) {
+    console.warn('[Contacts API] Read error:', e.message);
+  }
+  return { contacts: [] };
+};
+
+const writeContactLocations = (data) => {
+  try {
+    fs.writeFileSync(contactLocationsFilePath, JSON.stringify(data, null, 2), 'utf8');
+    return true;
+  } catch (e) {
+    console.error('[Contacts API] Write error:', e.message);
+    return false;
+  }
+};
+
+app.get('/api/contacts/locations', (req, res) => {
+  try {
+    const data = readContactLocations();
+    res.json({ success: true, contacts: data.contacts || [] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/contacts/locations', (req, res) => {
+  try {
+    const { id, lat, lon, speed, battery, status, address } = req.body;
+    if (!id) return res.status(400).json({ success: false, error: 'Contact ID is required' });
+
+    const data = readContactLocations();
+    const list = data.contacts || [];
+    const idx = list.findIndex(c => c.id === id);
+
+    if (idx !== -1) {
+      if (lat !== undefined) list[idx].lat = parseFloat(lat);
+      if (lon !== undefined) list[idx].lon = parseFloat(lon);
+      if (speed !== undefined) list[idx].speed = speed;
+      if (battery !== undefined) list[idx].battery = battery;
+      if (status !== undefined) list[idx].status = status;
+      if (address !== undefined) list[idx].address = address;
+      list[idx].lastUpdated = Date.now();
+      writeContactLocations({ contacts: list });
+      return res.json({ success: true, contact: list[idx] });
+    }
+
+    res.status(404).json({ success: false, error: 'Contact not found' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/contacts/add', (req, res) => {
+  try {
+    const { name, phone, relation = 'Contact', lat, lon, address = 'Local Area' } = req.body;
+    if (!name || !name.trim()) return res.status(400).json({ success: false, error: 'Name is required' });
+
+    const data = readContactLocations();
+    const list = data.contacts || [];
+    const newContact = {
+      id: `c-${Date.now()}`,
+      name: name.trim(),
+      phone: phone ? phone.trim() : 'N/A',
+      relation: relation.trim(),
+      avatar: name.trim().charAt(0).toUpperCase(),
+      status: 'Online / Tracked',
+      battery: Math.floor(Math.random() * 40) + 60,
+      speed: '0 km/h',
+      lat: lat !== undefined ? parseFloat(lat) : 18.9220 + (Math.random() - 0.5) * 0.05,
+      lon: lon !== undefined ? parseFloat(lon) : 72.8347 + (Math.random() - 0.5) * 0.05,
+      address,
+      lastUpdated: Date.now()
+    };
+
+    list.push(newContact);
+    writeContactLocations({ contacts: list });
+    res.json({ success: true, contact: newContact });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // Wildcard fallback to serve index.html for SPA client routing

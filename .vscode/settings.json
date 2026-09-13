@@ -10,7 +10,8 @@
   ],
   "java.diagnostics.filter": [
     "**/node_modules/**",
-    "**/SystemBars.java"
+    "**/SystemBars.java",
+    "**/MainActivity.java"
   ],
   "java.project.exclusionPaths": [
     "**/node_modules/**",

@@ -228,6 +228,53 @@ export const subscribeLocation = (callback) => {
   };
 };
 
+export const watchLiveGps = (onUpdate, onError) => {
+  if (typeof navigator === 'undefined' || !navigator.geolocation) {
+    if (onError) onError(new Error('Geolocation not supported'));
+    return () => {};
+  }
+
+  const options = {
+    enableHighAccuracy: true,
+    maximumAge: 5000,
+    timeout: 10000
+  };
+
+  const watchId = navigator.geolocation.watchPosition(
+    (pos) => {
+      const loc = {
+        lat: pos.coords.latitude,
+        lon: pos.coords.longitude,
+        accuracy: pos.coords.accuracy ? `${Math.round(pos.coords.accuracy)}m` : 'High precision',
+        altitude: pos.coords.altitude ? `${Math.round(pos.coords.altitude)}m` : 'N/A',
+        heading: pos.coords.heading || 0,
+        speed: pos.coords.speed ? `${Math.round(pos.coords.speed * 3.6)} km/h` : '0 km/h',
+        speedRaw: pos.coords.speed || 0,
+        timestamp: pos.timestamp || Date.now(),
+        source: 'Live GPS Tracker'
+      };
+      cachedLocation = {
+        ...(cachedLocation || {}),
+        ...loc
+      };
+      notifyListeners(cachedLocation);
+      if (onUpdate) onUpdate(cachedLocation);
+    },
+    (err) => {
+      console.warn('[LocationService] watchPosition error:', err.message);
+      if (onError) onError(err);
+    },
+    options
+  );
+
+  return () => {
+    try {
+      navigator.geolocation.clearWatch(watchId);
+    } catch (e) {}
+  };
+};
+
 const notifyListeners = (loc) => {
   listeners.forEach(cb => cb(loc));
 };
+

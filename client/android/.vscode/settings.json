@@ -2,6 +2,12 @@
   "java.jdt.ls.java.home": "C:\\Users\\Jwalant\\jdk21",
   "java.import.gradle.java.home": "C:\\Users\\Jwalant\\jdk21",
   "gradle.java.home": "C:\\Users\\Jwalant\\jdk21",
+  "java.errors.incompleteClasspath.severity": "ignore",
+  "java.diagnostics.filter": [
+    "**/node_modules/**",
+    "**/SystemBars.java",
+    "**/MainActivity.java"
+  ],
   "java.configuration.runtimes": [
     {
       "name": "JavaSE-21",

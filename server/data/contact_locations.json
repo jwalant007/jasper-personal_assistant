@@ -1,0 +1,74 @@
+{
+  "contacts": [
+    {
+      "id": "c-1",
+      "name": "Mom",
+      "phone": "+91 98765 43210",
+      "relation": "Family",
+      "avatar": "M",
+      "status": "At Home",
+      "battery": 88,
+      "speed": "0 km/h",
+      "lat": 19.0760,
+      "lon": 72.8777,
+      "address": "Bandra West, Mumbai",
+      "lastUpdated": 1773489600000
+    },
+    {
+      "id": "c-2",
+      "name": "Dad",
+      "phone": "+91 98200 12345",
+      "relation": "Family",
+      "avatar": "D",
+      "status": "At Office",
+      "battery": 64,
+      "speed": "0 km/h",
+      "lat": 19.0596,
+      "lon": 72.8295,
+      "address": "BKC Financial Center, Mumbai",
+      "lastUpdated": 1773489500000
+    },
+    {
+      "id": "c-3",
+      "name": "Alex Vance",
+      "phone": "+1 (555) 382-9901",
+      "relation": "Colleague",
+      "avatar": "A",
+      "status": "Driving - 48 km/h",
+      "battery": 72,
+      "speed": "48 km/h",
+      "lat": 19.0176,
+      "lon": 72.8479,
+      "address": "Worli Sea Face, Mumbai",
+      "lastUpdated": 1773489800000
+    },
+    {
+      "id": "c-4",
+      "name": "Sarah Connor",
+      "phone": "+1 (555) 721-4321",
+      "relation": "Emergency Contact",
+      "avatar": "S",
+      "status": "Transit - 22 km/h",
+      "battery": 95,
+      "speed": "22 km/h",
+      "lat": 18.9667,
+      "lon": 72.8167,
+      "address": "Malabar Hill, Mumbai",
+      "lastUpdated": 1773489700000
+    },
+    {
+      "id": "c-5",
+      "name": "Connected Android Phone",
+      "phone": "+91 99999 88888",
+      "relation": "Linked Device",
+      "avatar": "📱",
+      "status": "Online / GPS Active",
+      "battery": 82,
+      "speed": "0 km/h",
+      "lat": 18.9220,
+      "lon": 72.8347,
+      "address": "South Mumbai Hub",
+      "lastUpdated": 1773489900000
+    }
+  ]
+}

@@ -975,6 +975,65 @@ export default function App() {
       return;
     }
 
+    // Intercept Contact Tracking & Radar Commands (e.g. "where is mom", "track alex", "track my contacts")
+    const contactTrackRegex = /^(where is|track|find|locate)\s+(mom|dad|alex|sarah|father|mother|brother|sister|contacts|my contacts|[a-z\s]+)$/i;
+    const contactMatch = queryText.match(contactTrackRegex);
+    if (contactMatch) {
+      const targetContact = contactMatch[2].trim();
+      const isAllContacts = /(contacts|my contacts)/i.test(targetContact);
+      openModal('maps', {
+        initialContact: isAllContacts ? '' : targetContact,
+        initialDestination: ''
+      });
+
+      const response = isAllContacts
+        ? `Activating J.A.S.P.E.R. Contacts Radar. Displaying all tracked contacts on your spatial map, Sir.`
+        : `Tracking ${targetContact} on J.A.S.P.E.R. Spatial Radar. Pinning real-time GPS telemetry and status now, Sir.`;
+
+      const newChat = {
+        id: Date.now(),
+        query: queryText,
+        attachments: attachments,
+        response: response,
+        timestamp: new Date().toLocaleString()
+      };
+      setPastChats((prev) => [newChat, ...prev]);
+      setSelectedChatId(newChat.id);
+      setSpeakingText(response);
+      if (voiceControllerRef.current) {
+        voiceControllerRef.current.playSuccess();
+      }
+      return;
+    }
+
+    // Intercept Navigation & Fastest Route Commands (e.g. "navigate to marine drive", "fastest route to airport", "directions to bandra")
+    const navRouteRegex = /^(navigate to|fastest route to|route to|directions to|take me to|find route to)\s+(.+)$/i;
+    const navMatch = queryText.match(navRouteRegex);
+    if (navMatch) {
+      const targetDestination = navMatch[2].trim();
+      openModal('maps', {
+        initialDestination: targetDestination,
+        initialContact: ''
+      });
+
+      const response = `Calculating the fastest route to ${targetDestination}, Sir. Locking onto satellite telemetry and routing turn-by-turn directions.`;
+
+      const newChat = {
+        id: Date.now(),
+        query: queryText,
+        attachments: attachments,
+        response: response,
+        timestamp: new Date().toLocaleString()
+      };
+      setPastChats((prev) => [newChat, ...prev]);
+      setSelectedChatId(newChat.id);
+      setSpeakingText(response);
+      if (voiceControllerRef.current) {
+        voiceControllerRef.current.playSuccess();
+      }
+      return;
+    }
+
     // Intercept Voice App Open Commands (e.g. "Jasper open search", "open calculator", "open files", "open whatsapp auto reply", "open blender")
     const appOpenRegex = /(open|launch|start|show|run)\s+(search|search engine|files|file manager|explorer|code|code studio|terminal|notes|planner|tasks|calculator|calc|tv|tv remote|phone|android|pc|pc hub|pc command|security|biometrics|browser|web agent|sports|maps|navigation|health|fitband|translator|translation|manual|guide|whatsapp|instagram|auto reply|call auto|social auto|blender|blender 3d|3d studio)/i;
     const appMatch = queryText.match(appOpenRegex);
@@ -2658,8 +2717,12 @@ export default function App() {
 
       {/* 15. Maps & Navigation Modal */}
       {showMaps && (
-        <DraggableModalWrapper isOpen={showMaps} onClose={() => setShowMaps(false)} title="Spatial Maps & GPS Navigation">
-          <MapsWidget onClose={() => setShowMaps(false)} />
+        <DraggableModalWrapper isOpen={showMaps} onClose={() => setShowMaps(false)} title="Spatial Maps & GPS Navigation" maxWidth="max-w-6xl">
+          <MapsWidget 
+            onClose={() => setShowMaps(false)} 
+            initialDestination={getModalData('maps')?.initialDestination || ''}
+            initialContact={getModalData('maps')?.initialContact || ''}
+          />
         </DraggableModalWrapper>
       )}
 
