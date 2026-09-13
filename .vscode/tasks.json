@@ -1,0 +1,37 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "frontend",
+      "type": "shell",
+      "command": "npm run client",
+      "isBackground": true,
+      "problemMatcher": [],
+      "icon": {
+        "id": "zap",
+        "color": "terminal.ansiCyan"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "group": "jasper"
+      }
+    },
+    {
+      "label": "backend",
+      "type": "shell",
+      "command": "npm run server",
+      "isBackground": true,
+      "problemMatcher": [],
+      "icon": {
+        "id": "server",
+        "color": "terminal.ansiMagenta"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "group": "jasper"
+      }
+    }
+  ]
+}

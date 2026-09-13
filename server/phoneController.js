@@ -741,7 +741,59 @@ const PhoneController = {
     { id: 104, name: 'Sarah (Office Boss)', phone: '+91 98233 45678', category: 'Work', avatar: '💼', defaultTask: 'Notify that the quarterly AI report draft has been uploaded.' },
     { id: 105, name: 'Pizza Express', phone: '+91 98244 56789', category: 'Food', avatar: '🍕', defaultTask: 'Inquire if large Pepperoni pizza special is available for pickup.' },
     { id: 106, name: 'Rajesh (Landlord)', phone: '+91 98255 67890', category: 'Housing', avatar: '🏠', defaultTask: 'Ask when water heater maintenance technician is scheduled.' }
-  ]
+  ],
+
+  lastKnownPhoneLocation: null,
+
+  // Get Phone GPS Location via direct report or ADB dumpsys location
+  getPhoneGpsLocation: async () => {
+    // 1. Check in-memory cached mobile location if updated recently (< 10 minutes)
+    if (PhoneController.lastKnownPhoneLocation && (Date.now() - PhoneController.lastKnownPhoneLocation.timestamp < 600000)) {
+      return PhoneController.lastKnownPhoneLocation;
+    }
+
+    // 2. If physical device connected via ADB, query dumpsys location
+    if (isPhysicalConnected()) {
+      try {
+        const out = await runAdb('shell dumpsys location');
+        const locMatch = out.match(/Location\[(?:fused|gps|network)\s+([0-9.-]+)[,\s]+([0-9.-]+)/i) ||
+                         out.match(/last location=Location\[[a-z0-9_-]+\s+([0-9.-]+)[,\s]+([0-9.-]+)/i) ||
+                         out.match(/mLastLocation=Location\[[a-z0-9_-]+\s+([0-9.-]+)[,\s]+([0-9.-]+)/i);
+        if (locMatch) {
+          const lat = parseFloat(locMatch[1]);
+          const lon = parseFloat(locMatch[2]);
+          if (!isNaN(lat) && !isNaN(lon) && lat !== 0 && lon !== 0) {
+            const loc = {
+              lat,
+              lon,
+              accuracy: 'Mobile GPS (ADB)',
+              source: 'Mobile Phone GPS',
+              timestamp: Date.now()
+            };
+            PhoneController.lastKnownPhoneLocation = loc;
+            return loc;
+          }
+        }
+      } catch (err) {}
+    }
+
+    return PhoneController.lastKnownPhoneLocation || null;
+  },
+
+  // Set Phone Location reported directly by the mobile app or browser
+  setPhoneLocation: (data) => {
+    if (!data || !data.lat || !data.lon) return false;
+    PhoneController.lastKnownPhoneLocation = {
+      lat: parseFloat(data.lat),
+      lon: parseFloat(data.lon),
+      accuracy: data.accuracy || 'Mobile GPS',
+      source: 'Mobile Phone GPS',
+      speed: data.speed || '0 km/h',
+      heading: data.heading || 0,
+      timestamp: Date.now()
+    };
+    return PhoneController.lastKnownPhoneLocation;
+  }
 };
 
 // Auto-check phone status immediately on module load

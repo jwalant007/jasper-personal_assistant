@@ -18,8 +18,11 @@ if (Test-Path $packageDir) {
 
 New-Item -ItemType Directory -Path $packageDir | Out-Null
 
-# Copy clean files excluding node_modules, dist-electron, android build, and .git for ultra-fast transfer
-robocopy $sourceDir $packageDir /E /XD node_modules .git dist-electron build android /XF *.log /NJH /NJS /NDL /NC /NS
+# Copy clean files excluding node_modules, dist-electron, android build, .git, and active browser sessions for ultra-fast transfer
+robocopy $sourceDir $packageDir /E /XD node_modules .git dist-electron build android .wwebjs_auth .wwebjs_cache /XF *.log /R:1 /W:1 /NJH /NJS /NDL /NC /NS
+if ($LASTEXITCODE -ge 8) {
+    Write-Host "[Robocopy Warning] Finished with code $LASTEXITCODE" -ForegroundColor Yellow
+}
 
 Write-Host ""
 Write-Host "===============================================================================" -ForegroundColor Green

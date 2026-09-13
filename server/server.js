@@ -1142,6 +1142,30 @@ app.get('/api/phone/status', async (req, res) => {
   }
 });
 
+// Mobile GPS Location endpoints
+app.get('/api/phone/location', async (req, res) => {
+  try {
+    const loc = await phoneController.getPhoneGpsLocation();
+    if (loc) {
+      return res.json({ success: true, location: loc });
+    }
+    res.json({ success: false, message: 'No active mobile GPS available' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/phone/location', (req, res) => {
+  try {
+    const { lat, lon, accuracy, speed, heading } = req.body;
+    if (!lat || !lon) return res.status(400).json({ success: false, error: 'Latitude and longitude required' });
+    const loc = phoneController.setPhoneLocation({ lat, lon, accuracy, speed, heading });
+    res.json({ success: true, location: loc });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.post('/api/phone/connect', async (req, res) => {
   try {
     const { ip } = req.body;

@@ -40,7 +40,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { getLocation, watchLiveGps } from '../utils/locationService';
-import { geocodeAddress, getFastestRoute, calculateDistanceKm, generateShareLocationUrl } from '../utils/navigationService';
+import { geocodeAddress, getFastestRoute, calculateDistanceKm, generateShareLocationUrl, getNearbyPlaces } from '../utils/navigationService';
 import { speakDeviceAudio } from '../utils/speakDeviceAudio';
 import { getApiBase } from '../utils/apiConfig';
 
@@ -73,8 +73,11 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
   const [isSimulatingMotion, setIsSimulatingMotion] = useState(false);
   const [shareToast, setShareToast] = useState('');
 
-  // Nearby Places Category
+  // Nearby Places State
   const [selectedPlaceCategory, setSelectedPlaceCategory] = useState('all');
+  const [nearbyPlaces, setNearbyPlaces] = useState([]);
+  const [isPlacesLoading, setIsPlacesLoading] = useState(false);
+  const [placeSearchQuery, setPlaceSearchQuery] = useState('');
 
   // DOM Refs
   const mapContainerRef = useRef(null);
@@ -83,6 +86,7 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
   const routeLayerRef = useRef(null);
   const destinationMarkerRef = useRef(null);
   const contactMarkersRef = useRef({});
+  const poiMarkersRef = useRef({});
   const speechRecognitionRef = useRef(null);
   const simulationIntervalRef = useRef(null);
 
@@ -135,6 +139,7 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
     return () => {
       map.remove();
       mapInstanceRef.current = null;
+      poiMarkersRef.current = {};
     };
   }, []);
 
@@ -419,6 +424,33 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
     // Announce Voice Guidance
     if (audioGuidanceEnabled) {
       const announcement = `Fastest route to ${geocoded.shortName} calculated. Total distance is ${route.distanceFormatted}, estimated arrival in ${route.durationFormatted}.`;
+      speakDeviceAudio(announcement);
+    }
+  };
+
+  // Direct route calculation to coordinates (from nearby POI or contact)
+  const handleRouteToCoordinates = async (destObj) => {
+    if (!destObj || !destObj.lat || !destObj.lon) return;
+    setIsRouting(true);
+    setRouteError('');
+    setActiveDestination(destObj);
+    setDestinationInput(destObj.name || destObj.shortName || 'Selected Destination');
+
+    const start = userLocation || { lat: defaultCenter[0], lon: defaultCenter[1] };
+    const route = await getFastestRoute(start, destObj);
+    setIsRouting(false);
+
+    if (!route.success) {
+      setRouteError(route.error || 'Failed to compute route.');
+      return;
+    }
+
+    setRouteData(route);
+    renderRouteOnMap(start, destObj, route);
+    setActiveTab('navigation');
+
+    if (audioGuidanceEnabled) {
+      const announcement = `Fastest route to ${destObj.name} calculated. Total distance is ${route.distanceFormatted}, estimated arrival in ${route.durationFormatted}.`;
       speakDeviceAudio(announcement);
     }
   };
@@ -710,14 +742,104 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
     }
   };
 
-  // Nearby Places
-  const nearbyPlaces = [
-    { name: 'Supercharge EV Station', category: 'ev', distance: '0.4 km', rating: '4.8 ★', status: 'Available (4/6)' },
-    { name: 'Central Fine Dining & Cafe', category: 'food', distance: '1.2 km', rating: '4.9 ★', status: 'Open Now' },
-    { name: 'Shell / Energy Fuel Hub', category: 'fuel', distance: '1.8 km', rating: '4.6 ★', status: '24/7 Open' },
-    { name: 'City Multi-Specialty Hospital', category: 'hospital', distance: '2.5 km', rating: '4.7 ★', status: 'Emergency Ready' },
-    { name: 'Underground Smart Parking', category: 'parking', distance: '0.7 km', rating: '4.5 ★', status: '18 Slots Free' }
-  ];
+  // 12. Load Dynamic Nearby Places (Stores, Buildings, Landmarks, etc.)
+  useEffect(() => {
+    if (!userLocation?.lat || !userLocation?.lon) return;
+
+    let isMounted = true;
+    setIsPlacesLoading(true);
+
+    getNearbyPlaces(userLocation.lat, userLocation.lon, selectedPlaceCategory)
+      .then(places => {
+        if (!isMounted) return;
+        setNearbyPlaces(places);
+        updatePoiMarkersOnMap(places);
+        setIsPlacesLoading(false);
+      })
+      .catch(err => {
+        if (!isMounted) return;
+        console.warn('[MapsWidget] Nearby places fetch error:', err);
+        setIsPlacesLoading(false);
+      });
+
+    return () => { isMounted = false; };
+  }, [userLocation?.lat, userLocation?.lon, selectedPlaceCategory]);
+
+  // Update POI markers on Leaflet map
+  const updatePoiMarkersOnMap = (places) => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    // Clear old POI markers
+    Object.values(poiMarkersRef.current).forEach(m => map.removeLayer(m));
+    poiMarkersRef.current = {};
+
+    places.forEach(poi => {
+      if (!poi.lat || !poi.lon) return;
+
+      const categoryIcons = {
+        store: '🛍️',
+        building: '🏛️',
+        food: '🍽️',
+        hospital: '🏥',
+        fuel: '⚡',
+        transit: '🚇',
+        parking: '🅿️'
+      };
+      const iconEmoji = categoryIcons[poi.category] || '📍';
+
+      const poiIcon = L.divIcon({
+        className: 'custom-poi-marker',
+        html: `
+          <div style="cursor: pointer; position: relative;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: #090d16; border: 2px solid #06b6d4; display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 0 12px rgba(6,182,212,0.6);">
+              ${iconEmoji}
+            </div>
+            <div style="position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: #67e8f9; font-size: 9px; font-weight: bold; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(6,182,212,0.4); white-space: nowrap; pointer-events: none;">
+              ${poi.name.slice(0, 16)}
+            </div>
+          </div>
+        `,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16]
+      });
+
+      const marker = L.marker([poi.lat, poi.lon], { icon: poiIcon });
+      marker.bindPopup(`
+        <div style="color: #e2e8f0; background: #090d16; padding: 10px; border-radius: 10px; min-width: 200px; font-family: sans-serif; border: 1px solid rgba(6,182,212,0.4);">
+          <div style="font-weight: bold; font-size: 13px; color: #38bdf8; margin-bottom: 4px;">${poi.name}</div>
+          <div style="font-size: 11px; color: #94a3b8; margin-bottom: 6px;">${poi.address}</div>
+          <div style="display: flex; justify-content: space-between; font-size: 11px; color: #22d3ee; margin-bottom: 10px;">
+            <span>📍 ${poi.distanceFormatted} away</span>
+            <span>${poi.rating}</span>
+          </div>
+          <button id="route-poi-${poi.id}" style="width: 100%; background: linear-gradient(135deg, #06b6d4, #0284c7); color: #020617; font-weight: bold; padding: 8px; border: none; border-radius: 8px; cursor: pointer; font-size: 11px;">
+            🚀 Navigate Here (OSRM)
+          </button>
+        </div>
+      `);
+
+      marker.on('popupopen', () => {
+        setTimeout(() => {
+          const btn = document.getElementById(`route-poi-${poi.id}`);
+          if (btn) {
+            btn.onclick = () => {
+              handleRouteToCoordinates(poi);
+              marker.closePopup();
+            };
+          }
+        }, 50);
+      });
+
+      marker.addTo(map);
+      poiMarkersRef.current[poi.id] = marker;
+    });
+  };
+
+  const filteredPlaces = nearbyPlaces.filter(p =>
+    (selectedPlaceCategory === 'all' || p.category === selectedPlaceCategory) &&
+    (!placeSearchQuery || p.name.toLowerCase().includes(placeSearchQuery.toLowerCase()) || p.address?.toLowerCase().includes(placeSearchQuery.toLowerCase()))
+  );
 
   const filteredContacts = contacts.filter(c =>
     c.name.toLowerCase().includes(contactSearchQuery.toLowerCase()) ||
@@ -752,7 +874,13 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
             <p className="text-xs text-slate-400 font-mono flex items-center gap-2 mt-0.5">
               <span className="flex items-center gap-1.5">
                 <span className={`w-2 h-2 rounded-full ${isGpsLocked ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`}></span>
-                {isGpsLocked ? 'High-Precision GPS Lock' : 'Acquiring GPS...'}
+                {userLocation?.source === 'Mobile Phone GPS' ? (
+                  <span className="text-emerald-400 font-bold flex items-center gap-1">
+                    📱 Mobile Phone GPS Locked
+                  </span>
+                ) : (
+                  <span>{isGpsLocked ? 'High-Precision GPS Lock' : 'Acquiring GPS...'}</span>
+                )}
               </span>
               {userLocation?.accuracy && (
                 <span className="text-slate-400">• Accuracy: {userLocation.accuracy}</span>
@@ -1252,13 +1380,16 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
       {/* TAB 3: NEARBY PLACES */}
       {activeTab === 'places' && (
         <div className="space-y-3">
+          {/* Category Filters */}
           <div className="flex flex-wrap gap-2 text-xs">
             {[
               { id: 'all', label: 'All Places', icon: Search },
-              { id: 'ev', label: 'EV Stations', icon: Zap },
+              { id: 'store', label: 'Stores & Shops', icon: Building2 },
+              { id: 'building', label: 'Buildings & Landmarks', icon: Globe },
               { id: 'food', label: 'Dining & Cafes', icon: Utensils },
-              { id: 'fuel', label: 'Fuel Pumps', icon: Fuel },
-              { id: 'hospital', label: 'Emergency Hospitals', icon: Building2 },
+              { id: 'hospital', label: 'Emergency Hospitals', icon: Crosshair },
+              { id: 'fuel', label: 'Fuel & EV Stations', icon: Zap },
+              { id: 'transit', label: 'Transit & Metro', icon: Car },
               { id: 'parking', label: 'Smart Parking', icon: ParkingSquare },
             ].map(cat => {
               const Icon = cat.icon;
@@ -1268,8 +1399,8 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
                   onClick={() => setSelectedPlaceCategory(cat.id)}
                   className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all ${
                     selectedPlaceCategory === cat.id 
-                      ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50 shadow-md' 
-                      : 'bg-slate-900 border-slate-800 text-slate-400'
+                      ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50 shadow-md shadow-cyan-500/20' 
+                      : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" /> {cat.label}
@@ -1278,27 +1409,84 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
             })}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-            {nearbyPlaces
-              .filter(p => selectedPlaceCategory === 'all' || p.category === selectedPlaceCategory)
-              .map((place, idx) => (
-                <div key={idx} className="p-3 bg-slate-900/60 border border-slate-800 rounded-xl flex items-center justify-between hover:border-cyan-500/30 transition-all">
-                  <div>
-                    <div className="font-bold text-slate-100">{place.name}</div>
-                    <div className="text-[10px] text-slate-400 font-mono mt-0.5">{place.distance} • {place.rating}</div>
-                    <div className="text-[10px] text-emerald-400 mt-0.5">{place.status}</div>
+          {/* Search bar & Live POI Count */}
+          <div className="flex items-center justify-between gap-3 bg-slate-900/40 p-2.5 rounded-xl border border-slate-800">
+            <div className="flex items-center gap-2 flex-1 text-xs">
+              <Search className="w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Filter nearby stores, buildings, landmarks..."
+                value={placeSearchQuery}
+                onChange={(e) => setPlaceSearchQuery(e.target.value)}
+                className="bg-transparent text-slate-200 outline-none w-full text-xs placeholder:text-slate-500"
+              />
+            </div>
+            <div className="text-[11px] font-mono text-cyan-400 font-bold whitespace-nowrap flex items-center gap-1.5">
+              {isPlacesLoading ? (
+                <span className="flex items-center gap-1 text-amber-400 animate-pulse">
+                  <RotateCw className="w-3 h-3 animate-spin" /> Scanning Spatial Radar...
+                </span>
+              ) : (
+                <span>{filteredPlaces.length} Nearby Locations Found</span>
+              )}
+            </div>
+          </div>
+
+          {/* Places Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs max-h-[340px] overflow-y-auto pr-1">
+            {filteredPlaces.length === 0 && !isPlacesLoading && (
+              <div className="col-span-2 p-6 text-center text-slate-400 bg-slate-900/40 rounded-xl border border-slate-800">
+                <MapPin className="w-6 h-6 text-slate-500 mx-auto mb-2 opacity-50" />
+                No places found matching your filter in this radius. Try selecting "All Places".
+              </div>
+            )}
+
+            {filteredPlaces.map((place) => (
+              <div key={place.id} className="p-3 bg-slate-900/60 border border-slate-800 rounded-xl flex items-center justify-between hover:border-cyan-500/40 transition-all group">
+                <div className="flex-1 min-w-0 mr-3">
+                  <div className="font-bold text-slate-100 flex items-center gap-1.5 truncate">
+                    <span className="text-cyan-400">
+                      {place.category === 'store' && '🛍️'}
+                      {place.category === 'building' && '🏛️'}
+                      {place.category === 'food' && '🍽️'}
+                      {place.category === 'hospital' && '🏥'}
+                      {place.category === 'fuel' && '⚡'}
+                      {place.category === 'transit' && '🚇'}
+                      {place.category === 'parking' && '🅿️'}
+                    </span>
+                    <span className="truncate">{place.name}</span>
                   </div>
-                  <button 
+                  <div className="text-[10px] text-slate-400 truncate mt-0.5">{place.address}</div>
+                  <div className="text-[10px] text-cyan-300 font-mono mt-0.5 flex items-center gap-2">
+                    <span>📍 {place.distanceFormatted}</span>
+                    <span>• {place.rating}</span>
+                    <span className="text-emerald-400">• {place.status}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
                     onClick={() => {
-                      setDestinationInput(place.name);
-                      handleCalculateFastestRoute(place.name);
+                      if (mapInstanceRef.current && place.lat && place.lon) {
+                        mapInstanceRef.current.setView([place.lat, place.lon], 16);
+                        if (poiMarkersRef.current[place.id]) {
+                          poiMarkersRef.current[place.id].openPopup();
+                        }
+                      }
                     }}
-                    className="px-3.5 py-1.5 bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 rounded-xl text-xs font-bold hover:bg-cyan-500/30 flex items-center gap-1"
+                    title="Focus on Map"
+                    className="p-1.5 bg-slate-800 text-slate-300 hover:text-cyan-300 rounded-lg border border-slate-700 hover:border-cyan-500/40"
+                  >
+                    <Crosshair className="w-3.5 h-3.5" />
+                  </button>
+                  <button 
+                    onClick={() => handleRouteToCoordinates(place)}
+                    className="px-3 py-1.5 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 border border-cyan-500/40 hover:border-cyan-400 rounded-xl text-xs font-bold hover:bg-cyan-500/30 flex items-center gap-1 shadow-sm"
                   >
                     <Navigation className="w-3 h-3" /> Route
                   </button>
                 </div>
-              ))}
+              </div>
+            ))}
           </div>
         </div>
       )}

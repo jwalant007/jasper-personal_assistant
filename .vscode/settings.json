@@ -36,5 +36,6 @@
   "python.analysis.extraPaths": [
     "${workspaceFolder}/jasper-os/jasper-ai",
     "${workspaceFolder}/jasper-os/installer"
-  ]
+  ],
+  "terminal.integrated.tabs.defaultIcon": "zap"
 }

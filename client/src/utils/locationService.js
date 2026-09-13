@@ -4,6 +4,8 @@
  * and OpenStreetMap reverse-geocoding for exact city/country names.
  */
 
+import { getApiBase } from './apiConfig.js';
+
 let cachedLocation = null;
 let listeners = new Set();
 let isFetching = false;
@@ -20,6 +22,25 @@ export const getLocation = async (forceRefresh = false) => {
   }
 
   isFetching = true;
+
+  try {
+    // Attempt 0: Check connected mobile device location first (Phone GPS priority)
+    const mobileLoc = await tryMobilePhoneLocation();
+    if (mobileLoc) {
+      const details = await reverseGeocode(mobileLoc.lat, mobileLoc.lon);
+      cachedLocation = {
+        ...mobileLoc,
+        ...details,
+        source: 'Mobile Phone GPS',
+        timestamp: Date.now()
+      };
+      notifyListeners(cachedLocation);
+      isFetching = false;
+      return cachedLocation;
+    }
+  } catch (err) {
+    console.warn('[LocationService] Mobile phone location fetch error:', err);
+  }
 
   try {
     // Attempt 1: HTML5 High-Precision Geolocation
@@ -73,6 +94,47 @@ export const getLocation = async (forceRefresh = false) => {
   notifyListeners(cachedLocation);
   isFetching = false;
   return cachedLocation;
+};
+
+// Query connected mobile phone GPS location via JASPER server
+export const tryMobilePhoneLocation = async () => {
+  try {
+    const res = await fetch(`${getApiBase()}/api/phone/location`, { 
+      signal: AbortSignal.timeout(3000) 
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && data.location && data.location.lat && data.location.lon) {
+        return {
+          lat: parseFloat(data.location.lat),
+          lon: parseFloat(data.location.lon),
+          accuracy: data.location.accuracy || 'Mobile GPS Lock',
+          speed: data.location.speed || '0 km/h',
+          heading: data.location.heading || 0,
+          source: data.location.source || 'Mobile Phone GPS'
+        };
+      }
+    }
+  } catch (e) {}
+  return null;
+};
+
+// Sync mobile GPS coordinates to JASPER Server
+export const syncLocationToPhoneServer = async (loc) => {
+  if (!loc || !loc.lat || !loc.lon) return;
+  try {
+    await fetch(`${getApiBase()}/api/phone/location`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        lat: loc.lat,
+        lon: loc.lon,
+        accuracy: loc.accuracy,
+        speed: loc.speed,
+        heading: loc.heading
+      })
+    });
+  } catch (e) {}
 };
 
 // Try HTML5 GPS Geolocation
@@ -259,6 +321,8 @@ export const watchLiveGps = (onUpdate, onError) => {
       };
       notifyListeners(cachedLocation);
       if (onUpdate) onUpdate(cachedLocation);
+      // Auto-sync mobile location to server so other connected nodes receive it
+      syncLocationToPhoneServer(loc);
     },
     (err) => {
       console.warn('[LocationService] watchPosition error:', err.message);

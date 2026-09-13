@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, RotateCw, Home, Lock, Plus, X, Globe, Search, Sparkles, BookOpen, ExternalLink, ShieldCheck, Layers, FileText } from 'lucide-react';
+import { ArrowLeft, ArrowRight, RotateCw, Home, Lock, Plus, X, Globe, Compass, Search, Sparkles, BookOpen, ExternalLink, ShieldCheck, Layers, FileText } from 'lucide-react';
 import { getServerIp } from '../utils/apiConfig';
 import geminiClient from '../utils/geminiClient';
 
@@ -186,7 +186,7 @@ export default function JasperBrowserApp() {
                 : 'bg-cyan-950/40 border-transparent text-slate-400 hover:text-slate-200 hover:bg-cyan-950/70'
             }`}
           >
-            {tab.isSearch ? <Search className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" /> : <Globe className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />}
+            {tab.isSearch ? <Search className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" /> : <Compass className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />}
             <span className="truncate">{tab.title}</span>
             <button
               onClick={(e) => closeTab(tab.id, e)}
