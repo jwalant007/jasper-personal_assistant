@@ -23,6 +23,7 @@ let Client, LocalAuth, WAStatus;
 let waClient = null;
 let waClientStatus = 'not_initialized'; // 'not_initialized' | 'qr_pending' | 'authenticated' | 'ready' | 'error'
 let waQrCode = null;
+const waReplyCooldowns = new Map();
 
 try {
   const wajs = require('whatsapp-web.js');
@@ -91,7 +92,19 @@ function initWhatsAppWebClient() {
     try {
       if (msg.fromMe) return; // Ignore outgoing messages
       const from = msg.from;
-      if (from.endsWith('@g.us')) return; // Skip group chats by default
+      if (!from) return;
+
+      // 1. Ignore Status broadcasts & channels
+      if (from === 'status@broadcast' || from.endsWith('@broadcast') || from.endsWith('@newsletter')) {
+        return;
+      }
+
+      // 2. Skip group chats by default
+      if (from.endsWith('@g.us')) return;
+
+      // 3. Ignore empty text, stickers, media without captions
+      const incomingText = (msg.body || '').trim();
+      if (!incomingText) return;
 
       const config = dbManager.getSocialAutoReplyConfig();
       if (!config.whatsappEnabled) {
@@ -99,8 +112,17 @@ function initWhatsAppWebClient() {
         return;
       }
 
-      const fromNumber = from.replace('@c.us', '');
-      const incomingText = msg.body || '';
+      const fromNumber = from.replace('@c.us', '').replace('@lid', '');
+
+      // 4. Rate-limiting Cooldown (2 minutes per sender) to prevent spamming & WhatsApp rate-limits
+      const lastReplyTime = waReplyCooldowns.get(from) || 0;
+      const COOLDOWN_MS = 2 * 60 * 1000;
+      if (Date.now() - lastReplyTime < COOLDOWN_MS) {
+        console.log(`[WhatsApp Web Auto-Responder] Skipping ${fromNumber} — auto-reply cooldown active (${Math.round((COOLDOWN_MS - (Date.now() - lastReplyTime))/1000)}s left)`);
+        return;
+      }
+      waReplyCooldowns.set(from, Date.now());
+
       console.log(`[WhatsApp Web Auto-Responder] Message from ${fromNumber}: "${incomingText}"`);
 
       let replyText = config.presets[config.activePreset] || config.presets.drive;
@@ -113,7 +135,14 @@ function initWhatsAppWebClient() {
         replyText = `🚨 URGENT PRIORITY ALERT: Your emergency message has been flagged to Jwalant with high priority. Stand by.`;
       }
 
-      await msg.reply(replyText);
+      // 5. Resilient dispatch: try msg.reply, fall back to waClient.sendMessage if quoted reply fails
+      try {
+        await msg.reply(replyText);
+      } catch (replyErr) {
+        console.warn(`[WhatsApp Web Auto-Responder] msg.reply failed (${replyErr.message}), falling back to direct sendMessage`);
+        await waClient.sendMessage(from, replyText);
+      }
+
       console.log(`[WhatsApp Web Auto-Responder] Dispatched automated reply to ${fromNumber}: "${replyText}"`);
 
       const log = dbManager.addSocialLog({
@@ -1637,9 +1666,20 @@ setInterval(async () => {
 
 // --- WhatsApp Web Client Routes ---
 
-// Get WA Web connection status + QR
-app.get('/api/social/wa-status', (req, res) => {
-  res.json({ status: waClientStatus, hasQr: !!waQrCode, qr: waQrCode });
+// Get WA Web connection status + QR + live puppeteer state
+app.get('/api/social/wa-status', async (req, res) => {
+  let liveState = null;
+  if (waClient) {
+    try {
+      liveState = await Promise.race([
+        waClient.getState(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000))
+      ]);
+    } catch (e) {
+      liveState = 'unresponsive: ' + e.message;
+    }
+  }
+  res.json({ status: waClientStatus, liveState, hasQr: !!waQrCode, qr: waQrCode });
 });
 
 // Initialize / connect WhatsApp Web client (triggers QR)
