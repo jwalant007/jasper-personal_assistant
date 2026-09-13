@@ -2925,6 +2925,7 @@ app.post('/api/blender/launch', (req, res) => {
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
+});
 // -------------------------------------------------------------
 // GPS CONTACTS TRACKING & SPATIAL RADAR API
 // -------------------------------------------------------------

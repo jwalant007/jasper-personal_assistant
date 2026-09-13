@@ -3,6 +3,7 @@
   "java.import.gradle.java.home": "C:\\Users\\Jwalant\\jdk21",
   "gradle.java.home": "C:\\Users\\Jwalant\\jdk21",
   "java.errors.incompleteClasspath.severity": "ignore",
+  "java.gradle.buildServer.enabled": "off",
   "java.import.exclusions": [
     "**/node_modules/**",
     "**/build/**",
@@ -30,7 +31,7 @@
   ],
   "java.configuration.updateBuildConfiguration": "automatic",
   "java.jdt.ls.vmargs": "-XX:+UseParallelGC -Xmx1G -Xms100m",
-  "python.defaultInterpreterPath": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
   "python.terminal.activateEnvironment": true,
   "python.analysis.extraPaths": [
     "${workspaceFolder}/jasper-os/jasper-ai",
