@@ -82,6 +82,12 @@ You have direct API control over Blender, the premier open-source 3D computer gr
 - Use 'blender_render_scene' to render scenes into still frames (Cycles for photorealism, EEVEE for high performance).
 - Use 'blender_launch_gui' when the user asks to launch or open the Blender application window.
 
+## Spatial Maps & GPS Navigation
+You have a full built-in Spatial Maps & GPS Navigation application powered by OpenStreetMap, CartoDB Dark Matter tiles, and OSRM turn-by-turn routing.
+- Zero external Google Maps API keys, billing, or accounts are required — it runs completely free using native OSM & OSRM engines.
+- Whenever the user asks to see a map, find directions, navigate to a place, or track contacts on radar, invoke the 'open_maps' tool with destination or contact if provided.
+- NEVER tell the user that a Maps API, Google Maps API key, or billing is required!
+
 
 ## Response Style
 - Keep responses concise but information-dense. Optimized for text-to-speech.
@@ -487,6 +493,23 @@ const TOOLS_CONFIG = [
             blendFile: {
               type: 'STRING',
               description: 'Optional path to .blend file to open in Blender.'
+            }
+          }
+        }
+      },
+      {
+        name: 'open_maps',
+        description: 'Opens the built-in JASPER Spatial Maps & GPS Navigation suite. Can be provided with an optional destination address/landmark for turn-by-turn routing or a contact name to track on radar. Runs 100% locally with zero external Google Maps API keys required.',
+        parameters: {
+          type: 'OBJECT',
+          properties: {
+            destination: {
+              type: 'STRING',
+              description: 'Optional destination place, landmark, or address to calculate turn-by-turn route to (e.g. "Marine Drive, Mumbai").'
+            },
+            contact: {
+              type: 'STRING',
+              description: 'Optional contact name to track on spatial radar (e.g. "Mom", "Alex").'
             }
           }
         }
@@ -1032,6 +1055,25 @@ class GeminiClient {
         } catch (e) {
           return { launched: false, error: e.message };
         }
+      }
+
+      if (name === 'open_maps') {
+        onLog?.(`[SPATIAL MAPS] Launching Spatial Maps & GPS Navigation...`, 'info');
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('jasper-open-modal', {
+            detail: {
+              modal: 'maps',
+              data: {
+                initialDestination: args.destination || '',
+                initialContact: args.contact || ''
+              }
+            }
+          }));
+        }
+        return {
+          success: true,
+          message: `Spatial Maps opened${args.destination ? ` for destination: ${args.destination}` : ''}${args.contact ? ` tracking contact: ${args.contact}` : ''}. No external API key required.`
+        };
       }
 
       throw new Error(`Unknown tool: ${name}`);
@@ -1761,6 +1803,12 @@ class GeminiClient {
         await this.executeTool('launch_pc_app', { appName: app }, onLog);
         return `Launching ${app} on your device, Sir.`;
       }
+    }
+
+    // Spatial Maps & GPS Navigation fallback
+    if (raw.includes('map') || raw.includes('navigation') || raw.includes('gps') || raw.includes('where am i') || raw.includes('directions to') || raw.includes('route to')) {
+      await this.executeTool('open_maps', {}, onLog);
+      return "Opening Spatial Maps & GPS Navigation for you, Sir. Telemetry, live GPS, and OSRM turn-by-turn routing are active. Zero external API keys are required.";
     }
 
     // Website launching

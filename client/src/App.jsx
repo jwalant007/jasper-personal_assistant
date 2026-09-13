@@ -40,6 +40,7 @@ import JasperNotesPlannerApp from './components/JasperNotesPlannerApp';
 import JasperCalculatorApp from './components/JasperCalculatorApp';
 import JasperAgentHubWidget from './components/JasperAgentHubWidget';
 import BlenderStudioModal from './components/BlenderStudioModal';
+import MapsWidget from './components/MapsWidget';
 import geminiClient from './utils/geminiClient';
 import { getServerIp, setServerIp } from './utils/apiConfig.js';
 import { getPhoneBrainMode, setPhoneBrainMode, togglePhoneBrainMode } from './utils/mobileBrain.js';
@@ -303,6 +304,13 @@ export default function App() {
     handleResize();
     window.addEventListener('resize', handleResize);
 
+    const handleCustomOpenModal = (e) => {
+      if (e.detail?.modal) {
+        openModal(e.detail.modal, e.detail.data || {});
+      }
+    };
+    window.addEventListener('jasper-open-modal', handleCustomOpenModal);
+
     // Sync Biometric Face Profile from server database jasper.db.json
     syncOwnerProfileFromServer().then(prof => {
       if (prof && prof.vector) {
@@ -310,7 +318,10 @@ export default function App() {
       }
     });
 
-    return () => window.removeEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('jasper-open-modal', handleCustomOpenModal);
+    };
   }, []);
 
   const videoRef = useRef(null);
@@ -1034,8 +1045,30 @@ export default function App() {
       return;
     }
 
+    // Intercept Direct Maps & Navigation Commands (e.g. "map", "maps", "open map", "show map", "show me map", "where am i", "my location")
+    const isDirectMapQuery = /^(show\s+(me\s+)?(the\s+)?|view\s+(the\s+)?|open\s+(the\s+)?)?(maps?|navigation|gps)(\s+app)?$/i.test(queryText.trim()) ||
+                             /^(where\s+am\s+i|my\s+location|current\s+location)$/i.test(queryText.trim());
+    if (isDirectMapQuery) {
+      setShowMaps(true);
+      const response = `Opening Spatial Maps & GPS Navigation for you, Sir. Real-time satellite positioning and turn-by-turn routing are active with zero external API key requirements.`;
+      const newChat = {
+        id: Date.now(),
+        query: queryText,
+        attachments: attachments,
+        response: response,
+        timestamp: new Date().toLocaleString()
+      };
+      setPastChats((prev) => [newChat, ...prev]);
+      setSelectedChatId(newChat.id);
+      setSpeakingText(response);
+      if (voiceControllerRef.current) {
+        voiceControllerRef.current.playSuccess();
+      }
+      return;
+    }
+
     // Intercept Voice App Open Commands (e.g. "Jasper open search", "open calculator", "open files", "open whatsapp auto reply", "open blender")
-    const appOpenRegex = /(open|launch|start|show|run)\s+(search|search engine|files|file manager|explorer|code|code studio|terminal|notes|planner|tasks|calculator|calc|tv|tv remote|phone|android|pc|pc hub|pc command|security|biometrics|browser|web agent|sports|maps|navigation|health|fitband|translator|translation|manual|guide|whatsapp|instagram|auto reply|call auto|social auto|blender|blender 3d|3d studio)/i;
+    const appOpenRegex = /(open|launch|start|show|run)\s+(search|search engine|files|file manager|explorer|code|code studio|terminal|notes|planner|tasks|calculator|calc|tv|tv remote|phone|android|pc|pc hub|pc command|security|biometrics|browser|web agent|sports|maps?|navigation|health|fitband|translator|translation|manual|guide|whatsapp|instagram|auto reply|call auto|social auto|blender|blender 3d|3d studio)/i;
     const appMatch = queryText.match(appOpenRegex);
     if (appMatch) {
       const targetApp = appMatch[2].toLowerCase();

@@ -103,10 +103,10 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
       attributionControl: false
     });
 
-    // Dark Matter CartoDB Tiles (Stark-Tech aesthetic)
-    const darkTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    // Dark Stark-Tech OpenStreetMap Tiles (100% Free, Zero Watermark, Zero API Key Required)
+    const darkTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
-      subdomains: 'abcd'
+      className: 'dark-map-tiles'
     });
 
     // Standard OpenStreetMap Tiles
