@@ -41,6 +41,7 @@ import JasperCalculatorApp from './components/JasperCalculatorApp';
 import JasperAgentHubWidget from './components/JasperAgentHubWidget';
 import BlenderStudioModal from './components/BlenderStudioModal';
 import MapsWidget from './components/MapsWidget';
+import EmergencyAlertToast from './components/EmergencyAlertToast';
 import geminiClient from './utils/geminiClient';
 import { getServerIp, setServerIp } from './utils/apiConfig.js';
 import { getPhoneBrainMode, setPhoneBrainMode, togglePhoneBrainMode } from './utils/mobileBrain.js';
@@ -219,6 +220,63 @@ export default function App() {
   const [showKey, setShowKey] = useState(false);
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [apkDownloadUrl, setApkDownloadUrl] = useState('');
+  const [activeEmergency, setActiveEmergency] = useState(null);
+
+  // High-Priority Emergency Toast & Alert Poller + WebSocket Listener
+  useEffect(() => {
+    let isSubscribed = true;
+
+    const checkEmergencyStatus = async () => {
+      try {
+        const res = await fetch('http://localhost:3001/api/social/emergency-status');
+        const data = await res.json();
+        if (isSubscribed && data.success && data.active && data.current) {
+          setActiveEmergency(data.current);
+        } else if (isSubscribed && !data.active) {
+          setActiveEmergency(null);
+        }
+      } catch (err) {}
+    };
+
+    checkEmergencyStatus();
+    const emergencyInterval = setInterval(checkEmergencyStatus, 4000);
+
+    let ws;
+    try {
+      ws = new WebSocket('ws://localhost:3001');
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'EMERGENCY_ALERT' && data.emergency) {
+            console.log('[App] 🚨 CRITICAL EMERGENCY ALERT RECEIVED:', data.emergency);
+            setActiveEmergency(data.emergency);
+          } else if (data.type === 'EMERGENCY_DISMISSED') {
+            setActiveEmergency(null);
+          }
+        } catch (e) {}
+      };
+    } catch (e) {}
+
+    return () => {
+      isSubscribed = false;
+      clearInterval(emergencyInterval);
+      if (ws) {
+        try { ws.close(); } catch (e) {}
+      }
+    };
+  }, []);
+
+  const handleDismissEmergency = async () => {
+    try {
+      await fetch('http://localhost:3001/api/social/emergency-dismiss', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: 'all' })
+      });
+    } catch (e) {}
+    setActiveEmergency(null);
+  };
+
   const hudPanelRef = useRef(null);
   const fileInputRef = useRef(null);
   const [showScrollTopButton, setShowScrollTopButton] = useState(false);
@@ -2972,6 +3030,15 @@ export default function App() {
             <img src={lightboxImage} alt="Uploaded attachment full preview" className="image-lightbox-img" />
           </div>
         </div>
+      )}
+
+      {/* 20. Global Critical Emergency Alert Toast */}
+      {activeEmergency && (
+        <EmergencyAlertToast
+          emergency={activeEmergency}
+          onDismiss={handleDismissEmergency}
+          onOpenHub={() => setShowSocialAutoReply(true)}
+        />
       )}
     </div>
   );

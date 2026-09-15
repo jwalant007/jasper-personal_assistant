@@ -17,6 +17,7 @@ const pcRemoteController = require('./pcRemoteController');
 const permissionLayer = require('./permissionLayer');
 const busyModeEngine = require('./busyModeEngine');
 const blenderController = require('./blenderController');
+const notificationManager = require('./notificationManager');
 
 // Optional WhatsApp Web Client (whatsapp-web.js) for laptop WhatsApp Web auto-send
 let Client, LocalAuth, WAStatus;
@@ -131,8 +132,19 @@ function initWhatsAppWebClient() {
       }
 
       // Check emergency keyword
-      if (config.emergencyKeyword && incomingText.toUpperCase().includes(config.emergencyKeyword.toUpperCase())) {
+      let isEmergency = false;
+      const kw = (config.emergencyKeyword || 'URGENT').toUpperCase();
+      const upperMsg = incomingText.toUpperCase();
+      if (upperMsg.includes(kw) || /\b(SOS|HELP|EMERGENCY|HOSPITAL|ASAP)\b/i.test(incomingText)) {
+        isEmergency = true;
         replyText = `🚨 URGENT PRIORITY ALERT: Your emergency message has been flagged to Jwalant with high priority. Stand by.`;
+        notificationManager.triggerEmergencyAlert({
+          source: 'whatsapp',
+          sender: fromNumber,
+          senderName: msg._data?.notifyName || fromNumber,
+          message: incomingText,
+          broadcastFn: broadcastToClients
+        });
       }
 
       // 5. Resilient dispatch: try msg.reply, fall back to waClient.sendMessage if quoted reply fails
@@ -147,16 +159,19 @@ function initWhatsAppWebClient() {
 
       const log = dbManager.addSocialLog({
         platform: 'whatsapp',
-        type: 'auto_reply',
+        type: isEmergency ? 'emergency_alert' : 'auto_reply',
         recipient: fromNumber,
         recipientName: msg._data?.notifyName || fromNumber,
         incomingTextOrCall: `Incoming WhatsApp: "${incomingText}"`,
-        actionTaken: `Auto-replied with ${config.activePreset.toUpperCase()} Mode Preset via WhatsApp Web`,
+        actionTaken: isEmergency 
+          ? `🚨 EMERGENCY ALERT: Dispatched Desktop Toast, Spoken Alarm & Auto-Reply` 
+          : `Auto-replied with ${config.activePreset.toUpperCase()} Mode Preset via WhatsApp Web`,
         messageSent: replyText,
-        status: 'Delivered'
+        status: 'Delivered',
+        isEmergency
       });
 
-      broadcastToClients({ type: 'SOCIAL_MESSAGE_SENT', log });
+      broadcastToClients({ type: isEmergency ? 'EMERGENCY_ALERT' : 'SOCIAL_MESSAGE_SENT', log });
     } catch(err) {
       console.error('[WhatsApp Web Auto-Responder Error]:', err.message);
     }
@@ -1620,21 +1635,39 @@ setInterval(async () => {
           if (processedNotifSet.size > 200) processedNotifSet.clear();
 
           const sender = n.title.replace(/\s*\(\d+\s*messages?\)/i, '').trim();
-          const replyText = config.presets[config.activePreset] || config.presets.drive;
+          const upperText = n.text.toUpperCase();
+          const kw = (config.emergencyKeyword || 'URGENT').toUpperCase();
+          const isEmergency = upperText.includes(kw) || /\b(SOS|HELP|EMERGENCY|HOSPITAL|ASAP)\b/i.test(n.text);
+
+          let replyText = config.presets[config.activePreset] || config.presets.drive;
+          if (isEmergency) {
+            replyText = `🚨 URGENT PRIORITY ALERT: Your emergency message has been flagged to Jwalant with high priority. Stand by.`;
+            notificationManager.triggerEmergencyAlert({
+              source: 'phone_whatsapp',
+              sender: sender,
+              senderName: sender,
+              message: n.text,
+              broadcastFn: broadcastToClients
+            });
+          }
+
           console.log(`[AutoReply Phone Daemon] Auto-replying to WhatsApp from ${sender}`);
           await phoneController.whatsappSend(sender, replyText);
 
           const log = dbManager.addSocialLog({
             platform: 'whatsapp',
-            type: 'auto_reply',
+            type: isEmergency ? 'emergency_alert' : 'auto_reply',
             recipient: sender,
             recipientName: sender,
             incomingTextOrCall: `Incoming WhatsApp: "${n.text}"`,
-            actionTaken: `Auto-replied with ${config.activePreset.toUpperCase()} Mode Preset (Android Hook)`,
+            actionTaken: isEmergency 
+              ? `🚨 EMERGENCY ALERT: Dispatched Desktop Toast, Spoken Alarm & Auto-Reply (Android Hook)` 
+              : `Auto-replied with ${config.activePreset.toUpperCase()} Mode Preset (Android Hook)`,
             messageSent: replyText,
-            status: 'Delivered'
+            status: 'Delivered',
+            isEmergency
           });
-          broadcastToClients({ type: 'SOCIAL_MESSAGE_SENT', log });
+          broadcastToClients({ type: isEmergency ? 'EMERGENCY_ALERT' : 'SOCIAL_MESSAGE_SENT', log });
         }
 
         // Auto-reply to incoming Instagram DM notification on phone
@@ -1805,6 +1838,74 @@ app.post('/api/social/logs/clear', (req, res) => {
   try {
     const cleared = dbManager.clearSocialLogs();
     res.json({ success: true, logs: cleared });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// -------------------------------------------------------------
+// EMERGENCY ALERTS & TOAST NOTIFICATION ROUTES
+// -------------------------------------------------------------
+
+// Get active emergency alerts
+app.get('/api/social/emergency-status', (req, res) => {
+  try {
+    const emergencies = notificationManager.getActiveEmergencies();
+    const activeEmergency = emergencies.find(e => e.active);
+    res.json({
+      success: true,
+      active: !!activeEmergency,
+      current: activeEmergency || null,
+      emergencies
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Trigger test or manual emergency alert with Windows Toast & Spoken audio
+app.post('/api/social/emergency-trigger', async (req, res) => {
+  try {
+    const { 
+      sender = '+91 98200 12345', 
+      senderName = 'Emergency Contact (Mom)', 
+      message = 'URGENT: Please respond immediately!' 
+    } = req.body || {};
+
+    const alert = await notificationManager.triggerEmergencyAlert({
+      source: req.body.source || 'whatsapp',
+      sender,
+      senderName,
+      message,
+      broadcastFn: broadcastToClients
+    });
+
+    const log = dbManager.addSocialLog({
+      platform: 'emergency_system',
+      type: 'emergency_alert',
+      recipient: sender,
+      recipientName: senderName,
+      incomingTextOrCall: `Incoming Emergency: "${message}"`,
+      actionTaken: `🚨 EMERGENCY ALERT: Dispatched Desktop Toast, Spoken Alarm & Priority Broadcast`,
+      messageSent: `🚨 URGENT PRIORITY ALERT: Flagged to Jwalant with high priority.`,
+      status: 'Delivered',
+      isEmergency: true
+    });
+
+    broadcastToClients({ type: 'SOCIAL_MESSAGE_SENT', log });
+    res.json({ success: true, alert, log });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Dismiss active emergency alert
+app.post('/api/social/emergency-dismiss', (req, res) => {
+  try {
+    const { id = 'all' } = req.body || {};
+    notificationManager.dismissEmergency(id);
+    broadcastToClients({ type: 'EMERGENCY_DISMISSED', id });
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

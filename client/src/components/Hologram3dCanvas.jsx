@@ -1075,6 +1075,7 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
   const cameraRef = useRef(null);
   const controlsRef = useRef(null);
   const uniformsListRef = useRef([]);
+  const hologramGroupRef = useRef(null);
 
   // Live dynamic refs to decouple animation from WebGL scene re-creation
   const time4dRef = useRef(time4d);
@@ -1109,6 +1110,29 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
         controlsRef.current.target.set(0.6, 0.1, 0.2);
       }
       controlsRef.current.update();
+    },
+    rotateBy: (dx, dy) => {
+      if (hologramGroupRef.current) {
+        hologramGroupRef.current.rotation.y += dx * 0.04;
+        hologramGroupRef.current.rotation.x += dy * 0.04;
+      }
+    },
+    zoomBy: (factor) => {
+      if (cameraRef.current) {
+        cameraRef.current.position.z = Math.max(1.2, Math.min(12.0, cameraRef.current.position.z - factor));
+      }
+    },
+    resetView: () => {
+      if (hologramGroupRef.current) {
+        hologramGroupRef.current.rotation.set(0, 0, 0);
+      }
+      if (cameraRef.current) {
+        cameraRef.current.position.set(0, 0.2, 5.8);
+      }
+      if (controlsRef.current) {
+        controlsRef.current.target.set(0, 0, 0);
+        controlsRef.current.update();
+      }
     }
   }));
 
@@ -1181,6 +1205,7 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
     scene.environment = studioEnvMap;
 
     const hologramGroup = new THREE.Group();
+    hologramGroupRef.current = hologramGroup;
     scene.add(hologramGroup);
 
     // STARK TARGET LOCK RETICLES (J.A.R.V.I.S. HUD RINGS)
@@ -1458,29 +1483,35 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
       };
 
     } else if (mode === 'ironman') {
-      // ⚡ IRON MAN MARK 85 ARC CORE & NANOTECH ARMOR SEGMENTS
-      const coreGroup = new THREE.Group();
-      hologramGroup.add(coreGroup);
+      // ⚡ STARK MARK LXXXV / MARK VII ANATOMICAL ARMOR
+      const isBlueprint = false;
+      const expOffset = explodedView ? 0.85 : 0.0;
 
-      const arcGeo = new THREE.CylinderGeometry(0.8, 0.8, 0.3, 64);
-      const arcMat = new THREE.MeshPhysicalMaterial({ color: 0x00f3ff, emissive: 0x00f3ff, emissiveIntensity: 2.0, clearcoat: 1.0 });
-      const arcMesh = new THREE.Mesh(arcGeo, arcMat);
-      coreGroup.add(arcMesh);
+      const primaryMat = new THREE.MeshPhysicalMaterial({
+        color: 0xd60029,
+        metalness: 0.95,
+        roughness: 0.15,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.1
+      });
+      const secondaryMat = new THREE.MeshStandardMaterial({
+        color: 0xffd700,
+        metalness: 0.98,
+        roughness: 0.12
+      });
+      const bootMat = new THREE.MeshStandardMaterial({
+        color: 0x99001a,
+        metalness: 0.9,
+        roughness: 0.2
+      });
 
-      const ring1Geo = new THREE.TorusGeometry(1.6, 0.08, 32, 120);
-      const ring1Mat = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.98, roughness: 0.05 });
-      const ring1 = new THREE.Mesh(ring1Geo, ring1Mat);
-      coreGroup.add(ring1);
-
-      const ring2Geo = new THREE.TorusGeometry(2.4, 0.09, 32, 120);
-      const ring2Mat = new THREE.MeshStandardMaterial({ color: 0xd60029, metalness: 0.95, roughness: 0.08 });
-      const ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
-      coreGroup.add(ring2);
+      const suit = createPhotorealisticIronManSuitGroup(isBlueprint, primaryMat, secondaryMat, bootMat, false, expOffset);
+      hologramGroup.add(suit);
 
       animateCallback = () => {
-        ring1.rotation.z += 0.015;
-        ring2.rotation.z -= 0.012;
-        ring2.rotation.x += 0.008;
+        if (autoRotateRef.current) {
+          suit.rotation.y += 0.005;
+        }
       };
 
     } else if (mode === 'v8engine') {
@@ -1580,12 +1611,13 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
         uniformsListRef.current.forEach(u => { if (u.uTime) u.uTime.value = time; });
       };
 
-    } else if (mode === 'dna') {
+    } else if (mode === 'dna' || mode === 'genome') {
+      // 🧬 SYNTHETIC GENOME DOUBLE HELIX WITH CONNECTING BASE PAIRS
       const dnaGroup = new THREE.Group();
       hologramGroup.add(dnaGroup);
-      const strandCount = 32;
-      const radius = 1.05;
-      const totalHeight = 4.6;
+      const strandCount = 38;
+      const radius = 1.15;
+      const totalHeight = 4.8;
 
       for (let i = 0; i < strandCount; i++) {
         const y = (i / strandCount) * totalHeight - totalHeight / 2;
@@ -1593,16 +1625,29 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
 
         const x1 = Math.cos(angle) * radius;
         const z1 = Math.sin(angle) * radius;
-        const base1Geo = new THREE.SphereGeometry(0.14, 32, 32);
-        const base1Mat = new THREE.MeshPhysicalMaterial({ color: 0x00f3ff, emissive: 0x00a8ff, emissiveIntensity: 1.1, clearcoat: 1.0 });
+        const x2 = Math.cos(angle + Math.PI) * radius;
+        const z2 = Math.sin(angle + Math.PI) * radius;
+
+        // Connecting rung line between base pairs
+        const lineGeo = new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(x1, y, z1),
+          new THREE.Vector3(x2, y, z2)
+        ]);
+        const lineMat = new THREE.LineBasicMaterial({
+          color: i % 2 === 0 ? 0x00e5ff : 0xff0077,
+          transparent: true,
+          opacity: 0.65
+        });
+        dnaGroup.add(new THREE.Line(lineGeo, lineMat));
+
+        const base1Geo = new THREE.SphereGeometry(0.12, 24, 24);
+        const base1Mat = new THREE.MeshPhysicalMaterial({ color: 0x00f3ff, emissive: 0x00a8ff, emissiveIntensity: 1.8, clearcoat: 1.0 });
         const base1 = new THREE.Mesh(base1Geo, base1Mat);
         base1.position.set(x1, y, z1);
         dnaGroup.add(base1);
 
-        const x2 = Math.cos(angle + Math.PI) * radius;
-        const z2 = Math.sin(angle + Math.PI) * radius;
-        const base2Geo = new THREE.SphereGeometry(0.14, 32, 32);
-        const base2Mat = new THREE.MeshPhysicalMaterial({ color: 0xff0055, emissive: 0xd60029, emissiveIntensity: 1.1, clearcoat: 1.0 });
+        const base2Geo = new THREE.SphereGeometry(0.12, 24, 24);
+        const base2Mat = new THREE.MeshPhysicalMaterial({ color: 0xff0055, emissive: 0xd60029, emissiveIntensity: 1.8, clearcoat: 1.0 });
         const base2 = new THREE.Mesh(base2Geo, base2Mat);
         base2.position.set(x2, y, z2);
         dnaGroup.add(base2);
@@ -1610,6 +1655,91 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
 
       animateCallback = () => {
         dnaGroup.rotation.y += 0.012;
+      };
+
+    } else if (mode === 'reactor' || mode === 'arc_reactor') {
+      // ⚡ STARK ARC REACTOR WITH 10 ELECTRO-MAGNETIC COILS & UNIBEAM
+      const reactorGroup = new THREE.Group();
+      hologramGroup.add(reactorGroup);
+
+      // Outer brushed titanium housing ring
+      const outerRingGeo = new THREE.TorusGeometry(1.9, 0.2, 32, 100);
+      const titaniumMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.95, roughness: 0.2 });
+      const outerRing = new THREE.Mesh(outerRingGeo, titaniumMat);
+      reactorGroup.add(outerRing);
+
+      // Inner glowing core unibeam lens
+      const coreGeo = new THREE.CylinderGeometry(0.72, 0.72, 0.35, 48);
+      const coreMat = new THREE.MeshPhysicalMaterial({
+        color: 0x00f3ff,
+        emissive: 0x00f3ff,
+        emissiveIntensity: 3.2,
+        transmission: 0.5,
+        roughness: 0.05
+      });
+      const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+      coreMesh.rotation.x = Math.PI / 2;
+      reactorGroup.add(coreMesh);
+
+      // 10 Segmented Copper Magnetic Windings
+      const coilCount = 10;
+      const copperMat = new THREE.MeshStandardMaterial({ color: 0xb45309, metalness: 0.95, roughness: 0.25 });
+      for (let c = 0; c < coilCount; c++) {
+        const theta = (c / coilCount) * Math.PI * 2;
+        const coilGeo = new THREE.BoxGeometry(0.42, 0.26, 0.38);
+        const coilMesh = new THREE.Mesh(coilGeo, copperMat);
+        coilMesh.position.set(Math.cos(theta) * 1.5, Math.sin(theta) * 1.5, 0);
+        coilMesh.rotation.z = theta;
+        reactorGroup.add(coilMesh);
+      }
+
+      // Concentric rotating energy rings
+      const energyRingGeo = new THREE.RingGeometry(1.0, 1.12, 64);
+      const energyRingMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+      const energyRing = new THREE.Mesh(energyRingGeo, energyRingMat);
+      reactorGroup.add(energyRing);
+
+      animateCallback = (time) => {
+        energyRing.rotation.z += 0.025;
+        reactorGroup.rotation.z -= 0.004;
+        coreMesh.material.emissiveIntensity = 2.8 + Math.sin(time * 5.0) * 0.8;
+      };
+
+    } else if (mode === 'repulsor') {
+      // 🚀 STARK REPULSOR FLIGHT ENGINE & PLASMA NOZZLE
+      const repGroup = new THREE.Group();
+      hologramGroup.add(repGroup);
+
+      // Multi-stage cylindrical magnetic rings
+      [0.6, 1.0, 1.45, 1.9].forEach((r, idx) => {
+        const ringGeo = new THREE.TorusGeometry(r, 0.10 - idx * 0.015, 32, 80);
+        const ringMat = new THREE.MeshStandardMaterial({
+          color: idx % 2 === 0 ? 0xffd700 : 0x00f3ff,
+          metalness: 0.95,
+          roughness: 0.12
+        });
+        const ring = new THREE.Mesh(ringGeo, ringMat);
+        ring.position.z = -idx * 0.35;
+        repGroup.add(ring);
+      });
+
+      // Central focused plasma beam
+      const beamGeo = new THREE.CylinderGeometry(0.3, 0.85, 2.8, 32, 1, true);
+      beamGeo.rotateX(Math.PI / 2);
+      const beamMat = new THREE.MeshPhysicalMaterial({
+        color: 0x00f3ff,
+        emissive: 0x00f3ff,
+        emissiveIntensity: 3.5,
+        transparent: true,
+        opacity: 0.75
+      });
+      const beam = new THREE.Mesh(beamGeo, beamMat);
+      beam.position.z = 0.8;
+      repGroup.add(beam);
+
+      animateCallback = (time) => {
+        repGroup.rotation.z += 0.015;
+        beam.material.opacity = 0.6 + Math.sin(time * 8.0) * 0.25;
       };
 
     } else if (mode === 'planet') {
@@ -1620,16 +1750,6 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
 
       animateCallback = () => {
         planet.rotation.y += 0.005;
-      };
-
-    } else if (mode === 'reactor') {
-      const coreGeo = new THREE.CylinderGeometry(1.2, 1.2, 0.45, 96);
-      const coreMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true });
-      const core = new THREE.Mesh(coreGeo, coreMat);
-      hologramGroup.add(core);
-
-      animateCallback = () => {
-        core.rotation.y += 0.018;
       };
 
     } else if (mode === 'blender' || blenderModelUrl) {

@@ -4,7 +4,8 @@ import {
   Car, Briefcase, Moon, Bot, Zap, RefreshCw, CheckCircle2, AlertTriangle, 
   Clock, Smartphone, ArrowRight, X, ChevronRight, User, Trash2, Radio,
   Link2, ExternalLink, Key, Check, Eye, EyeOff, Lock, AtSign,
-  Search, Plus, Users, MessageCircle, Upload, FileText, Download
+  Search, Plus, Users, MessageCircle, Upload, FileText, Download,
+  ShieldAlert, Bell, Volume2
 } from 'lucide-react';
 import geminiClient from '../utils/geminiClient';
 
@@ -535,6 +536,29 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
     showBanner('Activity logs cleared.', 'info');
   };
 
+  const handleTriggerTestEmergency = async () => {
+    try {
+      showBanner('🚨 Dispatching test emergency alert (Windows Toast + Audio)...', 'info');
+      const res = await fetch('http://localhost:3001/api/social/emergency-trigger', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          source: 'whatsapp',
+          sender: '+91 98200 12345',
+          senderName: 'Mom (Urgent Priority)',
+          message: 'URGENT: Emergency alert test from JASPER! Please pick up the phone!'
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showBanner('🚨 Windows Toast & Desktop Alert dispatched!', 'success');
+        fetchConfigAndLogs();
+      }
+    } catch (err) {
+      showBanner(`Emergency trigger error: ${err.message}`, 'error');
+    }
+  };
+
   return (
     <div className="w-full flex-1 relative font-sans flex flex-col gap-5 text-neutral-100">
       
@@ -815,6 +839,60 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
                 className="w-full p-2.5 bg-black/60 border border-cyan-500/30 rounded-xl text-xs font-mono text-cyan-200 focus:outline-none focus:border-cyan-400 custom-scrollbar resize-none"
                 placeholder="Enter custom auto-reply message..."
               />
+            </div>
+          </div>
+
+          {/* Emergency Shield, Spoken Siren & Native Toast Controls */}
+          <div className="bg-gradient-to-r from-red-950/40 via-neutral-900/80 to-amber-950/40 border border-red-500/40 rounded-xl p-3.5 flex flex-col gap-3 shadow-[0_0_15px_rgba(239,68,68,0.15)]">
+            <div className="flex items-center justify-between border-b border-red-500/20 pb-2">
+              <div className="flex items-center gap-2">
+                <ShieldAlert className="w-4 h-4 text-red-400 animate-pulse" />
+                <span className="font-mono text-xs font-bold text-red-200 uppercase tracking-wider">
+                  Emergency Shield &amp; Toast System
+                </span>
+              </div>
+              <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-red-500/20 border border-red-500/50 text-red-300 animate-pulse">
+                ACTIVE MONITORING
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+              <div className="sm:col-span-7 text-[11px] text-neutral-300 font-sans leading-relaxed">
+                <p>
+                  When incoming WhatsApp or phone messages contain your emergency keyword (<span className="text-amber-300 font-mono font-bold">{emergencyKeyword || 'URGENT'}</span>, <span className="text-amber-300 font-mono font-bold">HELP</span>, or <span className="text-amber-300 font-mono font-bold">SOS</span>), JASPER automatically:
+                </p>
+                <ul className="list-disc list-inside mt-1 text-[10px] text-neutral-400 font-mono space-y-0.5">
+                  <li>Dispatches a <strong className="text-red-300">Native Windows Desktop Toast</strong> with audio</li>
+                  <li>Speaks a high-urgency spoken alarm warning through PC speakers</li>
+                  <li>Displays a floating in-app emergency toast alert at the top of your screen</li>
+                </ul>
+              </div>
+
+              <div className="sm:col-span-5 flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono text-neutral-400 uppercase shrink-0">Trigger Keyword:</span>
+                  <input
+                    type="text"
+                    value={emergencyKeyword}
+                    onChange={(e) => {
+                      const kw = e.target.value.toUpperCase();
+                      setEmergencyKeyword(kw);
+                      saveConfig({ whatsappEnabled, instagramEnabled, callAutoDeclineAndMsg: callAutoDecline, activePreset, presets, emergencyKeyword: kw });
+                    }}
+                    placeholder="URGENT"
+                    className="flex-1 px-2.5 py-1 bg-black/60 border border-red-500/40 rounded-lg text-xs font-mono font-bold text-red-300 uppercase focus:outline-none focus:border-red-400"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleTriggerTestEmergency}
+                  className="w-full py-2 px-3 rounded-lg bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white text-xs font-bold font-mono flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(239,68,68,0.4)] transition-all cursor-pointer"
+                >
+                  <AlertTriangle className="w-4 h-4 text-amber-200 animate-bounce" />
+                  <span>Test Emergency Toast &amp; Alarm</span>
+                </button>
+              </div>
             </div>
           </div>
 
