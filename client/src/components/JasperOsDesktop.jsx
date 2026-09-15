@@ -37,6 +37,7 @@ import JasperNotesPlannerApp from './JasperNotesPlannerApp';
 import JasperCalculatorApp from './JasperCalculatorApp';
 import JasperAgentHubWidget from './JasperAgentHubWidget';
 import BlenderStudioModal from './BlenderStudioModal';
+import HolographicAnswerModal from './HolographicAnswerModal';
 import { Calculator, FileCode, Compass, MessageSquare } from 'lucide-react';
 
 /**
@@ -51,6 +52,7 @@ const JASPER_OS_APPS_REGISTRY = [
   { id: 'codeStudio', title: 'JASPER Code Studio & Terminal App', category: 'Productivity & Tools', icon: FileCode, component: JasperCodeStudioApp, defaultSize: { w: 780, h: 540 } },
   { id: 'notesPlanner', title: 'JASPER AI Notes & Task Planner App', category: 'Productivity & Tools', icon: BookOpen, component: JasperNotesPlannerApp, defaultSize: { w: 720, h: 520 } },
   { id: 'calculator', title: 'JASPER Scientific Calculator App', category: 'Productivity & Tools', icon: Calculator, component: JasperCalculatorApp, defaultSize: { w: 640, h: 500 } },
+  { id: 'hologramStudio', title: '3D Hologram Workstation', category: 'Creative & AI', icon: Box, component: (props) => <HolographicAnswerModal {...props} />, defaultSize: { w: 1040, h: 680 } },
   { id: 'blenderStudio', title: 'Blender 3D Graphics Studio', category: 'Creative & AI', icon: Box, component: (props) => <BlenderStudioModal {...props} embedded={true} />, defaultSize: { w: 860, h: 600 } },
   { id: 'diagnostics', title: 'System Diagnostics & Telemetry App', category: 'System & Hardware', icon: Activity, component: DiagnosticWidget, defaultSize: { w: 450, h: 500 } },
   { id: 'tvRemote', title: 'Videocon d2h STB Controller App', category: 'Hardware Control', icon: Radio, component: TvRemoteWidget, defaultSize: { w: 420, h: 540 } },

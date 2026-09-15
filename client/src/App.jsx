@@ -1415,6 +1415,15 @@ export default function App() {
                 <span>JASPER OS DESKTOP</span>
               </button>
 
+              {/* 3D Hologram Workstation Direct Launcher */}
+              <button 
+                onClick={() => setShowHologramModal(true)}
+                className="w-full py-2.5 px-3 bg-gradient-to-r from-cyan-500/25 via-neutral-900/80 to-blue-600/25 hover:from-cyan-500/35 hover:to-blue-600/35 border border-cyan-400/80 text-cyan-200 rounded-xl font-orbitron font-extrabold text-xs tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(0,229,255,0.25)] mt-1.5"
+              >
+                <Box className="w-4 h-4 text-cyan-300 animate-pulse" />
+                <span>3D HOLOGRAM WORKSTATION</span>
+              </button>
+
               <button 
                 onClick={() => {
                   handleNewChat();
