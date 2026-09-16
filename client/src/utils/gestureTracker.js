@@ -1,12 +1,19 @@
 /**
  * J.A.S.P.E.R. AIR-GESTURE TRACKER SERVICE
- * Real-time hand skeletal tracking via MediaPipe Hands CDN
- * Classifies gestures matching the JARVIS holographic reel:
- * - Swipe Left/Right: Select next/previous creation
- * - Pinch-Drag: 3D rotate hologram
- * - Two-Hand Spread/Contract: 3D zoom in/out
- * - Pinch-Tap: Explode view / open component
- * - Fist: Reset camera / Back
+ * Real-time hand skeletal tracking via MediaPipe Hands CDN.
+ * Advanced Spatial Computing Gestures for OS & Holographic Workspace:
+ * - Air Scroll (Up / Down): Fast vertical palm or index swipe
+ * - Peace Sign (V-Sign): Maximize / Restore active app window
+ * - Thumbs Up: Confirm / Action / Unmute
+ * - Thumbs Down: Cancel / Minimize / Mute
+ * - Open Palm (Repulsor Beam): Show Desktop / Pause
+ * - Pointing Finger (Air Cursor): Holographic laser cursor with pinch-click
+ * - OK Sign: Wake Jarvis Voice Commander
+ * - Three-Finger Swipe: Cycle between open OS windows
+ * - Fist: Minimize active window / Reset 3D camera
+ * - Pinch-Drag: 3D rotate active model
+ * - Two-Hand Spread / Contract: 3D zoom in / out
+ * - Horizontal Swipe: Next / Previous creation
  */
 
 let scriptLoadPromise = null;
@@ -39,7 +46,7 @@ export function loadMediaPipeHandsScripts() {
       })
       .catch((err) => {
         console.warn('[AirGestures] CDN load notice:', err.message);
-        resolve(); // resolve so camera can still work
+        resolve(); // resolve so camera can still work in fallback
       });
   });
 
@@ -58,8 +65,17 @@ export class AirGestureTracker {
       onRotate: callbacks.onRotate || (() => {}),
       onZoom: callbacks.onZoom || (() => {}),
       onSwipe: callbacks.onSwipe || (() => {}),
+      onScroll: callbacks.onScroll || (() => {}),
       onPinchTap: callbacks.onPinchTap || (() => {}),
       onFist: callbacks.onFist || (() => {}),
+      onPeaceSign: callbacks.onPeaceSign || (() => {}),
+      onThumbsUp: callbacks.onThumbsUp || (() => {}),
+      onThumbsDown: callbacks.onThumbsDown || (() => {}),
+      onPalmStop: callbacks.onPalmStop || (() => {}),
+      onOkSign: callbacks.onOkSign || (() => {}),
+      onAirCursor: callbacks.onAirCursor || (() => {}),
+      onWindowCycle: callbacks.onWindowCycle || (() => {}),
+      onCloseApp: callbacks.onCloseApp || (() => {}),
       onStateChange: callbacks.onStateChange || (() => {}),
       ...callbacks
     };
@@ -74,9 +90,15 @@ export class AirGestureTracker {
     this.lastTwoHandDist = null;
     this.palmHistory = [];
     this.lastSwipeTime = 0;
+    this.lastScrollTime = 0;
     this.lastPinchTapTime = 0;
+    this.lastDiscreteGestureTime = 0;
+    this.lastGestureName = 'NONE';
     this.isCurrentlyPinching = false;
     this.pinchStartTime = 0;
+
+    // Smoothed Air Cursor
+    this.cursorPos = { x: 0.5, y: 0.5 };
   }
 
   async start(customStream = null) {
@@ -155,6 +177,7 @@ export class AirGestureTracker {
     if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
       this.lastPinchPos = null;
       this.lastTwoHandDist = null;
+      this.lastGestureName = 'NONE';
       this.callbacks.onStateChange({ status: 'TRACKING', gesture: 'NONE', handCount: 0 });
       return;
     }
@@ -169,13 +192,25 @@ export class AirGestureTracker {
 
     const now = Date.now();
 
-    // 1. TWO-HAND GESTURE: ZOOM
+    // -------------------------------------------------------------
+    // 1. TWO-HAND GESTURES
+    // -------------------------------------------------------------
     if (handCount >= 2) {
       const hand1 = landmarksList[0];
       const hand2 = landmarksList[1];
-      const p1 = hand1[0]; // Wrist/base of palm 1
-      const p2 = hand2[0]; // Wrist/base of palm 2
+      const p1 = hand1[0]; // Wrist 1
+      const p2 = hand2[0]; // Wrist 2
       const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
+
+      // Check if both hands are in fists (Crossed / Double Fist -> Close App)
+      const h1Fist = this.isFistLandmarks(hand1);
+      const h2Fist = this.isFistLandmarks(hand2);
+      if (h1Fist && h2Fist && now - this.lastDiscreteGestureTime > 1200) {
+        this.lastDiscreteGestureTime = now;
+        this.callbacks.onCloseApp();
+        this.callbacks.onStateChange({ status: 'TRACKING', gesture: 'DOUBLE FIST (CLOSE APP)', handCount: 2 });
+        return;
+      }
 
       if (this.lastTwoHandDist !== null) {
         const delta = dist - this.lastTwoHandDist;
@@ -192,35 +227,128 @@ export class AirGestureTracker {
       this.lastTwoHandDist = null;
     }
 
-    // SINGLE-HAND GESTURES
+    // -------------------------------------------------------------
+    // 2. SINGLE-HAND SKELETAL CLASSIFICATION
+    // -------------------------------------------------------------
     const hand = landmarksList[0];
+    const wrist = hand[0];
     const thumbTip = hand[4];
     const indexTip = hand[8];
     const middleTip = hand[12];
     const ringTip = hand[16];
     const pinkyTip = hand[20];
-    const wrist = hand[0];
     const palmCenter = hand[9];
 
     // Distance between thumb and index tips
     const pinchDist = Math.hypot(thumbTip.x - indexTip.x, thumbTip.y - indexTip.y);
-    const isPinching = pinchDist < 0.085;
+    const isPinching = pinchDist < 0.075;
 
-    // FIST DETECTION: all 4 fingertips closer to wrist than their respective PIP joints
-    const isFist = 
-      Math.hypot(indexTip.x - wrist.x, indexTip.y - wrist.y) < Math.hypot(hand[6].x - wrist.x, hand[6].y - wrist.y) &&
-      Math.hypot(middleTip.x - wrist.x, middleTip.y - wrist.y) < Math.hypot(hand[10].x - wrist.x, hand[10].y - wrist.y) &&
-      Math.hypot(ringTip.x - wrist.x, ringTip.y - wrist.y) < Math.hypot(hand[14].x - wrist.x, hand[14].y - wrist.y) &&
-      Math.hypot(pinkyTip.x - wrist.x, pinkyTip.y - wrist.y) < Math.hypot(hand[18].x - wrist.x, hand[18].y - wrist.y);
+    // Finger extensions
+    const isIndexExt = this.isFingerExtended(hand, 8, 6, wrist);
+    const isMiddleExt = this.isFingerExtended(hand, 12, 10, wrist);
+    const isRingExt = this.isFingerExtended(hand, 16, 14, wrist);
+    const isPinkyExt = this.isFingerExtended(hand, 20, 18, wrist);
 
+    // Thumb orientation
+    const thumbMcp = hand[2];
+    const isThumbUp = !isIndexExt && !isMiddleExt && !isRingExt && !isPinkyExt && (thumbTip.y < thumbMcp.y - 0.07);
+    const isThumbDown = !isIndexExt && !isMiddleExt && !isRingExt && !isPinkyExt && (thumbTip.y > thumbMcp.y + 0.07);
+
+    // Fist check
+    const isFist = !isIndexExt && !isMiddleExt && !isRingExt && !isPinkyExt && !isThumbUp && !isThumbDown;
+
+    // -------------------------------------------------------------
+    // GESTURE: THUMBS UP (CONFIRM / APPROVE)
+    // -------------------------------------------------------------
+    if (isThumbUp && now - this.lastDiscreteGestureTime > 900) {
+      this.lastDiscreteGestureTime = now;
+      this.callbacks.onThumbsUp();
+      this.callbacks.onStateChange({ status: 'TRACKING', gesture: 'THUMBS UP (CONFIRM)', handCount: 1 });
+      return;
+    }
+
+    // -------------------------------------------------------------
+    // GESTURE: THUMBS DOWN (CANCEL / REJECT)
+    // -------------------------------------------------------------
+    if (isThumbDown && now - this.lastDiscreteGestureTime > 900) {
+      this.lastDiscreteGestureTime = now;
+      this.callbacks.onThumbsDown();
+      this.callbacks.onStateChange({ status: 'TRACKING', gesture: 'THUMBS DOWN (CANCEL)', handCount: 1 });
+      return;
+    }
+
+    // -------------------------------------------------------------
+    // GESTURE: PEACE SIGN (V-SIGN -> MAXIMIZE / RESTORE WINDOW)
+    // -------------------------------------------------------------
+    const isPeaceSign = isIndexExt && isMiddleExt && !isRingExt && !isPinkyExt;
+    if (isPeaceSign && now - this.lastDiscreteGestureTime > 900) {
+      this.lastDiscreteGestureTime = now;
+      this.callbacks.onPeaceSign();
+      this.callbacks.onStateChange({ status: 'TRACKING', gesture: 'PEACE SIGN (MAXIMIZE / RESTORE)', handCount: 1 });
+      return;
+    }
+
+    // -------------------------------------------------------------
+    // GESTURE: OK SIGN (INDEX+THUMB RING, OTHER 3 EXTENDED)
+    // -------------------------------------------------------------
+    const isOkSign = pinchDist < 0.06 && isMiddleExt && isRingExt && isPinkyExt;
+    if (isOkSign && now - this.lastDiscreteGestureTime > 900) {
+      this.lastDiscreteGestureTime = now;
+      this.callbacks.onOkSign();
+      this.callbacks.onStateChange({ status: 'TRACKING', gesture: 'OK SIGN (JARVIS MIC ACTIVE)', handCount: 1 });
+      return;
+    }
+
+    // -------------------------------------------------------------
+    // GESTURE: FIST (MINIMIZE WINDOW / RESET CAMERA)
+    // -------------------------------------------------------------
     if (isFist) {
-      this.callbacks.onFist();
-      this.callbacks.onStateChange({ status: 'TRACKING', gesture: 'FIST (RESET VIEW)', handCount: 1 });
+      if (now - this.lastDiscreteGestureTime > 900) {
+        this.lastDiscreteGestureTime = now;
+        this.callbacks.onFist();
+      }
+      this.callbacks.onStateChange({ status: 'TRACKING', gesture: 'FIST (MINIMIZE WINDOW)', handCount: 1 });
       this.lastPinchPos = null;
       return;
     }
 
-    // PINCH GESTURES: PINCH-DRAG (ROTATE) & PINCH-TAP (EXPLODE / SELECT)
+    // -------------------------------------------------------------
+    // GESTURE: POINTING FINGER (AIR CURSOR & LASER RETICLE)
+    // -------------------------------------------------------------
+    const isOnlyIndex = isIndexExt && !isMiddleExt && !isRingExt && !isPinkyExt;
+    if (isOnlyIndex) {
+      // Mirrored X for natural screen pointer
+      const targetX = 1 - indexTip.x;
+      const targetY = indexTip.y;
+
+      // Exponential moving average smoothing for steady pointing
+      this.cursorPos.x += (targetX - this.cursorPos.x) * 0.45;
+      this.cursorPos.y += (targetY - this.cursorPos.y) * 0.45;
+
+      const isAirClicking = isPinching;
+      this.callbacks.onAirCursor({
+        x: this.cursorPos.x,
+        y: this.cursorPos.y,
+        isClicking: isAirClicking
+      });
+
+      if (isAirClicking && now - this.lastPinchTapTime > 500) {
+        this.lastPinchTapTime = now;
+        this.callbacks.onPinchTap();
+      }
+
+      this.callbacks.onStateChange({
+        status: 'TRACKING',
+        gesture: isAirClicking ? 'AIR CLICK (TAP)' : 'AIR CURSOR (POINT)',
+        handCount: 1,
+        cursor: this.cursorPos
+      });
+      return;
+    }
+
+    // -------------------------------------------------------------
+    // GESTURE: PINCH-DRAG (3D ROTATE) & PINCH-TAP
+    // -------------------------------------------------------------
     if (isPinching) {
       const pinchCenterX = (thumbTip.x + indexTip.x) / 2;
       const pinchCenterY = (thumbTip.y + indexTip.y) / 2;
@@ -231,7 +359,6 @@ export class AirGestureTracker {
       }
 
       if (this.lastPinchPos) {
-        // Mirrored coordinate delta for intuitive natural interaction
         const dx = (pinchCenterX - this.lastPinchPos.x) * -12.0;
         const dy = (pinchCenterY - this.lastPinchPos.y) * 12.0;
 
@@ -248,35 +375,92 @@ export class AirGestureTracker {
         if (pinchDuration < 320 && now - this.lastPinchTapTime > 600) {
           this.lastPinchTapTime = now;
           this.callbacks.onPinchTap();
-          this.callbacks.onStateChange({ status: 'TRACKING', gesture: 'PINCH-TAP (EXPLODE/OPEN)', handCount: 1 });
+          this.callbacks.onStateChange({ status: 'TRACKING', gesture: 'PINCH-TAP (ACTION)', handCount: 1 });
         }
         this.isCurrentlyPinching = false;
       }
       this.lastPinchPos = null;
     }
 
-    // SWIPE DETECTION: Fast horizontal velocity of palm
+    // -------------------------------------------------------------
+    // GESTURE: PALM VELOCITY SWIPE & VERTICAL AIR SCROLL
+    // -------------------------------------------------------------
     this.palmHistory.push({ x: palmCenter.x, y: palmCenter.y, t: now });
     if (this.palmHistory.length > 8) this.palmHistory.shift();
 
-    if (!isPinching && this.palmHistory.length >= 4 && now - this.lastSwipeTime > 750) {
+    if (!isPinching && this.palmHistory.length >= 4) {
       const oldest = this.palmHistory[0];
       const newest = this.palmHistory[this.palmHistory.length - 1];
       const dt = (newest.t - oldest.t) / 1000;
-      const vx = (newest.x - oldest.x) / dt;
+      if (dt > 0.03) {
+        const vx = (newest.x - oldest.x) / dt;
+        const vy = (newest.y - oldest.y) / dt;
 
-      if (Math.abs(vx) > 1.8) {
-        const dir = vx < 0 ? 'NEXT' : 'PREV';
-        this.lastSwipeTime = now;
-        this.callbacks.onSwipe(dir);
-        this.callbacks.onStateChange({ status: 'TRACKING', gesture: `SWIPE ${dir}`, handCount: 1 });
-        return;
+        // 3-Finger Swipe (App Switcher Cycle)
+        const is3Finger = isIndexExt && isMiddleExt && isRingExt && !isPinkyExt;
+        if (is3Finger && Math.abs(vx) > 1.6 && now - this.lastDiscreteGestureTime > 750) {
+          const dir = vx < 0 ? 'NEXT' : 'PREV';
+          this.lastDiscreteGestureTime = now;
+          this.callbacks.onWindowCycle(dir);
+          this.callbacks.onStateChange({ status: 'TRACKING', gesture: `WINDOW CYCLE (${dir})`, handCount: 1 });
+          return;
+        }
+
+        // Horizontal Swipe (Next / Prev creation)
+        if (Math.abs(vx) > 1.8 && Math.abs(vx) > Math.abs(vy) * 1.5 && now - this.lastSwipeTime > 750) {
+          const dir = vx < 0 ? 'NEXT' : 'PREV';
+          this.lastSwipeTime = now;
+          this.callbacks.onSwipe(dir);
+          this.callbacks.onStateChange({ status: 'TRACKING', gesture: `SWIPE ${dir}`, handCount: 1 });
+          return;
+        }
+
+        // Vertical Air Scroll (Active window up / down)
+        if (Math.abs(vy) > 1.4 && now - this.lastScrollTime > 160) {
+          const dir = vy < 0 ? 'UP' : 'DOWN';
+          const scrollSpeed = Math.min(320, Math.round(Math.abs(vy) * 90));
+          this.lastScrollTime = now;
+          this.callbacks.onScroll(dir, scrollSpeed);
+          this.callbacks.onStateChange({ status: 'TRACKING', gesture: `AIR SCROLL ${dir}`, handCount: 1 });
+          return;
+        }
       }
     }
 
-    if (!isPinching && !isFist) {
-      this.callbacks.onStateChange({ status: 'TRACKING', gesture: 'OPEN HAND (READY)', handCount: 1 });
+    // -------------------------------------------------------------
+    // GESTURE: PALM STOP (OPEN HAND REPULSOR BEAM -> SHOW DESKTOP)
+    // -------------------------------------------------------------
+    const allFiveExtended = isIndexExt && isMiddleExt && isRingExt && isPinkyExt;
+    if (allFiveExtended && !isPinching) {
+      if (now - this.lastDiscreteGestureTime > 1200) {
+        this.lastDiscreteGestureTime = now;
+        this.callbacks.onPalmStop();
+      }
+      this.callbacks.onStateChange({ status: 'TRACKING', gesture: 'OPEN PALM (SHOW DESKTOP)', handCount: 1 });
+      return;
     }
+
+    if (!isPinching && !isFist) {
+      this.callbacks.onStateChange({ status: 'TRACKING', gesture: 'HAND ACTIVE (READY)', handCount: 1 });
+    }
+  }
+
+  isFingerExtended(hand, tipIdx, pipIdx, wrist) {
+    const tip = hand[tipIdx];
+    const pip = hand[pipIdx];
+    const distTip = Math.hypot(tip.x - wrist.x, tip.y - wrist.y);
+    const distPip = Math.hypot(pip.x - wrist.x, pip.y - wrist.y);
+    return distTip > distPip * 1.18;
+  }
+
+  isFistLandmarks(hand) {
+    const wrist = hand[0];
+    return (
+      Math.hypot(hand[8].x - wrist.x, hand[8].y - wrist.y) < Math.hypot(hand[6].x - wrist.x, hand[6].y - wrist.y) &&
+      Math.hypot(hand[12].x - wrist.x, hand[12].y - wrist.y) < Math.hypot(hand[10].x - wrist.x, hand[10].y - wrist.y) &&
+      Math.hypot(hand[16].x - wrist.x, hand[16].y - wrist.y) < Math.hypot(hand[14].x - wrist.x, hand[14].y - wrist.y) &&
+      Math.hypot(hand[20].x - wrist.x, hand[20].y - wrist.y) < Math.hypot(hand[18].x - wrist.x, hand[18].y - wrist.y)
+    );
   }
 
   drawHandSkeleton(landmarks, handIndex) {
@@ -294,7 +478,7 @@ export class AirGestureTracker {
     ];
 
     const strokeColor = handIndex === 0 ? '#00e5ff' : '#ffd700';
-    const glowColor = handIndex === 0 ? 'rgba(0, 229, 255, 0.4)' : 'rgba(255, 215, 0, 0.4)';
+    const glowColor = handIndex === 0 ? 'rgba(0, 229, 255, 0.45)' : 'rgba(255, 215, 0, 0.45)';
 
     ctx.save();
     ctx.lineWidth = 2.5;

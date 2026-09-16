@@ -3,8 +3,11 @@ import {
   Box, Terminal, Tv, Cpu, Shield, Sparkles, Smartphone, Monitor, Globe, 
   Activity, X, Minus, Square, Maximize2, RefreshCw, Layout, Layers, Volume2, 
   Zap, Radio, Settings, HelpCircle, HardDrive, Wifi, BatteryCharging, Search,
-  Bot, Palette, Music, Workflow, BarChart3, Brain, Store, Trophy, MapPin, Heart, Languages, BookOpen, Laptop, Grid, AppWindow, Lock
+  Bot, Palette, Music, Workflow, BarChart3, Brain, Store, Trophy, MapPin, Heart, Languages, BookOpen, Laptop, Grid, AppWindow, Lock,
+  Hand, Camera, CameraOff, Move, ThumbsUp, ThumbsDown, Crosshair, ChevronDown, ChevronUp, MoveVertical, Eye, EyeOff, Power, Check
 } from 'lucide-react';
+import { AirGestureTracker } from '../utils/gestureTracker';
+import { playJarvisBeep, playJarvisScan, playJarvisPowerUp } from '../utils/jarvisAudioSynth';
 
 import TvRemoteWidget from './TvRemoteWidget';
 import DiagnosticWidget from './DiagnosticWidget';
@@ -81,10 +84,35 @@ const JASPER_OS_APPS_REGISTRY = [
 /**
  * DRAGGABLE & RESIZABLE GLASS OS APPLICATION WINDOW
  */
-function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFocus, onClose, onMinimize, isMinimized, children }) {
+function OsWindow({ 
+  id, 
+  title, 
+  icon: Icon, 
+  defaultPos, 
+  defaultSize, 
+  zIndex, 
+  onFocus, 
+  onClose, 
+  onMinimize, 
+  isMinimized, 
+  isMaximizedExternal,
+  onToggleMaximize,
+  isGestureActive,
+  bodyRef,
+  children 
+}) {
   const [pos, setPos] = useState(defaultPos || { x: 50, y: 70 });
   const [size, setSize] = useState(defaultSize || { w: 640, h: 480 });
-  const [isMaximized, setIsMaximized] = useState(false);
+  const [internalMaximized, setInternalMaximized] = useState(false);
+  const isMaximized = isMaximizedExternal !== undefined ? isMaximizedExternal : internalMaximized;
+
+  const toggleMaximize = () => {
+    if (onToggleMaximize) {
+      onToggleMaximize(id);
+    } else {
+      setInternalMaximized(prev => !prev);
+    }
+  };
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0, posX: 0, posY: 0 });
@@ -216,17 +244,26 @@ function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFo
         </div>
 
         <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+          {isGestureActive && (
+            <div 
+              className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-cyan-500/20 border border-cyan-400/40 text-[9px] font-mono text-cyan-300 mr-1 animate-pulse"
+              title="Air Gestures Connected: Wave hand to scroll, Peace sign to maximize, Fist to minimize"
+            >
+              <Hand className="w-3 h-3 text-cyan-400" />
+              <span className="hidden sm:inline">AIR GESTURE</span>
+            </div>
+          )}
           <button
             onClick={() => onMinimize(id)}
             className="window-control-btn p-1 sm:p-1.5 rounded-md text-amber-400 hover:bg-amber-500/20 hover:text-amber-200 transition-colors"
-            title="Minimize App"
+            title="Minimize App (Fist ✊)"
           >
             <Minus className="w-3.5 h-3.5" />
           </button>
           <button
-            onClick={() => setIsMaximized(!isMaximized)}
+            onClick={toggleMaximize}
             className="window-control-btn p-1 sm:p-1.5 rounded-md text-amber-400 hover:bg-amber-500/20 hover:text-amber-200 transition-colors"
-            title={isMaximized ? "Restore App Window" : "Maximize App Window"}
+            title={isMaximized ? "Restore Window (Peace Sign ✌️)" : "Maximize Window (Peace Sign ✌️)"}
           >
             {isMaximized ? <Square className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
           </button>
@@ -241,7 +278,7 @@ function OsWindow({ id, title, icon: Icon, defaultPos, defaultSize, zIndex, onFo
       </div>
 
       {/* App Window Body */}
-      <div className="flex-1 overflow-y-auto p-2 sm:p-3 text-slate-100 font-sans custom-scrollbar bg-black">
+      <div ref={bodyRef} className="flex-1 overflow-y-auto p-2 sm:p-3 text-slate-100 font-sans custom-scrollbar bg-black">
         {children}
       </div>
 
@@ -295,12 +332,152 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
     return () => window.removeEventListener('jasper:project-to-hologram', handleProjectToHologram);
   }, []);
 
+  // Air Gesture System State
+  const [isAirGesturesOn, setIsAirGesturesOn] = useState(false);
+  const [gestureStatus, setGestureStatus] = useState('IDLE');
+  const [activeGesture, setActiveGesture] = useState('NONE');
+  const [gestureFeedback, setGestureFeedback] = useState('Air Gestures Ready: Wave Hand to Scroll // Peace to Maximize // Point to Click');
+  const [showGestureHud, setShowGestureHud] = useState(true);
+  const [isHudCollapsed, setIsHudCollapsed] = useState(false);
+  const [showGestureGuide, setShowGestureGuide] = useState(false);
+  const [airCursorPos, setAirCursorPos] = useState(null);
+  const [activeFocusedWinId, setActiveFocusedWinId] = useState('searchEngine');
+  const [maximizedWindows, setMaximizedWindows] = useState({});
+
+  // DOM Refs for Camera and Gesture Engine
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const gestureTrackerRef = useRef(null);
+  const windowBodyRefs = useRef({});
+
   const bringToTop = (winId) => {
     const nextZ = topZ + 1;
     setTopZ(nextZ);
     setActiveZIndex(prev => ({ ...prev, [winId]: nextZ }));
     setMinimizedWindows(prev => ({ ...prev, [winId]: false }));
+    setActiveFocusedWinId(winId);
   };
+
+  // AIR GESTURE ENGINE INITIALIZATION & SYSTEM-WIDE APP CONTROLS
+  useEffect(() => {
+    if (isAirGesturesOn) {
+      if (!gestureTrackerRef.current && videoRef.current && canvasRef.current) {
+        playJarvisPowerUp();
+        gestureTrackerRef.current = new AirGestureTracker(videoRef.current, canvasRef.current, {
+          onScroll: (dir, amount) => {
+            const bodyEl = windowBodyRefs.current[activeFocusedWinId];
+            if (bodyEl) {
+              bodyEl.scrollBy({ top: dir === 'DOWN' ? amount : -amount, behavior: 'smooth' });
+            }
+            setGestureFeedback(`AIR SCROLL: ${dir}`);
+            playJarvisBeep('click');
+            window.dispatchEvent(new CustomEvent('jasper:os-gesture', { detail: { gesture: 'SCROLL', dir, amount, activeWin: activeFocusedWinId } }));
+          },
+          onPeaceSign: () => {
+            if (activeFocusedWinId) {
+              setMaximizedWindows(prev => ({ ...prev, [activeFocusedWinId]: !prev[activeFocusedWinId] }));
+              setGestureFeedback('PEACE SIGN (V): TOGGLE MAXIMIZE');
+              playJarvisBeep('command');
+              window.dispatchEvent(new CustomEvent('jasper:os-gesture', { detail: { gesture: 'PEACE_SIGN', activeWin: activeFocusedWinId } }));
+            }
+          },
+          onFist: () => {
+            if (activeFocusedWinId) {
+              minimizeWindow(activeFocusedWinId);
+              setGestureFeedback('FIST: MINIMIZE WINDOW');
+              playJarvisBeep('select');
+              window.dispatchEvent(new CustomEvent('jasper:os-gesture', { detail: { gesture: 'FIST_MINIMIZE', activeWin: activeFocusedWinId } }));
+            }
+          },
+          onPalmStop: () => {
+            const openIds = Object.keys(openWindows).filter(id => openWindows[id] && !minimizedWindows[id]);
+            if (openIds.length > 0) {
+              setMinimizedWindows(prev => {
+                const updated = { ...prev };
+                openIds.forEach(id => updated[id] = true);
+                return updated;
+              });
+              setGestureFeedback('REPULSOR PALM: SHOW DESKTOP');
+            } else {
+              setMinimizedWindows({});
+              setGestureFeedback('REPULSOR PALM: RESTORE ALL');
+            }
+            playJarvisBeep('select');
+            window.dispatchEvent(new CustomEvent('jasper:os-gesture', { detail: { gesture: 'PALM_STOP' } }));
+          },
+          onThumbsUp: () => {
+            setGestureFeedback('THUMBS UP: CONFIRMED');
+            playJarvisBeep('success');
+            window.dispatchEvent(new CustomEvent('jasper:os-gesture', { detail: { gesture: 'THUMBS_UP', activeWin: activeFocusedWinId } }));
+          },
+          onThumbsDown: () => {
+            setGestureFeedback('THUMBS DOWN: CANCEL / MUTE');
+            playJarvisBeep('error');
+            window.dispatchEvent(new CustomEvent('jasper:os-gesture', { detail: { gesture: 'THUMBS_DOWN', activeWin: activeFocusedWinId } }));
+          },
+          onWindowCycle: (dir) => {
+            const openIds = Object.keys(openWindows).filter(id => openWindows[id]);
+            if (openIds.length > 1) {
+              const currIdx = Math.max(0, openIds.indexOf(activeFocusedWinId));
+              const nextIdx = (currIdx + (dir === 'NEXT' ? 1 : -1) + openIds.length) % openIds.length;
+              bringToTop(openIds[nextIdx]);
+              setGestureFeedback(`SWITCH WINDOW: ${openIds[nextIdx]}`);
+              playJarvisBeep('click');
+            }
+            window.dispatchEvent(new CustomEvent('jasper:os-gesture', { detail: { gesture: 'WINDOW_CYCLE', dir } }));
+          },
+          onAirCursor: ({ x, y, isClicking }) => {
+            setAirCursorPos({ x, y, isClicking });
+            if (isClicking) {
+              const screenX = x * window.innerWidth;
+              const screenY = y * window.innerHeight;
+              const el = document.elementFromPoint(screenX, screenY);
+              if (el && !el.closest('.spatial-gesture-hud')) {
+                el.click();
+                playJarvisBeep('click');
+              }
+            }
+            window.dispatchEvent(new CustomEvent('jasper:os-gesture', { detail: { gesture: 'AIR_CURSOR', cursor: { x, y }, isClicking } }));
+          },
+          onOkSign: () => {
+            setGestureFeedback('OK SIGN: JARVIS VOICE ACTIVATED');
+            playJarvisBeep('command');
+            if (onMicClick) onMicClick();
+            window.dispatchEvent(new CustomEvent('jasper:os-gesture', { detail: { gesture: 'OK_SIGN' } }));
+          },
+          onCloseApp: () => {
+            if (activeFocusedWinId) {
+              closeWindow(activeFocusedWinId);
+              setGestureFeedback('CLOSE WINDOW: GESTURE TRIGGERED');
+              playJarvisBeep('select');
+            }
+          },
+          onStateChange: (st) => {
+            setGestureStatus(st.status);
+            if (st.gesture && st.gesture !== 'NONE') {
+              setActiveGesture(st.gesture);
+            }
+          }
+        });
+
+        gestureTrackerRef.current.start();
+      }
+    } else {
+      if (gestureTrackerRef.current) {
+        gestureTrackerRef.current.stop();
+        gestureTrackerRef.current = null;
+      }
+      setAirCursorPos(null);
+      setActiveGesture('NONE');
+    }
+
+    return () => {
+      if (gestureTrackerRef.current) {
+        gestureTrackerRef.current.stop();
+        gestureTrackerRef.current = null;
+      }
+    };
+  }, [isAirGesturesOn, activeFocusedWinId, openWindows, minimizedWindows]);
 
   const launchApp = (appId) => {
     if (!openWindows[appId]) {
@@ -451,6 +628,23 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
               <span>{aiStatusLabel}</span>
             </button>
           )}
+
+          {/* Global Air Gestures Toggle Button */}
+          <button
+            onClick={() => {
+              setIsAirGesturesOn(prev => !prev);
+              if (!isAirGesturesOn) playJarvisPowerUp();
+            }}
+            className={`px-3 py-1 rounded-lg font-mono text-xs flex items-center gap-1.5 transition-all border cursor-pointer ${
+              isAirGesturesOn
+                ? 'bg-cyan-500/25 hover:bg-cyan-500/35 border-cyan-400 text-cyan-200 shadow-[0_0_15px_rgba(0,240,255,0.3)] animate-pulse'
+                : 'bg-neutral-900 hover:bg-neutral-850 border-neutral-800 text-neutral-400 hover:text-neutral-200'
+            }`}
+            title="Toggle System-Wide Hand Air Gestures (Control every app hands-free via camera)"
+          >
+            <Hand className={`w-3.5 h-3.5 ${isAirGesturesOn ? 'text-cyan-400' : 'text-neutral-400'}`} />
+            <span>Gestures: {isAirGesturesOn ? 'ON' : 'OFF'}</span>
+          </button>
 
           <button
             onClick={onToggleClassicMode}
@@ -656,6 +850,10 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
               onClose={closeWindow}
               onMinimize={minimizeWindow}
               isMinimized={minimizedWindows[app.id]}
+              isMaximizedExternal={maximizedWindows[app.id]}
+              onToggleMaximize={(winId) => setMaximizedWindows(prev => ({ ...prev, [winId]: !prev[winId] }))}
+              isGestureActive={isAirGesturesOn}
+              bodyRef={(el) => { if (el) windowBodyRefs.current[app.id] = el; }}
             >
               <AppComponent onLockSystem={onLockSystem} />
             </OsWindow>
@@ -712,6 +910,176 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
           </button>
         )}
       </div>
+
+      {/* GLOBAL WEBCAM VIDEO (MOUNTED FOR AIR GESTURE ENGINE) */}
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted
+        className="fixed -left-[9999px] -top-[9999px] pointer-events-none opacity-0 w-80 h-60"
+      />
+
+      {/* FLOATING STARK SPATIAL GESTURE HUD (TOP RIGHT) */}
+      {isAirGesturesOn && (
+        <div className="spatial-gesture-hud fixed top-16 right-4 z-[990] flex flex-col items-end gap-2 pointer-events-auto select-none font-mono">
+          {/* Main HUD Card */}
+          <div className="bg-black/90 border border-cyan-500/40 rounded-2xl p-3 shadow-[0_0_30px_rgba(0,240,255,0.25)] backdrop-blur-2xl flex flex-col gap-2 max-w-[280px] w-[260px] animate-in fade-in slide-in-from-top-4 duration-300">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-cyan-500/20 pb-2">
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-500" />
+                </span>
+                <span className="text-xs font-bold text-cyan-300 tracking-wider">AIR GESTURES</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setShowGestureGuide(true)}
+                  className="p-1 rounded text-cyan-400 hover:bg-cyan-500/20 transition-colors"
+                  title="Open Gestures Cheatsheet / Guide"
+                >
+                  <HelpCircle className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => setIsHudCollapsed(!isHudCollapsed)}
+                  className="p-1 rounded text-slate-400 hover:bg-slate-800 transition-colors"
+                  title={isHudCollapsed ? "Expand Camera" : "Collapse Camera"}
+                >
+                  {isHudCollapsed ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                </button>
+                <button
+                  onClick={() => setIsAirGesturesOn(false)}
+                  className="p-1 rounded text-rose-400 hover:bg-rose-500/20 transition-colors"
+                  title="Disable Air Gestures"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Skeletal Joints Canvas Thumbnail (collapsible) */}
+            {!isHudCollapsed && (
+              <div className="relative aspect-[4/3] w-full rounded-xl overflow-hidden bg-slate-950 border border-cyan-500/30 flex items-center justify-center">
+                <canvas
+                  ref={canvasRef}
+                  width={240}
+                  height={180}
+                  className="w-full h-full object-cover scale-x-[-1]"
+                />
+                <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/70 border border-cyan-500/30 text-[9px] text-cyan-400 font-mono">
+                  SKELETAL TRACKER
+                </div>
+              </div>
+            )}
+
+            {/* Live Detected Gesture Display Pill */}
+            <div className="p-2 rounded-xl bg-cyan-950/50 border border-cyan-500/30 flex flex-col gap-1">
+              <div className="flex items-center justify-between text-[11px] font-bold text-cyan-200">
+                <span className="flex items-center gap-1.5 truncate">
+                  <Hand className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                  <span className="truncate">{activeGesture || 'READY'}</span>
+                </span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-normal shrink-0">
+                  {gestureStatus}
+                </span>
+              </div>
+              <div className="text-[9px] text-slate-400 truncate flex items-center justify-between pt-1 border-t border-cyan-500/15">
+                <span className="truncate">Target: {activeFocusedWinId ? (JASPER_OS_APPS_REGISTRY.find(a => a.id === activeFocusedWinId)?.title || activeFocusedWinId) : 'Desktop'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* HOLOGRAPHIC LASER RETICLE CURSOR */}
+      {airCursorPos && isAirGesturesOn && (
+        <div 
+          className="fixed pointer-events-none z-[9999] transition-all duration-75 ease-out"
+          style={{
+            left: `${airCursorPos.x * 100}vw`,
+            top: `${airCursorPos.y * 100}vh`,
+            transform: 'translate(-50%, -50%)'
+          }}
+        >
+          <div className={`relative flex items-center justify-center ${airCursorPos.isClicking ? 'scale-125' : 'scale-100'} transition-transform`}>
+            {/* Outer target reticle ring */}
+            <div className={`w-10 h-10 rounded-full border-2 border-dashed ${airCursorPos.isClicking ? 'border-amber-400 animate-ping' : 'border-cyan-400'} animate-spin`} style={{ animationDuration: '8s' }} />
+            {/* Inner glowing center crosshair */}
+            <div className={`w-3 h-3 rounded-full ${airCursorPos.isClicking ? 'bg-amber-400 shadow-[0_0_15px_#f59e0b]' : 'bg-cyan-400 shadow-[0_0_15px_#00f0ff]'}`} />
+            {/* Crosshair lines */}
+            <div className="absolute w-6 h-0.5 bg-cyan-400/80 -left-1" />
+            <div className="absolute w-6 h-0.5 bg-cyan-400/80 -right-1" />
+            <div className="absolute h-6 w-0.5 bg-cyan-400/80 -top-1" />
+            <div className="absolute h-6 w-0.5 bg-cyan-400/80 -bottom-1" />
+            {/* Coordinate badge */}
+            <div className="absolute top-6 left-6 font-mono text-[9px] text-cyan-300 bg-black/85 px-2 py-0.5 rounded border border-cyan-500/40 whitespace-nowrap shadow-lg">
+              AIR CURSOR {airCursorPos.isClicking ? '• AIR CLICK' : ''}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* GESTURES CHEATSHEET & GUIDE MODAL */}
+      {showGestureGuide && (
+        <div className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="w-full max-w-3xl bg-black border border-cyan-500/40 rounded-2xl shadow-[0_0_50px_rgba(0,240,255,0.3)] overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-5 py-3.5 bg-cyan-950/40 border-b border-cyan-500/30 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <Hand className="w-5 h-5 text-cyan-400" />
+                <div>
+                  <h3 className="font-orbitron font-bold text-sm text-cyan-200 uppercase tracking-wider">JASPER Spatial Air Gestures Directory</h3>
+                  <p className="text-[10px] text-slate-400 font-mono">Real-time MediaPipe skeletal tracking controlling all OS applications</p>
+                </div>
+              </div>
+              <button onClick={() => setShowGestureGuide(false)} className="p-1.5 text-slate-400 hover:text-white rounded-lg">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-5 overflow-y-auto custom-scrollbar grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {[
+                { icon: '👇', title: 'Air Scroll Down', pose: 'Wave open palm or index downwards', action: 'Smooth scrolls content down inside the currently focused app window' },
+                { icon: '☝️', title: 'Air Scroll Up', pose: 'Wave open palm or index upwards', action: 'Smooth scrolls content up inside the currently focused app window' },
+                { icon: '✌️', title: 'Peace Sign (V)', pose: 'Index + Middle fingers extended in V', action: 'Toggles Maximize and Restore on the active application window' },
+                { icon: '👉', title: 'Laser Air Cursor', pose: 'Index finger pointing forward', action: 'Moves holographic target reticle cursor across the desktop' },
+                { icon: '🤏', title: 'Pinch-Click (Tap)', pose: 'Index tip touches thumb while pointing', action: 'Executes an air click on the UI element or app under reticle' },
+                { icon: '✊', title: 'Fist Lock', pose: 'All fingers curled into fist', action: 'Minimizes the currently focused window down to the OS dock' },
+                { icon: '🖐️', title: 'Open Palm (Repulsor)', pose: '5 fingers wide open facing camera', action: 'Shows desktop by minimizing all open windows, or restores all' },
+                { icon: '👍', title: 'Thumbs Up', pose: 'Thumb extended up, 4 fingers curled', action: 'Confirms primary actions, approves dialogs, or unmutes audio' },
+                { icon: '👎', title: 'Thumbs Down', pose: 'Thumb pointed down, 4 fingers curled', action: 'Cancels actions, dismisses toasts, or mutes audio' },
+                { icon: '👌', title: 'OK Sign', pose: 'Thumb + Index ring, 3 fingers up', action: 'Activates Jarvis Voice Commander / wake speech listener' },
+                { icon: '🖖', title: 'Three-Finger Swipe', pose: 'Index, Middle, Ring swipe sideways', action: 'App Switcher: Cycles focus to the next open OS window' },
+                { icon: '👐', title: 'Two-Hand Zoom', pose: 'Both hands spread apart / together', action: 'Expands or shrinks 3D holographic models and spatial maps' },
+              ].map((g, idx) => (
+                <div key={idx} className="p-3 bg-slate-950/80 border border-slate-800 hover:border-cyan-500/40 rounded-xl flex flex-col justify-between gap-2 transition-all">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-xl p-1.5 rounded-lg bg-cyan-950/40 border border-cyan-500/20">{g.icon}</span>
+                    <div>
+                      <h4 className="font-mono text-xs font-bold text-cyan-200">{g.title}</h4>
+                      <p className="text-[10px] text-cyan-400/80 font-mono">{g.pose}</p>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-slate-400 font-sans leading-relaxed border-t border-slate-800/80 pt-2">
+                    {g.action}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="p-3 border-t border-cyan-500/20 bg-slate-950 flex items-center justify-between text-xs font-mono">
+              <span className="text-slate-400 text-[11px]">Tip: Keep hand 1.5 - 3 feet from camera for optimal recognition.</span>
+              <button
+                onClick={() => setShowGestureGuide(false)}
+                className="px-4 py-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-cyan-200 rounded-lg font-bold"
+              >
+                Got It
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
