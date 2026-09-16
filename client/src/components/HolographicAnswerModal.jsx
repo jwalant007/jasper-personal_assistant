@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Hologram3dCanvas from './Hologram3dCanvas';
+import BlenderStudioModal from './BlenderStudioModal';
 import { speakMessage } from '../utils/speakDeviceAudio';
 import { getApiBase } from '../utils/apiConfig';
 import { playJarvisBeep, playJarvisScan, playJarvisPowerUp } from '../utils/jarvisAudioSynth';
@@ -166,6 +167,45 @@ const DEFAULT_PRESETS = [
     timestamp: 'Aero Recon',
     icon: '🚁',
     isPreset: true
+  },
+  {
+    id: 'blender_arc_torus',
+    title: 'Stark Arc Torus (Blender)',
+    subtitle: 'Headless Procedural GLB Torus Mesh',
+    category: 'Blender 3D',
+    mode: 'blender',
+    objectType: 'torus',
+    color: '#00f3ff',
+    tags: ['Blender 3D', 'Procedural', 'GLB', 'Torus'],
+    timestamp: 'Blender Geometry',
+    icon: '🌀',
+    isPreset: true
+  },
+  {
+    id: 'blender_quantum_cube',
+    title: 'Quantum Matrix Cube (Blender)',
+    subtitle: 'Beveled Emission Subdivisions',
+    category: 'Blender 3D',
+    mode: 'blender',
+    objectType: 'cube',
+    color: '#a855f7',
+    tags: ['Blender 3D', 'Quantum', 'GLB', 'Cube'],
+    timestamp: 'Blender Geometry',
+    icon: '🧊',
+    isPreset: true
+  },
+  {
+    id: 'blender_dna_helix',
+    title: 'Stark DNA Toroid (Blender)',
+    subtitle: 'Procedural Molecular Nanotech Model',
+    category: 'Blender 3D',
+    mode: 'blender',
+    objectType: 'dna_helix',
+    color: '#10b981',
+    tags: ['Blender 3D', 'BioTech', 'GLB', 'Helix'],
+    timestamp: 'Blender Geometry',
+    icon: '🧬',
+    isPreset: true
   }
 ];
 
@@ -248,7 +288,80 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
   const voiceCommanderRef = useRef(null);
 
   // Categories list
-  const categories = useMemo(() => ['All', 'Stark Tech', 'Nano Armor', 'Genetics & AI', 'Quantum & 4D', 'Engineering', 'Custom Projects'], []);
+  const categories = useMemo(() => ['All', 'Blender 3D', 'Stark Tech', 'Nano Armor', 'Genetics & AI', 'Quantum & 4D', 'Engineering', 'Custom Projects'], []);
+
+  // Bridge Handler: Project synthesized or loaded Blender 3D model into holographic viewport
+  const handleProjectBlenderModelToWorkstation = (modelData) => {
+    if (!modelData) return;
+    if (sfxEnabled) playJarvisPowerUp();
+    
+    const glb = modelData.glbUrl;
+    const preview = modelData.previewUrl;
+    const promptTitle = modelData.prompt || modelData.objectType || 'Blender 3D Model';
+    
+    setBlenderModelUrl(glb);
+    if (preview) setBlenderPreviewUrl(preview);
+    setActive3dMode('blender');
+    setActiveTab('viewport');
+
+    const newProject = {
+      id: `blender_${Date.now()}`,
+      title: promptTitle.slice(0, 32),
+      subtitle: `Blender 3D: ${modelData.objectType || 'Procedural Mesh'}`,
+      category: 'Blender 3D',
+      mode: 'blender',
+      glbUrl: glb,
+      previewUrl: preview,
+      tags: ['Blender 3D', modelData.objectType || 'Mesh', 'GLB'],
+      timestamp: 'Just now',
+      icon: '🎨',
+      isPreset: false
+    };
+
+    saveCustomProjects([newProject, ...projects.filter(p => p.glbUrl !== glb)]);
+    setActiveProjectId(newProject.id);
+    setResponseText(`Projected Blender 3D asset "${promptTitle}" into holographic workstation. Ready for air-gesture manipulation.`);
+    speakMessage(`Blender 3D model projected to holographic workstation, sir.`);
+  };
+
+  // Listen for external "jasper:project-to-hologram" events from Blender Studio
+  useEffect(() => {
+    const handleProjectEvent = (e) => {
+      if (e.detail) {
+        handleProjectBlenderModelToWorkstation(e.detail);
+      }
+    };
+    window.addEventListener('jasper:project-to-hologram', handleProjectEvent);
+    return () => window.removeEventListener('jasper:project-to-hologram', handleProjectEvent);
+  }, [projects]);
+
+  // Query latest Blender synthesized assets on load to populate workstation
+  useEffect(() => {
+    fetch(`${getApiBase()}/api/blender/latest`)
+      .then(r => r.json())
+      .then(data => {
+        if (data?.latest?.glbUrl) {
+          const latestAsset = {
+            id: `blender_latest_${Date.now()}`,
+            title: data.latest.prompt ? data.latest.prompt.slice(0, 30) : `Blender ${data.latest.objectType || 'Model'}`,
+            subtitle: `Active GLB: ${data.latest.glbFileName || 'model.glb'}`,
+            category: 'Blender 3D',
+            mode: 'blender',
+            glbUrl: data.latest.glbUrl,
+            previewUrl: data.latest.previewUrl,
+            tags: ['Blender 3D', data.latest.objectType || 'Mesh', 'Active'],
+            timestamp: 'Latest Export',
+            icon: '🎨',
+            isPreset: false
+          };
+          setProjects(prev => {
+            if (prev.some(p => p.glbUrl === data.latest.glbUrl)) return prev;
+            return [latestAsset, ...prev];
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Filtered projects
   const filteredProjects = useMemo(() => {
@@ -408,6 +521,21 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
       setArWebcamEnabled(prev => !prev);
     } else if (cmd === 'RESET_VIEW') {
       if (canvasRef.current?.resetView) canvasRef.current.resetView();
+    } else if (cmd === 'SWITCH_BLENDER') {
+      setActiveTab('blender');
+      setResponseText('Switching to integrated Blender 3D Graphics Studio, sir.');
+    } else if (cmd === 'GENERATE_BLENDER') {
+      setActiveTab('blender');
+      setResponseText('Blender 3D procedural generator active.');
+    } else if (cmd === 'PROJECT_BLENDER') {
+      if (blenderModelUrl) {
+        setActive3dMode('blender');
+        setActiveTab('viewport');
+        setResponseText('Projecting active Blender 3D model into holographic viewport.');
+      } else {
+        setActiveTab('blender');
+        setResponseText('Please synthesize or select a Blender 3D model first.');
+      }
     }
   };
 
@@ -872,27 +1000,40 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setActiveTab('viewport')}
-                className={`px-3 py-1 rounded-lg transition-all ${
-                  activeTab === 'viewport' ? 'bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/40' : 'text-slate-400 hover:text-slate-200'
+                className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
+                  activeTab === 'viewport' ? 'bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/40 shadow-sm' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                3D Viewport & HUD
+                <Eye className="w-3.5 h-3.5 text-cyan-400" />
+                <span>3D Viewport & HUD</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('blender')}
+                className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
+                  activeTab === 'blender' ? 'bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/40 shadow-sm' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Box className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Blender 3D Studio</span>
+                {blenderModelUrl && <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />}
               </button>
               <button
                 onClick={() => setActiveTab('tools')}
-                className={`px-3 py-1 rounded-lg transition-all ${
-                  activeTab === 'tools' ? 'bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/40' : 'text-slate-400 hover:text-slate-200'
+                className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
+                  activeTab === 'tools' ? 'bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/40 shadow-sm' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                Workstation Tools
+                <Settings2 className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Workstation Tools</span>
               </button>
               <button
                 onClick={() => setActiveTab('calibration')}
-                className={`px-3 py-1 rounded-lg transition-all ${
-                  activeTab === 'calibration' ? 'bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/40' : 'text-slate-400 hover:text-slate-200'
+                className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
+                  activeTab === 'calibration' ? 'bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/40 shadow-sm' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                Projection Calibration (?w={calibWidth}&h={calibHeight})
+                <Tv className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Projection Calibration (?w={calibWidth}&h={calibHeight})</span>
               </button>
             </div>
 
@@ -924,8 +1065,17 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
             </div>
           </div>
 
-          {/* MAIN 3D WORKSTATION VIEWPORT */}
-          <div className="flex-1 relative overflow-hidden flex items-center justify-center p-2 bg-gradient-to-b from-slate-950 via-slate-900/60 to-slate-950">
+          {/* MAIN 3D WORKSTATION VIEWPORT OR INTEGRATED BLENDER 3D STUDIO */}
+          {activeTab === 'blender' ? (
+            <div className="flex-1 relative overflow-hidden flex flex-col bg-slate-950">
+              <BlenderStudioModal
+                embedded={true}
+                isOpen={true}
+                onProjectToHologram={handleProjectBlenderModelToWorkstation}
+              />
+            </div>
+          ) : (
+            <div className="flex-1 relative overflow-hidden flex items-center justify-center p-2 bg-gradient-to-b from-slate-950 via-slate-900/60 to-slate-950">
             
             {/* 1. AR LIVE WEBCAM VIDEO LAYER (UNDERNEATH CANVAS) */}
             {arWebcamEnabled && (
@@ -1112,20 +1262,48 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
 
                   {/* Blender 3D Export & Assets */}
                   <div className="p-3 bg-cyan-950/30 border border-cyan-500/30 rounded-xl space-y-2">
-                    <span className="text-xs font-mono font-bold text-cyan-300 flex items-center gap-1.5">
-                      <Box className="w-3.5 h-3.5" /> Blender 3D Procedural Assets
-                    </span>
-                    <div className="flex items-center gap-2 pt-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-mono font-bold text-cyan-300 flex items-center gap-1.5">
+                        <Box className="w-3.5 h-3.5 text-cyan-400" /> Blender 3D Engine & Assets
+                      </span>
+                      <button
+                        onClick={() => setActiveTab('blender')}
+                        className="px-2.5 py-1 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-cyan-200 text-[10px] font-mono rounded-lg transition flex items-center gap-1 font-semibold"
+                      >
+                        <Sparkles className="w-3 h-3 text-cyan-300" />
+                        <span>Open Blender Studio</span>
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2 pt-1 flex-wrap">
                       {blenderModelUrl ? (
-                        <a
-                          href={`${getApiBase()}${blenderModelUrl}`}
-                          download="jasper_model.glb"
-                          className="px-3 py-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 rounded-lg text-xs font-mono text-cyan-200 flex items-center gap-1.5"
-                        >
-                          <Download className="w-3.5 h-3.5" /> Download GLB
-                        </a>
+                        <>
+                          <a
+                            href={`${getApiBase()}${blenderModelUrl}`}
+                            download="jasper_model.glb"
+                            className="px-3 py-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 rounded-lg text-xs font-mono text-cyan-200 flex items-center gap-1.5"
+                          >
+                            <Download className="w-3.5 h-3.5" /> Download GLB
+                          </a>
+                          <button
+                            onClick={() => {
+                              setActive3dMode('blender');
+                              setActiveTab('viewport');
+                            }}
+                            className="px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400 rounded-lg text-xs font-mono text-blue-200 flex items-center gap-1.5"
+                          >
+                            <Eye className="w-3.5 h-3.5" /> View in Viewport
+                          </button>
+                        </>
                       ) : (
-                        <span className="text-[10px] font-mono text-slate-500">No active Blender export</span>
+                        <div className="flex items-center justify-between w-full">
+                          <span className="text-[10px] font-mono text-slate-500">No active Blender export loaded</span>
+                          <button
+                            onClick={() => setActiveTab('blender')}
+                            className="text-[10px] font-mono text-cyan-400 hover:underline"
+                          >
+                            + Synthesize New Mesh
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -1216,6 +1394,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
               </div>
             )}
           </div>
+        )}
 
           {/* AI SPEECH COMMENTARY READOUT */}
           <div className="px-5 py-2 bg-slate-950/90 border-t border-cyan-500/15 flex items-center justify-between gap-3 text-xs font-mono">

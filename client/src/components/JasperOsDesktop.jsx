@@ -287,6 +287,14 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    const handleProjectToHologram = () => {
+      launchApp('hologramStudio');
+    };
+    window.addEventListener('jasper:project-to-hologram', handleProjectToHologram);
+    return () => window.removeEventListener('jasper:project-to-hologram', handleProjectToHologram);
+  }, []);
+
   const bringToTop = (winId) => {
     const nextZ = topZ + 1;
     setTopZ(nextZ);

@@ -2972,6 +2972,10 @@ export default function App() {
         <BlenderStudioModal 
           isOpen={showBlenderStudio} 
           onClose={() => setShowBlenderStudio(false)} 
+          onProjectToHologram={() => {
+            setShowBlenderStudio(false);
+            setShowHologramModal(true);
+          }}
         />
       )}
 

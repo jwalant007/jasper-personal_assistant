@@ -126,6 +126,12 @@ export class HolographicVoiceCommander {
       matchedCmd = 'TOGGLE_AR';
     } else if (clean.includes('reset camera') || clean.includes('default view') || clean.includes('center view')) {
       matchedCmd = 'RESET_VIEW';
+    } else if (clean.includes('blender studio') || clean.includes('switch to blender') || clean.includes('open blender') || clean === 'blender' || clean.includes('3d studio')) {
+      matchedCmd = 'SWITCH_BLENDER';
+    } else if (clean.includes('generate 3d') || clean.includes('create 3d model') || clean.includes('synthesize 3d') || clean.includes('make 3d model') || clean.includes('blender generate')) {
+      matchedCmd = 'GENERATE_BLENDER';
+    } else if (clean.includes('project to hologram') || clean.includes('project model') || clean.includes('beam model') || clean.includes('send to workstation') || clean.includes('holographic projection')) {
+      matchedCmd = 'PROJECT_BLENDER';
     }
 
     if (matchedCmd) {

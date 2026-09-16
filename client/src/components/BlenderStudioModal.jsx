@@ -225,7 +225,7 @@ function Blender3dCanvas({ glbUrl, objectType = 'torus', color = '#00f0ff', auto
   );
 }
 
-export default function BlenderStudioModal({ isOpen = true, onClose, embedded = false }) {
+export default function BlenderStudioModal({ isOpen = true, onClose, embedded = false, onProjectToHologram = null }) {
   const [activeTab, setActiveTab] = useState('generate'); // 'generate' | 'python' | 'render' | 'settings'
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -503,6 +503,21 @@ print("[Blender Script] Holographic torus generated successfully.")
               <ExternalLink className="w-3 h-3" />
               <span>Launch Desktop GUI</span>
             </button>
+            {lastGenerated?.glbUrl && (
+              <button
+                onClick={() => {
+                  if (onProjectToHologram) onProjectToHologram(lastGenerated);
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('jasper:project-to-hologram', { detail: lastGenerated }));
+                  }
+                }}
+                className="px-2.5 py-1 text-xs font-mono bg-gradient-to-r from-cyan-500/30 to-blue-500/30 hover:from-cyan-500/40 hover:to-blue-500/40 text-cyan-200 border border-cyan-400/60 rounded transition flex items-center space-x-1 font-semibold shadow-sm animate-pulse cursor-pointer"
+                title="Project this 3D model into the Hologram Workstation"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-cyan-300" />
+                <span>Beam to Hologram</span>
+              </button>
+            )}
             <button
               onClick={fetchStatus}
               className="p-1.5 text-slate-400 hover:text-cyan-400 hover:bg-slate-800 rounded transition"
@@ -976,6 +991,22 @@ print("[Blender Script] Holographic torus generated successfully.")
 
             {/* Asset Actions */}
             <div className="space-y-2 border-t border-slate-800 pt-3">
+              {lastGenerated?.glbUrl && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onProjectToHologram) onProjectToHologram(lastGenerated);
+                    if (typeof window !== 'undefined') {
+                      window.dispatchEvent(new CustomEvent('jasper:project-to-hologram', { detail: lastGenerated }));
+                    }
+                  }}
+                  className="w-full py-2.5 bg-gradient-to-r from-cyan-500/30 via-cyan-400/20 to-blue-600/30 hover:from-cyan-500/45 hover:to-blue-600/45 text-cyan-100 font-mono text-xs font-bold rounded-lg transition flex items-center justify-center space-x-2 border border-cyan-400/70 shadow-[0_0_15px_rgba(0,240,255,0.25)] cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4 text-cyan-300" />
+                  <span>Project in 3D Hologram Workstation</span>
+                </button>
+              )}
+
               {lastGenerated?.glbUrl && (
                 <a
                   href={`${getApiBase()}${lastGenerated.glbUrl}`}
