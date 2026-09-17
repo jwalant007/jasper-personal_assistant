@@ -320,6 +320,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
   const [activeZIndex, setActiveZIndex] = useState({});
   const [topZ, setTopZ] = useState(20);
   const [showStartMenu, setShowStartMenu] = useState(false);
+  const [dockTwoRows, setDockTwoRows] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -675,7 +676,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
 
       {/* OS APP CENTER & START LAUNCHER DRAWER */}
       {showStartMenu && (
-        <div className="absolute top-14 left-2 right-2 sm:left-4 sm:right-auto w-auto sm:w-96 max-w-[calc(100vw-16px)] bg-black border border-neutral-800 rounded-2xl p-3 sm:p-4 shadow-[0_0_50px_rgba(0,0,0,1)] backdrop-blur-3xl z-50 animate-in fade-in slide-in-from-top-2 max-h-[82vh] flex flex-col">
+        <div className="absolute top-14 left-2 right-2 sm:left-4 sm:right-auto w-auto sm:w-[700px] max-w-[calc(100vw-16px)] bg-black border border-neutral-800 rounded-2xl p-3 sm:p-4 shadow-[0_0_50px_rgba(0,0,0,1)] backdrop-blur-3xl z-50 animate-in fade-in slide-in-from-top-2 max-h-[82vh] flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-amber-500/30 pb-3 mb-3">
             <div className="flex items-center gap-3">
@@ -684,12 +685,12 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
               </div>
               <div>
                 <h3 className="font-orbitron font-extrabold text-sm text-amber-200 uppercase tracking-wider">JASPER OS App Center</h3>
-                <p className="text-[10px] text-neutral-400 font-mono">28 Native System Applications Available</p>
+                <p className="text-[10px] text-neutral-400 font-mono">{filteredApps.length} Native Applications Available &bull; 2 Columns Spread</p>
               </div>
             </div>
             <button
               onClick={() => setShowStartMenu(false)}
-              className="p-1.5 rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-white"
+              className="p-1.5 rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-white cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -713,7 +714,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
               <button
                 key={category}
                 onClick={() => setActiveWorkspace(category)}
-                className={`px-2.5 py-1 rounded-lg font-mono whitespace-nowrap transition-all ${
+                className={`px-2.5 py-1 rounded-lg font-mono whitespace-nowrap transition-all cursor-pointer ${
                   activeWorkspace === category
                     ? 'bg-amber-400/20 border border-amber-400 text-amber-300'
                     : 'bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-neutral-200'
@@ -724,8 +725,8 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
             ))}
           </div>
 
-          {/* App List */}
-          <div className="overflow-y-auto max-h-[46vh] space-y-1.5 custom-scrollbar pr-1">
+          {/* App List: Spread in 2 Columns */}
+          <div className="overflow-y-auto max-h-[48vh] grid grid-cols-1 sm:grid-cols-2 gap-2 custom-scrollbar pr-1">
             {filteredApps.map((app) => {
               const AppIcon = app.icon;
               const isRunning = openWindows[app.id];
@@ -733,23 +734,23 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
                 <button
                   key={app.id}
                   onClick={() => launchApp(app.id)}
-                  className={`w-full flex items-center justify-between p-2.5 rounded-xl border transition-all ${
+                  className={`w-full flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer ${
                     isRunning
-                      ? 'bg-amber-500/10 border-amber-500/50 text-amber-300'
-                      : 'bg-neutral-950/60 border-neutral-800/80 hover:border-amber-500/40 hover:bg-neutral-900 text-neutral-200'
+                      ? 'bg-amber-500/15 border-amber-500/50 text-amber-300 shadow-[0_0_10px_rgba(245,197,66,0.15)]'
+                      : 'bg-neutral-950/70 border-neutral-800/80 hover:border-amber-500/40 hover:bg-neutral-900 text-neutral-200'
                   }`}
                 >
-                  <span className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-neutral-900 border border-neutral-800 text-amber-300">
+                  <span className="flex items-center gap-2.5 min-w-0">
+                    <div className="p-2 rounded-lg bg-neutral-900 border border-neutral-800 text-amber-300 flex-shrink-0">
                       <AppIcon className="w-4 h-4" />
                     </div>
-                    <div className="text-left">
-                      <div className="font-semibold text-neutral-100">{app.title}</div>
-                      <div className="text-[10px] text-amber-400/70">{app.category}</div>
+                    <div className="text-left min-w-0">
+                      <div className="font-semibold text-xs text-neutral-100 truncate">{app.title.replace(' App', '').replace('JASPER ', '')}</div>
+                      <div className="text-[9px] text-amber-400/70 font-mono truncate">{app.category}</div>
                     </div>
                   </span>
                   {isRunning && (
-                    <span className="px-2 py-0.5 rounded-full text-[9px] bg-amber-400/20 border border-amber-400/50 text-amber-300 font-bold">
+                    <span className="px-1.5 py-0.5 rounded-full text-[8px] bg-amber-400/20 border border-amber-400/50 text-amber-300 font-bold flex-shrink-0 ml-1">
                       ACTIVE
                     </span>
                   )}
@@ -792,47 +793,75 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
 
       {/* DESKTOP WORKSPACE AREA WITH APP SHORTCUTS GRID AND WINDOWS */}
       <div className="relative w-full h-[calc(100vh-105px)] top-12 overflow-hidden">
-        {/* Native Desktop App Shortcuts Grid (Wallpaper Icons for ALL Apps + Lock Shortcut) */}
-        <div className="absolute top-4 left-4 z-0 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 p-2 max-w-6xl max-h-[calc(100vh-140px)] overflow-y-auto custom-scrollbar pointer-events-auto pr-3">
-          {/* Quick Lock System Shortcut Icon */}
-          {onLockSystem && (
-            <button
-              onClick={onLockSystem}
-              className="p-3 rounded-2xl bg-black hover:bg-rose-950/30 border border-rose-500/40 hover:border-rose-400 backdrop-blur-md flex flex-col items-center justify-center gap-2 transition-all group hover:scale-105 hover:shadow-[0_0_20px_rgba(244,63,94,0.3)] cursor-pointer"
-              title="Lock JASPER OS (Biometric Security Shield)"
-            >
-              <div className="p-3 rounded-xl bg-[#0a0505] border border-rose-500/40 text-rose-400 group-hover:text-rose-200 group-hover:border-rose-400 transition-all shadow-[0_0_10px_rgba(244,63,94,0.2)]">
-                <Lock className="w-6 h-6" />
-              </div>
-              <span className="text-[11px] font-mono font-semibold text-rose-300 group-hover:text-rose-100 text-center line-clamp-1">
-                Lock OS Shield
+        {/* Native Desktop App Shortcuts: EXACTLY 2 ROWS Horizontal Shelf */}
+        <div className="absolute top-3 left-4 right-4 z-0 pointer-events-auto max-w-[calc(100vw-32px)]">
+          <div className="flex items-center justify-between mb-1.5 px-1">
+            <div className="flex items-center gap-2">
+              <span className="font-orbitron text-[10px] uppercase tracking-wider text-amber-300 font-bold flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shadow-[0_0_6px_#ffd700]" />
+                JASPER OS Applications
               </span>
-            </button>
-          )}
+              <span className="text-[9px] font-mono text-neutral-400 bg-neutral-900/90 px-2 py-0.5 rounded-full border border-neutral-800">
+                {JASPER_OS_APPS_REGISTRY.length} Apps &bull; 2 Rows Spread
+              </span>
+            </div>
+            <div className="text-[9px] font-mono text-neutral-500 hidden sm:block">
+              &larr; Scroll Horizontally &bull; Click to Launch &rarr;
+            </div>
+          </div>
 
-          {JASPER_OS_APPS_REGISTRY.map((app) => {
-            const AppIcon = app.icon;
-            const isRunning = openWindows[app.id];
-            return (
+          <div className="grid grid-rows-2 grid-flow-col auto-cols-[140px] sm:auto-cols-[152px] gap-2 p-2.5 rounded-2xl bg-black/75 border border-neutral-800/80 backdrop-blur-xl overflow-x-auto custom-scrollbar shadow-[0_10px_30px_rgba(0,0,0,0.8)]">
+            {/* Quick Lock System Shortcut Icon */}
+            {onLockSystem && (
               <button
-                key={app.id}
-                onClick={() => launchApp(app.id)}
-                className={`p-3 rounded-2xl bg-black hover:bg-neutral-900/80 border border-neutral-800/80 hover:border-amber-400/70 backdrop-blur-md flex flex-col items-center justify-center gap-2 transition-all group hover:scale-105 hover:shadow-[0_0_20px_rgba(245,197,66,0.25)] ${
-                  isRunning ? 'border-amber-400/80 bg-amber-500/20 shadow-[0_0_15px_rgba(245,197,66,0.2)]' : ''
-                }`}
+                onClick={onLockSystem}
+                className="p-2 rounded-xl bg-black/90 hover:bg-rose-950/40 border border-rose-500/40 hover:border-rose-400 flex items-center gap-2.5 transition-all group hover:scale-[1.02] hover:shadow-[0_0_15px_rgba(244,63,94,0.25)] cursor-pointer text-left h-[52px] flex-shrink-0"
+                title="Lock JASPER OS (Biometric Security Shield)"
               >
-                <div className="p-3 rounded-xl bg-[#050505] border border-neutral-800 text-amber-300 group-hover:text-amber-100 group-hover:border-amber-300 transition-all shadow-[0_0_10px_rgba(0,0,0,0.8)] relative">
-                  <AppIcon className="w-6 h-6" />
-                  {isRunning && (
-                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 border border-black shadow-[0_0_8px_#ffd700]" />
-                  )}
+                <div className="p-2 rounded-lg bg-[#0a0505] border border-rose-500/40 text-rose-400 group-hover:text-rose-200 group-hover:border-rose-400 transition-all shadow-[0_0_8px_rgba(244,63,94,0.2)] flex-shrink-0">
+                  <Lock className="w-4 h-4" />
                 </div>
-                <span className="text-[11px] font-mono font-semibold text-neutral-200 group-hover:text-amber-200 text-center line-clamp-1">
-                  {app.title.replace(' App', '').replace('JASPER ', '')}
-                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[10.5px] font-mono font-bold text-rose-300 group-hover:text-rose-100 truncate">
+                    Lock System
+                  </div>
+                  <div className="text-[8.5px] font-mono text-rose-400/60 truncate">
+                    Biometric Shield
+                  </div>
+                </div>
               </button>
-            );
-          })}
+            )}
+
+            {JASPER_OS_APPS_REGISTRY.map((app) => {
+              const AppIcon = app.icon;
+              const isRunning = openWindows[app.id];
+              return (
+                <button
+                  key={app.id}
+                  onClick={() => launchApp(app.id)}
+                  className={`p-2 rounded-xl bg-black/80 hover:bg-neutral-900/90 border border-neutral-800/80 hover:border-amber-400/70 flex items-center gap-2.5 transition-all group hover:scale-[1.02] hover:shadow-[0_0_15px_rgba(245,197,66,0.25)] text-left h-[52px] flex-shrink-0 cursor-pointer ${
+                    isRunning ? 'border-amber-400/80 bg-amber-500/20 shadow-[0_0_12px_rgba(245,197,66,0.2)]' : ''
+                  }`}
+                  title={app.title}
+                >
+                  <div className="p-2 rounded-lg bg-[#080808] border border-neutral-800 text-amber-300 group-hover:text-amber-100 group-hover:border-amber-400 transition-all relative flex-shrink-0">
+                    <AppIcon className="w-4 h-4" />
+                    {isRunning && (
+                      <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-amber-400 border border-black shadow-[0_0_6px_#ffd700]" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[10.5px] font-mono font-semibold text-neutral-200 group-hover:text-amber-200 truncate">
+                      {app.title.replace(' App', '').replace('JASPER ', '')}
+                    </div>
+                    <div className="text-[8.5px] font-mono text-neutral-500 truncate group-hover:text-amber-400/60">
+                      {app.category.replace(' & ', '/')}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Render Open App Windows */}
@@ -864,52 +893,63 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
         })}
       </div>
 
-      {/* BOTTOM OS NATIVE APP DOCK */}
-      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 h-14 bg-black/95 border border-neutral-800 rounded-2xl px-4 flex items-center gap-2 backdrop-blur-2xl shadow-[0_10px_35px_rgba(0,0,0,1)] z-50 max-w-[90vw] overflow-x-auto custom-scrollbar">
-        {JASPER_OS_APPS_REGISTRY.slice(0, 10).map((app) => {
-          const AppIcon = app.icon;
-          const isRunning = openWindows[app.id];
-          const isMinimized = minimizedWindows[app.id];
-          return (
-            <button
-              key={app.id}
-              onClick={() => toggleWindow(app.id)}
-              className={`relative p-2.5 rounded-xl flex items-center justify-center transition-all ${
-                isRunning && !isMinimized
-                  ? 'bg-amber-500/30 border border-amber-400 text-amber-200 shadow-[0_0_15px_rgba(245,197,66,0.3)] scale-105'
-                  : isRunning && isMinimized
-                  ? 'bg-neutral-900 border border-amber-500/40 text-amber-400 opacity-80'
-                  : 'text-neutral-400 hover:text-amber-300 hover:bg-neutral-900/60 border border-transparent'
-              }`}
-              title={app.title}
-            >
-              <AppIcon className="w-5 h-5" />
-              {isRunning && (
-                <span className={`absolute -bottom-1 w-1.5 h-1.5 rounded-full ${isMinimized ? 'bg-amber-400' : 'bg-amber-400 shadow-[0_0_8px_#ffd700]'}`} />
-              )}
-            </button>
-          );
-        })}
+      {/* BOTTOM OS NATIVE APP DOCK (WITH 2 ROWS EXPAND TOGGLE) */}
+      <div className={`absolute bottom-3 left-1/2 -translate-x-1/2 ${dockTwoRows ? 'h-[108px]' : 'h-14'} bg-black/95 border border-neutral-800 rounded-2xl px-3 py-1.5 flex items-center gap-2 backdrop-blur-2xl shadow-[0_10px_35px_rgba(0,0,0,1)] z-50 max-w-[95vw] transition-all duration-200`}>
+        <div className={`overflow-x-auto custom-scrollbar p-0.5 ${dockTwoRows ? 'grid grid-rows-2 grid-flow-col auto-cols-max gap-1.5' : 'flex items-center gap-1.5'}`}>
+          {(dockTwoRows ? JASPER_OS_APPS_REGISTRY : JASPER_OS_APPS_REGISTRY.slice(0, 12)).map((app) => {
+            const AppIcon = app.icon;
+            const isRunning = openWindows[app.id];
+            const isMinimized = minimizedWindows[app.id];
+            return (
+              <button
+                key={app.id}
+                onClick={() => toggleWindow(app.id)}
+                className={`relative p-2 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                  isRunning && !isMinimized
+                    ? 'bg-amber-500/30 border border-amber-400 text-amber-200 shadow-[0_0_15px_rgba(245,197,66,0.3)] scale-105'
+                    : isRunning && isMinimized
+                    ? 'bg-neutral-900 border border-amber-500/40 text-amber-400 opacity-80'
+                    : 'text-neutral-400 hover:text-amber-300 hover:bg-neutral-900/60 border border-transparent'
+                }`}
+                title={app.title}
+              >
+                <AppIcon className="w-4 h-4" />
+                {isRunning && (
+                  <span className={`absolute -bottom-0.5 w-1.5 h-1.5 rounded-full ${isMinimized ? 'bg-amber-400' : 'bg-amber-400 shadow-[0_0_8px_#ffd700]'}`} />
+                )}
+              </button>
+            );
+          })}
+        </div>
 
-        <div className="h-6 w-px bg-amber-500/30 mx-1" />
+        <div className="h-6 w-px bg-amber-500/30 mx-1 flex-shrink-0" />
+
+        <button
+          onClick={() => setDockTwoRows(!dockTwoRows)}
+          className="p-1.5 px-2 rounded-xl bg-neutral-900 hover:bg-amber-500/20 border border-neutral-700 hover:border-amber-400/60 text-amber-300 flex items-center gap-1 text-[10px] font-mono whitespace-nowrap cursor-pointer transition-all flex-shrink-0"
+          title={dockTwoRows ? 'Collapse dock to 1 Row' : 'Expand dock to 2 Rows'}
+        >
+          <Layout className="w-3.5 h-3.5 text-amber-400" />
+          <span className="font-bold">{dockTwoRows ? '1 Row' : '2 Rows'}</span>
+        </button>
 
         <button
           onClick={() => setShowStartMenu(true)}
-          className="p-2.5 rounded-xl text-amber-300 hover:bg-amber-500/20 border border-amber-500/40 flex items-center gap-1 text-xs font-mono cursor-pointer"
+          className="p-2 rounded-xl text-amber-300 hover:bg-amber-500/20 border border-amber-500/40 flex items-center gap-1 text-xs font-mono cursor-pointer flex-shrink-0"
           title="Open JASPER OS App Center"
         >
-          <Layers className="w-5 h-5 text-amber-400" />
+          <Layers className="w-4 h-4 text-amber-400" />
           <span className="hidden sm:inline font-bold">App Center</span>
         </button>
 
         {onLockSystem && (
           <button
             onClick={onLockSystem}
-            className="p-2.5 rounded-xl text-rose-400 hover:text-rose-100 bg-rose-500/15 hover:bg-rose-500/30 border border-rose-500/50 hover:border-rose-400 flex items-center gap-1.5 text-xs font-mono transition-all shadow-[0_0_12px_rgba(244,63,94,0.2)] cursor-pointer"
+            className="p-2 rounded-xl text-rose-400 hover:text-rose-100 bg-rose-500/15 hover:bg-rose-500/30 border border-rose-500/50 hover:border-rose-400 flex items-center gap-1.5 text-xs font-mono transition-all shadow-[0_0_12px_rgba(244,63,94,0.2)] cursor-pointer flex-shrink-0"
             title="Lock JASPER OS (Biometric Security Shield)"
           >
-            <Lock className="w-4 h-4 text-rose-400" />
-            <span className="hidden sm:inline font-bold">Lock OS</span>
+            <Lock className="w-3.5 h-3.5 text-rose-400" />
+            <span className="hidden sm:inline font-bold">Lock</span>
           </button>
         )}
       </div>

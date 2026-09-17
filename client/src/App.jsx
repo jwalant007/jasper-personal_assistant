@@ -1435,7 +1435,7 @@ export default function App() {
 
         {/* Left Sidebar */}
         {showSidebar && (
-          <aside className={`sidebar-panel flex flex-col justify-between h-full select-none shrink-0 border-r border-cyan-500/20 bg-black backdrop-blur-2xl transition-all duration-300 ${isMobileLayout ? 'fixed inset-y-0 left-0 z-50 w-[270px] max-w-[85vw] shadow-2xl p-3' : 'w-[260px] relative z-20 p-3'}`}>
+          <aside className={`sidebar-panel flex flex-col justify-between h-full select-none shrink-0 border-r border-cyan-500/20 bg-black backdrop-blur-2xl transition-all duration-300 ${isMobileLayout ? 'fixed inset-y-0 left-0 z-50 w-[290px] max-w-[88vw] shadow-2xl p-3' : 'w-[290px] relative z-20 p-3'}`}>
             <div className="flex flex-col gap-4 overflow-y-auto">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -1555,84 +1555,82 @@ export default function App() {
                 CONNECT TO LAPTOP MODE
               </button>
 
-              {/* Feature Modules Suite */}
-              <div className="flex flex-col gap-1.5 border-t border-amber-500/20 pt-2 mt-1">
-                <span className="font-mono text-[9px] text-amber-400 font-bold uppercase tracking-widest px-1">Feature Suite</span>
+              {/* Feature Modules Suite: 2 Columns Spread (No more endless single-column scroll) */}
+              <div className="border-t border-amber-500/20 pt-2 mt-1">
+                <div className="flex items-center justify-between mb-1.5 px-1">
+                  <span className="font-mono text-[9px] text-amber-400 font-bold uppercase tracking-widest">Feature Suite</span>
+                  <span className="font-mono text-[8px] text-neutral-400 bg-neutral-900 px-1.5 py-0.5 rounded border border-neutral-800">2 COLUMNS</span>
+                </div>
                 
-                <button onClick={() => setShowPhoneSentinel(!showPhoneSentinel)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-red-500/60 bg-red-950/30 text-red-300 font-extrabold shadow-[0_0_12px_rgba(239,68,68,0.2)] hover:border-red-400">
-                  <ShieldAlert size={12} className="text-red-400 animate-pulse" /> PHONE SENTINEL (OFFLINE ALERTS)
-                </button>
-                <button onClick={() => setShowSocialAutoReply(!showSocialAutoReply)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-400/60 bg-amber-500/15 text-amber-300 font-extrabold shadow-[0_0_15px_rgba(245,197,66,0.2)]">
-                  <MessageSquare size={12} className="text-amber-400 animate-pulse" /> WHATSAPP &amp; IG AUTO-REPLY
-                </button>
-                <button onClick={() => setShowLiveTranslation(!showLiveTranslation)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-400/50 bg-neutral-900/60 text-amber-300 font-bold shadow-[0_0_12px_rgba(245,197,66,0.15)]">
-                  <Languages size={12} className="text-amber-400 animate-pulse" /> CHROME LIVE TRANSLATE
-                </button>
-                <button onClick={() => setShowHologramModal(!showHologramModal)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-400/50 bg-neutral-900/60 text-amber-300 font-bold shadow-[0_0_12px_rgba(245,197,66,0.15)]">
-                  <Box size={12} className="text-amber-400 animate-pulse" /> 3D HOLOGRAM VISUALIZER
-                </button>
-                <button onClick={() => setShowAgenticActions(!showAgenticActions)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-400/50 bg-neutral-900/60 text-amber-300 font-bold">
-                  <PhoneCall size={12} className="text-amber-400 animate-pulse" /> AGENTIC ACTIONS
-                </button>
-                <button onClick={() => setShowHealthHub(!showHealthHub)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/40 bg-neutral-900/60 text-amber-300 font-bold">
-                  <Activity size={12} className="text-amber-400 animate-pulse" /> HEALTH & FITBAND HUB
-                </button>
-                <button onClick={() => setShowMissionControl(!showMissionControl)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/30">
-                  <LayoutDashboard size={12} className="text-amber-400" /> MISSION CONTROL
-                </button>
-                <button onClick={() => { setModalData('maps', { initialTab: 'satellite' }); setShowMaps(true); }} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-cyan-500/40 bg-cyan-950/20 text-cyan-300 font-bold">
-                  <Radio size={12} className="text-cyan-400 animate-pulse" /> SATELLITE INTEL & GPS
-                </button>
-                <button onClick={() => setShowMaps(!showMaps)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/30">
-                  <MapPin size={12} className="text-amber-400" /> MAPS & NAVIGATION
-                </button>
-                <button onClick={() => setShowSportsHub(!showSportsHub)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/30">
-                  <Trophy size={12} className="text-amber-400" /> SPORTS HUB
-                </button>
-                <button onClick={() => setShowAutomation(!showAutomation)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/30">
-                  <Workflow size={12} className="text-amber-400" /> AUTOMATION BUILDER
-                </button>
-                <button onClick={() => setShowThemes(!showThemes)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/40 bg-amber-950/20 text-amber-300">
-                  <Palette size={12} className="text-amber-400" /> CUSTOM THEMES
-                </button>
-                <button onClick={() => setShowPcCommand(!showPcCommand)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/30">
-                  <Monitor size={12} className="text-amber-400" /> PC COMMAND CENTER
-                </button>
-                <button onClick={() => setShowBrowserAgent(!showBrowserAgent)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/30">
-                  <Globe size={12} className="text-amber-400" /> BROWSER AGENT
-                </button>
-                <button onClick={() => setShowPersonalAssistant(!showPersonalAssistant)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/30">
-                  <Calendar size={12} className="text-amber-400" /> PERSONAL ASSISTANT
-                </button>
-                <button onClick={() => setShowMemory(!showMemory)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/30">
-                  <Brain size={12} className="text-amber-400" /> MEMORY DASHBOARD
-                </button>
-                <button onClick={() => setShowSkillsStore(!showSkillsStore)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/30">
-                  <Store size={12} className="text-amber-400" /> AI SKILLS STORE
-                </button>
-                <button onClick={() => setShowAnalytics(!showAnalytics)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/30">
-                  <BarChart3 size={12} className="text-amber-400" /> ANALYTICS
-                </button>
-                <button onClick={() => setShowAvatar(!showAvatar)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/30">
-                  <Bot size={12} className="text-amber-400" /> AI AVATAR
-                </button>
-                <button onClick={() => setShowSecurity(!showSecurity)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/30">
-                  <ShieldCheck size={12} className="text-amber-400" /> SECURITY CENTER
-                </button>
-                <button onClick={() => setShowBlenderStudio(!showBlenderStudio)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-cyan-500/40 hover:border-cyan-400 bg-cyan-950/20 text-cyan-300">
-                  <Box size={12} className="text-cyan-400" /> BLENDER 3D STUDIO
-                </button>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button onClick={() => setShowPhoneSentinel(!showPhoneSentinel)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-red-500/60 bg-red-950/30 text-red-300 font-extrabold shadow-[0_0_10px_rgba(239,68,68,0.2)] hover:border-red-400 tracking-normal truncate cursor-pointer">
+                    <ShieldAlert size={11} className="text-red-400 animate-pulse flex-shrink-0" /> <span className="truncate">PHONE SENTINEL</span>
+                  </button>
+                  <button onClick={() => setShowSocialAutoReply(!showSocialAutoReply)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-400/60 bg-amber-500/15 text-amber-300 font-extrabold shadow-[0_0_10px_rgba(245,197,66,0.2)] tracking-normal truncate cursor-pointer">
+                    <MessageSquare size={11} className="text-amber-400 animate-pulse flex-shrink-0" /> <span className="truncate">WHATSAPP &amp; IG</span>
+                  </button>
+                  <button onClick={() => setShowLiveTranslation(!showLiveTranslation)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-400/50 bg-neutral-900/60 text-amber-300 font-bold shadow-[0_0_10px_rgba(245,197,66,0.15)] tracking-normal truncate cursor-pointer">
+                    <Languages size={11} className="text-amber-400 animate-pulse flex-shrink-0" /> <span className="truncate">TRANSLATE</span>
+                  </button>
+                  <button onClick={() => setShowHologramModal(!showHologramModal)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-400/50 bg-neutral-900/60 text-amber-300 font-bold shadow-[0_0_10px_rgba(245,197,66,0.15)] tracking-normal truncate cursor-pointer">
+                    <Box size={11} className="text-amber-400 animate-pulse flex-shrink-0" /> <span className="truncate">3D HOLOGRAM</span>
+                  </button>
+                  <button onClick={() => setShowAgenticActions(!showAgenticActions)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-400/50 bg-neutral-900/60 text-amber-300 font-bold tracking-normal truncate cursor-pointer">
+                    <PhoneCall size={11} className="text-amber-400 animate-pulse flex-shrink-0" /> <span className="truncate">AGENTIC ACTIONS</span>
+                  </button>
+                  <button onClick={() => setShowHealthHub(!showHealthHub)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/40 bg-neutral-900/60 text-amber-300 font-bold tracking-normal truncate cursor-pointer">
+                    <Activity size={11} className="text-amber-400 animate-pulse flex-shrink-0" /> <span className="truncate">HEALTH HUB</span>
+                  </button>
+                  <button onClick={() => setShowMissionControl(!showMissionControl)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
+                    <LayoutDashboard size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">MISSION CTRL</span>
+                  </button>
+                  <button onClick={() => { setModalData('maps', { initialTab: 'satellite' }); setShowMaps(true); }} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-cyan-500/40 bg-cyan-950/20 text-cyan-300 font-bold tracking-normal truncate cursor-pointer">
+                    <Radio size={11} className="text-cyan-400 animate-pulse flex-shrink-0" /> <span className="truncate">SATELLITE INTEL</span>
+                  </button>
+                  <button onClick={() => setShowMaps(!showMaps)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
+                    <MapPin size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">MAPS &amp; GPS</span>
+                  </button>
+                  <button onClick={() => setShowSportsHub(!showSportsHub)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
+                    <Trophy size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">SPORTS HUB</span>
+                  </button>
+                  <button onClick={() => setShowAutomation(!showAutomation)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
+                    <Workflow size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">AUTOMATION</span>
+                  </button>
+                  <button onClick={() => setShowThemes(!showThemes)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/40 bg-amber-950/20 text-amber-300 tracking-normal truncate cursor-pointer">
+                    <Palette size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">CUSTOM THEMES</span>
+                  </button>
+                  <button onClick={() => setShowPcCommand(!showPcCommand)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
+                    <Monitor size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">PC COMMAND</span>
+                  </button>
+                  <button onClick={() => setShowBrowserAgent(!showBrowserAgent)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
+                    <Globe size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">BROWSER AGENT</span>
+                  </button>
+                  <button onClick={() => setShowPersonalAssistant(!showPersonalAssistant)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
+                    <Calendar size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">AI ASSISTANT</span>
+                  </button>
+                  <button onClick={() => setShowMemory(!showMemory)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
+                    <Brain size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">MEMORY HUB</span>
+                  </button>
+                  <button onClick={() => setShowSkillsStore(!showSkillsStore)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
+                    <Store size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">SKILLS STORE</span>
+                  </button>
+                  <button onClick={() => setShowAnalytics(!showAnalytics)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
+                    <BarChart3 size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">ANALYTICS</span>
+                  </button>
+                  <button onClick={() => setShowAvatar(!showAvatar)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
+                    <Bot size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">AI AVATAR</span>
+                  </button>
+                  <button onClick={() => setShowSecurity(!showSecurity)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
+                    <ShieldCheck size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">SECURITY CTR</span>
+                  </button>
+                  <button onClick={() => setShowBlenderStudio(!showBlenderStudio)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-cyan-500/40 hover:border-cyan-400 bg-cyan-950/20 text-cyan-300 tracking-normal truncate cursor-pointer">
+                    <Box size={11} className="text-cyan-400 flex-shrink-0" /> <span className="truncate">BLENDER 3D</span>
+                  </button>
+                  <button onClick={() => setShowDiagnostics(!showDiagnostics)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
+                    <Cpu size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">DIAGNOSTICS</span>
+                  </button>
+                </div>
               </div>
-
-              <button 
-                onClick={() => {
-                  setShowDiagnostics(!showDiagnostics);
-                }}
-                className="btn-sidebar btn-sidebar-blue w-full flex gap-1.5 items-center justify-center text-[10px] py-3"
-              >
-                <Cpu size={12} className="text-amber-400" />
-                SYSTEM DIAGNOSTICS
-              </button>
 
               {/* View Layout Mode Toggle inside Mobile Drawer */}
               {isMobileLayout && (
