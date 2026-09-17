@@ -169,6 +169,17 @@ const DEFAULT_PRESETS = [
     isPreset: true
   },
   {
+    id: 'satellite_intelligence',
+    title: 'Orbital Recon Satellite & Earth Spyglass',
+    subtitle: 'High-Orbit Constellation & Laser Device Lock',
+    category: 'Stark Tech & Defense',
+    mode: 'satellite',
+    tags: ['Satellite', 'Orbital Recon', 'GPS Lock', 'Stark Satellite'],
+    timestamp: 'KH-11 Keyhole Spec',
+    icon: '🛰️',
+    isPreset: true
+  },
+  {
     id: 'blender_arc_torus',
     title: 'Stark Arc Torus (Blender)',
     subtitle: 'Headless Procedural GLB Torus Mesh',
@@ -536,6 +547,22 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
         setActiveTab('blender');
         setResponseText('Please synthesize or select a Blender 3D model first.');
       }
+    } else if (cmd === 'SWITCH_SATELLITE') {
+      loadProjectById('satellite_intelligence');
+      setResponseText('Orbital reconnaissance satellite initialized. Locking downlink telemetry to host device, sir.');
+    } else if (cmd === 'DEVICE_LOCATION') {
+      loadProjectById('satellite_intelligence');
+      setResponseText('Displaying precise host hardware coordinates and satellite orbital fix, sir.');
+    } else if (cmd === 'SATELLITE_LOCK') {
+      loadProjectById('satellite_intelligence');
+      setResponseText('Orbital satellite laser lock engaged onto host device coordinates.');
+    } else if (cmd === 'SWITCH_SENTINEL') {
+      setResponseText('Phone Sentinel engaged. Mobile device protected via autonomous weather monitoring and push relay.');
+    } else if (cmd === 'TEST_PHONE_ALERT') {
+      try {
+        fetch('http://localhost:3001/api/sentinel/test', { method: 'POST' }).catch(() => {});
+      } catch (e) {}
+      setResponseText('Dispatching high-priority test push to mobile lock screen, sir.');
     }
   };
 

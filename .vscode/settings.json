@@ -7,7 +7,8 @@
   "java.import.exclusions": [
     "**/node_modules/**",
     "**/build/**",
-    "**/.gradle/**"
+    "**/.gradle/**",
+    "**/client/android/**"
   ],
   "java.diagnostics.filter": [
     "**/node_modules/**",
@@ -31,7 +32,6 @@
   ],
   "java.configuration.updateBuildConfiguration": "automatic",
   "java.jdt.ls.vmargs": "-XX:+UseParallelGC -Xmx1G -Xms100m",
-  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
   "python.terminal.activateEnvironment": true,
   "python.analysis.extraPaths": [
     "${workspaceFolder}/jasper-os/jasper-ai",

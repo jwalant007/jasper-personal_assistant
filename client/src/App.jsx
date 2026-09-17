@@ -42,6 +42,7 @@ import JasperAgentHubWidget from './components/JasperAgentHubWidget';
 import BlenderStudioModal from './components/BlenderStudioModal';
 import MapsWidget from './components/MapsWidget';
 import EmergencyAlertToast from './components/EmergencyAlertToast';
+import PhoneSentinelWidget from './components/PhoneSentinelWidget';
 import geminiClient from './utils/geminiClient';
 import { getServerIp, setServerIp } from './utils/apiConfig.js';
 import { getPhoneBrainMode, setPhoneBrainMode, togglePhoneBrainMode } from './utils/mobileBrain.js';
@@ -56,7 +57,7 @@ import {
   captureWebcamFrameAsBase64,
   syncOwnerProfileFromServer
 } from './utils/faceBiometrics.js';
-import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, BookOpen, Activity, Heart, Laptop, Languages, Box, MessageSquare, KeyRound } from 'lucide-react';
+import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, BookOpen, Activity, Heart, Laptop, Languages, Box, MessageSquare, KeyRound, ShieldAlert } from 'lucide-react';
 
 import { useJasperApp, useJasperModals, useJasperChat } from './context/index.jsx';
 
@@ -178,6 +179,8 @@ export default function App() {
   const setShowSportsHub = (v) => v ? openModal('sportsHub') : closeModal('sportsHub');
   const showMaps = isModalOpen('maps');
   const setShowMaps = (v) => v ? openModal('maps') : closeModal('maps');
+  const showPhoneSentinel = isModalOpen('phoneSentinel');
+  const setShowPhoneSentinel = (v) => v ? openModal('phoneSentinel') : closeModal('phoneSentinel');
   const showAgenticActions = isModalOpen('agenticActions');
   const setShowAgenticActions = (v) => v ? openModal('agenticActions') : closeModal('agenticActions');
   const showHealthHub = isModalOpen('healthHub');
@@ -1014,6 +1017,34 @@ export default function App() {
 
     const queryText = commandText.trim() || (attachments.length === 1 ? `[Uploaded file: ${attachments[0].name}]` : `[Uploaded ${attachments.length} files]`);
 
+    // Intercept Phone Sentinel & Offline Mobile Push Alerts Commands
+    const sentinelRegex = /(phone sentinel|offline alert|offline notification|phone alert|weather alert|notify my phone|send notification to my phone|test phone alert|test push)/i;
+    if (sentinelRegex.test(queryText)) {
+      openModal('phoneSentinel');
+      const isTest = /(test phone alert|test push|ping phone|test notification)/i.test(queryText);
+      let response = `Deploying J.A.S.P.E.R. Phone Sentinel console, Sir. Your mobile phone is continuously monitored for severe weather and urgent emergency messages even when laptop servers are completely powered off.`;
+      if (isTest) {
+        try {
+          fetch('http://localhost:3001/api/sentinel/test', { method: 'POST' }).catch(() => {});
+        } catch (e) {}
+        response = `Dispatching high-priority test push to your phone lock screen via cloud push relay. The notification will arrive on your phone immediately, Sir.`;
+      }
+      const newChat = {
+        id: Date.now(),
+        query: queryText,
+        attachments: attachments,
+        response: response,
+        timestamp: new Date().toLocaleString()
+      };
+      setPastChats((prev) => [newChat, ...prev]);
+      setSelectedChatId(newChat.id);
+      setSpeakingText(response);
+      if (voiceControllerRef.current) {
+        voiceControllerRef.current.playSuccess();
+      }
+      return;
+    }
+
     // Intercept "Get ready for work" wake-up routine
     const workRoutineRegex = /(get ready for work|ready for work|prepare for work|start work routine)/i;
     if (workRoutineRegex.test(queryText)) {
@@ -1103,6 +1134,28 @@ export default function App() {
       return;
     }
 
+    // Intercept Direct Satellite Intelligence & Location Commands
+    const isSatelliteQuery = /^(show\s+(me\s+)?(the\s+)?|view\s+(the\s+)?|open\s+(the\s+)?)?(satellites?|satellite\s+intelligence|orbital\s+recon|orbital\s+view|precise\s+location|device\s+location|track\s+device)(\s+app)?$/i.test(queryText.trim());
+    if (isSatelliteQuery) {
+      setModalData('maps', { initialTab: 'satellite' });
+      setShowMaps(true);
+      const response = `Opening Satellite Intelligence & Precise Device Geolocation for you, Sir. High-resolution Esri World Imagery, live constellation tracking, and sub-meter device telemetry are locked.`;
+      const newChat = {
+        id: Date.now(),
+        query: queryText,
+        attachments: attachments,
+        response: response,
+        timestamp: new Date().toLocaleString()
+      };
+      setPastChats((prev) => [newChat, ...prev]);
+      setSelectedChatId(newChat.id);
+      setSpeakingText(response);
+      if (voiceControllerRef.current) {
+        voiceControllerRef.current.playSuccess();
+      }
+      return;
+    }
+
     // Intercept Direct Maps & Navigation Commands (e.g. "map", "maps", "open map", "show map", "show me map", "where am i", "my location")
     const isDirectMapQuery = /^(show\s+(me\s+)?(the\s+)?|view\s+(the\s+)?|open\s+(the\s+)?)?(maps?|navigation|gps)(\s+app)?$/i.test(queryText.trim()) ||
                              /^(where\s+am\s+i|my\s+location|current\s+location)$/i.test(queryText.trim());
@@ -1126,13 +1179,14 @@ export default function App() {
     }
 
     // Intercept Voice App Open Commands (e.g. "Jasper open search", "open calculator", "open files", "open whatsapp auto reply", "open blender")
-    const appOpenRegex = /(open|launch|start|show|run)\s+(search|search engine|files|file manager|explorer|code|code studio|terminal|notes|planner|tasks|calculator|calc|tv|tv remote|phone|android|pc|pc hub|pc command|security|biometrics|browser|web agent|sports|maps?|navigation|health|fitband|translator|translation|manual|guide|whatsapp|instagram|auto reply|call auto|social auto|blender|blender 3d|3d studio)/i;
+    const appOpenRegex = /(open|launch|start|show|run)\s+(search|search engine|files|file manager|explorer|code|code studio|terminal|notes|planner|tasks|calculator|calc|tv|tv remote|phone|android|pc|pc hub|pc command|security|biometrics|browser|web agent|sports|satellite|satellite intelligence|orbital|maps?|navigation|health|fitband|translator|translation|manual|guide|whatsapp|instagram|auto reply|call auto|social auto|blender|blender 3d|3d studio)/i;
     const appMatch = queryText.match(appOpenRegex);
     if (appMatch) {
       const targetApp = appMatch[2].toLowerCase();
       let openedAppName = 'App';
 
-      if (targetApp.includes('blender')) { setShowBlenderStudio(true); openedAppName = 'Blender 3D Graphics Studio'; }
+      if (targetApp.includes('satellite') || targetApp.includes('orbital')) { setModalData('maps', { initialTab: 'satellite' }); setShowMaps(true); openedAppName = 'Satellite Intelligence & Device GPS'; }
+      else if (targetApp.includes('blender')) { setShowBlenderStudio(true); openedAppName = 'Blender 3D Graphics Studio'; }
       else if (targetApp.includes('search')) { setShowSearchEngine(true); openedAppName = 'JASPER AI Search Engine'; }
       else if (targetApp.includes('whatsapp') || targetApp.includes('instagram') || targetApp.includes('auto reply') || targetApp.includes('social')) { setShowSocialAutoReply(true); openedAppName = 'WhatsApp & Instagram Auto-Reply Hub'; }
       else if (targetApp.includes('file') || targetApp.includes('explorer')) { setShowFileManager(true); openedAppName = 'JASPER File Explorer'; }
@@ -1505,6 +1559,9 @@ export default function App() {
               <div className="flex flex-col gap-1.5 border-t border-amber-500/20 pt-2 mt-1">
                 <span className="font-mono text-[9px] text-amber-400 font-bold uppercase tracking-widest px-1">Feature Suite</span>
                 
+                <button onClick={() => setShowPhoneSentinel(!showPhoneSentinel)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-red-500/60 bg-red-950/30 text-red-300 font-extrabold shadow-[0_0_12px_rgba(239,68,68,0.2)] hover:border-red-400">
+                  <ShieldAlert size={12} className="text-red-400 animate-pulse" /> PHONE SENTINEL (OFFLINE ALERTS)
+                </button>
                 <button onClick={() => setShowSocialAutoReply(!showSocialAutoReply)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-400/60 bg-amber-500/15 text-amber-300 font-extrabold shadow-[0_0_15px_rgba(245,197,66,0.2)]">
                   <MessageSquare size={12} className="text-amber-400 animate-pulse" /> WHATSAPP &amp; IG AUTO-REPLY
                 </button>
@@ -1522,6 +1579,9 @@ export default function App() {
                 </button>
                 <button onClick={() => setShowMissionControl(!showMissionControl)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/30">
                   <LayoutDashboard size={12} className="text-amber-400" /> MISSION CONTROL
+                </button>
+                <button onClick={() => { setModalData('maps', { initialTab: 'satellite' }); setShowMaps(true); }} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-cyan-500/40 bg-cyan-950/20 text-cyan-300 font-bold">
+                  <Radio size={12} className="text-cyan-400 animate-pulse" /> SATELLITE INTEL & GPS
                 </button>
                 <button onClick={() => setShowMaps(!showMaps)} className="btn-sidebar text-[10px] py-2 flex items-center justify-start gap-2 border-amber-500/30">
                   <MapPin size={12} className="text-amber-400" /> MAPS & NAVIGATION
@@ -2822,7 +2882,15 @@ export default function App() {
             onClose={() => setShowMaps(false)} 
             initialDestination={getModalData('maps')?.initialDestination || ''}
             initialContact={getModalData('maps')?.initialContact || ''}
+            initialTab={getModalData('maps')?.initialTab || 'navigation'}
           />
+        </DraggableModalWrapper>
+      )}
+
+      {/* 15.1 Phone Sentinel & Offline Alerts Modal */}
+      {showPhoneSentinel && (
+        <DraggableModalWrapper isOpen={showPhoneSentinel} onClose={() => setShowPhoneSentinel(false)} title="Phone Sentinel & Offline Cloud Alerts" maxWidth="max-w-6xl">
+          <PhoneSentinelWidget onClose={() => setShowPhoneSentinel(false)} />
         </DraggableModalWrapper>
       )}
 

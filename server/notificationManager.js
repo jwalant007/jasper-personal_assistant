@@ -97,6 +97,17 @@ class NotificationManager {
     // 2. Speak voice warning in background
     this.speakEmergencyVoice(`Emergency alert from ${senderName}. ${snippet}`);
 
+    // 3. Dispatch to User's Phone Lock-Screen via Cloud Push Relay (ntfy.sh)
+    try {
+      const { sendPushToPhone } = require('./weatherSentinel');
+      sendPushToPhone({
+        title: `🚨 URGENT: ${senderName}`,
+        message: `${snippet} (Source: ${source.toUpperCase()})`,
+        priority: 'urgent',
+        tags: 'rotating_light,sos'
+      });
+    } catch (e) {}
+
     const emergencyPayload = {
       id: alertId,
       source,

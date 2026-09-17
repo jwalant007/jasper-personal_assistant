@@ -18,6 +18,7 @@ const permissionLayer = require('./permissionLayer');
 const busyModeEngine = require('./busyModeEngine');
 const blenderController = require('./blenderController');
 const notificationManager = require('./notificationManager');
+const weatherSentinel = require('./weatherSentinel');
 
 // Optional WhatsApp Web Client (whatsapp-web.js) for laptop WhatsApp Web auto-send
 let Client, LocalAuth, WAStatus;
@@ -3183,6 +3184,48 @@ app.post('/api/contacts/add', (req, res) => {
   }
 });
 
+// Phone Location Sync
+let lastPhoneLocation = null;
+app.get('/api/phone/location', (req, res) => {
+  res.json({ success: true, location: lastPhoneLocation });
+});
+app.post('/api/phone/location', (req, res) => {
+  const loc = req.body || {};
+  lastPhoneLocation = { ...loc, timestamp: Date.now() };
+  if (loc.lat && loc.lon) {
+    weatherSentinel.updateSentinelLocation(loc.lat, loc.lon, loc.city || '');
+  }
+  res.json({ success: true, location: lastPhoneLocation });
+});
+
+// Autonomous Sentinel & Cloud Push Endpoints
+app.get('/api/sentinel/status', (req, res) => {
+  res.json({ success: true, status: weatherSentinel.getSentinelStatus() });
+});
+
+app.post('/api/sentinel/test', async (req, res) => {
+  const { topic, message } = req.body || {};
+  const ok = await weatherSentinel.sendPushToPhone({
+    topic: topic || undefined,
+    title: 'JASPER Sentinel Test Alert',
+    message: message || 'Test alert from JASPER Assistant: Phone Sentinel is active & verified!',
+    priority: 'urgent',
+    tags: 'zap,bell'
+  });
+  res.json({ success: ok });
+});
+
+app.post('/api/sentinel/config', (req, res) => {
+  const { channelTopic, enabled, checkIntervalMinutes, cityName } = req.body || {};
+  weatherSentinel.startWeatherSentinel({
+    channelTopic: channelTopic || undefined,
+    enabled: enabled !== undefined ? enabled : undefined,
+    checkIntervalMinutes: checkIntervalMinutes || undefined,
+    cityName: cityName || undefined
+  });
+  res.json({ success: true, status: weatherSentinel.getSentinelStatus() });
+});
+
 // Wildcard fallback to serve index.html for SPA client routing
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api/')) return next();
@@ -3203,6 +3246,9 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`[JASPER Core] Server listening on http://localhost:${PORT}`);
   console.log(`[JASPER Core] LAN access: http://${lanIP}:${PORT}`);
   
+  // Start autonomous Weather Sentinel daemon
+  weatherSentinel.startWeatherSentinel({ channelTopic: 'jasper-jwalant-alerts' });
+
   // Start native Windows background speech trigger
   startBackgroundVoiceListener();
 });

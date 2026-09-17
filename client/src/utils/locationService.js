@@ -155,10 +155,14 @@ const tryGpsLocation = () => {
         resolve({
           lat: pos.coords.latitude,
           lon: pos.coords.longitude,
-          accuracy: pos.coords.accuracy ? `${Math.round(pos.coords.accuracy)}m` : 'High precision',
-          altitude: pos.coords.altitude ? `${Math.round(pos.coords.altitude)}m` : 'N/A',
-          heading: pos.coords.heading || 0,
-          speed: pos.coords.speed ? `${Math.round(pos.coords.speed * 3.6)} km/h` : '0 km/h'
+          accuracy: pos.coords.accuracy ? `±${pos.coords.accuracy.toFixed(1)}m` : 'High precision',
+          rawAccuracy: pos.coords.accuracy || 10,
+          altitude: pos.coords.altitude ? `${pos.coords.altitude.toFixed(1)}m` : 'N/A',
+          altitudeAccuracy: pos.coords.altitudeAccuracy ? `±${pos.coords.altitudeAccuracy.toFixed(1)}m` : 'N/A',
+          heading: pos.coords.heading !== null && !isNaN(pos.coords.heading) ? pos.coords.heading : 0,
+          speed: pos.coords.speed ? `${(pos.coords.speed * 3.6).toFixed(1)} km/h` : '0.0 km/h',
+          speedRaw: pos.coords.speed || 0,
+          timestamp: pos.timestamp || Date.now()
         });
       },
       (err) => {
@@ -307,10 +311,12 @@ export const watchLiveGps = (onUpdate, onError) => {
       const loc = {
         lat: pos.coords.latitude,
         lon: pos.coords.longitude,
-        accuracy: pos.coords.accuracy ? `${Math.round(pos.coords.accuracy)}m` : 'High precision',
-        altitude: pos.coords.altitude ? `${Math.round(pos.coords.altitude)}m` : 'N/A',
-        heading: pos.coords.heading || 0,
-        speed: pos.coords.speed ? `${Math.round(pos.coords.speed * 3.6)} km/h` : '0 km/h',
+        accuracy: pos.coords.accuracy ? `±${pos.coords.accuracy.toFixed(1)}m` : 'High precision',
+        rawAccuracy: pos.coords.accuracy || 10,
+        altitude: pos.coords.altitude ? `${pos.coords.altitude.toFixed(1)}m` : 'N/A',
+        altitudeAccuracy: pos.coords.altitudeAccuracy ? `±${pos.coords.altitudeAccuracy.toFixed(1)}m` : 'N/A',
+        heading: pos.coords.heading !== null && !isNaN(pos.coords.heading) ? pos.coords.heading : 0,
+        speed: pos.coords.speed ? `${(pos.coords.speed * 3.6).toFixed(1)} km/h` : '0.0 km/h',
         speedRaw: pos.coords.speed || 0,
         timestamp: pos.timestamp || Date.now(),
         source: 'Live GPS Tracker'

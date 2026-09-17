@@ -1575,6 +1575,144 @@ const Hologram3dCanvas = forwardRef(function Hologram3dCanvas(
         props.forEach(p => p.rotation.y += 0.35);
       };
 
+    } else if (mode === 'satellite' || mode === 'satellite_intel') {
+      // 🛰️ 3D ORBITAL RECON SATELLITE & PRECISION DEVICE SPYGLASS
+      const satSystemGroup = new THREE.Group();
+      hologramGroup.add(satSystemGroup);
+
+      // 1. Earth Hologram Globe
+      const earthRadius = 1.35;
+      const earthGeo = new THREE.SphereGeometry(earthRadius, 48, 48);
+      const earthMat = new THREE.MeshStandardMaterial({
+        color: 0x052e46,
+        wireframe: true,
+        roughness: 0.8,
+        metalness: 0.2
+      });
+      const earthMesh = new THREE.Mesh(earthGeo, earthMat);
+      satSystemGroup.add(earthMesh);
+
+      // Glowing Earth Atmosphere
+      const atmosphereGeo = new THREE.SphereGeometry(earthRadius * 1.05, 32, 32);
+      const atmosphereMat = new THREE.MeshBasicMaterial({
+        color: 0x00f3ff,
+        transparent: true,
+        opacity: 0.12,
+        side: THREE.BackSide,
+        blending: THREE.AdditiveBlending
+      });
+      satSystemGroup.add(new THREE.Mesh(atmosphereGeo, atmosphereMat));
+
+      // Latitude / Longitude Equator Rings
+      const ringMat = new THREE.LineBasicMaterial({ color: 0x00f3ff, transparent: true, opacity: 0.4 });
+      for (let r = -2; r <= 2; r++) {
+        const ringGeo = new THREE.RingGeometry(earthRadius * Math.cos(r * 0.4), earthRadius * Math.cos(r * 0.4) + 0.02, 64);
+        const ring = new THREE.Mesh(ringGeo, ringMat);
+        ring.rotation.x = Math.PI / 2;
+        ring.position.y = earthRadius * Math.sin(r * 0.4);
+        satSystemGroup.add(ring);
+      }
+
+      // Pinpoint Host Device Beacon on Globe Surface
+      const beaconGroup = new THREE.Group();
+      satSystemGroup.add(beaconGroup);
+
+      const latRad = 0.33;
+      const lonRad = 1.27;
+      const bx = earthRadius * Math.cos(latRad) * Math.sin(lonRad);
+      const by = earthRadius * Math.sin(latRad);
+      const bz = earthRadius * Math.cos(latRad) * Math.cos(lonRad);
+      beaconGroup.position.set(bx, by, bz);
+
+      const beaconDot = new THREE.Mesh(
+        new THREE.SphereGeometry(0.04, 16, 16),
+        new THREE.MeshBasicMaterial({ color: 0xff0055 })
+      );
+      beaconGroup.add(beaconDot);
+
+      const beaconRing = new THREE.Mesh(
+        new THREE.RingGeometry(0.06, 0.09, 32),
+        new THREE.MeshBasicMaterial({ color: 0x00f3ff, side: THREE.DoubleSide })
+      );
+      beaconRing.lookAt(new THREE.Vector3(0, 0, 0));
+      beaconGroup.add(beaconRing);
+
+      // 2. Orbital Satellite Constellation Orbit Rings
+      const orbitRingGeo = new THREE.RingGeometry(2.3, 2.32, 96);
+      const orbitRingMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, transparent: true, opacity: 0.35, side: THREE.DoubleSide });
+      const orbitRing1 = new THREE.Mesh(orbitRingGeo, orbitRingMat);
+      orbitRing1.rotation.x = Math.PI / 3;
+      satSystemGroup.add(orbitRing1);
+
+      const orbitRing2 = new THREE.Mesh(orbitRingGeo, orbitRingMat);
+      orbitRing2.rotation.x = -Math.PI / 4;
+      orbitRing2.rotation.y = Math.PI / 6;
+      satSystemGroup.add(orbitRing2);
+
+      // 3. Recon Satellite Craft
+      const satCraft = new THREE.Group();
+      satSystemGroup.add(satCraft);
+
+      // Satellite Body / Bus
+      const busGeo = new THREE.BoxGeometry(0.28, 0.28, 0.42);
+      const busMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.95, roughness: 0.15 });
+      satCraft.add(new THREE.Mesh(busGeo, busMat));
+
+      // Solar Panel Arrays
+      const solarMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.8, roughness: 0.2 });
+      [-0.48, 0.48].forEach(xOff => {
+        const wingGeo = new THREE.BoxGeometry(0.65, 0.02, 0.24);
+        const wing = new THREE.Mesh(wingGeo, solarMat);
+        wing.position.set(xOff, 0, 0);
+        satCraft.add(wing);
+
+        const gridGeo = new THREE.BoxGeometry(0.65, 0.025, 0.01);
+        const grid = new THREE.Mesh(gridGeo, new THREE.MeshBasicMaterial({ color: 0x38bdf8 }));
+        grid.position.set(xOff, 0, 0);
+        satCraft.add(grid);
+      });
+
+      // Parabolic Antenna Dish
+      const dishGeo = new THREE.CylinderGeometry(0.18, 0.02, 0.08, 24, 1, true);
+      const dishMat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.9, roughness: 0.1 });
+      const dish = new THREE.Mesh(dishGeo, dishMat);
+      dish.position.set(0, 0.22, 0);
+      dish.rotation.x = Math.PI;
+      satCraft.add(dish);
+
+      // Optical Recon Lens
+      const lensGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.12, 24);
+      const lensMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff });
+      const lens = new THREE.Mesh(lensGeo, lensMat);
+      lens.position.set(0, -0.2, 0);
+      satCraft.add(lens);
+
+      // Laser Recon Targeting Beam
+      const beamGeo = new THREE.CylinderGeometry(0.008, 0.06, 1.2, 16);
+      const beamMat = new THREE.MeshBasicMaterial({
+        color: 0x00f3ff,
+        transparent: true,
+        opacity: 0.65,
+        blending: THREE.AdditiveBlending
+      });
+      const beam = new THREE.Mesh(beamGeo, beamMat);
+      beam.position.set(0, -0.75, 0);
+      satCraft.add(beam);
+
+      let orbitAngle = 0;
+      animateCallback = (time) => {
+        earthMesh.rotation.y += 0.003;
+        orbitAngle += 0.012;
+
+        const orbitRadius = 2.3;
+        satCraft.position.x = Math.cos(orbitAngle) * orbitRadius;
+        satCraft.position.z = Math.sin(orbitAngle) * orbitRadius * 0.8;
+        satCraft.position.y = Math.sin(orbitAngle * 1.5) * 0.9;
+        satCraft.lookAt(new THREE.Vector3(0, 0, 0));
+
+        beaconRing.scale.setScalar(1 + Math.sin(time * 6) * 0.35);
+      };
+
     } else if (mode === 'quantumvortex') {
       // 🌀 QUANTUM PARTICLE VORTEX
       const vortexGroup = new THREE.Group();

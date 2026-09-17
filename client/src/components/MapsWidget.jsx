@@ -37,21 +37,43 @@ import {
   Phone,
   Play,
   Pause,
-  ExternalLink
+  ExternalLink,
+  Satellite,
+  Radar,
+  Target,
+  Cpu,
+  Wifi,
+  Eye,
+  Orbit,
+  Copy
 } from 'lucide-react';
 import { getLocation, watchLiveGps } from '../utils/locationService';
 import { geocodeAddress, getFastestRoute, calculateDistanceKm, generateShareLocationUrl, getNearbyPlaces } from '../utils/navigationService';
 import { speakDeviceAudio } from '../utils/speakDeviceAudio';
 import { getApiBase } from '../utils/apiConfig';
+import { 
+  decimalToDms, 
+  latLonToMgrs, 
+  latLonToGeohash, 
+  getSatelliteConstellationTelemetry, 
+  getTrackedSpacecraft, 
+  getDeviceHardwareProfile 
+} from '../utils/satelliteIntelligence';
 
-export default function MapsWidget({ onClose, initialDestination = '', initialContact = '' }) {
-  // Tabs: 'navigation' | 'contacts' | 'telemetry' | 'places'
-  const [activeTab, setActiveTab] = useState(initialContact ? 'contacts' : 'navigation');
+export default function MapsWidget({ onClose, initialDestination = '', initialContact = '', initialTab = 'navigation' }) {
+  // Tabs: 'satellite' | 'navigation' | 'contacts' | 'telemetry' | 'places'
+  const [activeTab, setActiveTab] = useState(initialTab === 'satellite' ? 'satellite' : (initialContact ? 'contacts' : 'navigation'));
   
-  // Live GPS Telemetry
+  // Live GPS & Satellite Telemetry
   const [userLocation, setUserLocation] = useState(null);
   const [isGpsLocked, setIsGpsLocked] = useState(false);
-  const [mapLayer, setMapLayer] = useState('dark'); // 'dark' (CartoDB) or 'standard' (OSM)
+  const [mapLayer, setMapLayer] = useState(initialTab === 'satellite' ? 'satellite' : 'dark'); // 'dark' | 'satellite' | 'standard'
+  const [reconFilter, setReconFilter] = useState('normal'); // 'normal' | 'thermal' | 'nightvision' | 'crt'
+  const [isLockingDevice, setIsLockingDevice] = useState(false);
+  const [hardwareProfile, setHardwareProfile] = useState(null);
+  const [satellites, setSatellites] = useState([]);
+  const [spacecraftList, setSpacecraftList] = useState([]);
+  const [copiedCoords, setCopiedCoords] = useState(false);
   
   // Navigation & Routing State
   const [destinationInput, setDestinationInput] = useState(initialDestination || '');
@@ -107,6 +129,12 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
       attributionControl: false
     });
 
+    // Real Esri World Imagery Satellite Tiles (High-Resolution Global Satellite)
+    const satelliteTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19,
+      attribution: 'Esri, Maxar, Earthstar Geographics'
+    });
+
     // Dark Stark-Tech OpenStreetMap Tiles (100% Free, Zero Watermark, Zero API Key Required)
     const darkTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
@@ -118,7 +146,9 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
       maxZoom: 19
     });
 
-    if (mapLayer === 'dark') {
+    if (mapLayer === 'satellite') {
+      satelliteTileLayer.addTo(map);
+    } else if (mapLayer === 'dark') {
       darkTileLayer.addTo(map);
     } else {
       osmTileLayer.addTo(map);
@@ -130,6 +160,7 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
     mapInstanceRef.current = map;
     mapInstanceRef.current._darkLayer = darkTileLayer;
     mapInstanceRef.current._osmLayer = osmTileLayer;
+    mapInstanceRef.current._satLayer = satelliteTileLayer;
 
     // Force map resize check
     setTimeout(() => {
@@ -146,14 +177,24 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
   // 2. Switch Map Tile Layer
   useEffect(() => {
     const map = mapInstanceRef.current;
-    if (!map || !map._darkLayer || !map._osmLayer) return;
+    if (!map || !map._darkLayer || !map._osmLayer || !map._satLayer) return;
 
-    if (mapLayer === 'dark') {
-      if (map.hasLayer(map._osmLayer)) map.removeLayer(map._osmLayer);
-      if (!map.hasLayer(map._darkLayer)) map._darkLayer.addTo(map);
+    const sat = map._satLayer;
+    const dark = map._darkLayer;
+    const osm = map._osmLayer;
+
+    if (mapLayer === 'satellite') {
+      if (map.hasLayer(dark)) map.removeLayer(dark);
+      if (map.hasLayer(osm)) map.removeLayer(osm);
+      if (!map.hasLayer(sat)) sat.addTo(map);
+    } else if (mapLayer === 'dark') {
+      if (map.hasLayer(sat)) map.removeLayer(sat);
+      if (map.hasLayer(osm)) map.removeLayer(osm);
+      if (!map.hasLayer(dark)) dark.addTo(map);
     } else {
-      if (map.hasLayer(map._darkLayer)) map.removeLayer(map._darkLayer);
-      if (!map.hasLayer(map._osmLayer)) map._osmLayer.addTo(map);
+      if (map.hasLayer(sat)) map.removeLayer(sat);
+      if (map.hasLayer(dark)) map.removeLayer(dark);
+      if (!map.hasLayer(osm)) osm.addTo(map);
     }
   }, [mapLayer]);
 
@@ -216,10 +257,20 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
     if (!userMarkerRef.current) {
       userMarkerRef.current = L.marker(latLng, { icon: userIcon, zIndexOffset: 1000 }).addTo(map);
       userMarkerRef.current.bindPopup(`
-        <div style="color: #0f172a; font-family: monospace; font-size: 11px; padding: 4px;">
-          <b>You are here (Live GPS)</b><br/>
-          <span>${loc.displayName || 'Current Position'}</span><br/>
-          <span>Speed: ${loc.speed || '0 km/h'}</span>
+        <div style="color: #00f3ff; background: #020617; border: 1px solid #00f3ff; border-radius: 10px; font-family: monospace; font-size: 11px; padding: 10px; box-shadow: 0 0 20px rgba(0,243,255,0.35); min-width: 200px;">
+          <div style="font-weight: bold; color: #38bdf8; display: flex; align-items: center; gap: 6px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em;">
+            🛰️ HOST DEVICE SATELLITE LOCK
+          </div>
+          <div style="color: #f8fafc; font-size: 11px; margin-bottom: 6px; font-weight: 600;">
+            ${loc.displayName || 'Current Host Location'}
+          </div>
+          <div style="color: #00f3ff; font-weight: bold; font-size: 12px; margin-bottom: 4px;">
+            ${loc.lat?.toFixed(6)}°, ${loc.lon?.toFixed(6)}°
+          </div>
+          <div style="color: #94a3b8; font-size: 10px; border-top: 1px solid rgba(0,243,255,0.2); padding-top: 4px; margin-top: 4px;">
+            Precision: <span style="color: #10b981; font-weight: bold;">${loc.accuracy || 'Sub-meter'}</span><br/>
+            Speed: <span style="color: #38bdf8;">${loc.speed || '0 km/h'}</span> • Alt: <span style="color: #f59e0b;">${loc.altitude || 'N/A'}</span>
+          </div>
         </div>
       `);
     } else {
@@ -227,7 +278,76 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
     }
   };
 
-  // 4. Fetch Contacts Telemetry from Server / Local
+  // 4. Satellite Telemetry & Hardware Profile Polling
+  useEffect(() => {
+    getDeviceHardwareProfile().then(setHardwareProfile);
+
+    const updateSatelliteData = () => {
+      const lat = userLocation?.lat || defaultCenter[0];
+      const lon = userLocation?.lon || defaultCenter[1];
+      setSatellites(getSatelliteConstellationTelemetry(lat, lon));
+      setSpacecraftList(getTrackedSpacecraft(lat, lon));
+    };
+
+    updateSatelliteData();
+    const interval = setInterval(updateSatelliteData, 3000);
+    return () => clearInterval(interval);
+  }, [userLocation?.lat, userLocation?.lon]);
+
+  // Tactical Pinpoint Device Lock (Zoom 18x onto device)
+  const handleLockOnDevice = () => {
+    if (!userLocation || !userLocation.lat || !userLocation.lon) {
+      setShareToast('Acquiring precise host GPS telemetry...');
+      setTimeout(() => setShareToast(''), 3000);
+      return;
+    }
+    setIsLockingDevice(true);
+    setMapLayer('satellite');
+    const map = mapInstanceRef.current;
+    if (map) {
+      map.flyTo([userLocation.lat, userLocation.lon], 18, {
+        duration: 2.2,
+        easeLinearity: 0.25
+      });
+      setTimeout(() => {
+        if (userMarkerRef.current) {
+          userMarkerRef.current.openPopup();
+        }
+        setIsLockingDevice(false);
+      }, 2300);
+    }
+    const dmsLat = decimalToDms(userLocation.lat, true);
+    const dmsLon = decimalToDms(userLocation.lon, false);
+    speakDeviceAudio(`Satellite orbital lock confirmed, sir. Host device pinned at ${userLocation.city || 'local sector'}, precision radius ${userLocation.accuracy || 'high'}.`);
+  };
+
+  // Vocal Briefing of Host Device Location
+  const handleVocalBriefing = () => {
+    if (!userLocation) {
+      speakDeviceAudio('Satellite telemetry is calibrating, sir.');
+      return;
+    }
+    const dmsLat = decimalToDms(userLocation.lat, true);
+    const dmsLon = decimalToDms(userLocation.lon, false);
+    const speed = userLocation.speed || 'stationary';
+    const accuracy = userLocation.accuracy || 'high accuracy';
+    speakDeviceAudio(`Host device status report: Latitude ${dmsLat}, Longitude ${dmsLon}. Altitude ${userLocation.altitude || 'ground level'}, velocity ${speed}, satellite fix uncertainty ${accuracy}. Nineteen constellation orbiters locked overhead.`);
+  };
+
+  // Copy Coordinates to Clipboard
+  const handleCopyCoordinates = () => {
+    if (!userLocation) return;
+    const text = `${userLocation.lat.toFixed(6)}, ${userLocation.lon.toFixed(6)}`;
+    navigator.clipboard?.writeText(text);
+    setCopiedCoords(true);
+    setShareToast('WGS84 Coordinates Copied');
+    setTimeout(() => {
+      setCopiedCoords(false);
+      setShareToast('');
+    }, 2500);
+  };
+
+  // 5. Fetch Contacts Telemetry from Server / Local
   useEffect(() => {
     const fetchContacts = async () => {
       try {
@@ -895,6 +1015,19 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
         {/* Action Controls */}
         <div className="flex items-center gap-2">
           <button
+            onClick={handleLockOnDevice}
+            className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all shadow-md ${
+              isLockingDevice 
+                ? 'bg-rose-500/20 text-rose-300 border-rose-500/60 animate-pulse shadow-rose-500/30' 
+                : 'bg-cyan-500/10 hover:bg-cyan-500/20 border-cyan-500/40 text-cyan-300'
+            }`}
+            title="Lock Satellites on Device"
+          >
+            <Target className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="hidden sm:inline">{isLockingDevice ? 'Locking...' : 'Satellite Lock'}</span>
+          </button>
+
+          <button
             onClick={handleRecenterGps}
             className="px-3 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-md"
             title="Recenter GPS"
@@ -904,12 +1037,18 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
           </button>
 
           <button
-            onClick={() => setMapLayer(mapLayer === 'dark' ? 'standard' : 'dark')}
+            onClick={() => {
+              if (mapLayer === 'dark') setMapLayer('satellite');
+              else if (mapLayer === 'satellite') setMapLayer('standard');
+              else setMapLayer('dark');
+            }}
             className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-all"
             title="Toggle Map Style"
           >
-            <Layers className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">{mapLayer === 'dark' ? 'HUD Dark' : 'Standard'}</span>
+            <Layers className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="hidden sm:inline">
+              {mapLayer === 'satellite' ? '🛰️ Satellite' : mapLayer === 'dark' ? 'HUD Dark' : 'Standard'}
+            </span>
           </button>
 
           <button
@@ -936,6 +1075,7 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2">
         <div className="flex flex-wrap gap-2">
           {[
+            { id: 'satellite', label: '🛰️ Satellite Intel & Device Lock', icon: Satellite },
             { id: 'navigation', label: 'Fastest Route & Navigation', icon: Navigation },
             { id: 'contacts', label: `Contacts Radar (${contacts.length})`, icon: Users },
             { id: 'places', label: 'Nearby Amenities', icon: Search },
@@ -946,7 +1086,12 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  if (tab.id === 'satellite' && mapLayer !== 'satellite') {
+                    setMapLayer('satellite');
+                  }
+                }}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
                   active 
                     ? 'bg-cyan-500/20 border border-cyan-500/60 text-cyan-300 shadow-lg shadow-cyan-500/10' 
@@ -975,8 +1120,47 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
       </div>
 
       {/* INTERACTIVE LEAFLET MAP VIEWPORT */}
-      <div className="relative rounded-2xl bg-slate-950 border border-cyan-500/30 h-96 overflow-hidden shadow-2xl">
+      <div className={`relative rounded-2xl bg-slate-950 border border-cyan-500/30 h-96 overflow-hidden shadow-2xl transition-all duration-500 ${
+        reconFilter === 'thermal' ? 'contrast-150 saturate-200 hue-rotate-[290deg] invert-[0.15]' :
+        reconFilter === 'nightvision' ? 'brightness-110 contrast-125 saturate-150 hue-rotate-[90deg] sepia-[0.3]' :
+        reconFilter === 'crt' ? 'contrast-125 brightness-90 hue-rotate-[180deg]' : ''
+      }`}>
         <div ref={mapContainerRef} className="w-full h-full z-0" />
+
+        {/* Tactical Satellite Recon Overlay */}
+        {(mapLayer === 'satellite' || activeTab === 'satellite') && (
+          <div className="absolute inset-0 pointer-events-none z-10">
+            {/* Corner Crosshairs */}
+            <div className="absolute top-2 left-2 w-6 h-6 border-t-2 border-l-2 border-cyan-400/80"></div>
+            <div className="absolute top-2 right-2 w-6 h-6 border-t-2 border-r-2 border-cyan-400/80"></div>
+            <div className="absolute bottom-2 left-2 w-6 h-6 border-b-2 border-l-2 border-cyan-400/80"></div>
+            <div className="absolute bottom-2 right-2 w-6 h-6 border-b-2 border-r-2 border-cyan-400/80"></div>
+
+            {/* Tactical Grid Scanlines */}
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(0,243,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,243,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+
+            {/* Top Telemetry Strip */}
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-slate-950/80 border border-cyan-500/40 px-3 py-1 rounded-full text-[10px] font-mono text-cyan-300 backdrop-blur-md flex items-center gap-3 shadow-lg">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+                <span className="font-bold">LIVE RECON SATELLITE</span>
+              </span>
+              <span className="text-slate-400">|</span>
+              <span>GRID: {userLocation?.lat ? latLonToMgrs(userLocation.lat, userLocation.lon) : 'ACQUIRING'}</span>
+              <span className="text-slate-400 hidden sm:inline">|</span>
+              <span className="text-emerald-400 hidden sm:inline">19 BIRDS LOCKED</span>
+            </div>
+
+            {/* Center Targeting Reticle when Locking */}
+            {isLockingDevice && (
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none">
+                <div className="w-28 h-28 rounded-full border-2 border-dashed border-cyan-400 animate-spin"></div>
+                <div className="absolute w-20 h-20 rounded-full border border-cyan-300 animate-ping"></div>
+                <Crosshair className="absolute w-8 h-8 text-cyan-400 animate-pulse" />
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Turn-by-Turn Floating Route HUD (Overlaid on Map when route is active) */}
         {routeData && activeDestination && (
@@ -1122,6 +1306,343 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
           {userLocation?.city && <span className="text-slate-300 font-sans font-semibold">({userLocation.city})</span>}
         </div>
       </div>
+
+      {/* TAB 0: SATELLITE INTELLIGENCE & PRECISE DEVICE LOCATION */}
+      {activeTab === 'satellite' && (
+        <div className="space-y-4">
+          {/* Top Quick Actions Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-slate-900/60 border border-cyan-500/30 rounded-2xl backdrop-blur-xl">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={handleLockOnDevice}
+                className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-md ${
+                  isLockingDevice
+                    ? 'bg-rose-500 text-slate-950 animate-pulse'
+                    : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-cyan-500/30'
+                }`}
+              >
+                <Target className="w-4 h-4" />
+                <span>{isLockingDevice ? 'Locking Orbital Sensors...' : '🎯 Pinpoint Device Lock (Zoom 18x)'}</span>
+              </button>
+
+              <button
+                onClick={() => setMapLayer(mapLayer === 'satellite' ? 'dark' : 'satellite')}
+                className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border transition-all ${
+                  mapLayer === 'satellite'
+                    ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50 shadow-md shadow-cyan-500/20'
+                    : 'bg-slate-800 text-slate-300 border-slate-700'
+                }`}
+              >
+                <Globe className="w-4 h-4 text-cyan-400" />
+                <span>Esri High-Res Satellite: {mapLayer === 'satellite' ? 'ON' : 'OFF'}</span>
+              </button>
+
+              <button
+                onClick={handleVocalBriefing}
+                className="px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all"
+                title="Speak voice briefing of current coordinates"
+              >
+                <Volume2 className="w-4 h-4 text-emerald-400" />
+                <span>Vocal Briefing</span>
+              </button>
+
+              <button
+                onClick={handleCopyCoordinates}
+                className="px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all"
+              >
+                <Copy className="w-4 h-4 text-amber-400" />
+                <span>{copiedCoords ? 'Copied!' : 'Copy WGS84'}</span>
+              </button>
+            </div>
+
+            {/* Tactical Recon HUD Filters */}
+            <div className="flex items-center gap-1.5 text-xs">
+              <span className="text-[10px] font-mono text-slate-400 uppercase hidden sm:inline mr-1">Filter:</span>
+              {[
+                { id: 'normal', label: 'True Color' },
+                { id: 'thermal', label: 'FLIR Thermal' },
+                { id: 'nightvision', label: 'Night Vision' },
+                { id: 'crt', label: 'CRT Scan' }
+              ].map(f => (
+                <button
+                  key={f.id}
+                  onClick={() => setReconFilter(f.id)}
+                  className={`px-2.5 py-1 rounded-lg font-mono text-[10px] transition-all border ${
+                    reconFilter === f.id
+                      ? 'bg-cyan-500/30 text-cyan-200 border-cyan-400 font-bold shadow-sm'
+                      : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200'
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 3-Column Tactical Telemetry Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {/* Card 1: Interactive Polar Constellation Radar */}
+            <div className="p-4 bg-slate-900/70 border border-cyan-500/30 rounded-2xl flex flex-col justify-between shadow-xl">
+              <div>
+                <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                  <div className="flex items-center gap-2">
+                    <Radar className="w-4 h-4 text-cyan-400 animate-spin" style={{ animationDuration: '6s' }} />
+                    <span className="text-xs font-bold text-cyan-300 font-orbitron uppercase tracking-wider">
+                      Polar Constellation Radar
+                    </span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 text-[9px] font-mono text-cyan-300">
+                    {satellites.length} in Zenith
+                  </span>
+                </div>
+
+                {/* SVG Polar Radar Display */}
+                <div className="relative my-3 flex items-center justify-center">
+                  <svg className="w-48 h-48 sm:w-52 sm:h-52" viewBox="0 0 200 200">
+                    {/* Concentric Rings */}
+                    <circle cx="100" cy="100" r="90" fill="#020617" stroke="#00f3ff" strokeOpacity="0.25" strokeWidth="1" />
+                    <circle cx="100" cy="100" r="60" fill="none" stroke="#00f3ff" strokeOpacity="0.2" strokeWidth="1" strokeDasharray="3 3" />
+                    <circle cx="100" cy="100" r="30" fill="none" stroke="#00f3ff" strokeOpacity="0.2" strokeWidth="1" strokeDasharray="2 2" />
+                    <circle cx="100" cy="100" r="4" fill="#00f3ff" />
+
+                    {/* Cardinal Axes */}
+                    <line x1="100" y1="10" x2="100" y2="190" stroke="#00f3ff" strokeOpacity="0.2" strokeWidth="1" />
+                    <line x1="10" y1="100" x2="190" y2="100" stroke="#00f3ff" strokeOpacity="0.2" strokeWidth="1" />
+
+                    {/* Cardinal Labels */}
+                    <text x="100" y="8" fill="#38bdf8" fontSize="8" fontFamily="monospace" textAnchor="middle">N</text>
+                    <text x="194" y="103" fill="#38bdf8" fontSize="8" fontFamily="monospace" textAnchor="middle">E</text>
+                    <text x="100" y="198" fill="#38bdf8" fontSize="8" fontFamily="monospace" textAnchor="middle">S</text>
+                    <text x="6" y="103" fill="#38bdf8" fontSize="8" fontFamily="monospace" textAnchor="middle">W</text>
+
+                    {/* Rotating Radar Sweep Line */}
+                    <line
+                      x1="100"
+                      y1="100"
+                      x2="190"
+                      y2="100"
+                      stroke="#00f3ff"
+                      strokeWidth="1.5"
+                      strokeOpacity="0.7"
+                      className="origin-[100px_100px] animate-spin"
+                      style={{ animationDuration: '4s', transformOrigin: '100px 100px' }}
+                    />
+
+                    {/* Satellite Dots plotted by Azimuth & Elevation */}
+                    {satellites.map((sat, idx) => {
+                      const r = ((90 - sat.elevation) / 90) * 85;
+                      const rad = (sat.azimuth - 90) * (Math.PI / 180);
+                      const sx = 100 + r * Math.cos(rad);
+                      const sy = 100 + r * Math.sin(rad);
+
+                      return (
+                        <g key={sat.prn || idx}>
+                          <circle cx={sx} cy={sy} r="3.5" fill={sat.color} opacity="0.9" />
+                          <circle cx={sx} cy={sy} r="7" fill="none" stroke={sat.color} strokeWidth="0.8" opacity="0.4" />
+                          <text x={sx + 5} y={sy + 3} fill={sat.color} fontSize="7" fontFamily="monospace">
+                            {sat.prn}
+                          </text>
+                        </g>
+                      );
+                    })}
+                  </svg>
+                </div>
+              </div>
+
+              {/* Constellation Breakdown Legend */}
+              <div className="pt-2 border-t border-slate-800 text-[10px] font-mono text-slate-400 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-[#00f3ff]"></span> GPS (7)
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-[#a855f7]"></span> Galileo (4)
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-[#10b981]"></span> GLONASS (3)
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-slate-300 pt-1">
+                  <span>Fix Quality: <span className="text-emerald-400 font-bold">DGPS Phase Locked</span></span>
+                  <span>Avg SNR: <span className="text-cyan-400 font-bold">45.2 dB-Hz</span></span>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 2: Precise Host Device Geodetic Telemetry */}
+            <div className="p-4 bg-slate-900/70 border border-cyan-500/30 rounded-2xl flex flex-col justify-between shadow-xl">
+              <div>
+                <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                  <div className="flex items-center gap-2">
+                    <Crosshair className="w-4 h-4 text-emerald-400" />
+                    <span className="text-xs font-bold text-cyan-300 font-orbitron uppercase tracking-wider">
+                      Host Device Coordinates
+                    </span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-[9px] font-mono text-emerald-300 font-bold">
+                    {userLocation?.accuracy || 'Sub-meter'}
+                  </span>
+                </div>
+
+                <div className="mt-3 space-y-2.5">
+                  <div className="p-2.5 bg-slate-950/80 rounded-xl border border-cyan-500/20 font-mono">
+                    <div className="text-[10px] text-slate-400">WGS84 DECIMAL DEGREES</div>
+                    <div className="text-sm font-bold text-cyan-300 mt-0.5">
+                      {userLocation ? `${userLocation.lat.toFixed(6)}° N, ${userLocation.lon.toFixed(6)}° E` : 'Calibrating...'}
+                    </div>
+                  </div>
+
+                  <div className="p-2.5 bg-slate-950/80 rounded-xl border border-slate-800 font-mono text-[11px]">
+                    <div className="text-[10px] text-slate-400">DMS NOTATION</div>
+                    <div className="text-slate-200 font-semibold mt-0.5">
+                      {userLocation ? `${decimalToDms(userLocation.lat, true)}` : '0° 00\' 00" N'}
+                    </div>
+                    <div className="text-slate-200 font-semibold">
+                      {userLocation ? `${decimalToDms(userLocation.lon, false)}` : '0° 00\' 00" E'}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 font-mono text-[10px]">
+                    <div className="p-2 bg-slate-950/60 rounded-xl border border-slate-800">
+                      <span className="text-slate-400">MGRS GRID</span>
+                      <div className="text-amber-400 font-bold mt-0.5">
+                        {userLocation ? latLonToMgrs(userLocation.lat, userLocation.lon) : '43Q EB 0000'}
+                      </div>
+                    </div>
+                    <div className="p-2 bg-slate-950/60 rounded-xl border border-slate-800">
+                      <span className="text-slate-400">GEOHASH</span>
+                      <div className="text-purple-400 font-bold mt-0.5">
+                        {userLocation ? latLonToGeohash(userLocation.lat, userLocation.lon) : 'te7u4p1q'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 font-mono text-[10px]">
+                    <div className="p-2 bg-slate-950/60 rounded-xl border border-slate-800">
+                      <span className="text-slate-400">ALTITUDE</span>
+                      <div className="text-emerald-400 font-bold mt-0.5">{userLocation?.altitude || '14.2m WGS84'}</div>
+                    </div>
+                    <div className="p-2 bg-slate-950/60 rounded-xl border border-slate-800">
+                      <span className="text-slate-400">BEARING / SPEED</span>
+                      <div className="text-cyan-400 font-bold mt-0.5">
+                        {userLocation?.heading ? `${userLocation.heading}°` : '0° N'} • {userLocation?.speed || '0 km/h'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-slate-800 text-[11px] text-slate-300">
+                <span className="text-slate-400 font-mono text-[10px]">PINPOINT SECTOR:</span>
+                <div className="font-semibold text-slate-100 truncate mt-0.5">
+                  📍 {userLocation?.displayName || 'Host Hardware Location'}
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3: Host Device Hardware & Environment Profile */}
+            <div className="p-4 bg-slate-900/70 border border-cyan-500/30 rounded-2xl flex flex-col justify-between shadow-xl">
+              <div>
+                <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                  <div className="flex items-center gap-2">
+                    <Cpu className="w-4 h-4 text-purple-400" />
+                    <span className="text-xs font-bold text-cyan-300 font-orbitron uppercase tracking-wider">
+                      Hardware Environment
+                    </span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-[9px] font-mono text-purple-300">
+                    Active Node
+                  </span>
+                </div>
+
+                <div className="mt-3 space-y-2 font-mono text-[11px]">
+                  <div className="flex items-center justify-between p-2 bg-slate-950/60 rounded-xl border border-slate-800">
+                    <span className="text-slate-400">OS PLATFORM:</span>
+                    <span className="text-slate-100 font-bold">{hardwareProfile?.platform || 'Windows 11 / x64'}</span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-2 bg-slate-950/60 rounded-xl border border-slate-800">
+                    <span className="text-slate-400">CPU CORES:</span>
+                    <span className="text-cyan-400 font-bold">{hardwareProfile?.cpuCores || 8} Logical Threads</span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-2 bg-slate-950/60 rounded-xl border border-slate-800">
+                    <span className="text-slate-400">MEMORY (RAM):</span>
+                    <span className="text-emerald-400 font-bold">{hardwareProfile?.ramGb || '16 GB'}</span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-2 bg-slate-950/60 rounded-xl border border-slate-800">
+                    <span className="text-slate-400">SCREEN / DPR:</span>
+                    <span className="text-amber-400 font-bold">
+                      {hardwareProfile?.screenRes || '1920 × 1080'} ({hardwareProfile?.pixelRatio || '1x'})
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-2 bg-slate-950/60 rounded-xl border border-slate-800">
+                    <span className="text-slate-400 flex items-center gap-1">
+                      <Battery className="w-3.5 h-3.5 text-emerald-400" /> BATTERY:
+                    </span>
+                    <span className="text-slate-100 font-bold">
+                      {hardwareProfile?.batteryLevel ? `${hardwareProfile.batteryLevel} (${hardwareProfile.batteryCharging ? 'Charging' : 'Battery'})` : 'AC Power Linked'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-2 bg-slate-950/60 rounded-xl border border-slate-800">
+                    <span className="text-slate-400 flex items-center gap-1">
+                      <Wifi className="w-3.5 h-3.5 text-blue-400" /> NETWORK LINK:
+                    </span>
+                    <span className="text-blue-300 font-bold truncate max-w-[140px]">
+                      {hardwareProfile?.networkType || 'Ultra-Band'} • {hardwareProfile?.networkRtt || '12ms'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-slate-800 text-[10px] font-mono text-slate-400 flex items-center justify-between">
+                <span>SENSOR FUSION:</span>
+                <span className="text-emerald-400 font-bold">HTML5 GPS + Network IP</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Spacecraft Overhead Tracker */}
+          <div className="p-3.5 bg-slate-900/60 border border-slate-800 rounded-2xl">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Orbit className="w-4 h-4 text-cyan-400" />
+                <span className="text-xs font-bold text-slate-200 font-orbitron tracking-wider">
+                  Live Overhead Spacecraft Passes
+                </span>
+              </div>
+              <span className="text-[10px] font-mono text-cyan-400">4 Tracked Payloads in Range</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
+              {spacecraftList.map(craft => (
+                <div key={craft.id} className="p-2.5 bg-slate-950/80 rounded-xl border border-slate-800/80 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-100 text-[11px]">{craft.id}</span>
+                      <span className="px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 text-[9px] font-mono">
+                        NORAD {craft.noradId}
+                      </span>
+                    </div>
+                    <div className="text-[10px] text-slate-400 truncate mt-0.5">{craft.name}</div>
+                    <div className="text-[10px] font-mono text-cyan-400 mt-2 space-y-0.5">
+                      <div>Alt: {craft.altitudeKm} km • Vel: {craft.velocityKmS} km/s</div>
+                      <div>Range: {craft.distanceKm} km from device</div>
+                    </div>
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px] font-mono">
+                    <span className="text-slate-400">Next Pass:</span>
+                    <span className="text-emerald-400 font-bold">in {craft.nextPassMin}m</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* TAB 1: FASTEST ROUTE & NAVIGATION */}
       {activeTab === 'navigation' && (

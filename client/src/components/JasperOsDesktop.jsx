@@ -41,12 +41,14 @@ import JasperCalculatorApp from './JasperCalculatorApp';
 import JasperAgentHubWidget from './JasperAgentHubWidget';
 import BlenderStudioModal from './BlenderStudioModal';
 import HolographicAnswerModal from './HolographicAnswerModal';
-import { Calculator, FileCode, Compass, MessageSquare } from 'lucide-react';
+import PhoneSentinelWidget from './PhoneSentinelWidget';
+import { Calculator, FileCode, Compass, MessageSquare, ShieldAlert } from 'lucide-react';
 
 /**
  * ALL NATIVE JASPER OS APPLICATIONS REGISTRY (30 NATIVE APPS)
  */
 const JASPER_OS_APPS_REGISTRY = [
+  { id: 'phoneSentinel', title: 'Phone Sentinel & Offline Alerts', category: 'Hardware Control', icon: ShieldAlert, component: PhoneSentinelWidget, defaultSize: { w: 760, h: 580 } },
   { id: 'agentHub', title: 'JASPER AI Agent Hub', category: 'AI & Intelligence', icon: Brain, component: JasperAgentHubWidget, defaultSize: { w: 920, h: 640 } },
   { id: 'socialAutoReply', title: 'WhatsApp & IG Auto-Reply App', category: 'Hardware Control', icon: MessageSquare, component: SocialAutoReplyWidget, defaultSize: { w: 720, h: 540 } },
   { id: 'jasperBrowser', title: 'JASPER Browser App', category: 'Productivity & Tools', icon: Compass, component: JasperBrowserApp, defaultSize: { w: 820, h: 580 } },
@@ -76,6 +78,7 @@ const JASPER_OS_APPS_REGISTRY = [
   { id: 'missionControl', title: 'Mission Control OS Hub App', category: 'System & Hardware', icon: Layout, component: MissionControlWidget, defaultSize: { w: 700, h: 540 } },
   { id: 'sportsHub', title: 'Sports & Live Score App', category: 'Media & Life', icon: Trophy, component: SportsHubWidget, defaultSize: { w: 580, h: 480 } },
   { id: 'maps', title: 'Spatial Maps & GPS App', category: 'Productivity & Tools', icon: MapPin, component: MapsWidget, defaultSize: { w: 660, h: 500 } },
+  { id: 'satelliteIntel', title: 'Orbital Satellite Intelligence & GPS', category: 'Productivity & Tools', icon: Radio, component: (props) => <MapsWidget {...props} initialTab="satellite" />, defaultSize: { w: 720, h: 540 } },
   { id: 'healthHub', title: 'Health & Fitband Tracker App', category: 'Media & Life', icon: Heart, component: HealthFitbandWidget, defaultSize: { w: 580, h: 500 } },
   { id: 'liveTranslation', title: 'Universal Live Translator App', category: 'Productivity & Tools', icon: Languages, component: LiveTranslationWidget, defaultSize: { w: 600, h: 500 } },
   { id: 'userManual', title: 'JASPER OS Master Guide App', category: 'Productivity & Tools', icon: BookOpen, component: UserManualWidget, defaultSize: { w: 640, h: 520 } }
