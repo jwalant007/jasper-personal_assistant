@@ -304,6 +304,36 @@ html, body, .overflow-y-auto, .overflow-auto {
   background: var(--neon-cyan);
 }
 
+/* Cybernetic OS Desktop Screen Scrollbar */
+.os-screen-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(245, 197, 66, 0.7) rgba(15, 15, 15, 0.85);
+}
+
+.os-screen-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.os-screen-scrollbar::-webkit-scrollbar-track {
+  background: rgba(10, 10, 10, 0.85);
+  border-left: 1px solid rgba(245, 197, 66, 0.15);
+}
+
+.os-screen-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(245, 197, 66, 0.65), rgba(255, 153, 0, 0.85));
+  border-radius: 9999px;
+  border: 1px solid rgba(245, 197, 66, 0.5);
+  box-shadow: 0 0 12px rgba(245, 197, 66, 0.4);
+  transition: all 0.2s ease;
+}
+
+.os-screen-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #ffd700, #ff9900);
+  box-shadow: 0 0 18px rgba(255, 215, 0, 0.9);
+  border-color: #ffe066;
+}
+
 /* Hologram Scanning Line Anim */
 @keyframes scan-line {
   0% { transform: translateX(-100%); }

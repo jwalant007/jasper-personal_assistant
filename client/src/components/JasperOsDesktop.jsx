@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Box, Terminal, Tv, Cpu, Shield, Sparkles, Smartphone, Monitor, Globe, 
   Activity, X, Minus, Square, Maximize2, RefreshCw, Layout, Layers, Volume2, 
@@ -207,20 +207,20 @@ function OsWindow({
   if (isMinimized) return null;
 
   const windowStyle = isMaximized ? {
-    top: '48px',
+    top: '0px',
     left: '0px',
-    width: '100vw',
-    height: 'calc(100vh - 105px)',
-    maxWidth: '100vw',
-    maxHeight: '100vh',
+    width: '100%',
+    height: '100%',
+    maxWidth: '100%',
+    maxHeight: '100%',
     zIndex: zIndex + 10
   } : {
     top: `${Math.max(0, pos.y)}px`,
     left: `${pos.x}px`,
     width: `${Math.min(size.w, (typeof window !== 'undefined' ? window.innerWidth - 16 : 800))}px`,
-    height: `${Math.min(size.h, (typeof window !== 'undefined' ? Math.max(200, window.innerHeight - pos.y - 70) : 600))}px`,
+    height: `${Math.min(size.h, (typeof window !== 'undefined' ? Math.max(200, window.innerHeight - pos.y - 110) : 600))}px`,
     maxWidth: 'calc(100vw - 16px)',
-    maxHeight: `calc(100vh - ${Math.max(0, pos.y)}px - 70px)`,
+    maxHeight: `calc(100vh - ${Math.max(0, pos.y)}px - 110px)`,
     zIndex
   };
 
@@ -353,6 +353,57 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
   const gestureTrackerRef = useRef(null);
   const windowBodyRefs = useRef({});
 
+  // OS Desktop Screen Scroll State & Controls
+  const desktopScrollRef = useRef(null);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [canScrollDown, setCanScrollDown] = useState(false);
+  const [canScrollUp, setCanScrollUp] = useState(false);
+  const [hasOverflow, setHasOverflow] = useState(false);
+
+  const checkScroll = useCallback(() => {
+    const el = desktopScrollRef.current;
+    if (!el) return;
+    const { scrollTop, scrollHeight, clientHeight } = el;
+    const maxScroll = scrollHeight - clientHeight;
+    setHasOverflow(maxScroll > 15);
+    setCanScrollUp(scrollTop > 15);
+    setCanScrollDown(scrollTop < maxScroll - 15);
+    setScrollProgress(maxScroll > 0 ? Math.min(100, Math.max(0, (scrollTop / maxScroll) * 100)) : 0);
+  }, []);
+
+  useEffect(() => {
+    checkScroll();
+    const handleResize = () => checkScroll();
+    window.addEventListener('resize', handleResize);
+    const t = setTimeout(checkScroll, 150);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(t);
+    };
+  }, [checkScroll, desktopLayoutMode, openWindows]);
+
+  const handleDesktopScroll = () => {
+    checkScroll();
+  };
+
+  const handleScrollDown = () => {
+    const el = desktopScrollRef.current;
+    if (!el) return;
+    el.scrollBy({ top: 280, behavior: 'smooth' });
+  };
+
+  const handleScrollUp = () => {
+    const el = desktopScrollRef.current;
+    if (!el) return;
+    el.scrollBy({ top: -280, behavior: 'smooth' });
+  };
+
+  const handleScrollToEdge = (direction) => {
+    const el = desktopScrollRef.current;
+    if (!el) return;
+    el.scrollTo({ top: direction === 'bottom' ? el.scrollHeight : 0, behavior: 'smooth' });
+  };
+
   const bringToTop = (winId) => {
     const nextZ = topZ + 1;
     setTopZ(nextZ);
@@ -371,6 +422,8 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
             const bodyEl = windowBodyRefs.current[activeFocusedWinId];
             if (bodyEl) {
               bodyEl.scrollBy({ top: dir === 'DOWN' ? amount : -amount, behavior: 'smooth' });
+            } else if (desktopScrollRef.current) {
+              desktopScrollRef.current.scrollBy({ top: dir === 'DOWN' ? amount : -amount, behavior: 'smooth' });
             }
             setGestureFeedback(`AIR SCROLL: ${dir}`);
             playJarvisBeep('click');
@@ -795,10 +848,14 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
         </div>
       )}
 
-      {/* DESKTOP WORKSPACE AREA WITH APP SHORTCUTS GRID AND WINDOWS */}
-      <div className="relative w-full h-[calc(100vh-105px)] top-12 overflow-hidden">
+      {/* DESKTOP WORKSPACE SCROLLABLE AREA (WITH OS SCREEN SCROLLBAR & CONTROLS) */}
+      <div 
+        ref={desktopScrollRef}
+        onScroll={handleDesktopScroll}
+        className="relative w-full h-[calc(100vh-105px)] top-12 overflow-y-auto overflow-x-hidden os-screen-scrollbar scroll-smooth"
+      >
         {/* Native Desktop App Shortcuts: MULTIPLE ROWS & COLUMNS SPREAD MATRIX */}
-        <div className="absolute top-3 left-4 right-4 z-0 pointer-events-auto max-w-[calc(100vw-32px)]">
+        <div className="relative z-0 pointer-events-auto max-w-[calc(100vw-32px)] mx-auto pt-3 px-4 pb-36">
           <div className="flex items-center justify-between mb-2 px-1">
             <div className="flex items-center gap-2">
               <span className="font-orbitron text-xs uppercase tracking-wider text-amber-300 font-bold flex items-center gap-2">
@@ -806,7 +863,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
                 JASPER OS Applications
               </span>
               <span className="text-[10px] font-mono text-neutral-400 bg-neutral-900/90 px-2.5 py-0.5 rounded-full border border-neutral-800">
-                {desktopLayoutMode === 'matrix' ? 'All 35 on Screen (7x5 Matrix)' : '2 Rows Shelf'}
+                {desktopLayoutMode === 'matrix' ? 'All 35 Apps Matrix' : '2 Rows Shelf'} • Scrollable Desktop
               </span>
             </div>
 
@@ -945,32 +1002,127 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
             </div>
           )}
         </div>
+      </div>
 
-        {/* Render Open App Windows */}
+      {/* FLOATING SCROLL DOWN BAR FOR OS SCREEN */}
+      {hasOverflow && (
+        <div className="absolute bottom-[72px] sm:bottom-[76px] left-1/2 -translate-x-1/2 z-40 pointer-events-auto flex items-center gap-2 bg-black/90 border border-amber-400/60 hover:border-amber-300 rounded-full px-3.5 py-1.5 shadow-[0_0_25px_rgba(245,197,66,0.35)] backdrop-blur-xl transition-all duration-300 group">
+          <button
+            onClick={() => handleScrollToEdge(canScrollDown ? 'bottom' : 'top')}
+            className="flex items-center gap-2 text-[11px] font-mono font-bold text-amber-200 group-hover:text-white transition-all cursor-pointer"
+            title={canScrollDown ? "Scroll down to reveal all applications" : "Scroll back to top"}
+          >
+            {canScrollDown ? (
+              <>
+                <ChevronDown className="w-4 h-4 text-amber-400 animate-bounce" />
+                <span>SCROLL DOWN TO VIEW ALL APPS</span>
+              </>
+            ) : (
+              <>
+                <ChevronUp className="w-4 h-4 text-amber-400" />
+                <span>SCROLL BACK TO TOP</span>
+              </>
+            )}
+          </button>
+
+          <div className="h-3 w-px bg-amber-500/40" />
+
+          <div className="flex items-center gap-1">
+            <button
+              onClick={handleScrollUp}
+              disabled={!canScrollUp}
+              className={`p-1 rounded-full transition-all ${
+                canScrollUp ? 'text-amber-300 hover:bg-amber-500/20 cursor-pointer' : 'text-neutral-600 opacity-40 cursor-not-allowed'
+              }`}
+              title="Scroll Up"
+            >
+              <ChevronUp className="w-3 h-3" />
+            </button>
+            <button
+              onClick={handleScrollDown}
+              disabled={!canScrollDown}
+              className={`p-1 rounded-full transition-all ${
+                canScrollDown ? 'text-amber-300 hover:bg-amber-500/20 cursor-pointer' : 'text-neutral-600 opacity-40 cursor-not-allowed'
+              }`}
+              title="Scroll Down"
+            >
+              <ChevronDown className="w-3 h-3" />
+            </button>
+          </div>
+
+          <span className="text-[9px] font-mono text-amber-400/80 font-semibold pl-0.5">
+            {Math.round(scrollProgress)}%
+          </span>
+        </div>
+      )}
+
+      {/* FLOATING RIGHT-SIDE CYBERNETIC SCROLL RAIL */}
+      {hasOverflow && (
+        <div className="absolute right-1 top-16 bottom-24 w-3.5 z-40 hidden md:flex flex-col items-center justify-between pointer-events-auto py-1">
+          <button
+            onClick={() => handleScrollToEdge('top')}
+            className="w-5 h-5 rounded bg-black/90 border border-amber-500/40 text-amber-300 hover:text-white flex items-center justify-center text-[10px] shadow transition-all cursor-pointer hover:border-amber-400"
+            title="Scroll to Top"
+          >
+            <ChevronUp className="w-3 h-3" />
+          </button>
+          
+          {/* Visual Track & Draggable/Clickable Indicator */}
+          <div 
+            onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              const clickRatio = (e.clientY - rect.top) / rect.height;
+              if (desktopScrollRef.current) {
+                const target = clickRatio * (desktopScrollRef.current.scrollHeight - desktopScrollRef.current.clientHeight);
+                desktopScrollRef.current.scrollTo({ top: target, behavior: 'smooth' });
+              }
+            }}
+            className="flex-1 w-1.5 my-1.5 rounded-full bg-black/80 border border-amber-500/30 relative cursor-pointer group shadow-[0_0_8px_rgba(0,0,0,0.8)]"
+            title="Click to jump scroll position"
+          >
+            <div 
+              style={{ top: `${scrollProgress}%` }}
+              className="absolute -left-1 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 border border-amber-300 shadow-[0_0_10px_#ffd700] group-hover:scale-125 transition-transform"
+            />
+          </div>
+
+          <button
+            onClick={() => handleScrollToEdge('bottom')}
+            className="w-5 h-5 rounded bg-black/90 border border-amber-500/40 text-amber-300 hover:text-white flex items-center justify-center text-[10px] shadow transition-all cursor-pointer hover:border-amber-400"
+            title="Scroll to Bottom"
+          >
+            <ChevronDown className="w-3 h-3" />
+          </button>
+        </div>
+      )}
+
+      {/* WINDOW MANAGER VIEWPORT LAYER */}
+      <div className="absolute top-12 left-0 right-0 h-[calc(100vh-105px)] pointer-events-none z-20 overflow-hidden">
         {JASPER_OS_APPS_REGISTRY.map((app) => {
           if (!openWindows[app.id]) return null;
           const AppComponent = app.component;
           const AppIcon = app.icon;
           return (
-            <OsWindow
-              key={app.id}
-              id={app.id}
-              title={app.title}
-              icon={AppIcon}
-              defaultPos={{ x: Math.max(20, Math.min((typeof window !== 'undefined' ? (window.innerWidth - (app.defaultSize?.w || 640)) / 2 : 60) + (JASPER_OS_APPS_REGISTRY.findIndex(a => a.id === app.id) % 5) * 30, (typeof window !== 'undefined' ? window.innerWidth - 300 : 800))), y: Math.max(10, Math.min((typeof window !== 'undefined' ? (window.innerHeight - (app.defaultSize?.h || 480)) / 2 : 50) + (JASPER_OS_APPS_REGISTRY.findIndex(a => a.id === app.id) % 4) * 25, (typeof window !== 'undefined' ? window.innerHeight - 300 : 400))) }}
-              defaultSize={app.defaultSize}
-              zIndex={activeZIndex[app.id] || 5}
-              onFocus={bringToTop}
-              onClose={closeWindow}
-              onMinimize={minimizeWindow}
-              isMinimized={minimizedWindows[app.id]}
-              isMaximizedExternal={maximizedWindows[app.id]}
-              onToggleMaximize={(winId) => setMaximizedWindows(prev => ({ ...prev, [winId]: !prev[winId] }))}
-              isGestureActive={isAirGesturesOn}
-              bodyRef={(el) => { if (el) windowBodyRefs.current[app.id] = el; }}
-            >
-              <AppComponent onLockSystem={onLockSystem} />
-            </OsWindow>
+            <div key={app.id} className="pointer-events-auto">
+              <OsWindow
+                id={app.id}
+                title={app.title}
+                icon={AppIcon}
+                defaultPos={{ x: Math.max(20, Math.min((typeof window !== 'undefined' ? (window.innerWidth - (app.defaultSize?.w || 640)) / 2 : 60) + (JASPER_OS_APPS_REGISTRY.findIndex(a => a.id === app.id) % 5) * 30, (typeof window !== 'undefined' ? window.innerWidth - 300 : 800))), y: Math.max(10, Math.min((typeof window !== 'undefined' ? (window.innerHeight - (app.defaultSize?.h || 480)) / 2 : 50) + (JASPER_OS_APPS_REGISTRY.findIndex(a => a.id === app.id) % 4) * 25, (typeof window !== 'undefined' ? window.innerHeight - 300 : 400))) }}
+                defaultSize={app.defaultSize}
+                zIndex={activeZIndex[app.id] || 5}
+                onFocus={bringToTop}
+                onClose={closeWindow}
+                onMinimize={minimizeWindow}
+                isMinimized={minimizedWindows[app.id]}
+                isMaximizedExternal={maximizedWindows[app.id]}
+                onToggleMaximize={(winId) => setMaximizedWindows(prev => ({ ...prev, [winId]: !prev[winId] }))}
+                isGestureActive={isAirGesturesOn}
+                bodyRef={(el) => { if (el) windowBodyRefs.current[app.id] = el; }}
+              >
+                <AppComponent onLockSystem={onLockSystem} />
+              </OsWindow>
+            </div>
           );
         })}
       </div>
