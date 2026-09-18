@@ -77,8 +77,7 @@ const JASPER_OS_APPS_REGISTRY = [
   { id: 'automation', title: 'Automation Studio App', category: 'Productivity & Tools', icon: Workflow, component: AutomationBuilderWidget, defaultSize: { w: 640, h: 520 } },
   { id: 'missionControl', title: 'Mission Control OS Hub App', category: 'System & Hardware', icon: Layout, component: MissionControlWidget, defaultSize: { w: 700, h: 540 } },
   { id: 'sportsHub', title: 'Sports & Live Score App', category: 'Media & Life', icon: Trophy, component: SportsHubWidget, defaultSize: { w: 580, h: 480 } },
-  { id: 'maps', title: 'Spatial Maps & GPS App', category: 'Productivity & Tools', icon: MapPin, component: MapsWidget, defaultSize: { w: 660, h: 500 } },
-  { id: 'satelliteIntel', title: 'Orbital Satellite Intelligence & GPS', category: 'Productivity & Tools', icon: Radio, component: (props) => <MapsWidget {...props} initialTab="satellite" />, defaultSize: { w: 720, h: 540 } },
+  { id: 'spatialGps', title: 'Spatial GPS & Satellite Intelligence', category: 'Productivity & Tools', icon: Globe, component: (props) => <MapsWidget {...props} initialTab="satellite" />, defaultSize: { w: 760, h: 560 } },
   { id: 'healthHub', title: 'Health & Fitband Tracker App', category: 'Media & Life', icon: Heart, component: HealthFitbandWidget, defaultSize: { w: 580, h: 500 } },
   { id: 'liveTranslation', title: 'Universal Live Translator App', category: 'Productivity & Tools', icon: Languages, component: LiveTranslationWidget, defaultSize: { w: 600, h: 500 } },
   { id: 'userManual', title: 'JASPER OS Master Guide App', category: 'Productivity & Tools', icon: BookOpen, component: UserManualWidget, defaultSize: { w: 640, h: 520 } }
@@ -484,7 +483,8 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
     };
   }, [isAirGesturesOn, activeFocusedWinId, openWindows, minimizedWindows]);
 
-  const launchApp = (appId) => {
+  const launchApp = (rawAppId) => {
+    const appId = (rawAppId === 'maps' || rawAppId === 'satelliteIntel') ? 'spatialGps' : rawAppId;
     if (!openWindows[appId]) {
       setOpenWindows(prev => ({ ...prev, [appId]: true }));
     }
@@ -492,7 +492,8 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
     setShowStartMenu(false);
   };
 
-  const toggleWindow = (winId) => {
+  const toggleWindow = (rawWinId) => {
+    const winId = (rawWinId === 'maps' || rawWinId === 'satelliteIntel') ? 'spatialGps' : rawWinId;
     if (openWindows[winId]) {
       if (minimizedWindows[winId]) {
         bringToTop(winId);

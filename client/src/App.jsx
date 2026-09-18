@@ -1134,12 +1134,12 @@ export default function App() {
       return;
     }
 
-    // Intercept Direct Satellite Intelligence & Location Commands
-    const isSatelliteQuery = /^(show\s+(me\s+)?(the\s+)?|view\s+(the\s+)?|open\s+(the\s+)?)?(satellites?|satellite\s+intelligence|orbital\s+recon|orbital\s+view|precise\s+location|device\s+location|track\s+device)(\s+app)?$/i.test(queryText.trim());
+    // Intercept Direct Spatial GPS & Satellite Intelligence Commands
+    const isSatelliteQuery = /^(show\s+(me\s+)?(the\s+)?|view\s+(the\s+)?|open\s+(the\s+)?)?(spatial\s+gps|spatial\s+maps?|satellites?|satellite\s+intelligence|orbital\s+recon|orbital\s+view|precise\s+location|device\s+location|track\s+device)(\s+app)?$/i.test(queryText.trim());
     if (isSatelliteQuery) {
       setModalData('maps', { initialTab: 'satellite' });
       setShowMaps(true);
-      const response = `Opening Satellite Intelligence & Precise Device Geolocation for you, Sir. High-resolution Esri World Imagery, live constellation tracking, and sub-meter device telemetry are locked.`;
+      const response = `Opening Spatial GPS & Satellite Intelligence for you, Sir. High-resolution Esri World Imagery, live constellation tracking, and sub-meter device telemetry are locked.`;
       const newChat = {
         id: Date.now(),
         query: queryText,
@@ -1161,7 +1161,7 @@ export default function App() {
                              /^(where\s+am\s+i|my\s+location|current\s+location)$/i.test(queryText.trim());
     if (isDirectMapQuery) {
       setShowMaps(true);
-      const response = `Opening Spatial Maps & GPS Navigation for you, Sir. Real-time satellite positioning and turn-by-turn routing are active with zero external API key requirements.`;
+      const response = `Opening Spatial GPS & Satellite Intelligence for you, Sir. Real-time satellite positioning, turn-by-turn routing, and orbital recon are active.`;
       const newChat = {
         id: Date.now(),
         query: queryText,
@@ -1179,13 +1179,17 @@ export default function App() {
     }
 
     // Intercept Voice App Open Commands (e.g. "Jasper open search", "open calculator", "open files", "open whatsapp auto reply", "open blender")
-    const appOpenRegex = /(open|launch|start|show|run)\s+(search|search engine|files|file manager|explorer|code|code studio|terminal|notes|planner|tasks|calculator|calc|tv|tv remote|phone|android|pc|pc hub|pc command|security|biometrics|browser|web agent|sports|satellite|satellite intelligence|orbital|maps?|navigation|health|fitband|translator|translation|manual|guide|whatsapp|instagram|auto reply|call auto|social auto|blender|blender 3d|3d studio)/i;
+    const appOpenRegex = /(open|launch|start|show|run)\s+(search|search engine|files|file manager|explorer|code|code studio|terminal|notes|planner|tasks|calculator|calc|tv|tv remote|phone|android|pc|pc hub|pc command|security|biometrics|browser|web agent|sports|spatial gps|satellite|satellite intelligence|orbital|maps?|navigation|health|fitband|translator|translation|manual|guide|whatsapp|instagram|auto reply|call auto|social auto|blender|blender 3d|3d studio)/i;
     const appMatch = queryText.match(appOpenRegex);
     if (appMatch) {
       const targetApp = appMatch[2].toLowerCase();
       let openedAppName = 'App';
 
-      if (targetApp.includes('satellite') || targetApp.includes('orbital')) { setModalData('maps', { initialTab: 'satellite' }); setShowMaps(true); openedAppName = 'Satellite Intelligence & Device GPS'; }
+      if (targetApp.includes('satellite') || targetApp.includes('orbital') || targetApp.includes('spatial') || targetApp.includes('map') || targetApp.includes('nav') || targetApp.includes('gps')) {
+        setModalData('maps', { initialTab: targetApp.includes('nav') || targetApp.includes('route') ? 'navigation' : 'satellite' });
+        setShowMaps(true);
+        openedAppName = 'Spatial GPS & Satellite Intelligence';
+      }
       else if (targetApp.includes('blender')) { setShowBlenderStudio(true); openedAppName = 'Blender 3D Graphics Studio'; }
       else if (targetApp.includes('search')) { setShowSearchEngine(true); openedAppName = 'JASPER AI Search Engine'; }
       else if (targetApp.includes('whatsapp') || targetApp.includes('instagram') || targetApp.includes('auto reply') || targetApp.includes('social')) { setShowSocialAutoReply(true); openedAppName = 'WhatsApp & Instagram Auto-Reply Hub'; }
@@ -1584,11 +1588,8 @@ export default function App() {
                   <button onClick={() => setShowMissionControl(!showMissionControl)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
                     <LayoutDashboard size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">MISSION CTRL</span>
                   </button>
-                  <button onClick={() => { setModalData('maps', { initialTab: 'satellite' }); setShowMaps(true); }} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-cyan-500/40 bg-cyan-950/20 text-cyan-300 font-bold tracking-normal truncate cursor-pointer">
-                    <Radio size={11} className="text-cyan-400 animate-pulse flex-shrink-0" /> <span className="truncate">SATELLITE INTEL</span>
-                  </button>
-                  <button onClick={() => setShowMaps(!showMaps)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
-                    <MapPin size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">MAPS &amp; GPS</span>
+                  <button onClick={() => { setModalData('maps', { initialTab: 'satellite' }); setShowMaps(!showMaps); }} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-cyan-500/50 bg-gradient-to-r from-cyan-950/40 via-blue-950/30 to-slate-900/60 text-cyan-300 font-bold tracking-normal truncate cursor-pointer shadow-[0_0_12px_rgba(6,182,212,0.2)] hover:border-cyan-400">
+                    <Globe size={11} className="text-cyan-400 animate-pulse flex-shrink-0" /> <span className="truncate">SPATIAL GPS &amp; SATELLITE</span>
                   </button>
                   <button onClick={() => setShowSportsHub(!showSportsHub)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
                     <Trophy size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">SPORTS HUB</span>

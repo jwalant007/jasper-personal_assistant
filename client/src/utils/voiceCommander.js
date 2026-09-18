@@ -132,11 +132,11 @@ export class HolographicVoiceCommander {
       matchedCmd = 'GENERATE_BLENDER';
     } else if (clean.includes('project to hologram') || clean.includes('project model') || clean.includes('beam model') || clean.includes('send to workstation') || clean.includes('holographic projection')) {
       matchedCmd = 'PROJECT_BLENDER';
-    } else if (clean.includes('satellite intelligence') || clean.includes('satellite view') || clean.includes('satellite mode') || clean.includes('orbital recon') || clean.includes('orbital view') || clean.includes('recon satellite') || clean === 'satellite') {
+    } else if (clean.includes('satellite intelligence') || clean.includes('satellite view') || clean.includes('satellite mode') || clean.includes('orbital recon') || clean.includes('orbital view') || clean.includes('recon satellite') || clean === 'satellite' || clean.includes('spatial gps') || clean.includes('spatial map') || clean.includes('spatial intelligence') || clean.includes('satellite and gps') || clean.includes('gps and satellite')) {
       matchedCmd = 'SWITCH_SATELLITE';
-    } else if (clean.includes('device location') || clean.includes('where am i') || clean.includes('precise location') || clean.includes('my location') || clean.includes('track device') || clean.includes('gps location')) {
+    } else if (clean.includes('device location') || clean.includes('where am i') || clean.includes('precise location') || clean.includes('my location') || clean.includes('track device') || clean.includes('gps location') || clean.includes('show location')) {
       matchedCmd = 'DEVICE_LOCATION';
-    } else if (clean.includes('satellite lock') || clean.includes('orbital lock') || clean.includes('lock on device') || clean.includes('pinpoint device')) {
+    } else if (clean.includes('satellite lock') || clean.includes('orbital lock') || clean.includes('lock on device') || clean.includes('pinpoint device') || clean.includes('spatial lock')) {
       matchedCmd = 'SATELLITE_LOCK';
     } else if (clean.includes('phone sentinel') || clean.includes('phone alert') || clean.includes('offline alert') || clean.includes('weather alert') || clean.includes('sentinel mode') || clean.includes('mobile sentinel')) {
       matchedCmd = 'SWITCH_SENTINEL';
