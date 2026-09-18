@@ -220,7 +220,7 @@ const DEFAULT_PRESETS = [
   }
 ];
 
-export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
+export default function HolographicAnswerModal({ onClose, initialQuery = '', initialTab = 'viewport' }) {
   // 1. Two-Part Navigation & Projects State
   const [projects, setProjects] = useState(() => {
     try {
@@ -236,7 +236,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
   const [activeProjectId, setActiveProjectId] = useState('stark_mark85');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('viewport'); // 'viewport' | 'tools' | 'calibration'
+  const [activeTab, setActiveTab] = useState(initialTab || 'viewport'); // 'viewport' | 'blender' | 'tools' | 'calibration'
 
   // 2. 3D Hologram Viewport States
   const [query, setQuery] = useState(initialQuery || '');
@@ -792,14 +792,14 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '' }) {
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-base font-extrabold tracking-wider text-cyan-300 uppercase font-orbitron">
-                J.A.S.P.E.R. 3D Hologram Workstation
+                J.A.S.P.E.R. 3D Hologram &amp; Blender Studio
               </h2>
               <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
                 JARVIS HUD v9.4
               </span>
             </div>
             <p className="text-[11px] text-neutral-400 font-mono flex items-center gap-2">
-              <span>Two-Part Workstation</span> • <span>MediaPipe Air Gestures</span> • <span>AR Camera</span> • <span>Voice Commander</span>
+              <span>Unified 3D Viewport &amp; Blender Studio</span> • <span>Air Gestures</span> • <span>AR Camera</span> • <span>Voice</span>
             </p>
           </div>
         </div>

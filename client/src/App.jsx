@@ -1190,7 +1190,11 @@ export default function App() {
         setShowMaps(true);
         openedAppName = 'Spatial GPS & Satellite Intelligence';
       }
-      else if (targetApp.includes('blender')) { setShowBlenderStudio(true); openedAppName = 'Blender 3D Graphics Studio'; }
+      else if (targetApp.includes('blender') || targetApp.includes('hologram') || targetApp.includes('3d')) { 
+        setModalData('hologram', { initialTab: targetApp.includes('blender') ? 'blender' : 'viewport' }); 
+        setShowHologramModal(true); 
+        openedAppName = '3D Hologram & Blender Studio'; 
+      }
       else if (targetApp.includes('search')) { setShowSearchEngine(true); openedAppName = 'JASPER AI Search Engine'; }
       else if (targetApp.includes('whatsapp') || targetApp.includes('instagram') || targetApp.includes('auto reply') || targetApp.includes('social')) { setShowSocialAutoReply(true); openedAppName = 'WhatsApp & Instagram Auto-Reply Hub'; }
       else if (targetApp.includes('file') || targetApp.includes('explorer')) { setShowFileManager(true); openedAppName = 'JASPER File Explorer'; }
@@ -1576,8 +1580,8 @@ export default function App() {
                   <button onClick={() => setShowLiveTranslation(!showLiveTranslation)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-400/50 bg-neutral-900/60 text-amber-300 font-bold shadow-[0_0_10px_rgba(245,197,66,0.15)] tracking-normal truncate cursor-pointer">
                     <Languages size={11} className="text-amber-400 animate-pulse flex-shrink-0" /> <span className="truncate">TRANSLATE</span>
                   </button>
-                  <button onClick={() => setShowHologramModal(!showHologramModal)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-400/50 bg-neutral-900/60 text-amber-300 font-bold shadow-[0_0_10px_rgba(245,197,66,0.15)] tracking-normal truncate cursor-pointer">
-                    <Box size={11} className="text-amber-400 animate-pulse flex-shrink-0" /> <span className="truncate">3D HOLOGRAM</span>
+                  <button onClick={() => setShowHologramModal(!showHologramModal)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-cyan-500/50 bg-gradient-to-r from-cyan-950/40 via-purple-950/30 to-slate-900/60 text-cyan-300 font-bold shadow-[0_0_10px_rgba(0,229,255,0.2)] hover:border-cyan-400 tracking-normal truncate cursor-pointer">
+                    <Box size={11} className="text-cyan-400 animate-pulse flex-shrink-0" /> <span className="truncate">3D HOLOGRAM &amp; BLENDER</span>
                   </button>
                   <button onClick={() => setShowAgenticActions(!showAgenticActions)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-400/50 bg-neutral-900/60 text-amber-300 font-bold tracking-normal truncate cursor-pointer">
                     <PhoneCall size={11} className="text-amber-400 animate-pulse flex-shrink-0" /> <span className="truncate">AGENTIC ACTIONS</span>
@@ -1623,9 +1627,6 @@ export default function App() {
                   </button>
                   <button onClick={() => setShowSecurity(!showSecurity)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
                     <ShieldCheck size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">SECURITY CTR</span>
-                  </button>
-                  <button onClick={() => setShowBlenderStudio(!showBlenderStudio)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-cyan-500/40 hover:border-cyan-400 bg-cyan-950/20 text-cyan-300 tracking-normal truncate cursor-pointer">
-                    <Box size={11} className="text-cyan-400 flex-shrink-0" /> <span className="truncate">BLENDER 3D</span>
                   </button>
                   <button onClick={() => setShowDiagnostics(!showDiagnostics)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
                     <Cpu size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">DIAGNOSTICS</span>
@@ -3014,11 +3015,12 @@ export default function App() {
         </DraggableModalWrapper>
       )}
 
-      {/* 24. 3D Holographic Visualizer Modal */}
+      {/* 24. 3D Hologram & Blender Studio Modal */}
       {showHologramModal && (
-        <DraggableModalWrapper isOpen={showHologramModal} onClose={() => { setShowHologramModal(false); setHologramQuery(''); }} title="3D Hologram Studio" maxWidth="max-w-6xl">
+        <DraggableModalWrapper isOpen={showHologramModal} onClose={() => { setShowHologramModal(false); setHologramQuery(''); }} title="3D Hologram & Blender Studio" maxWidth="max-w-7xl">
           <HolographicAnswerModal 
             initialQuery={hologramQuery}
+            initialTab={getModalData('hologram')?.initialTab || 'viewport'}
             onClose={() => {
               setShowHologramModal(false);
               setHologramQuery('');
@@ -3032,18 +3034,6 @@ export default function App() {
         <DraggableModalWrapper isOpen={showAgentHub} onClose={() => setShowAgentHub(false)} title="JASPER AI Agent Hub" maxWidth="max-w-6xl">
           <JasperAgentHubWidget onClose={() => setShowAgentHub(false)} />
         </DraggableModalWrapper>
-      )}
-
-      {/* 26. Blender 3D Graphics Studio Modal */}
-      {showBlenderStudio && (
-        <BlenderStudioModal 
-          isOpen={showBlenderStudio} 
-          onClose={() => setShowBlenderStudio(false)} 
-          onProjectToHologram={() => {
-            setShowBlenderStudio(false);
-            setShowHologramModal(true);
-          }}
-        />
       )}
 
 

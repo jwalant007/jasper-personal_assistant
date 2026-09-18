@@ -57,8 +57,7 @@ const JASPER_OS_APPS_REGISTRY = [
   { id: 'codeStudio', title: 'JASPER Code Studio & Terminal App', category: 'Productivity & Tools', icon: FileCode, component: JasperCodeStudioApp, defaultSize: { w: 780, h: 540 } },
   { id: 'notesPlanner', title: 'JASPER AI Notes & Task Planner App', category: 'Productivity & Tools', icon: BookOpen, component: JasperNotesPlannerApp, defaultSize: { w: 720, h: 520 } },
   { id: 'calculator', title: 'JASPER Scientific Calculator App', category: 'Productivity & Tools', icon: Calculator, component: JasperCalculatorApp, defaultSize: { w: 640, h: 500 } },
-  { id: 'hologramStudio', title: '3D Hologram Workstation', category: 'Creative & AI', icon: Box, component: (props) => <HolographicAnswerModal {...props} />, defaultSize: { w: 1040, h: 680 } },
-  { id: 'blenderStudio', title: 'Blender 3D Graphics Studio', category: 'Creative & AI', icon: Box, component: (props) => <BlenderStudioModal {...props} embedded={true} />, defaultSize: { w: 860, h: 600 } },
+  { id: 'hologramStudio', title: '3D Hologram & Blender Studio', category: 'Creative & AI', icon: Box, component: (props) => <HolographicAnswerModal {...props} />, defaultSize: { w: 1040, h: 680 } },
   { id: 'diagnostics', title: 'System Diagnostics & Telemetry App', category: 'System & Hardware', icon: Activity, component: DiagnosticWidget, defaultSize: { w: 450, h: 500 } },
   { id: 'tvRemote', title: 'Videocon d2h STB Controller App', category: 'Hardware Control', icon: Radio, component: TvRemoteWidget, defaultSize: { w: 420, h: 540 } },
   { id: 'pcHub', title: 'PC Command Center App', category: 'Hardware Control', icon: Monitor, component: PcMasterHubWidget, defaultSize: { w: 640, h: 500 } },
@@ -484,7 +483,9 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
   }, [isAirGesturesOn, activeFocusedWinId, openWindows, minimizedWindows]);
 
   const launchApp = (rawAppId) => {
-    const appId = (rawAppId === 'maps' || rawAppId === 'satelliteIntel') ? 'spatialGps' : rawAppId;
+    let appId = rawAppId;
+    if (rawAppId === 'maps' || rawAppId === 'satelliteIntel') appId = 'spatialGps';
+    if (rawAppId === 'blenderStudio') appId = 'hologramStudio';
     if (!openWindows[appId]) {
       setOpenWindows(prev => ({ ...prev, [appId]: true }));
     }
@@ -493,7 +494,9 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
   };
 
   const toggleWindow = (rawWinId) => {
-    const winId = (rawWinId === 'maps' || rawWinId === 'satelliteIntel') ? 'spatialGps' : rawWinId;
+    let winId = rawWinId;
+    if (rawWinId === 'maps' || rawWinId === 'satelliteIntel') winId = 'spatialGps';
+    if (rawWinId === 'blenderStudio') winId = 'hologramStudio';
     if (openWindows[winId]) {
       if (minimizedWindows[winId]) {
         bringToTop(winId);

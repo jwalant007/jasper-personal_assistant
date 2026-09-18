@@ -60,14 +60,14 @@ import {
   getDeviceHardwareProfile 
 } from '../utils/satelliteIntelligence';
 
-export default function MapsWidget({ onClose, initialDestination = '', initialContact = '', initialTab = 'navigation' }) {
+export default function MapsWidget({ onClose, initialDestination = '', initialContact = '', initialTab = 'satellite' }) {
   // Tabs: 'satellite' | 'navigation' | 'contacts' | 'telemetry' | 'places'
-  const [activeTab, setActiveTab] = useState(initialTab === 'satellite' ? 'satellite' : (initialContact ? 'contacts' : 'navigation'));
+  const [activeTab, setActiveTab] = useState(initialTab === 'navigation' ? 'navigation' : (initialContact ? 'contacts' : 'satellite'));
   
   // Live GPS & Satellite Telemetry
   const [userLocation, setUserLocation] = useState(null);
   const [isGpsLocked, setIsGpsLocked] = useState(false);
-  const [mapLayer, setMapLayer] = useState(initialTab === 'satellite' ? 'satellite' : 'dark'); // 'dark' | 'satellite' | 'standard'
+  const [mapLayer, setMapLayer] = useState(initialTab === 'navigation' ? 'dark' : 'satellite'); // 'dark' | 'satellite' | 'standard'
   const [reconFilter, setReconFilter] = useState('normal'); // 'normal' | 'thermal' | 'nightvision' | 'crt'
   const [isLockingDevice, setIsLockingDevice] = useState(false);
   const [hardwareProfile, setHardwareProfile] = useState(null);
@@ -205,10 +205,18 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
     const startTracking = async () => {
       // First get one-shot position
       const initial = await getLocation();
-      if (initial) {
+      if (initial && initial.lat && initial.lon) {
         setUserLocation(initial);
         setIsGpsLocked(true);
         updateUserMarkerOnMap(initial);
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.flyTo([initial.lat, initial.lon], 17, { animate: true, duration: 1.2 });
+          setTimeout(() => {
+            if (userMarkerRef.current) {
+              userMarkerRef.current.openPopup();
+            }
+          }, 650);
+        }
       }
 
       // Then continuous high-precision GPS watcher
@@ -1076,8 +1084,8 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2">
         <div className="flex flex-wrap gap-2">
           {[
-            { id: 'satellite', label: '🛰️ Satellite Recon & Intel', icon: Satellite },
-            { id: 'navigation', label: '🧭 Spatial Route & GPS', icon: Navigation },
+            { id: 'satellite', label: '🛰️ Satellite Intelligence & Precise Location', icon: Satellite },
+            { id: 'navigation', label: '🧭 Spatial GPS Navigation', icon: Navigation },
             { id: 'contacts', label: `📡 Contacts Radar (${contacts.length})`, icon: Users },
             { id: 'places', label: '📍 Nearby Amenities', icon: Search },
             { id: 'telemetry', label: '📊 Live Telemetry', icon: Radio },
@@ -1299,12 +1307,26 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
         )}
 
         {/* Live GPS Telemetry Badge (Bottom-Left) */}
-        <div className="absolute bottom-3 left-3 bg-slate-950/90 border border-cyan-500/40 px-3 py-1.5 rounded-xl text-[11px] font-mono text-cyan-300 shadow-lg z-10 flex items-center gap-2 backdrop-blur-md">
-          <Crosshair className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-          <span>
-            {userLocation ? `${userLocation.lat.toFixed(4)}° N, ${userLocation.lon.toFixed(4)}° E` : 'Calibrating GPS...'}
+        <div className="absolute bottom-3 left-3 bg-slate-950/90 border border-cyan-500/40 px-3.5 py-2 rounded-xl text-[11px] font-mono text-cyan-300 shadow-2xl z-10 flex items-center gap-3 backdrop-blur-md">
+          <div className="flex items-center gap-1.5">
+            <Crosshair className="w-4 h-4 text-emerald-400 animate-pulse" />
+            <span className="font-bold text-slate-100">
+              {userLocation?.lat ? `${userLocation.lat.toFixed(6)}° N, ${userLocation.lon.toFixed(6)}° E` : 'Acquiring Sub-Meter GPS...'}
+            </span>
+          </div>
+          {userLocation?.city && (
+            <span className="text-cyan-400 font-semibold hidden sm:inline">
+              • {userLocation.city}
+            </span>
+          )}
+          {userLocation?.accuracy && (
+            <span className="text-emerald-400 font-bold hidden md:inline">
+              • Acc: {userLocation.accuracy}
+            </span>
+          )}
+          <span className="text-amber-400 font-bold hidden lg:inline">
+            • 🛰️ 19 Birds Locked
           </span>
-          {userLocation?.city && <span className="text-slate-300 font-sans font-semibold">({userLocation.city})</span>}
         </div>
       </div>
 
