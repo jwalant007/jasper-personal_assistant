@@ -76,30 +76,55 @@ export async function sendCloudPushAlert({
   actions = []
 }) {
   const targetTopic = topic || getDefaultSentinelConfig().channelTopic || 'jasper-jwalant-alerts';
-  const url = `https://ntfy.sh/${targetTopic}`;
+  const url = 'https://ntfy.sh';
 
   try {
+    // Convert priority to numeric or string accepted by ntfy
+    const prioMap = { urgent: 5, high: 4, default: 3, low: 2, min: 1 };
+    const numericPriority = typeof priority === 'number' ? priority : (prioMap[priority] || 4);
+
+    const payload = {
+      topic: targetTopic,
+      title: title,
+      message: message || 'JASPER Alert notification delivered to your device.',
+      priority: numericPriority,
+      tags: Array.isArray(tags) ? tags : [tags]
+    };
+
+    if (actions && actions.length > 0) {
+      payload.actions = actions;
+    }
+
     const res = await fetch(url, {
       method: 'POST',
-      body: message,
       headers: {
-        'Title': title,
-        'Priority': priority,
-        'Tags': Array.isArray(tags) ? tags.join(',') : tags,
-        ...(actions.length > 0 ? { 'Actions': JSON.stringify(actions) } : {})
-      }
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
     });
 
     if (res.ok) {
       console.log(`[MobileSentinel] ✓ Cloud push dispatched to ntfy.sh/${targetTopic}: "${title}"`);
       return { success: true, topic: targetTopic };
     } else {
-      console.warn(`[MobileSentinel] Cloud push error ${res.status}: ${await res.text()}`);
-      return { success: false, error: `HTTP ${res.status}` };
+      const errText = await res.text();
+      console.warn(`[MobileSentinel] Cloud push error ${res.status}: ${errText}`);
+      return { success: false, error: `HTTP ${res.status}: ${errText}` };
     }
   } catch (err) {
-    console.error('[MobileSentinel] Cloud push network error:', err);
-    return { success: false, error: err.message };
+    console.error('[MobileSentinel] Direct cloud push error, attempting backend relay:', err);
+    try {
+      // Fallback via local backend server relay
+      const res = await fetch('/api/sentinel/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic: targetTopic, message })
+      });
+      const data = await res.json();
+      return { success: data.success, topic: targetTopic };
+    } catch (relayErr) {
+      return { success: false, error: err.message };
+    }
   }
 }
 

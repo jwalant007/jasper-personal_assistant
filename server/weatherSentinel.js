@@ -31,33 +31,38 @@ function sanitizeHeader(val, fallback = '') {
 
 function sendPushToPhone({
   topic = currentConfig.channelTopic,
-  title = 'JASPER Server Sentinel',
+  title = '🚨 JASPER Server Sentinel',
   message,
   priority = 'urgent',
-  tags = 'warning,thunder_cloud_and_rain'
+  tags = ['warning', 'thunder_cloud_and_rain']
 }) {
   return new Promise((resolve) => {
     try {
-      const payload = Buffer.from(message || 'JASPER Alert', 'utf8');
-      const cleanTitle = sanitizeHeader(title, 'JASPER Alert');
-      const cleanTags = sanitizeHeader(tags, 'warning');
-      const cleanPriority = sanitizeHeader(priority, 'urgent');
+      const prioMap = { urgent: 5, high: 4, default: 3, low: 2, min: 1 };
+      const numericPriority = typeof priority === 'number' ? priority : (prioMap[priority] || 4);
+
+      const payloadObj = {
+        topic: topic || currentConfig.channelTopic || 'jasper-jwalant-alerts',
+        title: title || 'JASPER Alert',
+        message: message || 'Alert from JASPER Sentinel Core',
+        priority: numericPriority,
+        tags: Array.isArray(tags) ? tags : String(tags).split(',').map(s => s.trim())
+      };
+
+      const payload = Buffer.from(JSON.stringify(payloadObj), 'utf8');
 
       const req = https.request({
         hostname: 'ntfy.sh',
         port: 443,
-        path: `/${topic}`,
+        path: '/',
         method: 'POST',
         headers: {
-          'Content-Type': 'text/plain; charset=utf-8',
-          'Content-Length': payload.length,
-          'Title': cleanTitle,
-          'Priority': cleanPriority,
-          'Tags': cleanTags
+          'Content-Type': 'application/json',
+          'Content-Length': payload.length
         }
       }, (res) => {
         if (res.statusCode >= 200 && res.statusCode < 300) {
-          console.log(`[WeatherSentinel] ✓ Dispatched urgent push to phone via ntfy.sh/${topic}: "${cleanTitle}"`);
+          console.log(`[WeatherSentinel] ✓ Dispatched urgent push to phone via ntfy.sh/${payloadObj.topic}: "${title}"`);
           resolve(true);
         } else {
           console.warn(`[WeatherSentinel] Push error HTTP ${res.statusCode}`);

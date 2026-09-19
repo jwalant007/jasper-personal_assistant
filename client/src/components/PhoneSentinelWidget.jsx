@@ -95,9 +95,9 @@ export default function PhoneSentinelWidget({ onClose }) {
       if (config.voiceAlertEnabled) speakDeviceAudio('Test alert dispatched to your phone lock screen, sir.');
 
       if (cloudRes.success) {
-        showToast('✓ Dispatched! Check your phone lock screen now.');
+        showToast(`✓ Dispatched to ntfy.sh/${config.channelTopic}! Check your phone now.`);
       } else {
-        showToast('✓ Local alert fired. Check phone cloud channel.');
+        showToast(`⚠️ Cloud dispatch warning: ${cloudRes.error || 'Check network'}`);
       }
     } catch (e) {
       showToast(`Error: ${e.message}`);
@@ -112,7 +112,13 @@ export default function PhoneSentinelWidget({ onClose }) {
     const updated = { ...config, channelTopic: clean };
     setConfig(updated);
     saveSentinelConfig(updated);
-    showToast(`✓ Phone alert channel updated: ${clean}`);
+    // Also synchronize topic with backend server WeatherSentinel
+    fetch('/api/sentinel/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ channelTopic: clean })
+    }).catch(e => console.warn('[Sentinel] Failed to sync config to server:', e));
+    showToast(`✓ Phone alert channel updated & synced: ${clean}`);
   };
 
   const handleToggleOption = (key) => {
