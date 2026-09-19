@@ -334,6 +334,17 @@ html, body, .overflow-y-auto, .overflow-auto {
   border-color: #ffe066;
 }
 
+/* Hide scrollbar for clean touch swipeable bars */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Hologram Scanning Line Anim */
 @keyframes scan-line {
   0% { transform: translateX(-100%); }

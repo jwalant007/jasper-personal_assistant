@@ -413,6 +413,57 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
     setActiveFocusedWinId(winId);
   };
 
+  // Top Bar Touch Swipe & Drag State for Mobile & Touch Devices
+  const topBarScrollRef = useRef(null);
+  const [canSwipeLeft, setCanSwipeLeft] = useState(false);
+  const [canSwipeRight, setCanSwipeRight] = useState(false);
+  const isPointerDownRef = useRef(false);
+  const pointerStartXRef = useRef(0);
+  const pointerScrollStartRef = useRef(0);
+
+  const checkTopBarSwipe = useCallback(() => {
+    const el = topBarScrollRef.current;
+    if (!el) return;
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    setCanSwipeLeft(el.scrollLeft > 10);
+    setCanSwipeRight(el.scrollLeft < maxScroll - 10);
+  }, []);
+
+  useEffect(() => {
+    checkTopBarSwipe();
+    const el = topBarScrollRef.current;
+    if (!el) return;
+    el.addEventListener('scroll', checkTopBarSwipe, { passive: true });
+    window.addEventListener('resize', checkTopBarSwipe);
+    return () => {
+      el.removeEventListener('scroll', checkTopBarSwipe);
+      window.removeEventListener('resize', checkTopBarSwipe);
+    };
+  }, [checkTopBarSwipe]);
+
+  const handleTopBarPointerDown = (e) => {
+    if (e.target.closest('button') || e.target.closest('input')) return;
+    const el = topBarScrollRef.current;
+    if (!el) return;
+    isPointerDownRef.current = true;
+    pointerStartXRef.current = e.clientX || (e.touches && e.touches[0]?.clientX) || 0;
+    pointerScrollStartRef.current = el.scrollLeft;
+  };
+
+  const handleTopBarPointerMove = (e) => {
+    if (!isPointerDownRef.current) return;
+    const el = topBarScrollRef.current;
+    if (!el) return;
+    const currentX = e.clientX || (e.touches && e.touches[0]?.clientX) || 0;
+    const diff = (currentX - pointerStartXRef.current) * 1.5;
+    el.scrollLeft = pointerScrollStartRef.current - diff;
+    checkTopBarSwipe();
+  };
+
+  const handleTopBarPointerUp = () => {
+    isPointerDownRef.current = false;
+  };
+
   // AIR GESTURE ENGINE INITIALIZATION & SYSTEM-WIDE APP CONTROLS
   useEffect(() => {
     if (isAirGesturesOn) {
@@ -607,31 +658,50 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
       <div className="absolute inset-0 bg-black pointer-events-none" />
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#00f0ff05_1px,transparent_1px),linear-gradient(to_bottom,#00f0ff05_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none opacity-40" />
 
-      {/* TOP GLASS SYSTEM TASKBAR */}
-      <div className="absolute top-0 left-0 right-0 h-12 bg-black/95 border-b border-neutral-800 backdrop-blur-2xl z-50 flex items-center justify-between px-4">
-        {/* Left: Start Launcher & App Categories */}
-        <div className="flex items-center gap-3">
+      {/* TOP GLASS SYSTEM TASKBAR - SWIPEABLE FOR MOBILE & TOUCH */}
+      <div 
+        ref={topBarScrollRef}
+        onPointerDown={handleTopBarPointerDown}
+        onPointerMove={handleTopBarPointerMove}
+        onPointerUp={handleTopBarPointerUp}
+        onPointerLeave={handleTopBarPointerUp}
+        className="absolute top-0 left-0 right-0 h-12 bg-black/95 border-b border-neutral-800/90 backdrop-blur-2xl z-50 overflow-x-auto touch-pan-x overscroll-x-contain scroll-smooth no-scrollbar select-none cursor-grab active:cursor-grabbing"
+      >
+        {/* Visual Edge Swipe Glow Hints for Mobile */}
+        {canSwipeLeft && (
+          <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-black via-black/80 to-transparent z-20 flex items-center pl-1">
+            <span className="text-xs text-amber-400 animate-pulse font-mono font-bold">‹</span>
+          </div>
+        )}
+        {canSwipeRight && (
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-black via-black/80 to-transparent z-20 flex items-center justify-end pr-1">
+            <span className="text-xs text-amber-400 animate-pulse font-mono font-bold">›</span>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between min-w-max md:min-w-full gap-2 px-3 h-full">
+        <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={() => setShowStartMenu(!showStartMenu)}
-            className="p-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/60 text-amber-300 flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(245,197,66,0.25)]"
+            className="h-8.5 px-2.5 rounded-xl bg-gradient-to-r from-amber-500/25 to-amber-600/15 hover:from-amber-500/35 hover:to-amber-600/25 border border-amber-400/60 text-amber-300 flex items-center gap-2 transition-all shadow-[0_0_12px_rgba(245,197,66,0.2)] cursor-pointer shrink-0"
             title="JASPER OS App Center & Start Launcher"
           >
-            <div className="w-5 h-5 rounded-full border border-amber-300 flex items-center justify-center animate-pulse">
-              <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_#ffd700]" />
+            <div className="w-4 h-4 rounded-full border border-amber-300 flex items-center justify-center animate-pulse">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_#ffd700]" />
             </div>
             <span className="font-orbitron font-extrabold text-xs tracking-wider uppercase text-amber-200">JASPER OS</span>
           </button>
 
-          <div className="h-4 w-px bg-amber-500/30 mx-1 hidden sm:block" />
+          <div className="h-4 w-px bg-amber-500/30 mx-0.5 hidden sm:block" />
 
           {/* Quick App Categories */}
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden lg:flex items-center gap-1">
             {[
-              { id: 'all', label: '📱 All Apps' },
-              { id: 'ai', label: '🧠 AI & Intelligence' },
-              { id: 'control', label: '🔌 Device Link' },
-              { id: 'system', label: '🛡️ System & Security' },
-              { id: 'tools', label: '🛠️ Productivity Tools' }
+              { id: 'all', label: 'All Apps' },
+              { id: 'ai', label: 'AI Swarm' },
+              { id: 'control', label: 'Devices' },
+              { id: 'system', label: 'Security' },
+              { id: 'tools', label: 'Tools' }
             ].map((ws) => (
               <button
                 key={ws.id}
@@ -639,10 +709,10 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
                   setActiveWorkspace(ws.id);
                   setShowStartMenu(true);
                 }}
-                className={`px-3 py-1 rounded-lg text-xs font-mono transition-all ${
+                className={`h-8 px-2.5 rounded-lg text-xs font-mono whitespace-nowrap transition-all cursor-pointer ${
                   activeWorkspace === ws.id
-                    ? 'bg-amber-500/25 border border-amber-400/60 text-amber-200 shadow-[0_0_10px_rgba(245,197,66,0.2)]'
-                    : 'text-neutral-400 hover:text-amber-300 hover:bg-amber-950/40'
+                    ? 'bg-amber-500/25 border border-amber-400/60 text-amber-200 shadow-[0_0_8px_rgba(245,197,66,0.2)] font-bold'
+                    : 'text-neutral-400 hover:text-amber-300 hover:bg-neutral-900 border border-transparent'
                 }`}
               >
                 {ws.label}
@@ -651,105 +721,119 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
           </div>
         </div>
 
-        {/* Center/Right: Glowing AI Avatar Voice Listener HUD */}
-        <div className="flex items-center gap-3">
+        {/* Center/Right: Glowing AI Avatar Voice Listener HUD, Telemetry, Gemini Cloud, Gestures, Classic, Lock, Clock */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* 1. AI Voice Avatar HUD (Sleek Single-Line Pill) */}
           <button
             onClick={onMicClick}
-            className={`px-3 py-1 rounded-xl border flex items-center gap-2.5 transition-all shadow-lg ${
+            className={`h-8.5 px-3 rounded-xl border flex items-center gap-2 whitespace-nowrap shrink-0 transition-all shadow-md cursor-pointer ${
               jasperState === 'listening'
-                ? 'bg-amber-500/30 border-amber-300 text-amber-100 shadow-[0_0_20px_rgba(245,197,66,0.4)] animate-pulse'
+                ? 'bg-amber-500/30 border-amber-300 text-amber-100 shadow-[0_0_18px_rgba(245,197,66,0.4)] animate-pulse'
                 : jasperState === 'processing'
-                ? 'bg-yellow-500/30 border-yellow-300 text-yellow-100 shadow-[0_0_20px_rgba(255,215,0,0.4)]'
+                ? 'bg-yellow-500/30 border-yellow-300 text-yellow-100 shadow-[0_0_18px_rgba(255,215,0,0.4)]'
                 : jasperState === 'speaking'
-                ? 'bg-amber-500/30 border-amber-300 text-amber-100 shadow-[0_0_20px_rgba(212,175,55,0.4)]'
-                : 'bg-neutral-900/60 border-amber-500/30 text-amber-300 hover:border-amber-400'
+                ? 'bg-amber-500/30 border-amber-300 text-amber-100 shadow-[0_0_18px_rgba(212,175,55,0.4)]'
+                : 'bg-neutral-900/90 border-amber-500/40 text-amber-300 hover:border-amber-400 hover:bg-neutral-850'
             }`}
-            title="Click to speak to JASPER AI Assistant"
+            title="AI Voice Avatar: Click to speak | Wake word: 'Hey Jasper'"
           >
-            {/* Animated AI Orb Arc Reactor Avatar */}
-            <div className="relative w-5 h-5 flex items-center justify-center">
+            <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
               <div className={`absolute inset-0 rounded-full border border-amber-400 ${jasperState === 'listening' ? 'animate-ping opacity-75' : ''}`} />
-              <div className={`w-3 h-3 rounded-full ${
-                jasperState === 'listening' ? 'bg-amber-400 shadow-[0_0_10px_#ff9900]' :
-                jasperState === 'processing' ? 'bg-yellow-300 shadow-[0_0_10px_#ffd700]' :
-                jasperState === 'speaking' ? 'bg-amber-300 shadow-[0_0_10px_#f5c542]' :
-                'bg-amber-400/80 shadow-[0_0_5px_#ffd700]'
+              <div className={`w-2.5 h-2.5 rounded-full ${
+                jasperState === 'listening' ? 'bg-amber-400 shadow-[0_0_8px_#ff9900]' :
+                jasperState === 'processing' ? 'bg-yellow-300 shadow-[0_0_8px_#ffd700]' :
+                jasperState === 'speaking' ? 'bg-amber-300 shadow-[0_0_8px_#f5c542]' :
+                'bg-amber-400 shadow-[0_0_6px_#ffd700]'
               }`} />
             </div>
 
-            <div className="text-left font-mono text-[11px]">
-              <div className="font-bold flex items-center gap-1">
-                <span>AI VOICE AVATAR</span>
-                {jasperState === 'listening' && <span className="text-[9px] text-amber-300 animate-pulse">● REC</span>}
-              </div>
-              <div className="text-[9px] text-amber-400/80">
-                {jasperState === 'listening' ? 'LISTENING TO VOICE COMMAND...' :
-                 jasperState === 'processing' ? 'PROCESSING INTENT...' :
-                 jasperState === 'speaking' ? 'SPEAKING RESPONSE...' :
-                 'WAKE WORD: "HEY JASPER" ACTIVE'}
-              </div>
-            </div>
+            <span className="font-orbitron font-bold text-xs tracking-wider text-amber-200">AI AVATAR</span>
+
+            <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${
+              jasperState === 'listening' ? 'bg-amber-400 text-black animate-pulse' :
+              jasperState === 'processing' ? 'bg-yellow-400/25 text-yellow-200 animate-pulse' :
+              jasperState === 'speaking' ? 'bg-amber-400/25 text-amber-200 animate-pulse' :
+              'bg-black/60 text-amber-400/80 border border-amber-500/20'
+            }`}>
+              {jasperState === 'listening' ? 'REC' :
+               jasperState === 'processing' ? 'THINKING' :
+               jasperState === 'speaking' ? 'SPEAKING' :
+               'READY'}
+            </span>
           </button>
 
-          {/* Live System Telemetry & Clock */}
-          <div className="hidden lg:flex items-center gap-3 text-neutral-300 bg-black border border-neutral-800 px-3 py-1 rounded-lg backdrop-blur-md font-mono text-[11px]">
-            <span className="flex items-center gap-1 text-amber-400"><Cpu className="w-3.5 h-3.5" /> CPU: 12%</span>
-            <span className="flex items-center gap-1 text-amber-400"><HardDrive className="w-3.5 h-3.5" /> RAM: 3.8GB</span>
+          {/* Live System Telemetry (Visible on ultra-wide screens) */}
+          <div className="hidden 2xl:flex items-center gap-2 text-neutral-300 bg-black/80 border border-neutral-800 px-2.5 h-8.5 rounded-xl backdrop-blur-md font-mono text-[11px] whitespace-nowrap shrink-0">
+            <span className="flex items-center gap-1 text-amber-400"><Cpu className="w-3 h-3" /> 12%</span>
+            <span className="text-neutral-700">|</span>
+            <span className="flex items-center gap-1 text-amber-400"><HardDrive className="w-3 h-3 text-amber-400" /> 3.8GB</span>
           </div>
 
+          {/* 2. Gemini Cloud / AI Status Tab */}
           {onOpenSettings && (
             <button
               onClick={onOpenSettings}
-              className={`px-2.5 py-1 rounded-lg font-mono text-xs flex items-center gap-1.5 transition-all border ${
+              className={`h-8.5 px-3 rounded-xl font-mono text-xs flex items-center gap-1.5 transition-all border whitespace-nowrap shrink-0 cursor-pointer ${
                 isAiOnline
-                  ? 'bg-emerald-500/20 hover:bg-emerald-500/30 border-emerald-400/60 text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.2)]'
-                  : 'bg-amber-500/20 hover:bg-amber-500/30 border-amber-400/60 text-amber-300 animate-pulse shadow-[0_0_10px_rgba(245,197,66,0.2)]'
+                  ? 'bg-emerald-500/15 hover:bg-emerald-500/25 border-emerald-500/50 text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.15)]'
+                  : 'bg-amber-500/15 hover:bg-amber-500/25 border-amber-500/40 text-amber-300 animate-pulse shadow-[0_0_10px_rgba(245,197,66,0.15)]'
               }`}
               title="Click to configure AI Neural Core & API Keys"
             >
-              <Settings className="w-3.5 h-3.5 text-amber-400" />
-              <span>{aiStatusLabel}</span>
+              <Settings className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span className="font-semibold">{aiStatusLabel}</span>
             </button>
           )}
 
-          {/* Global Doctor Strange Spells & Air Gestures Toggle Button */}
+          {/* 3. Special Gestures & Spells Tab */}
           <button
             onClick={() => {
               setIsAirGesturesOn(prev => !prev);
               if (!isAirGesturesOn) playJarvisPowerUp();
             }}
-            className={`px-3 py-1 rounded-lg font-mono text-xs flex items-center gap-1.5 transition-all border cursor-pointer ${
+            className={`h-8.5 px-3 rounded-xl font-mono text-xs flex items-center gap-2 transition-all border cursor-pointer whitespace-nowrap shrink-0 ${
               isAirGesturesOn
-                ? 'bg-amber-500/25 hover:bg-amber-500/35 border-amber-400 text-amber-200 shadow-[0_0_15px_rgba(255,140,0,0.4)] animate-pulse'
-                : 'bg-neutral-900 hover:bg-neutral-850 border-neutral-800 text-neutral-400 hover:text-neutral-200'
+                ? 'bg-amber-500/20 hover:bg-amber-500/30 border-amber-400 text-amber-200 shadow-[0_0_15px_rgba(255,140,0,0.3)] animate-pulse'
+                : 'bg-neutral-900/80 hover:bg-neutral-850 border-neutral-800 text-neutral-300 hover:text-white'
             }`}
-            title="Toggle Doctor Strange Eldritch Spells & Air Gestures (Snap fingers to close all apps, Tao shield, etc.)"
+            title="Toggle Doctor Strange Eldritch Spells & Air Gestures (Finger Snap, Tao Shields, etc.)"
           >
-            <Sparkles className={`w-3.5 h-3.5 ${isAirGesturesOn ? 'text-amber-400 animate-spin' : 'text-neutral-400'}`} style={{ animationDuration: '8s' }} />
-            <span>Spells & Gestures: {isAirGesturesOn ? 'ACTIVE' : 'OFF'}</span>
+            <Sparkles className={`w-3.5 h-3.5 shrink-0 ${isAirGesturesOn ? 'text-amber-400 animate-spin' : 'text-neutral-400'}`} style={{ animationDuration: '8s' }} />
+            <span>Gestures & Spells</span>
+            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+              isAirGesturesOn ? 'bg-amber-400 text-black shadow-[0_0_8px_#ffd700]' : 'bg-neutral-800 text-neutral-400'
+            }`}>
+              {isAirGesturesOn ? 'ACTIVE' : 'OFF'}
+            </span>
           </button>
 
+          {/* Classic Mode Switch */}
           <button
             onClick={onToggleClassicMode}
-            className="px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400 text-amber-300 rounded-lg font-semibold flex items-center gap-1.5 transition-all text-xs font-mono cursor-pointer"
-            title="Switch to Grid Layout View"
+            className="h-8.5 px-2.5 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/50 text-amber-300 rounded-xl font-semibold flex items-center gap-1.5 transition-all text-xs font-mono cursor-pointer whitespace-nowrap shrink-0"
+            title="Switch to Classic Layout View"
           >
-            <Grid className="w-3.5 h-3.5 text-amber-400" /> Classic
+            <Grid className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span>Classic</span>
           </button>
+
+          {/* Lock OS Button */}
           {onLockSystem && (
             <button
               onClick={onLockSystem}
-              className="px-3 py-1 bg-rose-500/20 hover:bg-rose-500/35 border border-rose-500/60 hover:border-rose-400 text-rose-300 hover:text-rose-100 rounded-lg font-mono text-xs font-bold flex items-center gap-1.5 transition-all shadow-[0_0_12px_rgba(244,63,94,0.25)] cursor-pointer"
+              className="h-8.5 px-2.5 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/50 hover:border-rose-400 text-rose-300 hover:text-rose-100 rounded-xl font-mono text-xs font-bold flex items-center gap-1.5 transition-all shadow-[0_0_10px_rgba(244,63,94,0.15)] cursor-pointer whitespace-nowrap shrink-0"
               title="Lock JASPER OS with Biometrics"
             >
-              <Lock className="w-3.5 h-3.5 text-rose-400" />
-              <span>Lock OS</span>
+              <Lock className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+              <span>Lock</span>
             </button>
           )}
 
-          <div className="text-amber-200 font-mono font-bold text-[11px] px-2.5 py-1 bg-black border border-neutral-800 rounded-lg">
+          {/* Digital Clock Badge */}
+          <div className="h-8.5 px-2.5 text-amber-300 font-mono font-bold text-xs bg-black/90 border border-neutral-800 rounded-xl flex items-center whitespace-nowrap shrink-0 shadow-inner">
             {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </div>
+        </div>
         </div>
       </div>
 

@@ -1788,7 +1788,7 @@ export default function App() {
               </div>
 
               {/* Actions list */}
-              <div className={`flex items-center gap-1 sm:gap-1.5 ${isMobileLayout ? 'justify-end max-w-[calc(100vw-130px)] overflow-x-auto custom-scrollbar flex-nowrap py-0.5 shrink-0' : 'gap-2'}`}>
+              <div className={`flex items-center gap-1 sm:gap-1.5 ${isMobileLayout ? 'justify-start max-w-[calc(100vw-120px)] overflow-x-auto touch-pan-x overscroll-x-contain scroll-smooth no-scrollbar flex-nowrap py-0.5 shrink-0' : 'gap-2'}`}>
                 {updateAvailable && (
                   <a
                     href={apkDownloadUrl || '/api/apk/download'}
