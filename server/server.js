@@ -1051,7 +1051,7 @@ async function geminiFlashImageGen(apiKey, prompt) {
 }
 
 // -------------------------------------------------------------
-// SAMSUNG TV ENDPOINTS
+// UNIVERSAL SMART TV & JIOFIBER SET-TOP BOX (STB) API ROUTES
 // -------------------------------------------------------------
 
 app.get('/api/tv/status', async (req, res) => {
@@ -1059,14 +1059,23 @@ app.get('/api/tv/status', async (req, res) => {
   res.json(status);
 });
 
+app.get('/api/tv/scan', async (req, res) => {
+  try {
+    const scanResults = await tvController.scanLocalNetwork();
+    res.json(scanResults);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/tv/connect', async (req, res) => {
-  const { ip, mac } = req.body;
+  const { ip, mac, brand } = req.body;
   if (!ip) {
     return res.status(400).json({ error: 'TV IP address is required' });
   }
 
   try {
-    const result = await tvController.connect(ip, mac);
+    const result = await tvController.connectSmartTv(ip, mac, brand);
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1080,8 +1089,8 @@ app.post('/api/tv/command', async (req, res) => {
   }
 
   try {
-    await tvController.sendKey(key);
-    res.json({ success: true });
+    const result = await tvController.sendSmartTvKey(key);
+    res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -1096,15 +1105,64 @@ app.post('/api/tv/wol', async (req, res) => {
   }
 });
 
-// Videocon d2h Set-Top Box Channel Direct Tuning via HDMI-CEC
-app.post(['/api/tv/channel', '/api/d2h/tune'], async (req, res) => {
+// JioFiber Set-Top Box Specific Endpoints (ADB / IP)
+app.post('/api/jio/connect', async (req, res) => {
+  const { ip } = req.body;
+  try {
+    const result = await tvController.connectJioStb(ip);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/jio/command', async (req, res) => {
+  const { key } = req.body;
+  if (!key) return res.status(400).json({ error: 'Key command required' });
+  try {
+    const result = await tvController.sendJioKey(key);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/jio/app', async (req, res) => {
+  const { appName } = req.body;
+  if (!appName) return res.status(400).json({ error: 'App name required' });
+  try {
+    const result = await tvController.launchJioApp(appName);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/jio/voice', async (req, res) => {
+  const { query } = req.body;
+  if (!query) return res.status(400).json({ error: 'Voice query required' });
+  try {
+    const result = await tvController.sendJioVoiceText(query);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/jio/status', async (req, res) => {
+  const status = await tvController.getStatus();
+  res.json({ success: true, jioStb: status.jioStb });
+});
+
+// Direct Channel Tuning (Live TV / JioTV+ / Cable)
+app.post(['/api/tv/channel', '/api/d2h/tune', '/api/stb/channel'], async (req, res) => {
   const { channel } = req.body;
   if (!channel) {
     return res.status(400).json({ error: 'Channel number is required' });
   }
 
   try {
-    const result = await tvController.tuneChannel(channel);
+    const result = await tvController.tuneLiveChannel(channel);
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1119,7 +1177,7 @@ app.post('/api/tv/app', async (req, res) => {
   }
 
   try {
-    const result = await tvController.launchApp(appName);
+    const result = await tvController.launchJioApp(appName);
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });

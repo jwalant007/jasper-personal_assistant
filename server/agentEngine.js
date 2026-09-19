@@ -256,11 +256,11 @@ const TOOL_REGISTRY = {
 
   control_device: {
     name: 'control_device',
-    description: 'Control a connected smart device (TV, d2h set-top box, phone, lights)',
+    description: 'Control a connected smart device (Universal Smart TV, JioFiber STB, phone, lights)',
     permissionLevel: 1,
-    parameters: { device: "'tv'|'d2h'|'phone'|'lights'", action: 'string' },
+    parameters: { device: "'tv'|'jio'|'stb'|'d2h'|'phone'|'lights'", action: 'string' },
     async handler({ device, action }) {
-      if (device === 'tv' || device === 'd2h') {
+      if (device === 'tv' || device === 'jio' || device === 'stb' || device === 'd2h') {
         const result = await tvController.sendKey(action);
         return { success: result, device, action };
       }
@@ -271,9 +271,20 @@ const TOOL_REGISTRY = {
     }
   },
 
+  tune_stb_channel: {
+    name: 'tune_stb_channel',
+    description: 'Tune the Smart TV or JioFiber Set-Top Box to a specific channel number',
+    permissionLevel: 1,
+    parameters: { channel: 'string or number' },
+    async handler({ channel }) {
+      const result = await tvController.tuneChannel(channel);
+      return result;
+    }
+  },
+
   tune_d2h_channel: {
     name: 'tune_d2h_channel',
-    description: 'Tune the Videocon d2h set-top box to a specific channel number via HDMI-CEC',
+    description: 'Tune the TV or Set-Top Box to a specific channel number',
     permissionLevel: 1,
     parameters: { channel: 'string or number' },
     async handler({ channel }) {

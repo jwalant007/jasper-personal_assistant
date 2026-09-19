@@ -1178,8 +1178,8 @@ export default function App() {
       return;
     }
 
-    // Intercept Voice App Open Commands (e.g. "Jasper open search", "open calculator", "open files", "open whatsapp auto reply", "open blender")
-    const appOpenRegex = /(open|launch|start|show|run)\s+(search|search engine|files|file manager|explorer|code|code studio|terminal|notes|planner|tasks|calculator|calc|tv|tv remote|phone|android|pc|pc hub|pc command|security|biometrics|browser|web agent|sports|spatial gps|satellite|satellite intelligence|orbital|maps?|navigation|health|fitband|translator|translation|manual|guide|whatsapp|instagram|auto reply|call auto|social auto|blender|blender 3d|3d studio)/i;
+    // Intercept Voice App Open Commands (e.g. "Jasper open search", "open calculator", "open files", "open whatsapp auto reply", "open blender", "open tv", "open jio stb")
+    const appOpenRegex = /(open|launch|start|show|run)\s+(search|search engine|files|file manager|explorer|code|code studio|terminal|notes|planner|tasks|calculator|calc|tv|tv remote|smart tv|tv screen|jio|jio fiber|jio stb|stb|stb remote|phone|android|pc|pc hub|pc command|security|biometrics|browser|web agent|sports|spatial gps|satellite|satellite intelligence|orbital|maps?|navigation|health|fitband|translator|translation|manual|guide|whatsapp|instagram|auto reply|call auto|social auto|blender|blender 3d|3d studio)/i;
     const appMatch = queryText.match(appOpenRegex);
     if (appMatch) {
       const targetApp = appMatch[2].toLowerCase();
@@ -1201,7 +1201,7 @@ export default function App() {
       else if (targetApp.includes('code') || targetApp.includes('terminal')) { setShowCodeStudio(true); openedAppName = 'JASPER Code Studio'; }
       else if (targetApp.includes('note') || targetApp.includes('plan') || targetApp.includes('task')) { setShowNotesPlanner(true); openedAppName = 'JASPER Notes & Task Planner'; }
       else if (targetApp.includes('calc')) { setShowCalculator(true); openedAppName = 'JASPER Scientific Calculator'; }
-      else if (targetApp.includes('tv')) { setShowTvRemote(true); openedAppName = 'Smart TV Remote Hub'; }
+      else if (targetApp.includes('tv') || targetApp.includes('jio') || targetApp.includes('stb') || targetApp.includes('screen')) { setShowTvRemote(true); openedAppName = 'Universal Smart TV & JioFiber STB'; }
       else if (targetApp.includes('phone') || targetApp.includes('android')) { setShowPhoneControl(true); openedAppName = 'Android Device Link'; }
       else if (targetApp.includes('pc')) { setShowPcMasterHub(true); openedAppName = 'PC Command Center'; }
       else if (targetApp.includes('security') || targetApp.includes('biometric')) { setShowSecurity(true); openedAppName = 'Biometric Security Center'; }
@@ -2168,9 +2168,9 @@ export default function App() {
 
       {/* Sliding TV Remote Control Overlay */}
       {showTvRemote && (
-        <div className={`fixed z-40 p-4 rounded-lg tv-remote-panel animate-slide-in ${isMobileLayout ? 'top-14 inset-x-2 w-auto max-h-[85vh] overflow-y-auto' : 'top-20 right-4 w-80'}`}>
+        <div className={`fixed z-40 p-4 rounded-lg tv-remote-panel animate-slide-in ${isMobileLayout ? 'top-14 inset-x-2 w-auto max-h-[85vh] overflow-y-auto' : 'top-16 right-4 w-[460px] max-w-[95vw] max-h-[88vh] overflow-y-auto'}`}>
           <div className="flex justify-between items-center border-b border-cyan-500/20 pb-2 mb-3 select-none">
-            <span className="font-orbitron font-bold text-xs text-cyan-400">TV REMOTE LINK</span>
+            <span className="font-orbitron font-bold text-xs text-cyan-400">UNIVERSAL SMART TV & JIO FIBER STB</span>
             <button onClick={() => setShowTvRemote(false)} className="text-sky-500 hover:text-cyan-400 font-bold text-[10px]">[X] CLOSE</button>
           </div>
           <TvRemoteWidget onLog={(text, type) => console.log(`[${type}] ${text}`)} />

@@ -181,17 +181,35 @@ const TOOLS_CONFIG = [
         }
       },
       {
-        name: 'tune_d2h_channel',
-        description: 'Tunes the Videocon d2h set-top box to a specific channel number via HDMI-CEC.',
+        name: 'tune_tv_channel',
+        description: 'Tunes the Universal Smart TV or JioFiber Set-Top Box to a specific channel number.',
         parameters: {
           type: 'OBJECT',
           properties: {
             channel: {
               type: 'STRING',
-              description: 'The numeric channel number to tune to on the d2h box (e.g. "101", "202", "501").'
+              description: 'The numeric channel number to tune to (e.g. "101", "202", "501").'
             }
           },
           required: ['channel']
+        }
+      },
+      {
+        name: 'control_jio_stb',
+        description: 'Controls the JioFiber Set-Top Box (JHSD200) via Android TV ADB bridge or sends voice search query.',
+        parameters: {
+          type: 'OBJECT',
+          properties: {
+            action: {
+              type: 'STRING',
+              description: 'Action to execute: "key", "app", "voice", "connect".'
+            },
+            param: {
+              type: 'STRING',
+              description: 'Keycode (e.g. "KEY_HOME", "KEY_ENTER"), App ID (e.g. "jiocinema"), or voice search query text.'
+            }
+          },
+          required: ['action']
         }
       },
       {
@@ -716,7 +734,7 @@ class GeminiClient {
         }
       }
 
-      if (name === 'tune_d2h_channel') {
+      if (name === 'tune_tv_channel' || name === 'tune_d2h_channel') {
         try {
           const res = await fetch(`${getApiBase()}/api/tv/channel`, {
             method: 'POST',
@@ -724,9 +742,36 @@ class GeminiClient {
             body: JSON.stringify({ channel: args.channel })
           });
           if (res.ok) {
-            onLog(`[d2h LINK] Tuned to Channel: ${args.channel}`, 'success');
+            onLog(`[TV & Jio LINK] Tuned to Channel: ${args.channel}`, 'success');
             return { status: 'success', channel: args.channel };
           }
+        } catch (e) {
+          return { status: 'error', message: e.message };
+        }
+      }
+
+      if (name === 'control_jio_stb') {
+        try {
+          let url = `${getApiBase()}/api/jio/command`;
+          let body = { key: args.param || 'KEY_HOME' };
+          if (args.action === 'app') {
+            url = `${getApiBase()}/api/jio/app`;
+            body = { appKey: args.param };
+          } else if (args.action === 'voice') {
+            url = `${getApiBase()}/api/jio/voice`;
+            body = { query: args.param };
+          } else if (args.action === 'connect') {
+            url = `${getApiBase()}/api/jio/connect`;
+            body = { ip: args.param || '192.168.29.100' };
+          }
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          });
+          const data = await res.json();
+          onLog(`[Jio STB] Executed action: ${args.action}`, 'success');
+          return { status: 'success', ...data };
         } catch (e) {
           return { status: 'error', message: e.message };
         }
@@ -1821,38 +1866,40 @@ class GeminiClient {
       return "Opening YouTube, Sir.";
     }
 
-    // Videocon d2h Set-Top Box controls (HDMI-CEC)
+    // Universal Smart TV & JioFiber Set-Top Box controls
     const channelMatch = raw.match(/(?:tune to|change to|go to|channel)\s+(?:channel\s+)?(\d{1,4})/i) ||
-                         raw.match(/d2h\s+(?:channel\s+)?(\d{1,4})/i);
+                         raw.match(/(?:jio|tv|stb)\s+(?:channel\s+)?(\d{1,4})/i);
     if (channelMatch) {
       const ch = channelMatch[1];
-      await this.executeTool('tune_d2h_channel', { channel: ch }, onLog);
-      return `Tuning Videocon d2h to channel ${ch}, Sir.`;
+      await this.executeTool('tune_tv_channel', { channel: ch }, onLog);
+      return `Tuning TV & Set-Top Box to channel ${ch}, Sir.`;
     }
-    if (raw.includes('next channel') || raw.includes('channel up') || raw.includes('d2h next')) {
+    if (raw.includes('next channel') || raw.includes('channel up') || raw.includes('tv next') || raw.includes('jio next')) {
       await this.executeTool('send_tv_command', { keyName: 'KEY_CHUP' }, onLog);
-      return "Changing to next channel on Videocon d2h, Sir.";
+      return "Changing to next channel on your TV/STB, Sir.";
     }
-    if (raw.includes('previous channel') || raw.includes('prev channel') || raw.includes('channel down') || raw.includes('d2h prev')) {
+    if (raw.includes('previous channel') || raw.includes('prev channel') || raw.includes('channel down') || raw.includes('tv prev') || raw.includes('jio prev')) {
       await this.executeTool('send_tv_command', { keyName: 'KEY_CHDOWN' }, onLog);
-      return "Changing to previous channel on Videocon d2h, Sir.";
+      return "Changing to previous channel on your TV/STB, Sir.";
     }
-    if (raw.includes('d2h guide') || raw.includes('open guide') || raw.includes('epg') || raw.includes('tv guide')) {
+    if (raw.includes('jio voice') || raw.includes('search on jio') || raw.includes('search on tv')) {
+      const query = raw.replace(/.*(?:jio voice|search on jio|search on tv)\s*/i, '').trim();
+      if (query) {
+        await this.executeTool('control_jio_stb', { action: 'voice', param: query }, onLog);
+        return `Searching for "${query}" on your JioFiber Set-Top Box, Sir.`;
+      }
+    }
+    if (raw.includes('tv guide') || raw.includes('open guide') || raw.includes('epg') || raw.includes('jio guide') || raw.includes('jiotv')) {
       await this.executeTool('send_tv_command', { keyName: 'KEY_GUIDE' }, onLog);
-      return "Opening Videocon d2h Program Guide, Sir.";
+      return "Opening Electronic Program Guide / JioTV+, Sir.";
     }
-    if (raw.includes('d2h menu') || raw.includes('open menu') || raw.includes('stb menu')) {
+    if (raw.includes('tv menu') || raw.includes('open menu') || raw.includes('stb menu') || raw.includes('jio menu')) {
       await this.executeTool('send_tv_command', { keyName: 'KEY_MENU' }, onLog);
-      return "Opening Videocon d2h Menu, Sir.";
+      return "Opening TV Menu / Settings, Sir.";
     }
-    if (raw.includes('d2h info') || raw.includes('channel info') || raw.includes('show info')) {
-      await this.executeTool('send_tv_command', { keyName: 'KEY_INFO' }, onLog);
-      return "Displaying channel information on Videocon d2h, Sir.";
-    }
-    if (raw.includes('switch to d2h') || raw.includes('open d2h') || raw.includes('d2h hdmi') || raw.includes('tv input d2h')) {
-      await this.executeTool('send_tv_command', { keyName: 'KEY_HDMI1' }, onLog);
+    if (raw.includes('switch to hdmi') || raw.includes('switch hdmi') || raw.includes('tv input') || raw.includes('change source')) {
       await this.executeTool('send_tv_command', { keyName: 'KEY_SOURCE' }, onLog);
-      return "Switching television display source to Videocon d2h HDMI, Sir.";
+      return "Cycling TV input source, Sir.";
     }
 
     // JioFiber Bundled OTT Apps

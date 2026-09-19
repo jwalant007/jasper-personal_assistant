@@ -9,7 +9,7 @@ import {
 import { AirGestureTracker } from '../utils/gestureTracker';
 import { playJarvisBeep, playJarvisScan, playJarvisPowerUp } from '../utils/jarvisAudioSynth';
 
-import TvRemoteWidget from './TvRemoteWidget';
+import UniversalTvRemoteWidget from './UniversalTvRemoteWidget';
 import DiagnosticWidget from './DiagnosticWidget';
 import PcMasterHubWidget from './PcMasterHubWidget';
 import PhoneControlWidget from './PhoneControlWidget';
@@ -59,7 +59,7 @@ const JASPER_OS_APPS_REGISTRY = [
   { id: 'calculator', title: 'JASPER Scientific Calculator App', category: 'Productivity & Tools', icon: Calculator, component: JasperCalculatorApp, defaultSize: { w: 640, h: 500 } },
   { id: 'hologramStudio', title: '3D Hologram & Blender Studio', category: 'Creative & AI', icon: Box, component: (props) => <HolographicAnswerModal {...props} />, defaultSize: { w: 1040, h: 680 } },
   { id: 'diagnostics', title: 'System Diagnostics & Telemetry App', category: 'System & Hardware', icon: Activity, component: DiagnosticWidget, defaultSize: { w: 450, h: 500 } },
-  { id: 'tvRemote', title: 'Videocon d2h STB Controller App', category: 'Hardware Control', icon: Radio, component: TvRemoteWidget, defaultSize: { w: 420, h: 540 } },
+  { id: 'tvRemote', title: 'Universal Smart TV & JioFiber STB App', category: 'Hardware Control', icon: Tv, component: UniversalTvRemoteWidget, defaultSize: { w: 460, h: 620 } },
   { id: 'pcHub', title: 'PC Command Center App', category: 'Hardware Control', icon: Monitor, component: PcMasterHubWidget, defaultSize: { w: 640, h: 500 } },
   { id: 'phoneControl', title: 'Android Device Link App', category: 'Hardware Control', icon: Smartphone, component: PhoneControlWidget, defaultSize: { w: 440, h: 480 } },
   { id: 'security', title: 'Biometric Security & Firewall App', category: 'System & Hardware', icon: Shield, component: SecurityCenterWidget, defaultSize: { w: 480, h: 500 } },
