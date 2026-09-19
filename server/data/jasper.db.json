@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-09-19T11:43:44.725Z",
+  "lastUpdated": "2026-09-19T12:14:55.366Z",
   "memories": [
     {
       "id": 1,
@@ -151,7 +151,7 @@
     }
   },
   "social_auto_reply": {
-    "whatsappEnabled": true,
+    "whatsappEnabled": false,
     "instagramEnabled": true,
     "callAutoDeclineAndMsg": true,
     "activePreset": "ai_smart",
@@ -170,6 +170,19 @@
     ]
   },
   "social_logs": [
+    {
+      "id": "LOG-1789820031948-856",
+      "platform": "whatsapp",
+      "type": "auto_reply",
+      "recipient": "137134598004901",
+      "recipientName": "137134598004901",
+      "incomingTextOrCall": "Incoming WhatsApp: \"Great news! Your order *#TSE_7979* from *SHOP EZZY* (AWB: *4507210214852*) has been shipped from our facility.\n\nYou should get it by *Sep 22, 2026*.\n\nStay updated in real-time 👇\"",
+      "actionTaken": "Auto-replied with AI_SMART Mode Preset via WhatsApp Web",
+      "messageSent": "JASPER AI Assistant: Jwalant is currently occupied. I have logged your message: \"Great news! Your order *#TSE_7979* from *SHOP EZZY\" and will alert him shortly.",
+      "status": "Delivered",
+      "timestamp": "05:43 pm",
+      "date": "2026-09-19T12:13:52.051Z"
+    },
     {
       "id": "LOG-1789818224724-671",
       "platform": "whatsapp",

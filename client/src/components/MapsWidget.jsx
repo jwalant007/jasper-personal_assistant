@@ -45,7 +45,13 @@ import {
   Wifi,
   Eye,
   Orbit,
-  Copy
+  Copy,
+  Cloud,
+  CloudRain,
+  RefreshCw,
+  Sun,
+  Moon,
+  Maximize2
 } from 'lucide-react';
 import { getLocation, watchLiveGps } from '../utils/locationService';
 import { geocodeAddress, getFastestRoute, calculateDistanceKm, generateShareLocationUrl, getNearbyPlaces } from '../utils/navigationService';
@@ -57,7 +63,11 @@ import {
   latLonToGeohash, 
   getSatelliteConstellationTelemetry, 
   getTrackedSpacecraft, 
-  getDeviceHardwareProfile 
+  getDeviceHardwareProfile,
+  fetchLiveIssTelemetry,
+  fetchLiveRainViewerRadar,
+  getNasaGibsTileUrl,
+  getNasaBlackMarbleUrl
 } from '../utils/satelliteIntelligence';
 
 export default function MapsWidget({ onClose, initialDestination = '', initialContact = '', initialTab = 'satellite' }) {
@@ -101,6 +111,14 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
   const [isPlacesLoading, setIsPlacesLoading] = useState(false);
   const [placeSearchQuery, setPlaceSearchQuery] = useState('');
 
+  // Live Satellite World Update & Orbital Feeds
+  const [liveCloudsEnabled, setLiveCloudsEnabled] = useState(true);
+  const [liveIssTrackingEnabled, setLiveIssTrackingEnabled] = useState(true);
+  const [liveIssData, setLiveIssData] = useState(null);
+  const [liveSatelliteTime, setLiveSatelliteTime] = useState(null);
+  const [isSyncingSatellite, setIsSyncingSatellite] = useState(false);
+  const [liveRadarData, setLiveRadarData] = useState(null);
+
   // DOM Refs
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -111,6 +129,10 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
   const poiMarkersRef = useRef({});
   const speechRecognitionRef = useRef(null);
   const simulationIntervalRef = useRef(null);
+  const liveRadarLayerRef = useRef(null);
+  const issMarkerRef = useRef(null);
+  const issTrailRef = useRef(null);
+  const issHistoryRef = useRef([]);
 
   // Default fallback center (Mumbai)
   const defaultCenter = [18.9220, 72.8347];
@@ -135,6 +157,18 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
       attribution: 'Esri, Maxar, Earthstar Geographics'
     });
 
+    // NASA GIBS Daily Global TrueColor Satellite Mosaic
+    const nasaTileLayer = L.tileLayer(getNasaGibsTileUrl(2), {
+      maxZoom: 9,
+      attribution: 'NASA EOSDIS GIBS / Worldview / MODIS'
+    });
+
+    // NASA Black Marble (Earth at Night)
+    const nightTileLayer = L.tileLayer(getNasaBlackMarbleUrl(), {
+      maxZoom: 8,
+      attribution: 'NASA Earth Observatory / NOAA NGDC'
+    });
+
     // Dark Stark-Tech OpenStreetMap Tiles (100% Free, Zero Watermark, Zero API Key Required)
     const darkTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
@@ -148,6 +182,10 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
 
     if (mapLayer === 'satellite') {
       satelliteTileLayer.addTo(map);
+    } else if (mapLayer === 'nasa') {
+      nasaTileLayer.addTo(map);
+    } else if (mapLayer === 'night') {
+      nightTileLayer.addTo(map);
     } else if (mapLayer === 'dark') {
       darkTileLayer.addTo(map);
     } else {
@@ -161,6 +199,8 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
     mapInstanceRef.current._darkLayer = darkTileLayer;
     mapInstanceRef.current._osmLayer = osmTileLayer;
     mapInstanceRef.current._satLayer = satelliteTileLayer;
+    mapInstanceRef.current._nasaLayer = nasaTileLayer;
+    mapInstanceRef.current._nightLayer = nightTileLayer;
 
     // Force map resize check
     setTimeout(() => {
@@ -171,30 +211,38 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
       map.remove();
       mapInstanceRef.current = null;
       poiMarkersRef.current = {};
+      if (liveRadarLayerRef.current) liveRadarLayerRef.current = null;
+      if (issMarkerRef.current) issMarkerRef.current = null;
+      if (issTrailRef.current) issTrailRef.current = null;
     };
   }, []);
 
   // 2. Switch Map Tile Layer
   useEffect(() => {
     const map = mapInstanceRef.current;
-    if (!map || !map._darkLayer || !map._osmLayer || !map._satLayer) return;
+    if (!map || !map._darkLayer || !map._osmLayer || !map._satLayer || !map._nasaLayer || !map._nightLayer) return;
 
     const sat = map._satLayer;
+    const nasa = map._nasaLayer;
+    const night = map._nightLayer;
     const dark = map._darkLayer;
     const osm = map._osmLayer;
 
+    const allBaseLayers = [sat, nasa, night, dark, osm];
+    allBaseLayers.forEach(l => {
+      if (map.hasLayer(l)) map.removeLayer(l);
+    });
+
     if (mapLayer === 'satellite') {
-      if (map.hasLayer(dark)) map.removeLayer(dark);
-      if (map.hasLayer(osm)) map.removeLayer(osm);
-      if (!map.hasLayer(sat)) sat.addTo(map);
+      sat.addTo(map);
+    } else if (mapLayer === 'nasa') {
+      nasa.addTo(map);
+    } else if (mapLayer === 'night') {
+      night.addTo(map);
     } else if (mapLayer === 'dark') {
-      if (map.hasLayer(sat)) map.removeLayer(sat);
-      if (map.hasLayer(osm)) map.removeLayer(osm);
-      if (!map.hasLayer(dark)) dark.addTo(map);
+      dark.addTo(map);
     } else {
-      if (map.hasLayer(sat)) map.removeLayer(sat);
-      if (map.hasLayer(dark)) map.removeLayer(dark);
-      if (!map.hasLayer(osm)) osm.addTo(map);
+      osm.addTo(map);
     }
   }, [mapLayer]);
 
@@ -302,6 +350,162 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
     return () => clearInterval(interval);
   }, [userLocation?.lat, userLocation?.lon]);
 
+  // 4b. Live ISS Spacecraft Polling & Ground Track Polyline
+  useEffect(() => {
+    let isCancelled = false;
+
+    const pollIss = async () => {
+      const data = await fetchLiveIssTelemetry();
+      if (isCancelled || !data) return;
+
+      setLiveIssData(data);
+
+      const map = mapInstanceRef.current;
+      if (!map) return;
+
+      if (liveIssTrackingEnabled) {
+        const issLatLng = [data.lat, data.lon];
+
+        // Append to history for orbital trail (last 35 positions)
+        issHistoryRef.current = [...issHistoryRef.current.slice(-35), issLatLng];
+
+        // Create or update polyline orbital trail
+        if (!issTrailRef.current) {
+          issTrailRef.current = L.polyline(issHistoryRef.current, {
+            color: '#00f3ff',
+            weight: 3,
+            opacity: 0.8,
+            dashArray: '5, 8'
+          }).addTo(map);
+        } else {
+          issTrailRef.current.setLatLngs(issHistoryRef.current);
+          if (!map.hasLayer(issTrailRef.current)) {
+            issTrailRef.current.addTo(map);
+          }
+        }
+
+        // Custom High-Tech ISS Spacecraft Icon
+        const issIconHtml = `
+          <div class="relative flex items-center justify-center cursor-pointer group">
+            <div class="absolute w-12 h-12 rounded-full bg-cyan-500/25 border border-cyan-400 animate-ping"></div>
+            <div class="w-9 h-9 rounded-full bg-slate-950 border-2 border-cyan-400 flex items-center justify-center shadow-lg shadow-cyan-500/60 group-hover:scale-110 transition-transform">
+              <span class="text-sm">🛰️</span>
+            </div>
+            <div class="absolute -bottom-5 px-1.5 py-0.5 rounded bg-slate-950/90 border border-cyan-500/50 text-[9px] font-mono font-bold text-cyan-300 whitespace-nowrap shadow">
+              ISS • ${data.altitudeKm}km
+            </div>
+          </div>
+        `;
+
+        const issIcon = L.divIcon({
+          html: issIconHtml,
+          className: 'custom-iss-icon',
+          iconSize: [44, 44],
+          iconAnchor: [22, 22]
+        });
+
+        if (!issMarkerRef.current) {
+          issMarkerRef.current = L.marker(issLatLng, { icon: issIcon, zIndexOffset: 950 }).addTo(map);
+        } else {
+          issMarkerRef.current.setLatLng(issLatLng);
+          issMarkerRef.current.setIcon(issIcon);
+          if (!map.hasLayer(issMarkerRef.current)) {
+            issMarkerRef.current.addTo(map);
+          }
+        }
+
+        issMarkerRef.current.bindPopup(`
+          <div style="color: #00f3ff; background: #020617; border: 1px solid #00f3ff; border-radius: 12px; font-family: monospace; font-size: 11px; padding: 12px; box-shadow: 0 0 25px rgba(0,243,255,0.4); min-width: 230px;">
+            <div style="font-weight: bold; color: #38bdf8; display: flex; align-items: center; gap: 6px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em;">
+              🛰️ INTERNATIONAL SPACE STATION
+            </div>
+            <div style="color: #94a3b8; font-size: 10px; margin-bottom: 6px;">
+              NORAD ID: <span style="color: #f8fafc; font-weight: bold;">25544</span> • LEO Orbit
+            </div>
+            <div style="background: rgba(0,243,255,0.08); border-radius: 8px; padding: 6px; margin-bottom: 8px;">
+              <div style="color: #f8fafc; font-weight: bold; font-size: 11px;">
+                Lat: ${data.lat.toFixed(4)}° • Lon: ${data.lon.toFixed(4)}°
+              </div>
+              <div style="color: #38bdf8; font-size: 10px; margin-top: 2px;">
+                Altitude: <span style="color: #10b981; font-weight: bold;">${data.altitudeKm} km</span>
+              </div>
+              <div style="color: #f59e0b; font-size: 10px;">
+                Velocity: <span style="font-weight: bold;">${data.velocityKmH.toLocaleString()} km/h</span> (${data.velocityKmS} km/s)
+              </div>
+              <div style="color: #a855f7; font-size: 10px;">
+                Visibility: <span style="font-weight: bold; text-transform: capitalize;">${data.visibility}</span>
+              </div>
+            </div>
+            <div style="text-align: center; color: #94a3b8; font-size: 9px;">
+              Live Satellite Orbital Downlink Active
+            </div>
+          </div>
+        `);
+      } else {
+        if (issMarkerRef.current && map.hasLayer(issMarkerRef.current)) {
+          map.removeLayer(issMarkerRef.current);
+        }
+        if (issTrailRef.current && map.hasLayer(issTrailRef.current)) {
+          map.removeLayer(issTrailRef.current);
+        }
+      }
+    };
+
+    pollIss();
+    const interval = setInterval(pollIss, 3500);
+    return () => {
+      isCancelled = true;
+      clearInterval(interval);
+    };
+  }, [liveIssTrackingEnabled]);
+
+  // 4c. Live Weather & Cloud Cover Radar Layer (RainViewer)
+  useEffect(() => {
+    let isCancelled = false;
+
+    const updateRadarOverlay = async () => {
+      const radarInfo = await fetchLiveRainViewerRadar();
+      if (isCancelled || !radarInfo) return;
+
+      setLiveRadarData(radarInfo);
+      if (radarInfo.latestRadarTime) {
+        setLiveSatelliteTime(new Date(radarInfo.latestRadarTime * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+      }
+
+      const map = mapInstanceRef.current;
+      if (!map) return;
+
+      if (liveCloudsEnabled && radarInfo.latestRadarPath) {
+        const tileUrl = `${radarInfo.host}${radarInfo.latestRadarPath}/256/{z}/{x}/{y}/2/1_1.png`;
+
+        if (liveRadarLayerRef.current && map.hasLayer(liveRadarLayerRef.current)) {
+          map.removeLayer(liveRadarLayerRef.current);
+        }
+
+        const radarTileLayer = L.tileLayer(tileUrl, {
+          opacity: 0.65,
+          zIndex: 50,
+          attribution: 'RainViewer Live Radar'
+        });
+
+        radarTileLayer.addTo(map);
+        liveRadarLayerRef.current = radarTileLayer;
+      } else {
+        if (liveRadarLayerRef.current && map.hasLayer(liveRadarLayerRef.current)) {
+          map.removeLayer(liveRadarLayerRef.current);
+          liveRadarLayerRef.current = null;
+        }
+      }
+    };
+
+    updateRadarOverlay();
+    const interval = setInterval(updateRadarOverlay, 300000);
+    return () => {
+      isCancelled = true;
+      clearInterval(interval);
+    };
+  }, [liveCloudsEnabled]);
+
   // Tactical Pinpoint Device Lock (Zoom 18x onto device)
   const handleLockOnDevice = () => {
     if (!userLocation || !userLocation.lat || !userLocation.lon) {
@@ -329,7 +533,72 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
     speakDeviceAudio(`Satellite orbital lock confirmed, sir. Host device pinned at ${userLocation.city || 'local sector'}, precision radius ${userLocation.accuracy || 'high'}.`);
   };
 
-  // Vocal Briefing of Host Device Location
+  // World Satellite Overview (Zoom out to whole globe)
+  const handleWorldSatelliteView = () => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+    map.flyTo([20, 0], 2.5, {
+      duration: 2.2,
+      easeLinearity: 0.25
+    });
+    setShareToast('🌍 Live Global Earth Satellite Viewport Active');
+    setTimeout(() => setShareToast(''), 3000);
+    speakDeviceAudio('Displaying live global satellite overview of Earth.');
+  };
+
+  // Follow Live ISS Orbital Track
+  const handleFollowIss = () => {
+    if (!liveIssData) {
+      setShareToast('Acquiring live ISS telemetry coordinates...');
+      setTimeout(() => setShareToast(''), 2500);
+      return;
+    }
+    const map = mapInstanceRef.current;
+    if (!map) return;
+    setLiveIssTrackingEnabled(true);
+    map.flyTo([liveIssData.lat, liveIssData.lon], 4.5, {
+      duration: 2.2,
+      easeLinearity: 0.25
+    });
+    setTimeout(() => {
+      if (issMarkerRef.current) {
+        issMarkerRef.current.openPopup();
+      }
+    }, 2400);
+    setShareToast(`🛰️ Locked on ISS at ${liveIssData.altitudeKm}km altitude`);
+    setTimeout(() => setShareToast(''), 3000);
+    speakDeviceAudio(`Tracking International Space Station in real time. Altitude ${liveIssData.altitudeKm} kilometers, orbital speed ${liveIssData.velocityKmH.toLocaleString()} kilometers per hour.`);
+  };
+
+  // Manually Force Sync Live Satellite Feeds
+  const handleSyncSatelliteData = async () => {
+    setIsSyncingSatellite(true);
+    setShareToast('🛰️ Synchronizing global satellite downlinks & cloud radar...');
+    try {
+      const [iss, radar] = await Promise.all([
+        fetchLiveIssTelemetry(),
+        fetchLiveRainViewerRadar()
+      ]);
+      if (iss) setLiveIssData(iss);
+      if (radar) {
+        setLiveRadarData(radar);
+        if (radar.latestRadarTime) {
+          setLiveSatelliteTime(new Date(radar.latestRadarTime * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+        }
+      }
+      setShareToast('🛰️ Satellite Data & Weather Downlink Synchronized!');
+      speakDeviceAudio('Satellite telemetry synchronized, sir. All live world feeds updated.');
+    } catch (e) {
+      setShareToast('Satellite sync completed');
+    } finally {
+      setTimeout(() => {
+        setIsSyncingSatellite(false);
+        setShareToast('');
+      }, 2500);
+    }
+  };
+
+  // Vocal Briefing of Host Device Location & Orbiters
   const handleVocalBriefing = () => {
     if (!userLocation) {
       speakDeviceAudio('Satellite telemetry is calibrating, sir.');
@@ -339,7 +608,10 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
     const dmsLon = decimalToDms(userLocation.lon, false);
     const speed = userLocation.speed || 'stationary';
     const accuracy = userLocation.accuracy || 'high accuracy';
-    speakDeviceAudio(`Host device status report: Latitude ${dmsLat}, Longitude ${dmsLon}. Altitude ${userLocation.altitude || 'ground level'}, velocity ${speed}, satellite fix uncertainty ${accuracy}. Nineteen constellation orbiters locked overhead.`);
+    const issInfo = liveIssData 
+      ? `International Space Station is active at ${liveIssData.altitudeKm} kilometers altitude traveling at ${liveIssData.velocityKmH.toLocaleString()} kilometers per hour.` 
+      : 'Nineteen constellation orbiters locked overhead.';
+    speakDeviceAudio(`Host device status report: Latitude ${dmsLat}, Longitude ${dmsLon}. Altitude ${userLocation.altitude || 'ground level'}, velocity ${speed}, satellite fix uncertainty ${accuracy}. ${issInfo} Live satellite downlink synchronized.`);
   };
 
   // Copy Coordinates to Clipboard
@@ -1149,15 +1421,32 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
             <div className="absolute inset-0 bg-[linear-gradient(rgba(0,243,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,243,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
 
             {/* Top Telemetry Strip */}
-            <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-slate-950/80 border border-cyan-500/40 px-3 py-1 rounded-full text-[10px] font-mono text-cyan-300 backdrop-blur-md flex items-center gap-3 shadow-lg">
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-slate-950/85 border border-cyan-500/40 px-3.5 py-1 rounded-full text-[10px] font-mono text-cyan-300 backdrop-blur-md flex items-center gap-3 shadow-lg z-10 pointer-events-auto">
               <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
-                <span className="font-bold">LIVE RECON SATELLITE</span>
+                <span className={`w-2 h-2 rounded-full ${isSyncingSatellite ? 'bg-amber-400 animate-spin' : 'bg-red-500 animate-ping'}`}></span>
+                <span className="font-bold">
+                  {mapLayer === 'nasa' ? 'NASA GIBS TRUECOLOR' : mapLayer === 'night' ? 'NASA EARTH AT NIGHT' : 'LIVE RECON SATELLITE'}
+                </span>
               </span>
               <span className="text-slate-400">|</span>
               <span>GRID: {userLocation?.lat ? latLonToMgrs(userLocation.lat, userLocation.lon) : 'ACQUIRING'}</span>
-              <span className="text-slate-400 hidden sm:inline">|</span>
-              <span className="text-emerald-400 hidden sm:inline">19 BIRDS LOCKED</span>
+              {liveIssData && (
+                <>
+                  <span className="text-slate-400 hidden sm:inline">|</span>
+                  <button onClick={handleFollowIss} className="text-emerald-400 hover:text-emerald-300 font-bold hidden sm:flex items-center gap-1 cursor-pointer">
+                    <Orbit className="w-3 h-3 text-emerald-400 animate-spin" style={{ animationDuration: '6s' }} />
+                    ISS: {liveIssData.altitudeKm}km
+                  </button>
+                </>
+              )}
+              {liveCloudsEnabled && (
+                <>
+                  <span className="text-slate-400 hidden md:inline">|</span>
+                  <span className="text-cyan-400 hidden md:inline flex items-center gap-1">
+                    <Cloud className="w-3 h-3 text-cyan-400" /> RADAR: {liveSatelliteTime || 'LIVE'}
+                  </span>
+                </>
+              )}
             </div>
 
             {/* Center Targeting Reticle when Locking */}
@@ -1333,72 +1622,215 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
       {/* TAB 0: SATELLITE INTELLIGENCE & PRECISE DEVICE LOCATION */}
       {activeTab === 'satellite' && (
         <div className="space-y-4">
-          {/* Top Quick Actions Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-slate-900/60 border border-cyan-500/30 rounded-2xl backdrop-blur-xl">
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                onClick={handleLockOnDevice}
-                className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-md ${
-                  isLockingDevice
-                    ? 'bg-rose-500 text-slate-950 animate-pulse'
-                    : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-cyan-500/30'
-                }`}
-              >
-                <Target className="w-4 h-4" />
-                <span>{isLockingDevice ? 'Locking Orbital Sensors...' : '🎯 Pinpoint Device Lock (Zoom 18x)'}</span>
-              </button>
+          {/* LIVE WORLD SATELLITE UPDATE & TELEMETRY CONTROL CENTER */}
+          <div className="space-y-2.5">
+            {/* 1. Real-Time Telemetry Downlink Banner */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-3.5 bg-slate-900/80 border border-cyan-500/40 rounded-2xl backdrop-blur-xl shadow-2xl">
+              <div className="flex items-center gap-3">
+                <div className="relative flex items-center justify-center shrink-0">
+                  <span className={`w-3.5 h-3.5 rounded-full ${isSyncingSatellite ? 'bg-amber-400 animate-ping' : 'bg-emerald-400 animate-ping'}`}></span>
+                  <span className={`absolute w-2.5 h-2.5 rounded-full ${isSyncingSatellite ? 'bg-amber-400' : 'bg-emerald-400'}`}></span>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black font-orbitron text-cyan-300 tracking-wider">
+                      {isSyncingSatellite ? 'SYNCHRONIZING GLOBAL SATELLITE TELEMETRY...' : 'LIVE WORLD SATELLITE DOWNLINK'}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[9px] font-mono font-bold border border-emerald-500/30">
+                      {isSyncingSatellite ? 'ACQUIRING...' : 'SYNCHRONIZED'}
+                    </span>
+                  </div>
+                  <div className="text-[10px] font-mono text-slate-400 mt-0.5 flex flex-wrap items-center gap-2">
+                    <span>Feeds: <strong className="text-slate-200">NASA GIBS TrueColor + RainViewer Cloud Radar + NORAD ISS</strong></span>
+                    <span>•</span>
+                    <span>Radar Pass: <strong className="text-cyan-400">{liveSatelliteTime || 'Real-Time'}</strong></span>
+                    {liveIssData && (
+                      <>
+                        <span>•</span>
+                        <span>ISS: <strong className="text-emerald-400">{liveIssData.altitudeKm}km @ {liveIssData.velocityKmH.toLocaleString()} km/h</strong></span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
 
-              <button
-                onClick={() => setMapLayer(mapLayer === 'satellite' ? 'dark' : 'satellite')}
-                className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border transition-all ${
-                  mapLayer === 'satellite'
-                    ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50 shadow-md shadow-cyan-500/20'
-                    : 'bg-slate-800 text-slate-300 border-slate-700'
-                }`}
-              >
-                <Globe className="w-4 h-4 text-cyan-400" />
-                <span>Esri High-Res Satellite: {mapLayer === 'satellite' ? 'ON' : 'OFF'}</span>
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                {/* World Satellite View */}
+                <button
+                  onClick={handleWorldSatelliteView}
+                  className="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-md shadow-blue-500/25 transition-all active:scale-95"
+                  title="Zoom out to view the entire spinning globe from orbit"
+                >
+                  <Globe className="w-3.5 h-3.5" />
+                  <span>World View</span>
+                </button>
 
-              <button
-                onClick={handleVocalBriefing}
-                className="px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all"
-                title="Speak voice briefing of current coordinates"
-              >
-                <Volume2 className="w-4 h-4 text-emerald-400" />
-                <span>Vocal Briefing</span>
-              </button>
+                {/* Follow ISS Orbit */}
+                <button
+                  onClick={handleFollowIss}
+                  className="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-slate-950 shadow-md shadow-cyan-500/25 transition-all active:scale-95"
+                  title="Track live International Space Station in real time"
+                >
+                  <Orbit className="w-3.5 h-3.5" />
+                  <span>Follow ISS</span>
+                </button>
 
-              <button
-                onClick={handleCopyCoordinates}
-                className="px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all"
-              >
-                <Copy className="w-4 h-4 text-amber-400" />
-                <span>{copiedCoords ? 'Copied!' : 'Copy WGS84'}</span>
-              </button>
+                {/* Pinpoint Device Lock */}
+                <button
+                  onClick={handleLockOnDevice}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 ${
+                    isLockingDevice 
+                      ? 'bg-rose-500 text-white animate-pulse' 
+                      : 'bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/40'
+                  }`}
+                  title="Pinpoint your host device with sub-meter recon zoom"
+                >
+                  <Target className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>{isLockingDevice ? 'Locking...' : 'Device Lock'}</span>
+                </button>
+
+                {/* Sync Feeds */}
+                <button
+                  onClick={handleSyncSatelliteData}
+                  disabled={isSyncingSatellite}
+                  className="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all active:scale-95 disabled:opacity-50"
+                  title="Force sync latest satellite cloud frames and spacecraft ephemeris"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 text-cyan-400 ${isSyncingSatellite ? 'animate-spin' : ''}`} />
+                  <span>{isSyncingSatellite ? 'Syncing...' : 'Sync'}</span>
+                </button>
+
+                {/* Vocal Briefing */}
+                <button
+                  onClick={handleVocalBriefing}
+                  className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 transition-all"
+                  title="Voice report of coordinates, satellite passes, and ISS orbit"
+                >
+                  <Volume2 className="w-4 h-4" />
+                </button>
+
+                {/* Copy Coordinates */}
+                <button
+                  onClick={handleCopyCoordinates}
+                  className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 transition-all"
+                  title="Copy WGS84 Coordinates"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
-            {/* Tactical Recon HUD Filters */}
-            <div className="flex items-center gap-1.5 text-xs">
-              <span className="text-[10px] font-mono text-slate-400 uppercase hidden sm:inline mr-1">Filter:</span>
-              {[
-                { id: 'normal', label: 'True Color' },
-                { id: 'thermal', label: 'FLIR Thermal' },
-                { id: 'nightvision', label: 'Night Vision' },
-                { id: 'crt', label: 'CRT Scan' }
-              ].map(f => (
+            {/* 2. Satellite Layer Selector & Live Overlay Toolbar */}
+            <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-slate-900/60 border border-cyan-500/25 rounded-2xl backdrop-blur-xl">
+              {/* Satellite Base Layer Selector */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-[10px] font-mono text-slate-400 uppercase font-bold mr-1">Base Layer:</span>
+                
                 <button
-                  key={f.id}
-                  onClick={() => setReconFilter(f.id)}
-                  className={`px-2.5 py-1 rounded-lg font-mono text-[10px] transition-all border ${
-                    reconFilter === f.id
-                      ? 'bg-cyan-500/30 text-cyan-200 border-cyan-400 font-bold shadow-sm'
-                      : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200'
+                  onClick={() => setMapLayer('satellite')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
+                    mapLayer === 'satellite'
+                      ? 'bg-cyan-500/20 text-cyan-300 border-cyan-400 shadow-md shadow-cyan-500/20 font-bold'
+                      : 'bg-slate-950/60 text-slate-400 border-slate-800 hover:text-slate-200'
                   }`}
+                  title="Esri Sub-Meter High-Resolution Global Satellite Imagery"
                 >
-                  {f.label}
+                  <Satellite className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Esri High-Res Recon</span>
                 </button>
-              ))}
+
+                <button
+                  onClick={() => setMapLayer('nasa')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
+                    mapLayer === 'nasa'
+                      ? 'bg-blue-500/25 text-blue-300 border-blue-400 shadow-md shadow-blue-500/20 font-bold'
+                      : 'bg-slate-950/60 text-slate-400 border-slate-800 hover:text-slate-200'
+                  }`}
+                  title="NASA EOSDIS GIBS MODIS Terra/Aqua Daily True-Color Satellite Passes"
+                >
+                  <Sun className="w-3.5 h-3.5 text-amber-400" />
+                  <span>NASA TrueColor (Daily)</span>
+                </button>
+
+                <button
+                  onClick={() => setMapLayer('night')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
+                    mapLayer === 'night'
+                      ? 'bg-purple-500/25 text-purple-300 border-purple-400 shadow-md shadow-purple-500/20 font-bold'
+                      : 'bg-slate-950/60 text-slate-400 border-slate-800 hover:text-slate-200'
+                  }`}
+                  title="NASA Black Marble Nocturnal Earth Lights & City Illumination"
+                >
+                  <Moon className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Earth at Night (NASA)</span>
+                </button>
+
+                <button
+                  onClick={() => setMapLayer('dark')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
+                    mapLayer === 'dark'
+                      ? 'bg-slate-700 text-cyan-300 border-cyan-400/60 font-bold'
+                      : 'bg-slate-950/60 text-slate-400 border-slate-800 hover:text-slate-200'
+                  }`}
+                  title="Stark Tactical Cyber Dark Map"
+                >
+                  <MapIcon className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Cyber Dark</span>
+                </button>
+              </div>
+
+              {/* Live Overlays & Filters */}
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Cloud Radar Overlay Toggle */}
+                <button
+                  onClick={() => setLiveCloudsEnabled(!liveCloudsEnabled)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
+                    liveCloudsEnabled
+                      ? 'bg-cyan-500/20 text-cyan-300 border-cyan-400/80 shadow-sm'
+                      : 'bg-slate-950/60 text-slate-500 border-slate-800'
+                  }`}
+                  title="Toggle RainViewer real-time global weather radar and cloud precipitation overlay"
+                >
+                  <CloudRain className={`w-3.5 h-3.5 ${liveCloudsEnabled ? 'text-cyan-400' : 'text-slate-600'}`} />
+                  <span>Live Cloud Radar: <strong className={liveCloudsEnabled ? 'text-cyan-300' : 'text-slate-500'}>{liveCloudsEnabled ? 'ON' : 'OFF'}</strong></span>
+                </button>
+
+                {/* ISS Live Orbit Toggle */}
+                <button
+                  onClick={() => setLiveIssTrackingEnabled(!liveIssTrackingEnabled)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
+                    liveIssTrackingEnabled
+                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/80 shadow-sm'
+                      : 'bg-slate-950/60 text-slate-500 border-slate-800'
+                  }`}
+                  title="Toggle real-time ISS spacecraft tracking marker and orbit trail"
+                >
+                  <Orbit className={`w-3.5 h-3.5 ${liveIssTrackingEnabled ? 'text-emerald-400' : 'text-slate-600'}`} />
+                  <span>Live ISS Orbit: <strong className={liveIssTrackingEnabled ? 'text-emerald-300' : 'text-slate-500'}>{liveIssTrackingEnabled ? 'ON' : 'OFF'}</strong></span>
+                </button>
+
+                {/* Recon Filters */}
+                <div className="flex items-center gap-1">
+                  {[
+                    { id: 'normal', label: 'Optic' },
+                    { id: 'thermal', label: 'FLIR' },
+                    { id: 'nightvision', label: 'NV' },
+                    { id: 'crt', label: 'CRT' }
+                  ].map(f => (
+                    <button
+                      key={f.id}
+                      onClick={() => setReconFilter(f.id)}
+                      className={`px-2 py-1 rounded-lg font-mono text-[10px] transition-all border ${
+                        reconFilter === f.id
+                          ? 'bg-cyan-500/30 text-cyan-200 border-cyan-400 font-bold'
+                          : 'bg-slate-950/60 text-slate-400 border-slate-800 hover:text-slate-200'
+                      }`}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1682,27 +2114,60 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
-              {spacecraftList.map(craft => (
-                <div key={craft.id} className="p-2.5 bg-slate-950/80 rounded-xl border border-slate-800/80 flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-100 text-[11px]">{craft.id}</span>
-                      <span className="px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 text-[9px] font-mono">
-                        NORAD {craft.noradId}
-                      </span>
+              {spacecraftList.map(craft => {
+                const isIss = craft.noradId === 25544 || craft.id.includes('ISS');
+                const alt = isIss && liveIssData ? liveIssData.altitudeKm : craft.altitudeKm;
+                const vel = isIss && liveIssData ? `${liveIssData.velocityKmH.toLocaleString()} km/h` : `${craft.velocityKmS} km/s`;
+                
+                return (
+                  <div 
+                    key={craft.id} 
+                    className={`p-2.5 bg-slate-950/80 rounded-xl border flex flex-col justify-between transition-all ${
+                      isIss ? 'border-cyan-500/60 shadow-lg shadow-cyan-500/10' : 'border-slate-800/80'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-slate-100 text-[11px] flex items-center gap-1">
+                          {craft.id}
+                          {isIss && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>}
+                        </span>
+                        <span className="px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 text-[9px] font-mono">
+                          NORAD {craft.noradId}
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-slate-400 truncate mt-0.5">{craft.name}</div>
+                      <div className="text-[10px] font-mono text-cyan-400 mt-2 space-y-0.5">
+                        <div>Alt: <strong className="text-slate-100">{alt} km</strong> • Vel: <strong className="text-slate-100">{vel}</strong></div>
+                        {isIss && liveIssData ? (
+                          <div className="text-emerald-400 font-semibold">
+                            Pos: {liveIssData.lat.toFixed(2)}°, {liveIssData.lon.toFixed(2)}° • {liveIssData.visibility}
+                          </div>
+                        ) : (
+                          <div>Range: {craft.distanceKm} km from device</div>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-[10px] text-slate-400 truncate mt-0.5">{craft.name}</div>
-                    <div className="text-[10px] font-mono text-cyan-400 mt-2 space-y-0.5">
-                      <div>Alt: {craft.altitudeKm} km • Vel: {craft.velocityKmS} km/s</div>
-                      <div>Range: {craft.distanceKm} km from device</div>
+
+                    <div className="mt-2 pt-2 border-t border-slate-800/60">
+                      {isIss ? (
+                        <button
+                          onClick={handleFollowIss}
+                          className="w-full py-1 rounded-lg bg-gradient-to-r from-cyan-500/30 to-blue-600/30 hover:from-cyan-500/50 hover:to-blue-600/50 border border-cyan-400/50 text-cyan-200 font-bold text-[10px] flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-sm"
+                        >
+                          <Orbit className="w-3 h-3 text-cyan-400" />
+                          <span>Follow Live ISS Orbit</span>
+                        </button>
+                      ) : (
+                        <div className="flex items-center justify-between text-[10px] font-mono">
+                          <span className="text-slate-400">Next Pass:</span>
+                          <span className="text-emerald-400 font-bold">in {craft.nextPassMin}m</span>
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <div className="mt-2 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px] font-mono">
-                    <span className="text-slate-400">Next Pass:</span>
-                    <span className="text-emerald-400 font-bold">in {craft.nextPassMin}m</span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
