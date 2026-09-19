@@ -7,7 +7,7 @@ import {
   Hand, Camera, CameraOff, Move, ThumbsUp, ThumbsDown, Crosshair, ChevronDown, ChevronUp, MoveVertical, Eye, EyeOff, Power, Check
 } from 'lucide-react';
 import { AirGestureTracker } from '../utils/gestureTracker';
-import { playJarvisBeep, playJarvisScan, playJarvisPowerUp } from '../utils/jarvisAudioSynth';
+import { playJarvisBeep, playJarvisScan, playJarvisPowerUp, playMysticSnap } from '../utils/jarvisAudioSynth';
 
 import UniversalTvRemoteWidget from './UniversalTvRemoteWidget';
 import DiagnosticWidget from './DiagnosticWidget';
@@ -335,17 +335,18 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
     return () => window.removeEventListener('jasper:project-to-hologram', handleProjectToHologram);
   }, []);
 
-  // Air Gesture System State
+  // Air Gesture System State - Doctor Strange Eldritch Spell Engine
   const [isAirGesturesOn, setIsAirGesturesOn] = useState(false);
   const [gestureStatus, setGestureStatus] = useState('IDLE');
   const [activeGesture, setActiveGesture] = useState('NONE');
-  const [gestureFeedback, setGestureFeedback] = useState('Air Gestures Ready: Wave Hand to Scroll // Peace to Maximize // Point to Click');
+  const [gestureFeedback, setGestureFeedback] = useState('Doctor Strange Spells Ready: Snap Fingers to Close All Apps // Palm for Tao Shield // Point to Click');
   const [showGestureHud, setShowGestureHud] = useState(true);
   const [isHudCollapsed, setIsHudCollapsed] = useState(false);
   const [showGestureGuide, setShowGestureGuide] = useState(false);
   const [airCursorPos, setAirCursorPos] = useState(null);
   const [activeFocusedWinId, setActiveFocusedWinId] = useState('searchEngine');
   const [maximizedWindows, setMaximizedWindows] = useState({});
+  const [snapShockwaveActive, setSnapShockwaveActive] = useState(false);
 
   // DOM Refs for Camera and Gesture Engine
   const videoRef = useRef(null);
@@ -508,6 +509,17 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
               playJarvisBeep('select');
             }
           },
+          onFingerSnap: () => {
+            // DOCTOR STRANGE / THANOS SNAP: CLOSE ALL OPEN APPS INSTANTLY!
+            setOpenWindows({});
+            setMinimizedWindows({});
+            setMaximizedWindows({});
+            setSnapShockwaveActive(true);
+            setGestureFeedback('✦ ELDRITCH SNAP: ALL OS APPS DISSOLVED ✦');
+            playMysticSnap();
+            window.dispatchEvent(new CustomEvent('jasper:os-gesture', { detail: { gesture: 'ELDRITCH_SNAP', action: 'CLOSE_ALL_APPS' } }));
+            setTimeout(() => setSnapShockwaveActive(false), 1600);
+          },
           onStateChange: (st) => {
             setGestureStatus(st.status);
             if (st.gesture && st.gesture !== 'NONE') {
@@ -563,6 +575,15 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
 
   const closeWindow = (winId) => {
     setOpenWindows(prev => ({ ...prev, [winId]: false }));
+  };
+
+  const closeAllApps = () => {
+    setOpenWindows({});
+    setMinimizedWindows({});
+    setMaximizedWindows({});
+    setSnapShockwaveActive(true);
+    playMysticSnap();
+    setTimeout(() => setSnapShockwaveActive(false), 1600);
   };
 
   const minimizeWindow = (winId) => {
@@ -691,7 +712,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
             </button>
           )}
 
-          {/* Global Air Gestures Toggle Button */}
+          {/* Global Doctor Strange Spells & Air Gestures Toggle Button */}
           <button
             onClick={() => {
               setIsAirGesturesOn(prev => !prev);
@@ -699,13 +720,13 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
             }}
             className={`px-3 py-1 rounded-lg font-mono text-xs flex items-center gap-1.5 transition-all border cursor-pointer ${
               isAirGesturesOn
-                ? 'bg-cyan-500/25 hover:bg-cyan-500/35 border-cyan-400 text-cyan-200 shadow-[0_0_15px_rgba(0,240,255,0.3)] animate-pulse'
+                ? 'bg-amber-500/25 hover:bg-amber-500/35 border-amber-400 text-amber-200 shadow-[0_0_15px_rgba(255,140,0,0.4)] animate-pulse'
                 : 'bg-neutral-900 hover:bg-neutral-850 border-neutral-800 text-neutral-400 hover:text-neutral-200'
             }`}
-            title="Toggle System-Wide Hand Air Gestures (Control every app hands-free via camera)"
+            title="Toggle Doctor Strange Eldritch Spells & Air Gestures (Snap fingers to close all apps, Tao shield, etc.)"
           >
-            <Hand className={`w-3.5 h-3.5 ${isAirGesturesOn ? 'text-cyan-400' : 'text-neutral-400'}`} />
-            <span>Gestures: {isAirGesturesOn ? 'ON' : 'OFF'}</span>
+            <Sparkles className={`w-3.5 h-3.5 ${isAirGesturesOn ? 'text-amber-400 animate-spin' : 'text-neutral-400'}`} style={{ animationDuration: '8s' }} />
+            <span>Spells & Gestures: {isAirGesturesOn ? 'ACTIVE' : 'OFF'}</span>
           </button>
 
           <button
@@ -1197,25 +1218,27 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
         className="fixed -left-[9999px] -top-[9999px] pointer-events-none opacity-0 w-80 h-60"
       />
 
-      {/* FLOATING STARK SPATIAL GESTURE HUD (TOP RIGHT) */}
+      {/* FLOATING DOCTOR STRANGE SPATIAL SPELL HUD (TOP RIGHT) */}
       {isAirGesturesOn && (
         <div className="spatial-gesture-hud fixed top-16 right-4 z-[990] flex flex-col items-end gap-2 pointer-events-auto select-none font-mono">
           {/* Main HUD Card */}
-          <div className="bg-black/90 border border-cyan-500/40 rounded-2xl p-3 shadow-[0_0_30px_rgba(0,240,255,0.25)] backdrop-blur-2xl flex flex-col gap-2 max-w-[280px] w-[260px] animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="bg-black/92 border border-amber-500/50 rounded-2xl p-3 shadow-[0_0_35px_rgba(255,140,0,0.35)] backdrop-blur-2xl flex flex-col gap-2 max-w-[290px] w-[275px] animate-in fade-in slide-in-from-top-4 duration-300">
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-cyan-500/20 pb-2">
+            <div className="flex items-center justify-between border-b border-amber-500/25 pb-2">
               <div className="flex items-center gap-2">
                 <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-500" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
                 </span>
-                <span className="text-xs font-bold text-cyan-300 tracking-wider">AIR GESTURES</span>
+                <span className="text-xs font-bold text-amber-300 tracking-wider flex items-center gap-1.5">
+                  <span>DOCTOR STRANGE SPELL ENGINE</span>
+                </span>
               </div>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setShowGestureGuide(true)}
-                  className="p-1 rounded text-cyan-400 hover:bg-cyan-500/20 transition-colors"
-                  title="Open Gestures Cheatsheet / Guide"
+                  className="p-1 rounded text-amber-400 hover:bg-amber-500/20 transition-colors"
+                  title="Open Doctor Strange Spells Cheatsheet"
                 >
                   <HelpCircle className="w-3.5 h-3.5" />
                 </button>
@@ -1229,48 +1252,79 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
                 <button
                   onClick={() => setIsAirGesturesOn(false)}
                   className="p-1 rounded text-rose-400 hover:bg-rose-500/20 transition-colors"
-                  title="Disable Air Gestures"
+                  title="Disable Spells & Gestures"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
 
-            {/* Skeletal Joints Canvas Thumbnail (collapsible) */}
+            {/* Skeletal Joints & Tao Mandala Canvas Thumbnail (collapsible) */}
             {!isHudCollapsed && (
-              <div className="relative aspect-[4/3] w-full rounded-xl overflow-hidden bg-slate-950 border border-cyan-500/30 flex items-center justify-center">
+              <div className="relative aspect-[4/3] w-full rounded-xl overflow-hidden bg-black border border-amber-500/40 flex items-center justify-center shadow-inner">
                 <canvas
                   ref={canvasRef}
                   width={240}
                   height={180}
                   className="w-full h-full object-cover scale-x-[-1]"
                 />
-                <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/70 border border-cyan-500/30 text-[9px] text-cyan-400 font-mono">
-                  SKELETAL TRACKER
+                <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/80 border border-amber-500/40 text-[9px] text-amber-300 font-mono flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                  TAO MANDALA TRACKER
                 </div>
               </div>
             )}
 
-            {/* Live Detected Gesture Display Pill */}
-            <div className="p-2 rounded-xl bg-cyan-950/50 border border-cyan-500/30 flex flex-col gap-1">
-              <div className="flex items-center justify-between text-[11px] font-bold text-cyan-200">
+            {/* Live Detected Spell / Gesture Pill */}
+            <div className="p-2.5 rounded-xl bg-amber-950/40 border border-amber-500/40 flex flex-col gap-1.5">
+              <div className="flex items-center justify-between text-[11px] font-bold text-amber-200">
                 <span className="flex items-center gap-1.5 truncate">
-                  <Hand className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                  <span className="truncate">{activeGesture || 'READY'}</span>
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0 animate-spin" style={{ animationDuration: '6s' }} />
+                  <span className="truncate">{activeGesture || 'READY TO CAST'}</span>
                 </span>
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-normal shrink-0">
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/25 text-amber-300 font-normal shrink-0 border border-amber-500/30">
                   {gestureStatus}
                 </span>
               </div>
-              <div className="text-[9px] text-slate-400 truncate flex items-center justify-between pt-1 border-t border-cyan-500/15">
-                <span className="truncate">Target: {activeFocusedWinId ? (JASPER_OS_APPS_REGISTRY.find(a => a.id === activeFocusedWinId)?.title || activeFocusedWinId) : 'Desktop'}</span>
+              
+              {/* Quick Snap Action Button */}
+              <div className="pt-1.5 border-t border-amber-500/20 flex items-center justify-between">
+                <span className="text-[9px] text-amber-400/80 truncate">Snap fingers to close all apps</span>
+                <button
+                  onClick={closeAllApps}
+                  className="text-[9px] px-2 py-0.5 rounded bg-amber-500/20 hover:bg-amber-500/40 border border-amber-400/50 text-amber-200 font-bold transition-all shadow-sm"
+                  title="Trigger Finger Snap: Closes all open apps"
+                >
+                  🫰 Snap Now
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* HOLOGRAPHIC LASER RETICLE CURSOR */}
+      {/* FULLSCREEN DOCTOR STRANGE SNAP SHOCKWAVE DISSOLUTION OVERLAY */}
+      {snapShockwaveActive && (
+        <div className="fixed inset-0 z-[99999] pointer-events-none flex flex-col items-center justify-center overflow-hidden animate-in fade-in duration-150">
+          {/* Cosmic Dissolution Radial Shockwaves */}
+          <div className="absolute w-[160vw] h-[160vw] rounded-full border-4 border-amber-400/80 animate-ping opacity-90 shadow-[0_0_80px_#ff9900]" />
+          <div className="absolute w-[110vw] h-[110vw] rounded-full border-2 border-dashed border-orange-500/90 animate-spin" style={{ animationDuration: '4s' }} />
+          <div className="absolute w-[60vw] h-[60vw] rounded-full bg-radial from-amber-500/30 via-orange-600/10 to-transparent animate-pulse" />
+
+          {/* Central Rotating Tao Mandala Shockwave Core */}
+          <div className="relative flex flex-col items-center justify-center p-8 bg-black/85 border-2 border-amber-500/90 rounded-3xl shadow-[0_0_70px_rgba(255,150,0,0.7)] backdrop-blur-md">
+            <span className="text-5xl mb-2 animate-bounce">🫰✨</span>
+            <div className="font-orbitron font-extrabold text-xl text-amber-300 tracking-widest uppercase flex items-center gap-2 drop-shadow-[0_0_15px_#ff9900]">
+              ✦ ELDRITCH SNAP: ALL APPS DISSOLVED ✦
+            </div>
+            <p className="font-mono text-xs text-amber-200/90 mt-1 uppercase tracking-wider">
+              Doctor Strange Mystical Dispersion Activated
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* HOLOGRAPHIC DOCTOR STRANGE LASER RETICLE CURSOR */}
       {airCursorPos && isAirGesturesOn && (
         <div 
           className="fixed pointer-events-none z-[9999] transition-all duration-75 ease-out"
@@ -1281,33 +1335,33 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
           }}
         >
           <div className={`relative flex items-center justify-center ${airCursorPos.isClicking ? 'scale-125' : 'scale-100'} transition-transform`}>
-            {/* Outer target reticle ring */}
-            <div className={`w-10 h-10 rounded-full border-2 border-dashed ${airCursorPos.isClicking ? 'border-amber-400 animate-ping' : 'border-cyan-400'} animate-spin`} style={{ animationDuration: '8s' }} />
-            {/* Inner glowing center crosshair */}
-            <div className={`w-3 h-3 rounded-full ${airCursorPos.isClicking ? 'bg-amber-400 shadow-[0_0_15px_#f59e0b]' : 'bg-cyan-400 shadow-[0_0_15px_#00f0ff]'}`} />
-            {/* Crosshair lines */}
-            <div className="absolute w-6 h-0.5 bg-cyan-400/80 -left-1" />
-            <div className="absolute w-6 h-0.5 bg-cyan-400/80 -right-1" />
-            <div className="absolute h-6 w-0.5 bg-cyan-400/80 -top-1" />
-            <div className="absolute h-6 w-0.5 bg-cyan-400/80 -bottom-1" />
-            {/* Coordinate badge */}
-            <div className="absolute top-6 left-6 font-mono text-[9px] text-cyan-300 bg-black/85 px-2 py-0.5 rounded border border-cyan-500/40 whitespace-nowrap shadow-lg">
-              AIR CURSOR {airCursorPos.isClicking ? '• AIR CLICK' : ''}
+            {/* Outer rotating Tao Mandala ring */}
+            <div className={`w-12 h-12 rounded-full border-2 border-dashed ${airCursorPos.isClicking ? 'border-yellow-300 animate-ping' : 'border-amber-400'} animate-spin`} style={{ animationDuration: '6s' }} />
+            {/* Inner glowing core */}
+            <div className={`w-3.5 h-3.5 rounded-full ${airCursorPos.isClicking ? 'bg-yellow-200 shadow-[0_0_20px_#ffd700]' : 'bg-amber-400 shadow-[0_0_15px_#ff9900]'}`} />
+            {/* Mystic crosshair rays */}
+            <div className="absolute w-7 h-0.5 bg-amber-400/90 -left-1" />
+            <div className="absolute w-7 h-0.5 bg-amber-400/90 -right-1" />
+            <div className="absolute h-7 w-0.5 bg-amber-400/90 -top-1" />
+            <div className="absolute h-7 w-0.5 bg-amber-400/90 -bottom-1" />
+            {/* Badge */}
+            <div className="absolute top-7 left-7 font-mono text-[9px] text-amber-300 bg-black/90 px-2 py-0.5 rounded border border-amber-500/50 whitespace-nowrap shadow-xl">
+              MYSTIC RAY {airCursorPos.isClicking ? '• AIR CLICK' : ''}
             </div>
           </div>
         </div>
       )}
 
-      {/* GESTURES CHEATSHEET & GUIDE MODAL */}
+      {/* DOCTOR STRANGE SPELLS CHEATSHEET & GUIDE MODAL */}
       {showGestureGuide && (
         <div className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-3xl bg-black border border-cyan-500/40 rounded-2xl shadow-[0_0_50px_rgba(0,240,255,0.3)] overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="px-5 py-3.5 bg-cyan-950/40 border-b border-cyan-500/30 flex items-center justify-between">
+          <div className="w-full max-w-3xl bg-black border border-amber-500/50 rounded-2xl shadow-[0_0_60px_rgba(255,140,0,0.35)] overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-5 py-3.5 bg-amber-950/40 border-b border-amber-500/30 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <Hand className="w-5 h-5 text-cyan-400" />
+                <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
                 <div>
-                  <h3 className="font-orbitron font-bold text-sm text-cyan-200 uppercase tracking-wider">JASPER Spatial Air Gestures Directory</h3>
-                  <p className="text-[10px] text-slate-400 font-mono">Real-time MediaPipe skeletal tracking controlling all OS applications</p>
+                  <h3 className="font-orbitron font-bold text-sm text-amber-200 uppercase tracking-wider">Doctor Strange Mystical Spell Directory</h3>
+                  <p className="text-[10px] text-amber-400/80 font-mono">Real-time MediaPipe skeletal tracking with Tao Mandalas & Eldritch Sparks</p>
                 </div>
               </div>
               <button onClick={() => setShowGestureGuide(false)} className="p-1.5 text-slate-400 hover:text-white rounded-lg">
@@ -1317,41 +1371,41 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
 
             <div className="p-5 overflow-y-auto custom-scrollbar grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {[
+                { icon: '🫰', title: 'Finger Snap', pose: 'Touch thumb to middle & snap flick', action: '✦ Mystical Dispersion: Closes ALL open OS applications instantly with cosmic shockwave!' },
+                { icon: '🛡️', title: 'Tao Mandala Shield', pose: '5 fingers wide open facing camera', action: 'Casts glowing rotating Doctor Strange Tao Shield; toggles Desktop / Restores' },
+                { icon: '⚡', title: 'Mystic Energy Beam', pose: 'Index finger pointing forward', action: 'Projects Doctor Strange energy ray reticle for air cursor navigation & clicks' },
+                { icon: '🤏', title: 'Mirror Dimension Pinch', pose: 'Thumb + Index pinch-drag', action: 'Weaves mystical energy strands to rotate 3D holographic models in space' },
+                { icon: '✊', title: 'Eldritch Fist', pose: 'All fingers curled into tight fist', action: 'Condenses spell energy to minimize the currently active window to dock' },
+                { icon: '✌️', title: 'Sacred V-Sign', pose: 'Index + Middle fingers in V', action: 'Toggles Maximize and Restore on the active application window' },
                 { icon: '👇', title: 'Air Scroll Down', pose: 'Wave open palm or index downwards', action: 'Smooth scrolls content down inside the currently focused app window' },
                 { icon: '☝️', title: 'Air Scroll Up', pose: 'Wave open palm or index upwards', action: 'Smooth scrolls content up inside the currently focused app window' },
-                { icon: '✌️', title: 'Peace Sign (V)', pose: 'Index + Middle fingers extended in V', action: 'Toggles Maximize and Restore on the active application window' },
-                { icon: '👉', title: 'Laser Air Cursor', pose: 'Index finger pointing forward', action: 'Moves holographic target reticle cursor across the desktop' },
-                { icon: '🤏', title: 'Pinch-Click (Tap)', pose: 'Index tip touches thumb while pointing', action: 'Executes an air click on the UI element or app under reticle' },
-                { icon: '✊', title: 'Fist Lock', pose: 'All fingers curled into fist', action: 'Minimizes the currently focused window down to the OS dock' },
-                { icon: '🖐️', title: 'Open Palm (Repulsor)', pose: '5 fingers wide open facing camera', action: 'Shows desktop by minimizing all open windows, or restores all' },
                 { icon: '👍', title: 'Thumbs Up', pose: 'Thumb extended up, 4 fingers curled', action: 'Confirms primary actions, approves dialogs, or unmutes audio' },
                 { icon: '👎', title: 'Thumbs Down', pose: 'Thumb pointed down, 4 fingers curled', action: 'Cancels actions, dismisses toasts, or mutes audio' },
                 { icon: '👌', title: 'OK Sign', pose: 'Thumb + Index ring, 3 fingers up', action: 'Activates Jarvis Voice Commander / wake speech listener' },
-                { icon: '🖖', title: 'Three-Finger Swipe', pose: 'Index, Middle, Ring swipe sideways', action: 'App Switcher: Cycles focus to the next open OS window' },
                 { icon: '👐', title: 'Two-Hand Zoom', pose: 'Both hands spread apart / together', action: 'Expands or shrinks 3D holographic models and spatial maps' },
               ].map((g, idx) => (
-                <div key={idx} className="p-3 bg-slate-950/80 border border-slate-800 hover:border-cyan-500/40 rounded-xl flex flex-col justify-between gap-2 transition-all">
+                <div key={idx} className="p-3 bg-neutral-950/90 border border-amber-500/20 hover:border-amber-400/60 rounded-xl flex flex-col justify-between gap-2 transition-all hover:shadow-[0_0_15px_rgba(255,140,0,0.2)]">
                   <div className="flex items-center gap-2.5">
-                    <span className="text-xl p-1.5 rounded-lg bg-cyan-950/40 border border-cyan-500/20">{g.icon}</span>
+                    <span className="text-xl p-1.5 rounded-lg bg-amber-950/50 border border-amber-500/30">{g.icon}</span>
                     <div>
-                      <h4 className="font-mono text-xs font-bold text-cyan-200">{g.title}</h4>
-                      <p className="text-[10px] text-cyan-400/80 font-mono">{g.pose}</p>
+                      <h4 className="font-mono text-xs font-bold text-amber-200">{g.title}</h4>
+                      <p className="text-[10px] text-amber-400/80 font-mono">{g.pose}</p>
                     </div>
                   </div>
-                  <p className="text-[10px] text-slate-400 font-sans leading-relaxed border-t border-slate-800/80 pt-2">
+                  <p className="text-[10px] text-slate-300 font-sans leading-relaxed border-t border-amber-500/15 pt-2">
                     {g.action}
                   </p>
                 </div>
               ))}
             </div>
 
-            <div className="p-3 border-t border-cyan-500/20 bg-slate-950 flex items-center justify-between text-xs font-mono">
-              <span className="text-slate-400 text-[11px]">Tip: Keep hand 1.5 - 3 feet from camera for optimal recognition.</span>
+            <div className="p-3 border-t border-amber-500/25 bg-black flex items-center justify-between text-xs font-mono">
+              <span className="text-amber-300/80 text-[11px]">Tip: Snap thumb & middle finger to dismiss all open windows instantly!</span>
               <button
                 onClick={() => setShowGestureGuide(false)}
-                className="px-4 py-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-cyan-200 rounded-lg font-bold"
+                className="px-4 py-1.5 bg-amber-500/25 hover:bg-amber-500/40 border border-amber-400 text-amber-200 rounded-lg font-bold"
               >
-                Got It
+                Enter Kamar-Taj
               </button>
             </div>
           </div>

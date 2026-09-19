@@ -1,20 +1,16 @@
 /**
- * J.A.S.P.E.R. AIR-GESTURE TRACKER SERVICE
- * Real-time hand skeletal tracking via MediaPipe Hands CDN.
- * Advanced Spatial Computing Gestures for OS & Holographic Workspace:
- * - Air Scroll (Up / Down): Fast vertical palm or index swipe
- * - Peace Sign (V-Sign): Maximize / Restore active app window
- * - Thumbs Up: Confirm / Action / Unmute
- * - Thumbs Down: Cancel / Minimize / Mute
- * - Open Palm (Repulsor Beam): Show Desktop / Pause
- * - Pointing Finger (Air Cursor): Holographic laser cursor with pinch-click
- * - OK Sign: Wake Jarvis Voice Commander
- * - Three-Finger Swipe: Cycle between open OS windows
- * - Fist: Minimize active window / Reset 3D camera
- * - Pinch-Drag: 3D rotate active model
- * - Two-Hand Spread / Contract: 3D zoom in / out
- * - Horizontal Swipe: Next / Previous creation
+ * J.A.S.P.E.R. AIR-GESTURE TRACKER SERVICE - DOCTOR STRANGE ELDRITCH SPELL ENGINE
+ * Real-time hand skeletal tracking via MediaPipe Hands CDN with authentic Doctor Strange visual effects:
+ * - Rotating Tao Mandalas (Sacred Geometry Spell Shields on wrists & palms)
+ * - Fiery Eldritch Sparks & Embers Particle Physics
+ * - Finger Snap Detection ("Thanos / Doctor Strange Snap") to close all open OS applications
+ * - Tao Shield (Open Palm Repulsor / Shield)
+ * - Sling Ring Portal generation during circular gestures
+ * - Mystic Energy Ray & Mudras for pointing & interaction
+ * - Pinch-Drag Mirror Dimension rotation
  */
+
+import { playMysticSnap, playDoctorStrangeSpell } from './jarvisAudioSynth';
 
 let scriptLoadPromise = null;
 
@@ -54,7 +50,7 @@ export function loadMediaPipeHandsScripts() {
 }
 
 /**
- * AirGestureTracker Controller
+ * Doctor Strange AirGestureTracker Controller
  */
 export class AirGestureTracker {
   constructor(videoElement, canvasElement, callbacks = {}) {
@@ -76,6 +72,7 @@ export class AirGestureTracker {
       onAirCursor: callbacks.onAirCursor || (() => {}),
       onWindowCycle: callbacks.onWindowCycle || (() => {}),
       onCloseApp: callbacks.onCloseApp || (() => {}),
+      onFingerSnap: callbacks.onFingerSnap || (() => {}),
       onStateChange: callbacks.onStateChange || (() => {}),
       ...callbacks
     };
@@ -96,6 +93,20 @@ export class AirGestureTracker {
     this.lastGestureName = 'NONE';
     this.isCurrentlyPinching = false;
     this.pinchStartTime = 0;
+
+    // Finger Snap Detection State ("Doctor Strange / Thanos Snap")
+    this.snapArmed = false;
+    this.snapArmedTime = 0;
+    this.snapArmedPos = null;
+    this.snapArmedThumb = null;
+    this.snapArmedMiddle = null;
+    this.lastSnapTime = 0;
+
+    // Doctor Strange Mystical Visual Engine
+    this.spellAngle = 0;
+    this.particles = [];
+    this.shockwaves = [];
+    this.portalTrail = [];
 
     // Smoothed Air Cursor
     this.cursorPos = { x: 0.5, y: 0.5 };
@@ -174,10 +185,18 @@ export class AirGestureTracker {
     const { width, height } = this.canvasElement;
     this.ctx.clearRect(0, 0, width, height);
 
+    // Update global spell rotation angle for Tao Mandalas
+    this.spellAngle += 0.045;
+
+    // Render active background particles & shockwaves
+    this.updateAndDrawParticles(width, height);
+    this.updateAndDrawShockwaves();
+
     if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
       this.lastPinchPos = null;
       this.lastTwoHandDist = null;
       this.lastGestureName = 'NONE';
+      this.snapArmed = false;
       this.callbacks.onStateChange({ status: 'TRACKING', gesture: 'NONE', handCount: 0 });
       return;
     }
@@ -185,12 +204,69 @@ export class AirGestureTracker {
     const landmarksList = results.multiHandLandmarks;
     const handCount = landmarksList.length;
 
-    // Draw Skeletal Joints & Connections
+    // Draw Doctor Strange Eldritch Skeletal Joints & Tao Mandalas
     landmarksList.forEach((landmarks, idx) => {
-      this.drawHandSkeleton(landmarks, idx);
+      this.drawDoctorStrangeHand(landmarks, idx, width, height);
     });
 
     const now = Date.now();
+
+    // -------------------------------------------------------------
+    // 0. FINGER SNAP DETECTION (CLOSE ALL APPS - DOCTOR STRANGE / THANOS SNAP)
+    // -------------------------------------------------------------
+    for (let hIdx = 0; hIdx < landmarksList.length; hIdx++) {
+      const hLandmarks = landmarksList[hIdx];
+      const thumb = hLandmarks[4];
+      const middle = hLandmarks[12];
+      const index = hLandmarks[8];
+      const wrist = hLandmarks[0];
+      const palmMcp = hLandmarks[9];
+
+      // Distance between thumb and middle fingertip
+      const distThumbMiddle = Math.hypot(thumb.x - middle.x, thumb.y - middle.y);
+      const distThumbIndex = Math.hypot(thumb.x - index.x, thumb.y - index.y);
+
+      // Phase 1: Priming / Touching thumb to middle (or index) finger with tension
+      if (distThumbMiddle < 0.055 || distThumbIndex < 0.05) {
+        if (!this.snapArmed) {
+          this.snapArmed = true;
+          this.snapArmedTime = now;
+          this.snapArmedPos = {
+            x: (1 - (thumb.x + middle.x) / 2) * width,
+            y: ((thumb.y + middle.y) / 2) * height
+          };
+          this.snapArmedThumb = { ...thumb };
+          this.snapArmedMiddle = { ...middle };
+        }
+      } else if (this.snapArmed) {
+        const timeSinceArmed = now - this.snapArmedTime;
+        // Snap release window: 45ms to 380ms
+        if (timeSinceArmed >= 45 && timeSinceArmed <= 400) {
+          // Check if fingers flicked apart violently and middle finger curled down
+          const separation = Math.hypot(thumb.x - middle.x, thumb.y - middle.y);
+          const middleCurled = middle.y > palmMcp.y - 0.02 || Math.hypot(middle.x - wrist.x, middle.y - wrist.y) < 0.28;
+          const highVelocity = (separation - 0.05) / (timeSinceArmed / 1000) > 0.35;
+
+          if ((separation > 0.11 || highVelocity) && (now - this.lastSnapTime > 900)) {
+            // FINGER SNAP TRIGGERED!
+            this.lastSnapTime = now;
+            this.snapArmed = false;
+            this.triggerMysticSnap(this.snapArmedPos.x, this.snapArmedPos.y);
+            playMysticSnap();
+
+            this.callbacks.onFingerSnap();
+            this.callbacks.onStateChange({
+              status: 'TRACKING',
+              gesture: '✦ ELDRITCH SNAP (CLOSE ALL APPS) ✦',
+              handCount
+            });
+            return;
+          }
+        } else if (timeSinceArmed > 400) {
+          this.snapArmed = false;
+        }
+      }
+    }
 
     // -------------------------------------------------------------
     // 1. TWO-HAND GESTURES
@@ -202,7 +278,7 @@ export class AirGestureTracker {
       const p2 = hand2[0]; // Wrist 2
       const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
 
-      // Check if both hands are in fists (Crossed / Double Fist -> Close App)
+      // Check if both hands are in fists (Crossed / Double Fist -> Close Current App)
       const h1Fist = this.isFistLandmarks(hand1);
       const h2Fist = this.isFistLandmarks(hand2);
       if (h1Fist && h2Fist && now - this.lastDiscreteGestureTime > 1200) {
@@ -217,7 +293,7 @@ export class AirGestureTracker {
         if (Math.abs(delta) > 0.008) {
           const zoomFactor = delta * 4.0;
           this.callbacks.onZoom(zoomFactor);
-          this.callbacks.onStateChange({ status: 'TRACKING', gesture: 'TWO-HAND ZOOM', handCount: 2 });
+          this.callbacks.onStateChange({ status: 'TRACKING', gesture: 'TWO-HAND MIRROR ZOOM', handCount: 2 });
         }
       }
       this.lastTwoHandDist = dist;
@@ -280,7 +356,7 @@ export class AirGestureTracker {
     // -------------------------------------------------------------
     // GESTURE: PEACE SIGN (V-SIGN -> MAXIMIZE / RESTORE WINDOW)
     // -------------------------------------------------------------
-    const isPeaceSign = isIndexExt && isMiddleExt && !isRingExt && !isPinkyExt;
+    const isPeaceSign = isIndexExt && isMiddleExt && !isRingExt && !isPinkyExt && Math.hypot(indexTip.x - middleTip.x, indexTip.y - middleTip.y) > 0.06;
     if (isPeaceSign && now - this.lastDiscreteGestureTime > 900) {
       this.lastDiscreteGestureTime = now;
       this.callbacks.onPeaceSign();
@@ -307,19 +383,22 @@ export class AirGestureTracker {
         this.lastDiscreteGestureTime = now;
         this.callbacks.onFist();
       }
-      this.callbacks.onStateChange({ status: 'TRACKING', gesture: 'FIST (MINIMIZE WINDOW)', handCount: 1 });
+      this.callbacks.onStateChange({ status: 'TRACKING', gesture: 'ELDRITCH FIST (MINIMIZE)', handCount: 1 });
       this.lastPinchPos = null;
       return;
     }
 
     // -------------------------------------------------------------
-    // GESTURE: POINTING FINGER (AIR CURSOR & LASER RETICLE)
+    // GESTURE: POINTING FINGER / TWO-FINGER MYSTIC BEAM
     // -------------------------------------------------------------
     const isOnlyIndex = isIndexExt && !isMiddleExt && !isRingExt && !isPinkyExt;
-    if (isOnlyIndex) {
+    const isTwoFingerMudra = isIndexExt && isMiddleExt && !isRingExt && !isPinkyExt && Math.hypot(indexTip.x - middleTip.x, indexTip.y - middleTip.y) <= 0.06;
+
+    if (isOnlyIndex || isTwoFingerMudra) {
+      const activeTip = isTwoFingerMudra ? { x: (indexTip.x + middleTip.x) / 2, y: (indexTip.y + middleTip.y) / 2 } : indexTip;
       // Mirrored X for natural screen pointer
-      const targetX = 1 - indexTip.x;
-      const targetY = indexTip.y;
+      const targetX = 1 - activeTip.x;
+      const targetY = activeTip.y;
 
       // Exponential moving average smoothing for steady pointing
       this.cursorPos.x += (targetX - this.cursorPos.x) * 0.45;
@@ -339,7 +418,7 @@ export class AirGestureTracker {
 
       this.callbacks.onStateChange({
         status: 'TRACKING',
-        gesture: isAirClicking ? 'AIR CLICK (TAP)' : 'AIR CURSOR (POINT)',
+        gesture: isAirClicking ? 'MYSTIC AIR CLICK' : (isTwoFingerMudra ? 'DOCTOR STRANGE ENERGY BEAM' : 'MYSTIC AIR CURSOR'),
         handCount: 1,
         cursor: this.cursorPos
       });
@@ -364,7 +443,7 @@ export class AirGestureTracker {
 
         if (Math.abs(dx) > 0.05 || Math.abs(dy) > 0.05) {
           this.callbacks.onRotate(dx, dy);
-          this.callbacks.onStateChange({ status: 'TRACKING', gesture: 'PINCH-DRAG (ROTATE)', handCount: 1 });
+          this.callbacks.onStateChange({ status: 'TRACKING', gesture: 'SPELL-WEAVING (ROTATE)', handCount: 1 });
         }
       }
 
@@ -375,7 +454,7 @@ export class AirGestureTracker {
         if (pinchDuration < 320 && now - this.lastPinchTapTime > 600) {
           this.lastPinchTapTime = now;
           this.callbacks.onPinchTap();
-          this.callbacks.onStateChange({ status: 'TRACKING', gesture: 'PINCH-TAP (ACTION)', handCount: 1 });
+          this.callbacks.onStateChange({ status: 'TRACKING', gesture: 'MYSTIC PINCH-TAP', handCount: 1 });
         }
         this.isCurrentlyPinching = false;
       }
@@ -411,7 +490,7 @@ export class AirGestureTracker {
           const dir = vx < 0 ? 'NEXT' : 'PREV';
           this.lastSwipeTime = now;
           this.callbacks.onSwipe(dir);
-          this.callbacks.onStateChange({ status: 'TRACKING', gesture: `SWIPE ${dir}`, handCount: 1 });
+          this.callbacks.onStateChange({ status: 'TRACKING', gesture: `SPELL SWIPE ${dir}`, handCount: 1 });
           return;
         }
 
@@ -428,20 +507,21 @@ export class AirGestureTracker {
     }
 
     // -------------------------------------------------------------
-    // GESTURE: PALM STOP (OPEN HAND REPULSOR BEAM -> SHOW DESKTOP)
+    // GESTURE: DOCTOR STRANGE TAO MANDALA SHIELD (OPEN PALM)
     // -------------------------------------------------------------
     const allFiveExtended = isIndexExt && isMiddleExt && isRingExt && isPinkyExt;
     if (allFiveExtended && !isPinching) {
       if (now - this.lastDiscreteGestureTime > 1200) {
         this.lastDiscreteGestureTime = now;
         this.callbacks.onPalmStop();
+        playDoctorStrangeSpell('shield');
       }
-      this.callbacks.onStateChange({ status: 'TRACKING', gesture: 'OPEN PALM (SHOW DESKTOP)', handCount: 1 });
+      this.callbacks.onStateChange({ status: 'TRACKING', gesture: 'TAO MANDALA SHIELD (SHOW DESKTOP)', handCount: 1 });
       return;
     }
 
     if (!isPinching && !isFist) {
-      this.callbacks.onStateChange({ status: 'TRACKING', gesture: 'HAND ACTIVE (READY)', handCount: 1 });
+      this.callbacks.onStateChange({ status: 'TRACKING', gesture: 'ELDRITCH SPELLCASTING READY', handCount: 1 });
     }
   }
 
@@ -463,11 +543,14 @@ export class AirGestureTracker {
     );
   }
 
-  drawHandSkeleton(landmarks, handIndex) {
-    if (!this.ctx || !this.canvasElement) return;
-    const { width, height } = this.canvasElement;
+  // ---------------------------------------------------------------
+  // DOCTOR STRANGE VISUAL RENDERING: TAO MANDALAS & ELDRITCH SPARKS
+  // ---------------------------------------------------------------
+  drawDoctorStrangeHand(landmarks, handIndex, width, height) {
+    if (!this.ctx) return;
     const ctx = this.ctx;
 
+    // Skeletal Connections
     const connections = [
       [0, 1], [1, 2], [2, 3], [3, 4],
       [0, 5], [5, 6], [6, 7], [7, 8],
@@ -477,14 +560,18 @@ export class AirGestureTracker {
       [0, 17]
     ];
 
-    const strokeColor = handIndex === 0 ? '#00e5ff' : '#ffd700';
-    const glowColor = handIndex === 0 ? 'rgba(0, 229, 255, 0.45)' : 'rgba(255, 215, 0, 0.45)';
+    // Fiery Eldritch Gold & Orange Palettes
+    const fieryGold = '#ffaa00';
+    const intenseOrange = '#ff5500';
+    const coreWhite = '#ffffff';
 
     ctx.save();
+
+    // 1. Draw Eldritch Energy Bones with Intense Golden Glow
     ctx.lineWidth = 2.5;
-    ctx.strokeStyle = strokeColor;
-    ctx.shadowColor = strokeColor;
-    ctx.shadowBlur = 8;
+    ctx.strokeStyle = fieryGold;
+    ctx.shadowColor = intenseOrange;
+    ctx.shadowBlur = 12;
 
     connections.forEach(([i, j]) => {
       const p1 = landmarks[i];
@@ -500,27 +587,280 @@ export class AirGestureTracker {
       ctx.stroke();
     });
 
+    // 2. Draw Fingertip Nodes & Emit Glowing Embers
     landmarks.forEach((pt, i) => {
       const x = (1 - pt.x) * width;
       const y = pt.y * height;
       const isTip = [4, 8, 12, 16, 20].includes(i);
-      const radius = isTip ? 5.5 : 3.5;
+      const radius = isTip ? 5 : 3;
 
       ctx.beginPath();
       ctx.arc(x, y, radius, 0, Math.PI * 2);
-      ctx.fillStyle = isTip ? '#ffffff' : strokeColor;
+      ctx.fillStyle = isTip ? coreWhite : fieryGold;
+      ctx.shadowColor = fieryGold;
+      ctx.shadowBlur = 8;
       ctx.fill();
 
-      if (isTip) {
-        ctx.beginPath();
-        ctx.arc(x, y, radius + 4, 0, Math.PI * 2);
-        ctx.strokeStyle = glowColor;
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
+      // Emit Eldritch spark embers randomly from moving fingertips
+      if (isTip && Math.random() < 0.35) {
+        this.spawnEldritchSpark(x, y);
       }
     });
 
+    // 3. Draw Doctor Strange Tao Mandala on Wrist / Palm
+    const wrist = landmarks[0];
+    const palm = landmarks[9];
+    const wx = (1 - wrist.x) * width;
+    const wy = wrist.y * height;
+    const px = (1 - palm.x) * width;
+    const py = palm.y * height;
+
+    // Center the mandala between wrist and palm
+    const mandalaX = (wx + px) / 2;
+    const mandalaY = (wy + py) / 2;
+
+    // Check if hand is open (Tao Shield defense)
+    const isHandSpread = Math.hypot(landmarks[4].x - landmarks[20].x, landmarks[4].y - landmarks[20].y) > 0.26;
+    const baseRadius = isHandSpread ? 42 : 24;
+
+    this.drawTaoMandala(mandalaX, mandalaY, baseRadius, this.spellAngle * (handIndex === 0 ? 1 : -1));
+
+    // 4. If Snap is Armed, draw crackling energy tension between thumb and middle finger
+    if (this.snapArmed) {
+      const thumb = landmarks[4];
+      const middle = landmarks[12];
+      const tx = (1 - thumb.x) * width;
+      const ty = thumb.y * height;
+      const mx = (1 - middle.x) * width;
+      const my = middle.y * height;
+
+      ctx.beginPath();
+      ctx.moveTo(tx, ty);
+      // Zigzag crackling arc
+      const midX = (tx + mx) / 2 + (Math.random() - 0.5) * 8;
+      const midY = (ty + my) / 2 + (Math.random() - 0.5) * 8;
+      ctx.lineTo(midX, midY);
+      ctx.lineTo(mx, my);
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.shadowColor = '#ffea00';
+      ctx.shadowBlur = 15;
+      ctx.stroke();
+
+      // Small warning spark ring around snap point
+      ctx.beginPath();
+      ctx.arc(midX, midY, 6 + Math.sin(Date.now() / 60) * 2, 0, Math.PI * 2);
+      ctx.strokeStyle = '#ff9900';
+      ctx.stroke();
+    }
+
     ctx.restore();
+  }
+
+  /**
+   * Draw authentic rotating Doctor Strange Tao Mandala (Sacred Octagram, Rune Ticks, Concentric Rings)
+   */
+  drawTaoMandala(cx, cy, r, angle) {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+
+    // Primary Glowing Colors
+    const gold = '#ffaa00';
+    const orange = '#ff4400';
+    const yellow = '#ffe855';
+
+    ctx.shadowColor = orange;
+    ctx.shadowBlur = 10;
+
+    // Ring 1: Outer Rune Perimeter Ring
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
+    ctx.strokeStyle = gold;
+    ctx.lineWidth = 1.8;
+    ctx.stroke();
+
+    // Outer Sanskrit / Mystic Ticks around perimeter (Rotating)
+    const tickCount = 16;
+    for (let i = 0; i < tickCount; i++) {
+      const a = angle + (i * Math.PI * 2) / tickCount;
+      const x1 = Math.cos(a) * (r - 3);
+      const y1 = Math.sin(a) * (r - 3);
+      const x2 = Math.cos(a) * (r + 4);
+      const y2 = Math.sin(a) * (r + 4);
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.strokeStyle = yellow;
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+    }
+
+    // Ring 2: Concentric Middle Ring
+    ctx.beginPath();
+    ctx.arc(0, 0, r * 0.72, 0, Math.PI * 2);
+    ctx.strokeStyle = orange;
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+
+    // Sacred Octagram: Two Intersecting Squares (Rotating clockwise & counter-clockwise)
+    ctx.save();
+    ctx.rotate(angle);
+    const sqSize = r * 0.56;
+    ctx.strokeStyle = gold;
+    ctx.lineWidth = 1.3;
+    ctx.strokeRect(-sqSize / 2, -sqSize / 2, sqSize, sqSize);
+
+    // Second square rotated 45 degrees
+    ctx.rotate(Math.PI / 4);
+    ctx.strokeStyle = yellow;
+    ctx.strokeRect(-sqSize / 2, -sqSize / 2, sqSize, sqSize);
+    ctx.restore();
+
+    // Ring 3: Inner Core Ring & Radiant Star
+    ctx.beginPath();
+    ctx.arc(0, 0, r * 0.35, 0, Math.PI * 2);
+    ctx.strokeStyle = gold;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    // Inner glowing core
+    ctx.beginPath();
+    ctx.arc(0, 0, r * 0.14, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = gold;
+    ctx.shadowBlur = 12;
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  /**
+   * Spawn Eldritch floating spark particles
+   */
+  spawnEldritchSpark(x, y, count = 1) {
+    for (let i = 0; i < count; i++) {
+      this.particles.push({
+        x,
+        y,
+        vx: (Math.random() - 0.5) * 2.2,
+        vy: (Math.random() - 0.5) * 2.2 - 0.8, // subtle upward drift like fiery embers
+        size: Math.random() * 2.5 + 1.2,
+        alpha: 1.0,
+        decay: Math.random() * 0.035 + 0.02,
+        color: Math.random() > 0.3 ? '#ffaa00' : '#ff5500'
+      });
+    }
+  }
+
+  /**
+   * Trigger Finger Snap Cosmic Shockwave & Spark Explosion
+   */
+  triggerMysticSnap(x, y) {
+    // 1. Add expanding shockwave rings
+    this.shockwaves.push({
+      x,
+      y,
+      radius: 8,
+      maxRadius: 180,
+      alpha: 1.0,
+      color: '#ff9900'
+    });
+    this.shockwaves.push({
+      x,
+      y,
+      radius: 4,
+      maxRadius: 220,
+      alpha: 1.0,
+      color: '#ffd700'
+    });
+
+    // 2. Spawn 60 radial eldritch spark particles
+    for (let i = 0; i < 60; i++) {
+      const angle = (Math.PI * 2 * i) / 60 + (Math.random() - 0.5) * 0.2;
+      const speed = Math.random() * 6.5 + 2.0;
+      this.particles.push({
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: Math.random() * 3.5 + 1.5,
+        alpha: 1.0,
+        decay: Math.random() * 0.02 + 0.015,
+        color: i % 2 === 0 ? '#ffea00' : '#ff4400'
+      });
+    }
+  }
+
+  /**
+   * Update and draw Eldritch spark particles
+   */
+  updateAndDrawParticles(width, height) {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.alpha -= p.decay;
+
+      if (p.alpha <= 0 || p.x < 0 || p.x > width || p.y < 0 || p.y > height) {
+        this.particles.splice(i, 1);
+        continue;
+      }
+
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.alpha);
+      ctx.fillStyle = p.color;
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 6;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  /**
+   * Update and draw expanding mystical shockwaves
+   */
+  updateAndDrawShockwaves() {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+
+    for (let i = this.shockwaves.length - 1; i >= 0; i--) {
+      const sw = this.shockwaves[i];
+      sw.radius += (sw.maxRadius - sw.radius) * 0.14 + 1.5;
+      sw.alpha -= 0.035;
+
+      if (sw.alpha <= 0 || sw.radius >= sw.maxRadius) {
+        this.shockwaves.splice(i, 1);
+        continue;
+      }
+
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, sw.alpha);
+      ctx.strokeStyle = sw.color;
+      ctx.lineWidth = 2.5;
+      ctx.shadowColor = sw.color;
+      ctx.shadowBlur = 14;
+
+      ctx.beginPath();
+      ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Outer concentric rune pulse ring
+      ctx.beginPath();
+      ctx.arc(sw.x, sw.y, sw.radius * 0.75, 0, Math.PI * 2);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.0;
+      ctx.stroke();
+
+      ctx.restore();
+    }
   }
 
   stop() {
@@ -539,6 +879,8 @@ export class AirGestureTracker {
     if (this.ctx && this.canvasElement) {
       this.ctx.clearRect(0, 0, this.canvasElement.width, this.canvasElement.height);
     }
+    this.particles = [];
+    this.shockwaves = [];
     this.callbacks.onStateChange({ status: 'STOPPED', gesture: 'NONE' });
   }
 }
