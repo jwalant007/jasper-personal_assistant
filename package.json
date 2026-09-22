@@ -5,7 +5,6 @@
   "main": "electron/main.js",
   "scripts": {
     "install-all": "npm install && npm install --prefix server && npm install --prefix client",
-    "postinstall": "npm install --prefix server && npm install --prefix client",
     "start": "node server/start.js",
     "server": "node server/server.js",
     "client": "npm run dev --prefix client",
