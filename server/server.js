@@ -211,6 +211,12 @@ function getScriptPath(scriptName) {
 const PORT = process.env.PORT || 3001;
 const app = express();
 
+// Serve built production client statically if dist folder exists (before CORS to avoid blocking app assets)
+const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
+if (fs.existsSync(clientDistPath)) {
+  app.use(express.static(clientDistPath));
+}
+
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
@@ -226,24 +232,21 @@ app.use(cors({
         origin.startsWith('http://10.') || 
         origin.startsWith('capacitor://') || 
         origin.startsWith('file://') ||
+        origin.includes('onrender.com') ||
+        origin.includes('render.com') ||
         origin.includes('trycloudflare.com') ||
         origin.includes('loca.lt') ||
         origin.includes('localtunnel.me') ||
-        origin.includes('ngrok')) {
+        origin.includes('ngrok') ||
+        (process.env.RENDER_EXTERNAL_URL && origin === process.env.RENDER_EXTERNAL_URL)) {
       callback(null, true);
     } else {
       console.warn(`[CORS Blocked] Request rejected from untrusted origin: ${origin}`);
-      callback(new Error('CORS blocked: Untrusted origin'));
+      callback(null, false);
     }
   }
 }));
 app.use(express.json());
-
-// Serve built production client statically if dist folder exists
-const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
-if (fs.existsSync(clientDistPath)) {
-  app.use(express.static(clientDistPath));
-}
 
 // Create HTTP server & WebSocket Server
 const server = http.createServer(app);
