@@ -8,6 +8,7 @@ import {
   ShieldAlert, Bell, Volume2
 } from 'lucide-react';
 import geminiClient from '../utils/geminiClient';
+import { getApiBase } from '../utils/apiConfig.js';
 
 export default function SocialAutoReplyWidget({ onClose, onLog }) {
   const [platform, setPlatform] = useState('whatsapp'); // 'whatsapp' | 'instagram'
@@ -84,7 +85,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
     showBanner('Starting WhatsApp Web connection... Generating QR Code...', 'info');
     setShowWaQrModal(true);
     try {
-      const res = await fetch('http://localhost:3001/api/social/wa-connect', { method: 'POST' });
+      const res = await fetch('/api/social/wa-connect', { method: 'POST' });
       const data = await res.json();
       if (data.success) {
         setWaWebStatus(data.status);
@@ -106,7 +107,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
   useEffect(() => {
     const pollWaStatus = async () => {
       try {
-        const res = await fetch('http://localhost:3001/api/social/wa-status');
+        const res = await fetch('/api/social/wa-status');
         const data = await res.json();
         setWaWebStatus(data.status);
         if (data.qr) setWaWebQr(data.qr);
@@ -123,7 +124,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
 
   const handleWaWebDisconnect = async () => {
     try {
-      await fetch('http://localhost:3001/api/social/wa-disconnect', { method: 'POST' });
+      await fetch('/api/social/wa-disconnect', { method: 'POST' });
       setWaWebStatus('not_initialized');
       setWaWebQr(null);
       setShowWaQrModal(false);
@@ -204,7 +205,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
         setShowImportModal(false);
         showBanner(`Successfully imported ${imported.length} real contacts!`, 'success');
         try {
-          await fetch('http://localhost:3001/api/social/contacts/bulk', {
+          await fetch('/api/social/contacts/bulk', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contacts: merged })
@@ -244,7 +245,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
     setBulkIgText('');
     showBanner(`Imported ${newIgContacts.length} Instagram Direct accounts!`, 'success');
     try {
-      await fetch('http://localhost:3001/api/social/contacts/bulk', {
+      await fetch('/api/social/contacts/bulk', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ contacts: merged })
@@ -263,7 +264,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
   // Load config, accounts, contacts & logs from backend
   const fetchConfigAndLogs = async () => {
     try {
-      const resConfig = await fetch('http://localhost:3001/api/social/config');
+      const resConfig = await fetch('/api/social/config');
       const dataConfig = await resConfig.json();
       if (dataConfig.success && dataConfig.config) {
         setWhatsappEnabled(dataConfig.config.whatsappEnabled ?? true);
@@ -274,7 +275,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
         if (dataConfig.config.emergencyKeyword) setEmergencyKeyword(dataConfig.config.emergencyKeyword);
       }
 
-      const resAcc = await fetch('http://localhost:3001/api/social/accounts');
+      const resAcc = await fetch('/api/social/accounts');
       const dataAcc = await resAcc.json();
       if (dataAcc.success && dataAcc.accounts) {
         setAccountConfig(prev => ({
@@ -285,13 +286,13 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
         }));
       }
 
-      const resContacts = await fetch('http://localhost:3001/api/social/contacts');
+      const resContacts = await fetch('/api/social/contacts');
       const dataContacts = await resContacts.json();
       if (dataContacts.success && dataContacts.contacts && dataContacts.contacts.length > 0) {
         setContacts(dataContacts.contacts);
       }
 
-      const resLogs = await fetch('http://localhost:3001/api/social/logs');
+      const resLogs = await fetch('/api/social/logs');
       const dataLogs = await resLogs.json();
       if (dataLogs.success && dataLogs.logs) {
         setLogs(dataLogs.logs);
@@ -308,7 +309,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
     }
 
     try {
-      const res = await fetch('http://localhost:3001/api/social/contacts', {
+      const res = await fetch('/api/social/contacts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -351,7 +352,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
     setIsSyncingContacts(true);
     showBanner('Syncing real contacts & WhatsApp chats from connected phone...', 'info');
     try {
-      const res = await fetch('http://localhost:3001/api/social/sync-contacts', {
+      const res = await fetch('/api/social/sync-contacts', {
         method: 'POST'
       });
       const data = await res.json();
@@ -377,7 +378,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
 
   const saveAccountsToServer = async (updatedAcc) => {
     try {
-      await fetch('http://localhost:3001/api/social/accounts', {
+      await fetch('/api/social/accounts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -400,7 +401,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
 
   const saveConfig = async (updated) => {
     try {
-      await fetch('http://localhost:3001/api/social/config', {
+      await fetch('/api/social/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updated)
@@ -447,7 +448,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
 
     setIsSending(true);
     try {
-      const res = await fetch('http://localhost:3001/api/social/send', {
+      const res = await fetch('/api/social/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -494,7 +495,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
     const simName = simPlatform === 'instagram' ? 'Alex (Mechanic)' : 'Mom';
 
     try {
-      const res = await fetch('http://localhost:3001/api/social/call-handler', {
+      const res = await fetch('/api/social/call-handler', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -530,7 +531,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
 
   const handleClearLogs = async () => {
     try {
-      await fetch('http://localhost:3001/api/social/logs/clear', { method: 'POST' });
+      await fetch('/api/social/logs/clear', { method: 'POST' });
     } catch (e) {}
     setLogs([]);
     showBanner('Activity logs cleared.', 'info');
@@ -539,7 +540,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
   const handleTriggerTestEmergency = async () => {
     try {
       showBanner('🚨 Dispatching test emergency alert (Windows Toast + Audio)...', 'info');
-      const res = await fetch('http://localhost:3001/api/social/emergency-trigger', {
+      const res = await fetch('/api/social/emergency-trigger', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1504,7 +1505,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
                   onClick={async () => {
                     showBanner('Testing Phone Link: Launching Instagram on phone...', 'info');
                     try {
-                      await fetch('http://localhost:3001/api/social/send', {
+                      await fetch('/api/social/send', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({

@@ -44,7 +44,7 @@ import MapsWidget from './components/MapsWidget';
 import EmergencyAlertToast from './components/EmergencyAlertToast';
 import PhoneSentinelWidget from './components/PhoneSentinelWidget';
 import geminiClient from './utils/geminiClient';
-import { getServerIp, setServerIp } from './utils/apiConfig.js';
+import { getServerIp, setServerIp, getApiBase, getWsBase } from './utils/apiConfig.js';
 import { getPhoneBrainMode, setPhoneBrainMode, togglePhoneBrainMode } from './utils/mobileBrain.js';
 
 import { 
@@ -231,7 +231,7 @@ export default function App() {
 
     const checkEmergencyStatus = async () => {
       try {
-        const res = await fetch('http://localhost:3001/api/social/emergency-status');
+        const res = await fetch(`${getApiBase()}/api/social/emergency-status`);
         const data = await res.json();
         if (isSubscribed && data.success && data.active && data.current) {
           setActiveEmergency(data.current);
@@ -246,7 +246,7 @@ export default function App() {
 
     let ws;
     try {
-      ws = new WebSocket('ws://localhost:3001');
+      ws = new WebSocket(getWsBase());
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
@@ -271,7 +271,7 @@ export default function App() {
 
   const handleDismissEmergency = async () => {
     try {
-      await fetch('http://localhost:3001/api/social/emergency-dismiss', {
+      await fetch(`${getApiBase()}/api/social/emergency-dismiss`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: 'all' })
@@ -1025,7 +1025,7 @@ export default function App() {
       let response = `Deploying J.A.S.P.E.R. Phone Sentinel console, Sir. Your mobile phone is continuously monitored for severe weather and urgent emergency messages even when laptop servers are completely powered off.`;
       if (isTest) {
         try {
-          fetch('http://localhost:3001/api/sentinel/test', { method: 'POST' }).catch(() => {});
+          fetch(`${getApiBase()}/api/sentinel/test`, { method: 'POST' }).catch(() => {});
         } catch (e) {}
         response = `Dispatching high-priority test push to your phone lock screen via cloud push relay. The notification will arrive on your phone immediately, Sir.`;
       }
@@ -1799,6 +1799,20 @@ export default function App() {
                     🚀 {isMobileLayout ? 'APK UPDATE' : 'APK UPDATE READY'}
                   </a>
                 )}
+                {/* Active AI Engine Provider Badge */}
+                <button 
+                  onClick={() => openModal('settings')}
+                  className={`btn-hdr-action text-[10px] py-1 px-2 font-mono font-bold border transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
+                    aiProvider === 'gemini'
+                      ? 'text-purple-300 border-purple-500/40 bg-purple-950/40 hover:bg-purple-900/60 shadow-[0_0_10px_rgba(168,85,247,0.2)]'
+                      : 'text-cyan-300 border-cyan-500/40 bg-cyan-950/40 hover:bg-cyan-900/60 shadow-[0_0_10px_rgba(6,182,212,0.2)]'
+                  }`}
+                  title={`Active AI Engine: ${aiProvider === 'gemini' ? 'Google Gemini Cloud (with seamless Local Ollama failover)' : `Local Ollama (${ollamaModel})`}. Click to configure.`}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${aiProvider === 'gemini' ? 'bg-purple-400 animate-pulse' : 'bg-cyan-400 animate-pulse'}`} />
+                  {aiProvider === 'gemini' ? '☁️ CLOUD AI' : `🦙 LOCAL AI`}
+                </button>
+
                 <button 
                   onClick={() => setIsOsMode(true)}
                   className="btn-hdr-action text-[10px] py-1 px-2.5 font-mono font-extrabold text-amber-300 border-amber-400/80 bg-amber-950/80 hover:bg-amber-800/90 transition-all flex items-center gap-1 cursor-pointer shadow-[0_0_15px_rgba(245,197,66,0.3)] animate-pulse"

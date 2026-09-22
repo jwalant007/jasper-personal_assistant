@@ -93,7 +93,11 @@ class PermissionLayer {
       return { allowed: true, requiresConfirmation: false, reason: 'Auto-execute permitted.' };
     }
 
-    return { allowed: true, requiresConfirmation: false, reason: 'Auto-execute permitted.' };
+    return { 
+      allowed: true, 
+      requiresConfirmation: true, 
+      reason: `Action permission level L${permissionLevel} exceeds auto-execute threshold L${globalMax}. Explicit confirmation required.` 
+    };
   }
 
   /**

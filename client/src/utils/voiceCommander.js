@@ -1,32 +1,158 @@
 /**
  * J.A.S.P.E.R. HOLOGRAPHIC VOICE COMMAND LISTENER
- * Wake word ("jarvis" / "jasper") & rapid command recognition matching the reel:
- * - "next one" / "that one" / "go back" / "zoom in" / "zoom out"
- * - "explode view" / "reassemble" / "switch to arc reactor" / "switch to repulsor"
+ * Modern semantic intent classifier with multi-synonym matching,
+ * Levenshtein typo-tolerance, and conversational fallback routing.
  */
+
+// Intent definitions with synonym sets and triggers
+const INTENTS = [
+  {
+    id: 'NEXT',
+    triggers: ['next', 'next one', 'swipe right', 'forward', 'subsequent', 'next creation', 'advance', 'turn right']
+  },
+  {
+    id: 'PREV',
+    triggers: ['previous', 'prev', 'back', 'go back', 'swipe left', 'prior', 'last one', 'return', 'turn left']
+  },
+  {
+    id: 'SELECT',
+    triggers: ['select', 'open this', 'choose this', 'inspect this', 'expand this', 'inspect model']
+  },
+  {
+    id: 'ZOOM_IN',
+    triggers: ['zoom in', 'magnify', 'enhance', 'enlarge', 'closer', 'scale up', 'make bigger', 'bring closer', 'closer look']
+  },
+  {
+    id: 'ZOOM_OUT',
+    triggers: ['zoom out', 'shrink', 'smaller', 'further', 'step back', 'scale down', 'pull back', 'back up']
+  },
+  {
+    id: 'EXPLODE',
+    triggers: ['explode', 'explode view', 'explode suit', 'explode armor', 'disassemble', 'break apart', 'tear down', 'exploded view']
+  },
+  {
+    id: 'REASSEMBLE',
+    triggers: ['reassemble', 'assemble', 'restore armor', 'put together', 'rebuild', 'reconstruct', 'reassembly']
+  },
+  {
+    id: 'SWITCH_REACTOR',
+    triggers: ['arc reactor', 'reactor core', 'palladium core', 'energy core', 'tokamak', 'switch to reactor']
+  },
+  {
+    id: 'SWITCH_REPULSOR',
+    triggers: ['repulsor', 'repulsor engine', 'thruster', 'flight stabilizer', 'switch to repulsor']
+  },
+  {
+    id: 'SWITCH_GENOME',
+    triggers: ['genome', 'dna', 'double helix', 'synthetic genome', 'crispr', 'switch to genome']
+  },
+  {
+    id: 'SWITCH_IRONMAN',
+    triggers: ['iron man', 'mark 85', 'mark 7', 'stark armor', 'ironman', 'switch to iron man', 'suit armor']
+  },
+  {
+    id: 'SWITCH_SPIDERMAN',
+    triggers: ['spider man', 'spiderman', 'spider suit', 'iron spider', 'switch to spiderman']
+  },
+  {
+    id: 'SWITCH_TESSERACT',
+    triggers: ['tesseract', '4d', 'hypercube', 'four dimensions', 'switch to tesseract']
+  },
+  {
+    id: 'SWITCH_BLENDER',
+    triggers: ['blender studio', 'switch to blender', 'open blender', 'blender', '3d studio', 'blender viewport']
+  },
+  {
+    id: 'GENERATE_BLENDER',
+    triggers: ['generate 3d', 'create 3d model', 'synthesize 3d', 'make 3d model', 'blender generate', 'procedural 3d']
+  },
+  {
+    id: 'PROJECT_BLENDER',
+    triggers: ['project to hologram', 'project model', 'beam model', 'send to workstation', 'holographic projection']
+  },
+  {
+    id: 'SWITCH_SATELLITE',
+    triggers: ['satellite intelligence', 'satellite view', 'satellite mode', 'orbital recon', 'orbital view', 'recon satellite', 'satellite', 'spatial gps', 'spatial map', 'spatial intelligence']
+  },
+  {
+    id: 'DEVICE_LOCATION',
+    triggers: ['device location', 'where am i', 'precise location', 'my location', 'track device', 'gps location', 'show location', 'coordinates']
+  },
+  {
+    id: 'SATELLITE_LOCK',
+    triggers: ['satellite lock', 'orbital lock', 'lock on device', 'pinpoint device', 'spatial lock', 'lock target']
+  },
+  {
+    id: 'SWITCH_SENTINEL',
+    triggers: ['phone sentinel', 'phone alert', 'offline alert', 'weather alert', 'sentinel mode', 'mobile sentinel']
+  },
+  {
+    id: 'TEST_PHONE_ALERT',
+    triggers: ['test phone alert', 'test notification', 'ping phone', 'test push', 'test alert']
+  },
+  {
+    id: 'TOGGLE_AR',
+    triggers: ['toggle camera', 'toggle webcam', 'toggle ar', 'ar mode', 'augmented reality']
+  },
+  {
+    id: 'RESET_VIEW',
+    triggers: ['reset camera', 'default view', 'center view', 'recenter', 'reset view', 'home position']
+  },
+  {
+    id: 'TOGGLE_WIREFRAME',
+    triggers: ['toggle wireframe', 'wireframe mode', 'show wireframe', 'mesh view', 'toggle mesh']
+  },
+  {
+    id: 'CLOSE_MODAL',
+    triggers: ['close hologram', 'exit hologram', 'close modal', 'dismiss', 'back to desktop', 'shut down hologram', 'exit view', 'close this', 'close window']
+  }
+];
+
+/**
+ * Levenshtein distance for fuzzy matching speech recognition mishears
+ */
+function levenshteinDistance(a, b) {
+  if (!a || !b) return (a || '').length + (b || '').length;
+  const matrix = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0));
+  for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
+  for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
+
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + cost
+      );
+    }
+  }
+  return matrix[a.length][b.length];
+}
 
 export class HolographicVoiceCommander {
   constructor(callbacks = {}) {
     this.callbacks = {
       onCommand: callbacks.onCommand || (() => {}),
       onTranscript: callbacks.onTranscript || (() => {}),
+      onGeneralQuery: callbacks.onGeneralQuery || (() => {}),
       onStatusChange: callbacks.onStatusChange || (() => {}),
       ...callbacks
     };
 
     this.recognition = null;
     this.isListening = false;
-    this.wakeWordRequired = false; // set true for strict wake word mode
+    this.wakeWordRequired = false;
     this.lastProcessed = '';
   }
 
   isSupported() {
-    return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+    return !!(typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition));
   }
 
   start() {
     if (this.isListening) return;
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition);
 
     if (!SpeechRecognition) {
       console.warn('[VoiceCommander] SpeechRecognition not supported in this browser.');
@@ -88,68 +214,61 @@ export class HolographicVoiceCommander {
     }
   }
 
+  /**
+   * Evaluates text using the semantic intent classifier.
+   * Strips wake words, performs exact, synonym, and fuzzy trigger matching,
+   * and routes unrecognized questions to general conversational fallback.
+   */
   evaluateCommand(text) {
-    // Strip wake words
-    let clean = text.replace(/^(hey\s+)?(jarvis|jasper)[,\s]*/i, '').trim();
+    // Strip multi-modal wake words ("hey jasper", "ok jasper", "jasper", "hey jarvis", "jarvis", "computer")
+    let clean = text.replace(/^(hey|ok|okay|hi|hello|yo)?\s*(jarvis|jasper|computer|assistant)[,\s]*/i, '').trim();
 
-    if (clean === this.lastProcessed) return;
+    if (!clean || clean === this.lastProcessed) return;
 
     let matchedCmd = null;
 
-    if (clean.includes('next one') || clean.includes('next creation') || clean.includes('swipe right') || clean === 'next') {
-      matchedCmd = 'NEXT';
-    } else if (clean.includes('previous one') || clean.includes('go back') || clean.includes('swipe left') || clean === 'back' || clean === 'previous') {
-      matchedCmd = 'PREV';
-    } else if (clean.includes('that one') || clean.includes('open this') || clean.includes('select this')) {
-      matchedCmd = 'SELECT';
-    } else if (clean.includes('zoom in') || clean.includes('magnify')) {
-      matchedCmd = 'ZOOM_IN';
-    } else if (clean.includes('zoom out') || clean.includes('shrink')) {
-      matchedCmd = 'ZOOM_OUT';
-    } else if (clean.includes('explode view') || clean.includes('explode suit') || clean.includes('explode armor') || clean.includes('disassemble')) {
-      matchedCmd = 'EXPLODE';
-    } else if (clean.includes('reassemble') || clean.includes('assemble') || clean.includes('restore armor')) {
-      matchedCmd = 'REASSEMBLE';
-    } else if (clean.includes('arc reactor') || clean.includes('reactor core')) {
-      matchedCmd = 'SWITCH_REACTOR';
-    } else if (clean.includes('repulsor') || clean.includes('thruster')) {
-      matchedCmd = 'SWITCH_REPULSOR';
-    } else if (clean.includes('genome') || clean.includes('dna') || clean.includes('double helix')) {
-      matchedCmd = 'SWITCH_GENOME';
-    } else if (clean.includes('iron man') || clean.includes('mark 85') || clean.includes('mark 7')) {
-      matchedCmd = 'SWITCH_IRONMAN';
-    } else if (clean.includes('spider man') || clean.includes('spiderman') || clean.includes('spider suit')) {
-      matchedCmd = 'SWITCH_SPIDERMAN';
-    } else if (clean.includes('tesseract') || clean.includes('4d') || clean.includes('hypercube')) {
-      matchedCmd = 'SWITCH_TESSERACT';
-    } else if (clean.includes('toggle camera') || clean.includes('toggle webcam') || clean.includes('toggle ar') || clean.includes('ar mode')) {
-      matchedCmd = 'TOGGLE_AR';
-    } else if (clean.includes('reset camera') || clean.includes('default view') || clean.includes('center view')) {
-      matchedCmd = 'RESET_VIEW';
-    } else if (clean.includes('blender studio') || clean.includes('switch to blender') || clean.includes('open blender') || clean === 'blender' || clean.includes('3d studio')) {
-      matchedCmd = 'SWITCH_BLENDER';
-    } else if (clean.includes('generate 3d') || clean.includes('create 3d model') || clean.includes('synthesize 3d') || clean.includes('make 3d model') || clean.includes('blender generate')) {
-      matchedCmd = 'GENERATE_BLENDER';
-    } else if (clean.includes('project to hologram') || clean.includes('project model') || clean.includes('beam model') || clean.includes('send to workstation') || clean.includes('holographic projection')) {
-      matchedCmd = 'PROJECT_BLENDER';
-    } else if (clean.includes('satellite intelligence') || clean.includes('satellite view') || clean.includes('satellite mode') || clean.includes('orbital recon') || clean.includes('orbital view') || clean.includes('recon satellite') || clean === 'satellite' || clean.includes('spatial gps') || clean.includes('spatial map') || clean.includes('spatial intelligence') || clean.includes('satellite and gps') || clean.includes('gps and satellite')) {
-      matchedCmd = 'SWITCH_SATELLITE';
-    } else if (clean.includes('device location') || clean.includes('where am i') || clean.includes('precise location') || clean.includes('my location') || clean.includes('track device') || clean.includes('gps location') || clean.includes('show location')) {
-      matchedCmd = 'DEVICE_LOCATION';
-    } else if (clean.includes('satellite lock') || clean.includes('orbital lock') || clean.includes('lock on device') || clean.includes('pinpoint device') || clean.includes('spatial lock')) {
-      matchedCmd = 'SATELLITE_LOCK';
-    } else if (clean.includes('phone sentinel') || clean.includes('phone alert') || clean.includes('offline alert') || clean.includes('weather alert') || clean.includes('sentinel mode') || clean.includes('mobile sentinel')) {
-      matchedCmd = 'SWITCH_SENTINEL';
-    } else if (clean.includes('test phone alert') || clean.includes('test notification') || clean.includes('ping phone') || clean.includes('test push') || clean.includes('test alert')) {
-      matchedCmd = 'TEST_PHONE_ALERT';
+    // 1. Direct trigger & synonym match
+    for (const intent of INTENTS) {
+      for (const trigger of intent.triggers) {
+        if (clean === trigger || clean.includes(trigger)) {
+          matchedCmd = intent.id;
+          break;
+        }
+      }
+      if (matchedCmd) break;
     }
 
+    // 2. Fuzzy / Typo match for single-word / short-phrase mishears
+    if (!matchedCmd && clean.length >= 4 && clean.length <= 25) {
+      for (const intent of INTENTS) {
+        for (const trigger of intent.triggers) {
+          if (Math.abs(clean.length - trigger.length) <= 3) {
+            const dist = levenshteinDistance(clean, trigger);
+            if (dist <= 2) {
+              matchedCmd = intent.id;
+              break;
+            }
+          }
+        }
+        if (matchedCmd) break;
+      }
+    }
+
+    // 3. Dispatch matched command or route to conversational fallback
     if (matchedCmd) {
       this.lastProcessed = clean;
       this.callbacks.onCommand(matchedCmd, clean);
       setTimeout(() => {
         if (this.lastProcessed === clean) this.lastProcessed = '';
       }, 1500);
+    } else if (clean.length > 8 && clean.split(/\s+/).length >= 2) {
+      // Natural language conversational utterance: route to conversational AI
+      this.lastProcessed = clean;
+      this.callbacks.onGeneralQuery(clean);
+      this.callbacks.onCommand('GENERAL_QUERY', clean);
+      setTimeout(() => {
+        if (this.lastProcessed === clean) this.lastProcessed = '';
+      }, 3000);
     }
   }
 

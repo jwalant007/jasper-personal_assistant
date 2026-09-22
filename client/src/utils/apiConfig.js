@@ -53,7 +53,7 @@ export function getWsBase() {
   } else if (url.startsWith('ws://')) {
     return isHttpsPage ? url.replace('ws://', 'wss://') : url;
   } else if (url.includes('ngrok') || (url.includes('.') && !/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(url) && !url.includes('localhost'))) {
-    url = `wss://${url}`;
+    url = `wss://${url}/ws`;
   } else {
     url = isHttpsPage ? `wss://${url}:${API_PORT}` : `ws://${url}:${API_PORT}`;
   }

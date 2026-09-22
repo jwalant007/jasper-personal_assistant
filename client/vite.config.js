@@ -19,6 +19,7 @@ export default defineConfig({
   server: {
     port: 5173,
     host: '0.0.0.0',
+    allowedHosts: true,
     watch: {
       ignored: ['**/android/**']
     },
@@ -30,6 +31,12 @@ export default defineConfig({
         target: 'http://localhost:3001',
         changeOrigin: true,
         ws: true
+      },
+      '/ws': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        ws: true,
+        rewrite: (path) => path.replace(/^\/ws/, '')
       }
     }
   },

@@ -22,18 +22,32 @@ export default function PcRemoteDesktopWidget({ onClose }) {
   const [screenImage, setScreenImage] = useState(null);
   const [isLoadingScreen, setIsLoadingScreen] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [refreshInterval, setRefreshInterval] = useState(800);
+  const [streamQuality, setStreamQuality] = useState('fast'); // 'fast' | 'hq'
+  const [latencyMs, setLatencyMs] = useState(null);
+  const [bridgeType, setBridgeType] = useState('native');
   const [typeInput, setTypeInput] = useState('');
   const [statusLog, setStatusLog] = useState('Remote Desktop Stream Connected');
   const [mouseMode, setMouseMode] = useState('left'); // left, right, double
+  const [clickRipple, setClickRipple] = useState(null);
   const imageRef = useRef(null);
 
   const fetchScreen = async () => {
+    if (isLoadingScreen) return;
     setIsLoadingScreen(true);
+    const startTime = Date.now();
     try {
-      const res = await fetch(`${getApiBase()}/api/pc/remote/screen`);
+      const q = streamQuality === 'hq' ? 85 : 60;
+      const s = streamQuality === 'hq' ? 0.9 : 0.7;
+      const res = await fetch(`${getApiBase()}/api/pc/remote/screen?quality=${q}&scale=${s}`);
+      const elapsed = Date.now() - startTime;
+      setLatencyMs(elapsed);
       if (res.ok) {
         const data = await res.json();
-        if (data.image) setScreenImage(data.image);
+        if (data.image) {
+          setScreenImage(data.image);
+          if (data.bridge) setBridgeType(data.bridge);
+        }
       }
     } catch (err) {
       setStatusLog(`Connection warning: ${err.message}`);
@@ -46,10 +60,10 @@ export default function PcRemoteDesktopWidget({ onClose }) {
     fetchScreen();
     let interval;
     if (autoRefresh) {
-      interval = setInterval(fetchScreen, 2000);
+      interval = setInterval(fetchScreen, refreshInterval);
     }
     return () => { if (interval) clearInterval(interval); };
-  }, [autoRefresh]);
+  }, [autoRefresh, refreshInterval, streamQuality]);
 
   const handleScreenClick = async (e) => {
     if (!imageRef.current) return;
@@ -61,17 +75,23 @@ export default function PcRemoteDesktopWidget({ onClose }) {
     const xPercent = Math.round((clickX / rect.width) * 100);
     const yPercent = Math.round((clickY / rect.height) * 100);
 
-    setStatusLog(`Sending ${mouseMode} click to Laptop at (${xPercent}%, ${yPercent}%)...`);
+    // Visual ripple effect
+    setClickRipple({ x: clickX, y: clickY, id: Date.now() });
+    setTimeout(() => setClickRipple(null), 600);
 
+    setStatusLog(`Sending ${mouseMode} click at (${xPercent}%, ${yPercent}%)...`);
+
+    const clickStart = Date.now();
     try {
       const res = await fetch(`${getApiBase()}/api/pc/remote/click`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ x: xPercent, y: yPercent, type: mouseMode })
       });
+      const clickElapsed = Date.now() - clickStart;
       if (res.ok) {
-        setStatusLog(`Click executed at (${xPercent}%, ${yPercent}%)`);
-        setTimeout(fetchScreen, 300);
+        setStatusLog(`Click executed in ${clickElapsed}ms at (${xPercent}%, ${yPercent}%)`);
+        setTimeout(fetchScreen, 80);
       }
     } catch (err) {
       setStatusLog(`Click failed: ${err.message}`);
@@ -84,17 +104,19 @@ export default function PcRemoteDesktopWidget({ onClose }) {
 
     const textToType = typeInput;
     setTypeInput('');
-    setStatusLog(`Typing text into laptop: "${textToType}"...`);
+    setStatusLog(`Typing: "${textToType}"...`);
 
+    const typeStart = Date.now();
     try {
       const res = await fetch(`${getApiBase()}/api/pc/remote/type`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: textToType })
       });
+      const typeElapsed = Date.now() - typeStart;
       if (res.ok) {
-        setStatusLog(`Typed "${textToType}" successfully into laptop active window.`);
-        setTimeout(fetchScreen, 400);
+        setStatusLog(`Typed "${textToType}" in ${typeElapsed}ms.`);
+        setTimeout(fetchScreen, 120);
       }
     } catch (err) {
       setStatusLog(`Typing error: ${err.message}`);
@@ -102,16 +124,18 @@ export default function PcRemoteDesktopWidget({ onClose }) {
   };
 
   const handleSendHotkey = async (keyName, label) => {
-    setStatusLog(`Sending hotkey '${label || keyName}' to laptop...`);
+    setStatusLog(`Sending hotkey '${label || keyName}'...`);
+    const keyStart = Date.now();
     try {
       const res = await fetch(`${getApiBase()}/api/pc/remote/key`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ key: keyName })
       });
+      const keyElapsed = Date.now() - keyStart;
       if (res.ok) {
-        setStatusLog(`Hotkey '${label || keyName}' executed on laptop.`);
-        setTimeout(fetchScreen, 500);
+        setStatusLog(`Hotkey '${label || keyName}' sent in ${keyElapsed}ms.`);
+        setTimeout(fetchScreen, 150);
       }
     } catch (err) {
       setStatusLog(`Hotkey error: ${err.message}`);
@@ -134,7 +158,36 @@ export default function PcRemoteDesktopWidget({ onClose }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {latencyMs !== null && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-cyan-950/60 border border-cyan-500/30 text-[11px] font-mono text-cyan-300">
+              <Zap className="w-3.5 h-3.5 text-amber-400" />
+              <span>{bridgeType === 'native' ? 'Win32 GDI' : 'PowerShell'}: <strong className="text-emerald-400">{latencyMs}ms</strong></span>
+            </div>
+          )}
+
+          {/* Rate Selector */}
+          <select
+            value={refreshInterval}
+            onChange={(e) => setRefreshInterval(Number(e.target.value))}
+            className="bg-slate-900 border border-slate-800 text-xs text-slate-300 rounded-xl px-2 py-1 font-mono focus:outline-none focus:border-cyan-500/40"
+            title="Streaming Rate"
+          >
+            <option value={500}>500ms (Ultra)</option>
+            <option value={800}>800ms (Fast)</option>
+            <option value={1500}>1.5s (Balanced)</option>
+            <option value={3000}>3s (Battery)</option>
+          </select>
+
+          {/* Quality Selector */}
+          <button
+            onClick={() => setStreamQuality(q => q === 'fast' ? 'hq' : 'fast')}
+            className="px-2.5 py-1 rounded-xl text-xs font-mono border border-slate-800 bg-slate-900 text-slate-300 hover:text-cyan-300 transition-all"
+            title="Toggle Quality (Fast 70% vs HQ 90%)"
+          >
+            {streamQuality === 'hq' ? '🎨 HQ' : '⚡ Fast'}
+          </button>
+
           <button
             onClick={() => setAutoRefresh(!autoRefresh)}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
@@ -144,7 +197,7 @@ export default function PcRemoteDesktopWidget({ onClose }) {
             }`}
           >
             {autoRefresh ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 text-emerald-400" />}
-            {autoRefresh ? 'Auto-Stream ON' : 'Paused'}
+            {autoRefresh ? 'Live ON' : 'Paused'}
           </button>
 
           <button
@@ -196,13 +249,22 @@ export default function PcRemoteDesktopWidget({ onClose }) {
       {/* Main Interactive Desktop Screen Viewport */}
       <div className="relative rounded-xl overflow-hidden border border-cyan-500/30 bg-black flex items-center justify-center min-h-[300px] sm:min-h-[420px] shadow-2xl mb-4 group">
         {screenImage ? (
-          <img
-            ref={imageRef}
-            src={screenImage}
-            alt="PC Desktop Live Screen Stream"
-            onClick={handleScreenClick}
-            className="w-full h-auto max-h-[500px] object-contain cursor-crosshair select-none"
-          />
+          <div className="relative inline-block w-full">
+            <img
+              ref={imageRef}
+              src={screenImage}
+              alt="PC Desktop Live Screen Stream"
+              onClick={handleScreenClick}
+              className="w-full h-auto max-h-[500px] object-contain cursor-crosshair select-none block mx-auto"
+            />
+            {clickRipple && (
+              <span
+                key={clickRipple.id}
+                style={{ left: clickRipple.x, top: clickRipple.y }}
+                className="absolute w-6 h-6 -ml-3 -mt-3 bg-cyan-400/80 rounded-full animate-ping pointer-events-none border border-cyan-200 shadow-[0_0_15px_#00f0ff]"
+              />
+            )}
+          </div>
         ) : (
           <div className="text-center py-16 text-slate-500 space-y-2 font-mono">
             <RefreshCw className="w-8 h-8 text-cyan-400 animate-spin mx-auto mb-2" />
@@ -210,8 +272,9 @@ export default function PcRemoteDesktopWidget({ onClose }) {
           </div>
         )}
 
-        <div className="absolute top-2 left-2 pointer-events-none text-[9px] font-mono bg-black/80 border border-cyan-500/30 px-2 py-0.5 rounded text-cyan-400 uppercase tracking-widest">
-          Live Laptop Mirror • Tap to Click
+        <div className="absolute top-2 left-2 pointer-events-none text-[9px] font-mono bg-black/80 border border-cyan-500/30 px-2 py-0.5 rounded text-cyan-400 uppercase tracking-widest flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span>Live Laptop Mirror • Sub-50ms Native Bridge</span>
         </div>
       </div>
 

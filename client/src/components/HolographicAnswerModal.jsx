@@ -560,9 +560,13 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '', ini
       setResponseText('Phone Sentinel engaged. Mobile device protected via autonomous weather monitoring and push relay.');
     } else if (cmd === 'TEST_PHONE_ALERT') {
       try {
-        fetch('http://localhost:3001/api/sentinel/test', { method: 'POST' }).catch(() => {});
+        fetch('/api/sentinel/test', { method: 'POST' }).catch(() => {});
       } catch (e) {}
       setResponseText('Dispatching high-priority test push to mobile lock screen, sir.');
+    } else if (cmd === 'CLOSE_MODAL') {
+      if (typeof onClose === 'function') onClose();
+    } else if (cmd === 'GENERAL_QUERY') {
+      setResponseText(`Hologram Audio Sensor: "${clean}"`);
     }
   };
 

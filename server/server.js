@@ -19,6 +19,7 @@ const busyModeEngine = require('./busyModeEngine');
 const blenderController = require('./blenderController');
 const notificationManager = require('./notificationManager');
 const weatherSentinel = require('./weatherSentinel');
+const ollamaBridge = require('./ollamaBridge');
 
 // Optional WhatsApp Web Client (whatsapp-web.js) for laptop WhatsApp Web auto-send
 let Client, LocalAuth, WAStatus;
@@ -207,10 +208,35 @@ function getScriptPath(scriptName) {
   return localPath;
 }
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 const app = express();
 
-app.use(cors());
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:3001',
+  'http://127.0.0.1:3001'
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || 
+        allowedOrigins.includes(origin) || 
+        origin.startsWith('http://192.168.') || 
+        origin.startsWith('http://10.') || 
+        origin.startsWith('capacitor://') || 
+        origin.startsWith('file://') ||
+        origin.includes('trycloudflare.com') ||
+        origin.includes('loca.lt') ||
+        origin.includes('localtunnel.me') ||
+        origin.includes('ngrok')) {
+      callback(null, true);
+    } else {
+      console.warn(`[CORS Blocked] Request rejected from untrusted origin: ${origin}`);
+      callback(new Error('CORS blocked: Untrusted origin'));
+    }
+  }
+}));
 app.use(express.json());
 
 // Serve built production client statically if dist folder exists
@@ -323,18 +349,16 @@ app.post('/api/system/wake', (req, res) => {
     timestamp: now 
   });
 
-  // 2. Launch or focus the client browser / desktop window immediately
-  const clientUrl = `http://localhost:5173/?wake=true${isWorkRoutine ? '&action=work' : ''}`;
-  console.log(`[API] Opening JASPER app immediately: ${clientUrl}`);
-  
-  // Windows command to launch/focus default browser immediately
-  exec(`start ${clientUrl}`, (err) => {
-    if (err) {
-      console.error('[API] Error launching client browser:', err);
-    } else {
-      console.log('[API] Client browser launched successfully.');
-    }
-  });
+  // 2. Focus existing clients if already connected, otherwise launch browser window
+  if (activeSockets.size === 0) {
+    const clientUrl = `http://localhost:5173/?wake=true${isWorkRoutine ? '&action=work' : ''}`;
+    console.log(`[API] No active clients connected. Opening JASPER app: ${clientUrl}`);
+    execFile('cmd.exe', ['/c', 'start', '', clientUrl], (err) => {
+      if (err) console.error('[API] Error launching client browser:', err);
+    });
+  } else {
+    console.log(`[API] Client already connected (${activeSockets.size} active sessions). Wake signal broadcasted cleanly.`);
+  }
 
   res.json({ status: 'activated', isWorkRoutine });
 });
@@ -350,7 +374,7 @@ app.post('/api/system/volume', (req, res) => {
       return res.status(400).json({ error: 'Volume must be between 0 and 100' });
     }
     const scriptPath = getScriptPath('volume.ps1');
-    exec(`powershell.exe -NoProfile -ExecutionPolicy Bypass -File "${scriptPath}" -Volume ${vol}`, (err, stdout, stderr) => {
+    execFile('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', scriptPath, '-Volume', String(vol)], (err, stdout, stderr) => {
       if (err) {
         console.error('[Volume API Error]:', err, stderr);
         return res.status(500).json({ error: 'Failed to set volume', details: stderr });
@@ -358,84 +382,82 @@ app.post('/api/system/volume', (req, res) => {
       res.json({ success: true, message: `Volume set to ${vol}%` });
     });
   } else if (action === 'up') {
-    // Send Volume Up key stroke (character 175)
-    exec('powershell.exe -Command "$w=New-Object -ComObject WScript.Shell;$w.SendKeys([char]175)"', (err) => {
-      if (err) return res.status(500).json({ error: 'Failed to raise volume' });
-      res.json({ success: true });
-    });
+    pcRemoteController.sendHotkey('KEY_VOLUMEUP');
+    res.json({ success: true });
   } else if (action === 'down') {
-    // Send Volume Down key stroke (character 174)
-    exec('powershell.exe -Command "$w=New-Object -ComObject WScript.Shell;$w.SendKeys([char]174)"', (err) => {
-      if (err) return res.status(500).json({ error: 'Failed to lower volume' });
-      res.json({ success: true });
-    });
+    pcRemoteController.sendHotkey('KEY_VOLUMEDOWN');
+    res.json({ success: true });
   } else if (action === 'mute') {
-    // Send Mute/Unmute toggle key stroke (character 173)
-    exec('powershell.exe -Command "$w=New-Object -ComObject WScript.Shell;$w.SendKeys([char]173)"', (err) => {
-      if (err) return res.status(500).json({ error: 'Failed to toggle mute' });
-      res.json({ success: true });
-    });
+    pcRemoteController.sendHotkey('KEY_MUTE');
+    res.json({ success: true });
   } else {
     res.status(400).json({ error: 'Invalid volume action' });
   }
 });
 
-// Windows Application launcher endpoint
+// Windows Application launcher endpoint (Parameterized, safe from shell injection)
 app.post('/api/system/launch', (req, res) => {
   const { appName, url } = req.body;
   console.log('[API] App/Link launch requested:', { appName, url });
 
-  // Safe launching maps
   const appMapping = {
     'notepad': 'notepad.exe',
     'calc': 'calc.exe',
     'calculator': 'calc.exe',
     'explorer': 'explorer.exe',
-    'cmd': 'start cmd.exe',
-    'chrome': 'start chrome.exe',
+    'cmd': 'cmd.exe',
+    'chrome': 'chrome.exe',
     'paint': 'mspaint.exe',
-    'taskmgr': 'taskmgr.exe',
-    'spotify': 'start spotify:'
+    'taskmgr': 'taskmgr.exe'
   };
-
-  let command = '';
 
   if (appName) {
     const key = appName.toLowerCase().trim();
-    if (appMapping[key]) {
-      command = appMapping[key];
-    } else {
-      // Direct execute if it's safe looking alphabetic/alphanumeric characters only
-      if (/^[a-zA-Z0-9_\-\.]+$/.test(appName)) {
-        command = `${appName}.exe`;
-      } else {
-        return res.status(400).json({ error: `Application name '${appName}' is not in safe list` });
+    const targetExe = appMapping[key] || (key === 'spotify' ? 'spotify.exe' : null);
+    if (targetExe) {
+      try {
+        const proc = spawn(targetExe, [], { detached: true, stdio: 'ignore' });
+        proc.unref();
+        return res.json({ success: true, launched: targetExe });
+      } catch (err) {
+        return res.status(500).json({ error: 'Failed to launch application', details: err.message });
       }
     }
-  } else if (url) {
-    // Validate it is a web link
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      // On Windows, `start` treats the first quoted arg as window title.
-      // We must provide an empty title "" before the URL.
-      // Also escape & for cmd shell.
-      const escapedUrl = url.replace(/&/g, '^&');
-      command = `start "" "${escapedUrl}"`;
-    } else {
-      return res.status(400).json({ error: 'URL must start with http:// or https://' });
-    }
-  }
 
-  if (!command) {
+    // Strict alphanumeric whitelist for safety
+    if (/^[a-zA-Z0-9_\-]+$/.test(appName)) {
+      const safeExe = `${appName}.exe`;
+      try {
+        const proc = spawn(safeExe, [], { detached: true, stdio: 'ignore' });
+        proc.on('error', (err) => {
+          return res.status(500).json({ error: 'Failed to launch application', details: err.message });
+        });
+        proc.unref();
+        return res.json({ success: true, launched: safeExe });
+      } catch (err) {
+        return res.status(500).json({ error: 'Failed to launch application', details: err.message });
+      }
+    }
+    return res.status(400).json({ error: `Application name '${appName}' is not in approved list` });
+  } else if (url) {
+    try {
+      const parsedUrl = new URL(url);
+      if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+        return res.status(400).json({ error: 'URL must start with http:// or https://' });
+      }
+      execFile('cmd.exe', ['/c', 'start', '', parsedUrl.href], (err) => {
+        if (err) {
+          console.error('[Launch API Error]:', err);
+          return res.status(500).json({ error: 'Failed to launch URL', details: err.message });
+        }
+        res.json({ success: true, launched: parsedUrl.href });
+      });
+    } catch (e) {
+      return res.status(400).json({ error: 'Invalid URL format' });
+    }
+  } else {
     return res.status(400).json({ error: 'Provide valid appName or url' });
   }
-
-  exec(command, (err) => {
-    if (err) {
-      console.error('[Launch API Error]:', err);
-      return res.status(500).json({ error: 'Failed to launch application', details: err.message });
-    }
-    res.json({ success: true, launched: command });
-  });
 });
 
 // PC Remote Power-On / Wake-on-LAN Magic Packet Route
@@ -1286,6 +1308,16 @@ app.post('/api/phone/disconnect', async (req, res) => {
     res.json({ result });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/phone/toggle-virtual', (req, res) => {
+  try {
+    const enabled = req.body && typeof req.body.enabled === 'boolean' ? req.body.enabled : !phoneController.virtualMode;
+    const currentMode = phoneController.setVirtualMode(enabled);
+    res.json({ success: true, virtualMode: currentMode });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
@@ -2481,143 +2513,28 @@ app.get('/api/briefing', (req, res) => {
   }
 });
 
-// List locally installed Ollama models
-app.get('/api/ollama/models', (req, res) => {
-  const http = require('http');
-  const options = {
-    hostname: '127.0.0.1',
-    port: 11434,
-    path: '/api/tags',
-    method: 'GET',
-    timeout: 3000
-  };
-
-  const reqObj = http.request(options, (ollamaRes) => {
-    let data = '';
-    ollamaRes.on('data', chunk => data += chunk);
-    ollamaRes.on('end', () => {
-      try {
-        const parsed = JSON.parse(data);
-        const models = (parsed.models || []).map(m => m.name || m.model);
-        res.json({ success: true, models: models.length ? models : ['llama3', 'llama3.2', 'qwen2.5', 'mistral', 'gemma2'] });
-      } catch (e) {
-        res.json({ success: true, models: ['llama3', 'llama3.2', 'qwen2.5', 'mistral', 'gemma2'] });
-      }
-    });
-  });
-
-  reqObj.on('error', () => {
-    res.json({ success: false, offline: true, models: ['llama3', 'llama3.2', 'qwen2.5', 'mistral', 'gemma2'] });
-  });
-
-  reqObj.end();
-});
-
-app.post('/api/ollama/query', async (req, res) => {
-  const { prompt = '', model = 'llama3', system = '', images = [] } = req.body;
-  console.log('[Ollama Engine] Processing query with local model:', model, '| Prompt:', prompt.substring(0, 60), '| Images:', images.length);
-  
+// List locally installed Ollama models with active default
+app.get('/api/ollama/models', async (req, res) => {
   try {
-    const http = require('http');
-    const systemPersona = system || "You are J.A.S.P.E.R. (Just Another Super Intelligent Personal Assistant), Tony Stark's 200+ IQ AI assistant. Always address the user politely as 'Sir'. Provide smart, concise, highly intelligent responses.";
-    
-    const ollamaPayload = {
-      model: model || 'llama3',
-      prompt: prompt,
-      system: systemPersona,
-      stream: false,
-      options: {
-        temperature: 0.7,
-        num_predict: 2048
-      }
-    };
-
-    if (Array.isArray(images) && images.length > 0) {
-      ollamaPayload.images = images;
-    }
-
-    const postData = JSON.stringify(ollamaPayload);
-
-    const options = {
-      hostname: '127.0.0.1',
-      port: 11434,
-      path: '/api/generate',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(postData)
-      },
-      timeout: 60000
-    };
-
-    let replied = false;
-    const reply = (payload) => {
-      if (!replied && !res.headersSent) {
-        replied = true;
-        res.json(payload);
-      }
-    };
-
-    const ollamaReq = http.request(options, (ollamaRes) => {
-      let data = '';
-      ollamaRes.on('data', chunk => data += chunk);
-      ollamaRes.on('end', () => {
-        try {
-          const parsed = JSON.parse(data);
-          const responseText = parsed.response ? parsed.response.trim() : 'Command executed, Sir.';
-          reply({ success: true, response: responseText, model: model });
-        } catch (err) {
-          reply({ success: true, response: '[Ollama Local] Model output: ' + data });
-        }
-      });
-    });
-
-    ollamaReq.on('error', async (err) => {
-      if (replied) return;
-      console.log('[Ollama] Local Ollama error or not responding on 11434. Routing query to Jasper Local Agent Core...');
-      try {
-        const agentRes = await agentEngine.processQuery({ query: prompt });
-        reply({
-          success: true,
-          response: agentRes.response,
-          model: 'jasper-local-core'
-        });
-      } catch (agentErr) {
-        reply({
-          success: true,
-          response: `Good day, Sir. All Jasper core systems are active and standing by.`,
-          model: 'jasper-local-core'
-        });
-      }
-    });
-
-    ollamaReq.on('timeout', async () => {
-      if (replied) return;
-      console.log('[Ollama] Request timed out. Destroying request and falling back to Jasper Core...');
-      ollamaReq.destroy();
-      try {
-        const agentRes = await agentEngine.processQuery({ query: prompt });
-        reply({ success: true, response: agentRes.response, model: 'jasper-local-core' });
-      } catch (_) {
-        reply({ success: true, response: `Directive processed, Sir.`, model: 'jasper-local-core' });
-      }
-    });
-
-    ollamaReq.write(postData);
-    ollamaReq.end();
-  } catch (e) {
-    try {
-      const agentRes = await agentEngine.processQuery({ query: prompt });
-      res.json({ success: true, response: agentRes.response, model: 'jasper-local-core' });
-    } catch (_) {
-      res.json({
-        success: true,
-        response: `Systems operational, Sir. How may I assist you today?`,
-        model: 'jasper-local-core'
-      });
-    }
+    const models = await ollamaBridge.getInstalledModels();
+    const defaultModel = await ollamaBridge.resolveModel('default');
+    res.json({ success: true, models, defaultModel });
+  } catch (err) {
+    res.json({ success: false, models: ['llama3.2:latest'], defaultModel: 'llama3.2:latest' });
   }
 });
+
+// Process query via Ollama with dynamic model resolution, tool execution, and local fallback
+app.post('/api/ollama/query', async (req, res) => {
+  const { prompt = '', model = 'llama3.2:latest', system = '', images = [] } = req.body;
+  try {
+    const result = await ollamaBridge.queryLocalModel({ prompt, model, system, images });
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 
 // -------------------------------------------------------------
 // AGENT REASONING ENGINE & SEMANTIC VECTOR MEMORY ENDPOINTS
@@ -2805,9 +2722,11 @@ app.post('/api/face-profile', (req, res) => {
 // -------------------------------------------------------------
 app.get('/api/pc/remote/screen', async (req, res) => {
   try {
-    const screenData = await pcRemoteController.getScreenCapture();
+    const quality = req.query.quality ? parseInt(req.query.quality, 10) : 65;
+    const scale = req.query.scale ? parseFloat(req.query.scale) : 0.75;
+    const screenData = await pcRemoteController.getScreenCapture(quality, scale);
     if (screenData) {
-      res.json({ success: true, image: screenData, timestamp: Date.now() });
+      res.json({ success: true, image: screenData, timestamp: Date.now(), bridge: 'native' });
     } else {
       res.status(500).json({ success: false, error: 'Screen capture failed' });
     }
@@ -2850,22 +2769,11 @@ app.post('/api/pc/remote/key', async (req, res) => {
 // OLLAMA LOCAL SERVER HEALTH & PROXY ROUTE
 // -------------------------------------------------------------
 app.get('/api/ollama/status', async (req, res) => {
-  let replied = false;
-  const reply = (data) => {
-    if (!replied && !res.headersSent) {
-      replied = true;
-      res.json(data);
-    }
-  };
   try {
-    const http = require('http');
-    const check = http.get('http://127.0.0.1:11434/api/tags', { timeout: 2000 }, (ollamaRes) => {
-      reply({ online: ollamaRes.statusCode === 200 });
-    });
-    check.on('error', () => reply({ online: false }));
-    check.on('timeout', () => { check.destroy(); reply({ online: false }); });
+    const status = await ollamaBridge.getStatus();
+    res.json(status);
   } catch (err) {
-    reply({ online: false });
+    res.json({ online: false, models: [] });
   }
 });
 
@@ -3307,8 +3215,12 @@ server.listen(PORT, '0.0.0.0', () => {
   // Start autonomous Weather Sentinel daemon
   weatherSentinel.startWeatherSentinel({ channelTopic: 'jasper-jwalant-alerts' });
 
-  // Start native Windows background speech trigger
-  startBackgroundVoiceListener();
+  // Start native Windows background speech trigger (Windows only)
+  if (process.platform === 'win32') {
+    startBackgroundVoiceListener();
+  } else {
+    console.log('[JASPER Core] Non-Windows OS detected — background PowerShell voice listener skipped.');
+  }
 });
 
 // Graceful exit handler to kill the background PowerShell voice listener

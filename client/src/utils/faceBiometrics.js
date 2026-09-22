@@ -148,16 +148,99 @@ export function extractFaceVector(videoElement, canvasElement) {
     vector[vecIdx++] = (gradV / cropH) / safeContrast;
   }
 
-  // 3. Chromaticity ratios & skin ratio metrics (12 values to reach 64)
-  const safeGray = avgGray || 1;
-  while (vecIdx < VECTOR_SIZE) {
-    if (vecIdx === 52) vector[vecIdx++] = avgR / safeGray;
-    else if (vecIdx === 53) vector[vecIdx++] = avgG / safeGray;
-    else if (vecIdx === 54) vector[vecIdx++] = avgB / safeGray;
-    else if (vecIdx === 55) vector[vecIdx++] = skinRatio;
-    else if (vecIdx === 56) vector[vecIdx++] = contrast / 100;
-    else vector[vecIdx++] = 0;
+  // 3. Geometric Facial Landmark Ratios & Bilateral Symmetry (12 values to reach VECTOR_SIZE = 64)
+  // Eye level scan (darkest horizontal strip in upper 20%-45% of face)
+  const eyeScanStart = Math.floor(cropH * 0.20);
+  const eyeScanEnd = Math.floor(cropH * 0.45);
+  let eyeY = eyeScanStart;
+  let minEyeRowLum = 999999;
+  for (let y = eyeScanStart; y < eyeScanEnd; y++) {
+    let rowSum = 0;
+    for (let x = Math.floor(cropW * 0.2); x < Math.floor(cropW * 0.8); x++) {
+      rowSum += grayMatrix[y * cropW + x];
+    }
+    if (rowSum < minEyeRowLum) {
+      minEyeRowLum = rowSum;
+      eyeY = y;
+    }
   }
+
+  // Left & Right eye valleys along the eye line
+  const leftEyeStart = Math.floor(cropW * 0.15);
+  const leftEyeEnd = Math.floor(cropW * 0.45);
+  let leftEyeX = leftEyeStart;
+  let minLeftLum = 9999;
+  for (let x = leftEyeStart; x < leftEyeEnd; x++) {
+    const val = grayMatrix[eyeY * cropW + x];
+    if (val < minLeftLum) { minLeftLum = val; leftEyeX = x; }
+  }
+
+  const rightEyeStart = Math.floor(cropW * 0.55);
+  const rightEyeEnd = Math.floor(cropW * 0.85);
+  let rightEyeX = rightEyeStart;
+  let minRightLum = 9999;
+  for (let x = rightEyeStart; x < rightEyeEnd; x++) {
+    const val = grayMatrix[eyeY * cropW + x];
+    if (val < minRightLum) { minRightLum = val; rightEyeX = x; }
+  }
+
+  // Inter-ocular distance & eye position ratio
+  const eyeDist = Math.max(1, rightEyeX - leftEyeX);
+  const interOcularRatio = eyeDist / cropW;
+  const eyeLevelRatio = eyeY / cropH;
+
+  // Nose tip detection (peak gradient in middle zone 40%-65% height)
+  const noseScanStart = Math.floor(cropH * 0.42);
+  const noseScanEnd = Math.floor(cropH * 0.65);
+  let noseY = Math.floor(cropH * 0.52);
+  let maxNoseGrad = -1;
+  const midX = Math.floor(cropW * 0.5);
+  for (let y = noseScanStart; y < noseScanEnd; y++) {
+    const g = Math.abs((grayMatrix[y * cropW + midX] || 0) - (grayMatrix[(y - 2) * cropW + midX] || 0));
+    if (g > maxNoseGrad) { maxNoseGrad = g; noseY = y; }
+  }
+  const noseToEyeRatio = Math.max(0, noseY - eyeY) / cropH;
+
+  // Mouth line detection (dark valley in lower 65%-88% zone)
+  const mouthScanStart = Math.floor(cropH * 0.65);
+  const mouthScanEnd = Math.floor(cropH * 0.88);
+  let mouthY = mouthScanStart;
+  let minMouthLum = 999999;
+  for (let y = mouthScanStart; y < mouthScanEnd; y++) {
+    let rowSum = 0;
+    for (let x = Math.floor(cropW * 0.3); x < Math.floor(cropW * 0.7); x++) {
+      rowSum += grayMatrix[y * cropW + x];
+    }
+    if (rowSum < minMouthLum) { minMouthLum = rowSum; mouthY = y; }
+  }
+  const mouthToNoseRatio = Math.max(0, mouthY - noseY) / cropH;
+  const facialTriangleRatio = (mouthY - eyeY) / eyeDist;
+
+  // Bilateral facial symmetry along horizontal axes
+  let symForehead = 0, symCheek = 0, symJaw = 0;
+  const sampleYForehead = Math.floor(cropH * 0.25);
+  const sampleYCheek = Math.floor(cropH * 0.55);
+  const sampleYJaw = Math.floor(cropH * 0.80);
+  const halfW = Math.floor(cropW / 2);
+  for (let dx = 1; dx < halfW - 2; dx++) {
+    symForehead += Math.abs(grayMatrix[sampleYForehead * cropW + (midX - dx)] - grayMatrix[sampleYForehead * cropW + (midX + dx)]);
+    symCheek += Math.abs(grayMatrix[sampleYCheek * cropW + (midX - dx)] - grayMatrix[sampleYCheek * cropW + (midX + dx)]);
+    symJaw += Math.abs(grayMatrix[sampleYJaw * cropW + (midX - dx)] - grayMatrix[sampleYJaw * cropW + (midX + dx)]);
+  }
+  const safeGray = avgGray || 1;
+
+  vector[vecIdx++] = interOcularRatio;                         // Dim 52
+  vector[vecIdx++] = eyeLevelRatio;                            // Dim 53
+  vector[vecIdx++] = noseToEyeRatio;                           // Dim 54
+  vector[vecIdx++] = mouthToNoseRatio;                         // Dim 55
+  vector[vecIdx++] = Math.min(2.5, facialTriangleRatio);       // Dim 56
+  vector[vecIdx++] = (symForehead / halfW) / safeContrast;     // Dim 57
+  vector[vecIdx++] = (symCheek / halfW) / safeContrast;        // Dim 58
+  vector[vecIdx++] = (symJaw / halfW) / safeContrast;          // Dim 59
+  vector[vecIdx++] = avgR / safeGray;                          // Dim 60
+  vector[vecIdx++] = avgG / safeGray;                          // Dim 61
+  vector[vecIdx++] = avgB / safeGray;                          // Dim 62
+  vector[vecIdx++] = skinRatio;                                // Dim 63
 
   // L2 Normalize the vector
   let normSq = 0;

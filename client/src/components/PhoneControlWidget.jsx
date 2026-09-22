@@ -292,6 +292,22 @@ export default function PhoneControlWidget() {
     setLoading(false);
   };
 
+  const toggleVirtual = async (enabled) => {
+    setLoading(true);
+    try {
+      await fetch(`${API_BASE}/api/phone/toggle-virtual`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled })
+      });
+      await checkStatus();
+      if (enabled) refreshScreen();
+    } catch (e) {
+      console.error(e);
+    }
+    setLoading(false);
+  };
+
   const fetchNotifications = async () => {
     try {
       const res = await fetch(`${API_BASE}/api/phone/notifications`);
@@ -352,13 +368,22 @@ export default function PhoneControlWidget() {
             className="remote-input p-2 w-full rounded font-mono text-xs"
             placeholder="IP Address & Port (e.g. 192.168.29.159:42931)"
           />
-          <button 
-            onClick={connectPhone}
-            disabled={loading}
-            className="btn-control p-2 text-xs font-bold text-cyan-400 border-cyan-500/40 bg-cyan-950/20"
-          >
-            {loading ? 'CONNECTING...' : 'CONNECT PHYSICAL MOBILE'}
-          </button>
+          <div className="flex flex-col gap-2">
+            <button 
+              onClick={connectPhone}
+              disabled={loading}
+              className="btn-control p-2 text-xs font-bold text-cyan-400 border-cyan-500/40 bg-cyan-950/20 hover:bg-cyan-900/30 transition-colors"
+            >
+              {loading ? 'CONNECTING...' : 'CONNECT PHYSICAL MOBILE'}
+            </button>
+            <button 
+              onClick={() => toggleVirtual(true)}
+              disabled={loading}
+              className="p-2 text-[11px] font-mono text-slate-400 hover:text-cyan-300 border border-slate-700/60 rounded bg-slate-900/40 hover:border-cyan-500/40 transition-colors"
+            >
+              SIMULATE VIRTUAL ANDROID (DEMO PREVIEW)
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -378,7 +403,17 @@ export default function PhoneControlWidget() {
             <span>|</span>
             <span>OS: Android {status.androidVersion}</span>
             <span>|</span>
-            <span className="text-emerald-400 font-semibold">{status.isVirtual ? 'Virtual' : 'Physical Live'}</span>
+            {status.isVirtual ? (
+              <button 
+                onClick={() => toggleVirtual(false)}
+                title="Click to exit virtual simulation"
+                className="text-amber-400 hover:text-amber-300 font-semibold underline decoration-dotted"
+              >
+                Virtual Demo (Exit)
+              </button>
+            ) : (
+              <span className="text-emerald-400 font-semibold">Physical Live</span>
+            )}
           </div>
         </div>
         <div className="flex gap-1.5">

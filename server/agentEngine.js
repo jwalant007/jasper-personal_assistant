@@ -106,23 +106,41 @@ const TOOL_REGISTRY = {
     parameters: { query: 'string', directory: 'string (optional)', extension: 'string (optional)' },
     async handler({ query, directory, extension }) {
       const searchDir = directory || os.homedir();
-      const ext = extension ? (extension.startsWith('.') ? extension : '.' + extension) : '';
-      const safeDir = path.normalize(searchDir);
-      // Safety: only search user home + common dirs
+      const ext = extension ? (extension.startsWith('.') ? extension.toLowerCase() : '.' + extension.toLowerCase()) : '';
+      const safeDir = path.normalize(path.resolve(searchDir));
       const allowedPrefixes = [os.homedir(), 'C:\\Users', '/home', '/Users'];
-      const isSafe = allowedPrefixes.some(p => safeDir.startsWith(p));
+      const isSafe = allowedPrefixes.some(p => safeDir.startsWith(path.normalize(p)));
       if (!isSafe) return { error: 'Search restricted to user directories for security.', results: [] };
 
-      return new Promise((resolve) => {
-        const cmd = process.platform === 'win32'
-          ? `dir /s /b "${safeDir}\\*${query}*${ext}" 2>nul | findstr /i "${query}" | head -20`
-          : `find "${safeDir}" -name "*${query}*${ext}" 2>/dev/null | head -20`;
+      const cleanQuery = (query || '').toLowerCase().trim();
+      const results = [];
+      const queue = [{ dir: safeDir, depth: 0 }];
+      const maxResults = 20;
+      const maxDepth = 4;
 
-        exec(cmd, { timeout: 8000, shell: true }, (err, stdout) => {
-          const results = (stdout || '').trim().split('\n').filter(l => l.trim()).slice(0, 20);
-          resolve({ results, count: results.length, query, searchDir: safeDir });
-        });
-      });
+      while (queue.length > 0 && results.length < maxResults) {
+        const { dir: currentDir, depth } = queue.shift();
+        try {
+          const entries = fs.readdirSync(currentDir, { withFileTypes: true });
+          for (const entry of entries) {
+            if (entry.name.startsWith('.') || entry.name === 'node_modules' || entry.name === 'AppData') continue;
+            const fullPath = path.join(currentDir, entry.name);
+            if (entry.isDirectory()) {
+              if (depth < maxDepth) queue.push({ dir: fullPath, depth: depth + 1 });
+            } else if (entry.isFile()) {
+              const nameLower = entry.name.toLowerCase();
+              const matchesQuery = !cleanQuery || nameLower.includes(cleanQuery);
+              const matchesExt = !ext || nameLower.endsWith(ext);
+              if (matchesQuery && matchesExt) {
+                results.push(fullPath);
+                if (results.length >= maxResults) break;
+              }
+            }
+          }
+        } catch (_) {}
+      }
+
+      return { results, count: results.length, query, searchDir: safeDir };
     }
   },
 
@@ -165,10 +183,12 @@ const TOOL_REGISTRY = {
     parameters: { action: "'set'|'up'|'down'|'mute'", value: 'number 0-100 (for set action)' },
     async handler({ action = 'set', value = 50 }) {
       const scriptPath = getScriptPath('volume.ps1');
+      const numVal = typeof value === 'number' ? value : parseFloat(value) || 50;
+      const finalVal = (numVal > 0 && numVal <= 1) ? Math.round(numVal * 100) : Math.min(100, Math.max(0, Math.round(numVal)));
       return new Promise((resolve) => {
-        const volArg = action === 'set' ? `-Volume ${value}` : (action === 'mute' ? '-Mute' : (action === 'up' ? '-Up' : '-Down'));
+        const volArg = action === 'set' ? `-Volume ${finalVal}` : (action === 'mute' ? '-Mute' : (action === 'up' ? '-Up' : '-Down'));
         exec(`powershell.exe -NoProfile -ExecutionPolicy Bypass -File "${scriptPath}" ${volArg}`, (err, stdout) => {
-          resolve({ success: !err, action, value, output: stdout?.trim() });
+          resolve({ success: !err, action, value: finalVal, output: stdout?.trim() });
         });
       });
     }

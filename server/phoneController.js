@@ -78,17 +78,35 @@ function generateVirtualPhoneScreenshot() {
 const PhoneController = {
   activeDeviceId: null,
   lastKnownIp: '192.168.29.159:42931',
-  virtualMode: true, // Default to true until physical connection confirmed
+  virtualMode: false, // Default to false: honest status reporting
+  manualDisconnected: false,
   isPhysicalConnected: isPhysicalConnected,
+
+  setVirtualMode: (enabled) => {
+    PhoneController.virtualMode = Boolean(enabled);
+    if (!enabled && PhoneController.activeDeviceId === 'JASPER-VIRTUAL-ADB') {
+      PhoneController.activeDeviceId = null;
+    }
+    return PhoneController.virtualMode;
+  },
 
   // Check if device is connected
   status: async () => {
+    if (PhoneController.manualDisconnected && !PhoneController.virtualMode) {
+      return {
+        connected: false,
+        isVirtual: false,
+        deviceId: null,
+        message: 'Phone manually disconnected by user.'
+      };
+    }
+
     try {
       let devices = await runAdb('devices');
       let lines = devices.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('*'));
       
-      // Auto-reconnect to last known IP if no physical device attached
-      if (lines.length <= 1 && PhoneController.lastKnownIp) {
+      // Auto-reconnect to last known IP if no physical device attached and not manually disconnected
+      if (lines.length <= 1 && PhoneController.lastKnownIp && !PhoneController.manualDisconnected) {
         try {
           console.log(`[PhoneController] Attempting auto-reconnect to ${PhoneController.lastKnownIp}...`);
           await runAdb(`connect ${PhoneController.lastKnownIp}`);
@@ -106,6 +124,7 @@ const PhoneController = {
         if (deviceState === 'device') {
           PhoneController.activeDeviceId = deviceId;
           PhoneController.virtualMode = false;
+          PhoneController.manualDisconnected = false;
 
           let batteryLevel = 'Unknown';
           let model = 'Android Device';
@@ -137,40 +156,53 @@ const PhoneController = {
         }
       }
     } catch (e) {
-      // ADB command failed or no device attached -> Fallback seamlessly to Virtual ADB Uplink
+      // ADB not found or command failed
     }
 
-    // Activate Virtual Phone Uplink Bridge so phone features work 100% out of the box
-    PhoneController.activeDeviceId = 'JASPER-VIRTUAL-ADB';
-    PhoneController.virtualMode = true;
+    // Only activate Virtual Phone Uplink Bridge if virtualMode is explicitly toggled
+    if (PhoneController.virtualMode) {
+      PhoneController.activeDeviceId = 'JASPER-VIRTUAL-ADB';
+      return {
+        connected: true,
+        isVirtual: true,
+        deviceId: 'JASPER-VIRTUAL-ADB',
+        model: 'Virtual Mobile Uplink (Preview Mode)',
+        androidVersion: 'Android 14',
+        batteryLevel: 94
+      };
+    }
 
+    PhoneController.activeDeviceId = null;
     return {
-      connected: true,
-      isVirtual: true,
-      deviceId: 'JASPER-VIRTUAL-ADB',
-      model: 'Virtual Mobile Uplink (No Physical Phone Connected)',
-      androidVersion: 'Android 14',
-      batteryLevel: 94
+      connected: false,
+      isVirtual: false,
+      deviceId: null,
+      message: 'No physical Android device connected. Connect via USB cable or Wireless ADB.'
     };
   },
 
   connect: async (ip) => {
     try {
+      PhoneController.manualDisconnected = false;
       const target = ip.includes(':') ? ip : `${ip}:5555`;
       PhoneController.lastKnownIp = target;
-      return await runAdb(`connect ${target}`);
+      const result = await runAdb(`connect ${target}`);
+      await PhoneController.status();
+      return { success: true, message: result };
     } catch (e) {
-      PhoneController.virtualMode = true;
-      return `connected to ${ip}:5555 (Virtual Uplink)`;
+      return { success: false, error: e.message || 'Failed to connect' };
     }
   },
 
   disconnect: async () => {
+    PhoneController.manualDisconnected = true;
+    PhoneController.virtualMode = false;
+    PhoneController.activeDeviceId = null;
     try {
-      return await runAdb(`disconnect`);
+      await runAdb(`disconnect`);
+      return { success: true, message: 'Disconnected all ADB devices' };
     } catch (e) {
-      PhoneController.virtualMode = true;
-      return 'disconnected all';
+      return { success: true, message: 'Disconnected' };
     }
   },
 

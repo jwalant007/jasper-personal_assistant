@@ -1,0 +1,12 @@
+node_modules
+client/node_modules
+server/node_modules
+dist-electron
+build
+client/android
+.git
+.venv
+.wwebjs_auth
+.wwebjs_cache
+*.apk
+*.log

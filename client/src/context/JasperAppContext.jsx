@@ -47,10 +47,23 @@ export function JasperAppProvider({ children }) {
   // AI Providers & Brain Settings (Clean Dual Architecture: Cloud Gemini & Local Ollama)
   const [apiKey, setApiKey] = useState(geminiClient.apiKey);
   const [aiProvider, setAiProvider] = useState(() => geminiClient.provider || 'gemini');
-  const [ollamaModel, setOllamaModel] = useState(() => geminiClient.ollamaModel || 'llama3.2');
-  const [availableOllamaModels, setAvailableOllamaModels] = useState(['llama3.2', 'llama3', 'qwen2.5', 'mistral', 'gemma2']);
+  const [ollamaModel, setOllamaModel] = useState(() => geminiClient.ollamaModel || 'llama3.2:latest');
+  const [availableOllamaModels, setAvailableOllamaModels] = useState(['llama3.2:latest', 'llama3.2', 'qwen2.5', 'mistral', 'gemma2']);
   const [serverIp, setServerIpState] = useState(getServerIp);
   const [isPhoneBrainMode, setIsPhoneBrainModeState] = useState(() => getPhoneBrainMode());
+
+  useEffect(() => {
+    geminiClient.fetchLocalOllamaModels().then(models => {
+      if (models && models.length > 0) {
+        setAvailableOllamaModels(models);
+        if (models.includes('llama3.2:latest')) {
+          setOllamaModel('llama3.2:latest');
+        } else {
+          setOllamaModel(models[0]);
+        }
+      }
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     const handleBrainChange = (e) => {

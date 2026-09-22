@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Tray, Menu, globalShortcut, nativeImage } = require('electron');
+const { app, BrowserWindow, Tray, Menu, globalShortcut, nativeImage, ipcMain } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 
@@ -6,6 +6,26 @@ let mainWindow = null;
 let tray = null;
 let serverProcess = null;
 let isQuitting = false;
+
+// Register IPC window management handlers for secure renderer communication
+ipcMain.on('jasper:focus', () => {
+  if (mainWindow) {
+    if (!mainWindow.isVisible()) mainWindow.show();
+    mainWindow.focus();
+  }
+});
+ipcMain.on('jasper:minimize', () => {
+  if (mainWindow) mainWindow.minimize();
+});
+ipcMain.on('jasper:maximize', () => {
+  if (mainWindow) {
+    if (mainWindow.isMaximized()) mainWindow.unmaximize();
+    else mainWindow.maximize();
+  }
+});
+ipcMain.on('jasper:close', () => {
+  if (mainWindow) mainWindow.close();
+});
 
 function startBackendServer() {
   let serverPath;
@@ -124,8 +144,10 @@ function createWindow() {
     icon: iconPath,
     show: true,
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false
+      nodeIntegration: false,
+      contextIsolation: true,
+      webviewTag: true,
+      preload: path.join(__dirname, 'preload.js')
     }
   });
 

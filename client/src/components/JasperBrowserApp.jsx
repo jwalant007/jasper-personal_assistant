@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, RotateCw, Home, Lock, Plus, X, Globe, Compass, Search, Sparkles, BookOpen, ExternalLink, ShieldCheck, Layers, FileText } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ArrowLeft, ArrowRight, RotateCw, Home, Lock, Plus, X, Globe, Compass, Search, Sparkles, BookOpen, ExternalLink, ShieldCheck, Layers, FileText, Monitor } from 'lucide-react';
 import { getServerIp } from '../utils/apiConfig';
 import geminiClient from '../utils/geminiClient';
 
@@ -21,7 +21,69 @@ export default function JasperBrowserApp() {
   const [readerContent, setReaderContent] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Native Webview & Navigation State
+  const webviewRef = useRef(null);
+  const [canGoBack, setCanGoBack] = useState(false);
+  const [canGoForward, setCanGoForward] = useState(false);
+
+  const isElectron = typeof window !== 'undefined' && (
+    Boolean(window.process?.versions?.electron) ||
+    navigator.userAgent.includes('Electron')
+  );
+
   const activeTab = tabs.find(t => t.id === activeTabId) || tabs[0];
+
+  // Attach Electron Webview Event Listeners for seamless live navigation
+  useEffect(() => {
+    if (!isElectron) return;
+    const wv = webviewRef.current;
+    if (!wv) return;
+
+    const onStartLoading = () => setIsLoading(true);
+    const onStopLoading = () => {
+      setIsLoading(false);
+      try {
+        if (typeof wv.canGoBack === 'function') setCanGoBack(wv.canGoBack());
+        if (typeof wv.canGoForward === 'function') setCanGoForward(wv.canGoForward());
+      } catch (_) {}
+    };
+
+    const onNavigate = (e) => {
+      if (e?.url && !e.url.startsWith('search://')) {
+        setUrlInput(e.url);
+        setTabs(prev => prev.map(t => t.id === activeTabId ? {
+          ...t,
+          url: e.url,
+          title: e.url.replace(/^https?:\/\//, '').split('/')[0]
+        } : t));
+      }
+    };
+
+    const onTitleUpdated = (e) => {
+      if (e?.title) {
+        setTabs(prev => prev.map(t => t.id === activeTabId ? {
+          ...t,
+          title: e.title
+        } : t));
+      }
+    };
+
+    wv.addEventListener('did-start-loading', onStartLoading);
+    wv.addEventListener('did-stop-loading', onStopLoading);
+    wv.addEventListener('did-navigate', onNavigate);
+    wv.addEventListener('did-navigate-in-page', onNavigate);
+    wv.addEventListener('page-title-updated', onTitleUpdated);
+
+    return () => {
+      try {
+        wv.removeEventListener('did-start-loading', onStartLoading);
+        wv.removeEventListener('did-stop-loading', onStopLoading);
+        wv.removeEventListener('did-navigate', onNavigate);
+        wv.removeEventListener('did-navigate-in-page', onNavigate);
+        wv.removeEventListener('page-title-updated', onTitleUpdated);
+      } catch (_) {}
+    };
+  }, [activeTabId, isElectron]);
 
   // Perform Multi-Result Web Search
   const executeSearchQuery = async (searchQuery) => {
@@ -172,6 +234,28 @@ export default function JasperBrowserApp() {
     }
   };
 
+  const handleGoBack = () => {
+    if (isElectron && webviewRef.current && typeof webviewRef.current.goBack === 'function') {
+      webviewRef.current.goBack();
+    }
+  };
+
+  const handleGoForward = () => {
+    if (isElectron && webviewRef.current && typeof webviewRef.current.goForward === 'function') {
+      webviewRef.current.goForward();
+    }
+  };
+
+  const handleReload = () => {
+    if (activeTab?.isSearch) {
+      executeSearchQuery(urlInput);
+    } else if (isElectron && webviewRef.current && typeof webviewRef.current.reload === 'function') {
+      webviewRef.current.reload();
+    } else {
+      handleNavigate(activeTab?.url);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-slate-950/90 text-slate-100 font-sans rounded-xl overflow-hidden shadow-2xl">
       {/* Chrome Multi-Tab Bar */}
@@ -209,16 +293,30 @@ export default function JasperBrowserApp() {
       {/* Chrome OmniBar / Navigation Bar */}
       <div className="flex items-center gap-2 p-2 bg-slate-900 border-b border-cyan-500/30">
         <div className="flex items-center gap-1">
-          <button className="p-1.5 rounded-lg hover:bg-cyan-500/20 text-slate-300">
+          <button
+            onClick={handleGoBack}
+            disabled={!canGoBack && isElectron}
+            className={`p-1.5 rounded-lg transition-all ${
+              canGoBack || !isElectron ? 'hover:bg-cyan-500/20 text-slate-200' : 'text-slate-600 cursor-not-allowed'
+            }`}
+            title="Go Back"
+          >
             <ArrowLeft className="w-4 h-4" />
           </button>
-          <button className="p-1.5 rounded-lg hover:bg-cyan-500/20 text-slate-300">
+          <button
+            onClick={handleGoForward}
+            disabled={!canGoForward && isElectron}
+            className={`p-1.5 rounded-lg transition-all ${
+              canGoForward || !isElectron ? 'hover:bg-cyan-500/20 text-slate-200' : 'text-slate-600 cursor-not-allowed'
+            }`}
+            title="Go Forward"
+          >
             <ArrowRight className="w-4 h-4" />
           </button>
-          <button onClick={() => handleNavigate()} className="p-1.5 rounded-lg hover:bg-cyan-500/20 text-slate-300">
+          <button onClick={handleReload} className="p-1.5 rounded-lg hover:bg-cyan-500/20 text-slate-300" title="Reload Page">
             <RotateCw className={`w-4 h-4 ${isSearching || isLoading ? 'animate-spin text-cyan-400' : ''}`} />
           </button>
-          <button onClick={() => handleNavigate('search://quantum computing')} className="p-1.5 rounded-lg hover:bg-cyan-500/20 text-slate-300">
+          <button onClick={() => handleNavigate('search://quantum computing')} className="p-1.5 rounded-lg hover:bg-cyan-500/20 text-slate-300" title="Jasper Search Home">
             <Home className="w-4 h-4" />
           </button>
         </div>
@@ -252,8 +350,13 @@ export default function JasperBrowserApp() {
             <span className="hidden sm:inline">Reader</span>
           </button>
 
+          <div className="flex items-center gap-1 text-[10px] font-mono text-cyan-400 bg-cyan-950/40 border border-cyan-500/30 px-2 py-1 rounded-lg">
+            <Monitor className="w-3.5 h-3.5 text-cyan-300" />
+            <span>{isElectron ? 'Electron Webview' : 'Web Sandbox'}</span>
+          </div>
+
           <div className="flex items-center gap-1 text-[10px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-2 py-1 rounded-lg">
-            <ShieldCheck className="w-3.5 h-3.5" /> AdBlock Active
+            <ShieldCheck className="w-3.5 h-3.5" /> AdBlock
           </div>
         </div>
       </div>
@@ -363,14 +466,39 @@ export default function JasperBrowserApp() {
               {readerContent || 'Extracting webpage text content...'}
             </div>
           </div>
-        ) : (
-          /* STANDARD IFRAME WEBPAGE VIEWPORT */
-          <iframe
+        ) : isElectron ? (
+          /* ELECTRON NATIVE WEBVIEW (Bypasses X-Frame-Options & CSP) */
+          <webview
+            ref={webviewRef}
+            key={`wv-${activeTab.id}`}
             src={activeTab.url}
-            title={activeTab.title}
             className="w-full h-full border-0 bg-white"
-            sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+            allowpopups="true"
           />
+        ) : (
+          /* STANDARD BROWSER SANDBOX VIEWPORT WITH DIRECT LINK */
+          <div className="flex flex-col h-full">
+            <div className="bg-cyan-950/60 border-b border-cyan-500/30 px-3 py-1.5 flex items-center justify-between text-[11px] font-mono text-slate-300">
+              <span className="flex items-center gap-1.5 text-amber-300">
+                <span>⚠️ Web Browser Sandbox (Sites like YouTube/Google restrict iframes)</span>
+              </span>
+              <a
+                href={activeTab.url}
+                target="_blank"
+                rel="noreferrer"
+                className="text-cyan-400 hover:text-cyan-200 hover:underline flex items-center gap-1 font-bold"
+              >
+                <span>Open in External Tab</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+            <iframe
+              src={activeTab.url}
+              title={activeTab.title}
+              className="w-full flex-1 border-0 bg-white"
+              sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+            />
+          </div>
         )}
       </div>
     </div>
