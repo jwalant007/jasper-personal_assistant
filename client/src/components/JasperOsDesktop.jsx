@@ -42,12 +42,14 @@ import JasperAgentHubWidget from './JasperAgentHubWidget';
 import BlenderStudioModal from './BlenderStudioModal';
 import HolographicAnswerModal from './HolographicAnswerModal';
 import PhoneSentinelWidget from './PhoneSentinelWidget';
-import { Calculator, FileCode, Compass, MessageSquare, ShieldAlert } from 'lucide-react';
+import JasperVideoStudioApp from './JasperVideoStudioApp';
+import { Calculator, FileCode, Compass, MessageSquare, ShieldAlert, Video } from 'lucide-react';
 
 /**
- * ALL NATIVE JASPER OS APPLICATIONS REGISTRY (30 NATIVE APPS)
+ * ALL NATIVE JASPER OS APPLICATIONS REGISTRY (31 NATIVE APPS)
  */
 const JASPER_OS_APPS_REGISTRY = [
+  { id: 'videoStudio', title: 'AI Video Creator & YouTube Studio', category: 'Creative & AI', icon: Video, component: JasperVideoStudioApp, defaultSize: { w: 980, h: 660 } },
   { id: 'phoneSentinel', title: 'Phone Sentinel & Offline Alerts', category: 'Hardware Control', icon: ShieldAlert, component: PhoneSentinelWidget, defaultSize: { w: 760, h: 580 } },
   { id: 'agentHub', title: 'JASPER AI Agent Hub', category: 'AI & Intelligence', icon: Brain, component: JasperAgentHubWidget, defaultSize: { w: 920, h: 640 } },
   { id: 'socialAutoReply', title: 'WhatsApp & IG Auto-Reply App', category: 'Hardware Control', icon: MessageSquare, component: SocialAutoReplyWidget, defaultSize: { w: 720, h: 540 } },
@@ -464,6 +466,17 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
     isPointerDownRef.current = false;
   };
 
+  // Window State Tracking Refs (prevents re-mounting camera on window state changes)
+  const activeFocusedWinIdRef = useRef(activeFocusedWinId);
+  const openWindowsRef = useRef(openWindows);
+  const minimizedWindowsRef = useRef(minimizedWindows);
+
+  useEffect(() => {
+    activeFocusedWinIdRef.current = activeFocusedWinId;
+    openWindowsRef.current = openWindows;
+    minimizedWindowsRef.current = minimizedWindows;
+  });
+
   // AIR GESTURE ENGINE INITIALIZATION & SYSTEM-WIDE APP CONTROLS
   useEffect(() => {
     if (isAirGesturesOn) {
@@ -471,7 +484,8 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
         playJarvisPowerUp();
         gestureTrackerRef.current = new AirGestureTracker(videoRef.current, canvasRef.current, {
           onScroll: (dir, amount) => {
-            const bodyEl = windowBodyRefs.current[activeFocusedWinId];
+            const currentWinId = activeFocusedWinIdRef.current;
+            const bodyEl = windowBodyRefs.current[currentWinId];
             if (bodyEl) {
               bodyEl.scrollBy({ top: dir === 'DOWN' ? amount : -amount, behavior: 'smooth' });
             } else if (desktopScrollRef.current) {
@@ -479,26 +493,30 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
             }
             setGestureFeedback(`AIR SCROLL: ${dir}`);
             playJarvisBeep('click');
-            window.dispatchEvent(new CustomEvent('jasper:os-gesture', { detail: { gesture: 'SCROLL', dir, amount, activeWin: activeFocusedWinId } }));
+            window.dispatchEvent(new CustomEvent('jasper:os-gesture', { detail: { gesture: 'SCROLL', dir, amount, activeWin: currentWinId } }));
           },
           onPeaceSign: () => {
-            if (activeFocusedWinId) {
-              setMaximizedWindows(prev => ({ ...prev, [activeFocusedWinId]: !prev[activeFocusedWinId] }));
+            const currentWinId = activeFocusedWinIdRef.current;
+            if (currentWinId) {
+              setMaximizedWindows(prev => ({ ...prev, [currentWinId]: !prev[currentWinId] }));
               setGestureFeedback('PEACE SIGN (V): TOGGLE MAXIMIZE');
               playJarvisBeep('command');
-              window.dispatchEvent(new CustomEvent('jasper:os-gesture', { detail: { gesture: 'PEACE_SIGN', activeWin: activeFocusedWinId } }));
+              window.dispatchEvent(new CustomEvent('jasper:os-gesture', { detail: { gesture: 'PEACE_SIGN', activeWin: currentWinId } }));
             }
           },
           onFist: () => {
-            if (activeFocusedWinId) {
-              minimizeWindow(activeFocusedWinId);
+            const currentWinId = activeFocusedWinIdRef.current;
+            if (currentWinId) {
+              minimizeWindow(currentWinId);
               setGestureFeedback('FIST: MINIMIZE WINDOW');
               playJarvisBeep('select');
-              window.dispatchEvent(new CustomEvent('jasper:os-gesture', { detail: { gesture: 'FIST_MINIMIZE', activeWin: activeFocusedWinId } }));
+              window.dispatchEvent(new CustomEvent('jasper:os-gesture', { detail: { gesture: 'FIST_MINIMIZE', activeWin: currentWinId } }));
             }
           },
           onPalmStop: () => {
-            const openIds = Object.keys(openWindows).filter(id => openWindows[id] && !minimizedWindows[id]);
+            const curOpen = openWindowsRef.current;
+            const curMin = minimizedWindowsRef.current;
+            const openIds = Object.keys(curOpen).filter(id => curOpen[id] && !curMin[id]);
             if (openIds.length > 0) {
               setMinimizedWindows(prev => {
                 const updated = { ...prev };
@@ -516,17 +534,18 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
           onThumbsUp: () => {
             setGestureFeedback('THUMBS UP: CONFIRMED');
             playJarvisBeep('success');
-            window.dispatchEvent(new CustomEvent('jasper:os-gesture', { detail: { gesture: 'THUMBS_UP', activeWin: activeFocusedWinId } }));
+            window.dispatchEvent(new CustomEvent('jasper:os-gesture', { detail: { gesture: 'THUMBS_UP', activeWin: activeFocusedWinIdRef.current } }));
           },
           onThumbsDown: () => {
             setGestureFeedback('THUMBS DOWN: CANCEL / MUTE');
             playJarvisBeep('error');
-            window.dispatchEvent(new CustomEvent('jasper:os-gesture', { detail: { gesture: 'THUMBS_DOWN', activeWin: activeFocusedWinId } }));
+            window.dispatchEvent(new CustomEvent('jasper:os-gesture', { detail: { gesture: 'THUMBS_DOWN', activeWin: activeFocusedWinIdRef.current } }));
           },
           onWindowCycle: (dir) => {
-            const openIds = Object.keys(openWindows).filter(id => openWindows[id]);
+            const curOpen = openWindowsRef.current;
+            const openIds = Object.keys(curOpen).filter(id => curOpen[id]);
             if (openIds.length > 1) {
-              const currIdx = Math.max(0, openIds.indexOf(activeFocusedWinId));
+              const currIdx = Math.max(0, openIds.indexOf(activeFocusedWinIdRef.current));
               const nextIdx = (currIdx + (dir === 'NEXT' ? 1 : -1) + openIds.length) % openIds.length;
               bringToTop(openIds[nextIdx]);
               setGestureFeedback(`SWITCH WINDOW: ${openIds[nextIdx]}`);
@@ -554,8 +573,9 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
             window.dispatchEvent(new CustomEvent('jasper:os-gesture', { detail: { gesture: 'OK_SIGN' } }));
           },
           onCloseApp: () => {
-            if (activeFocusedWinId) {
-              closeWindow(activeFocusedWinId);
+            const currentWinId = activeFocusedWinIdRef.current;
+            if (currentWinId) {
+              closeWindow(currentWinId);
               setGestureFeedback('CLOSE WINDOW: GESTURE TRIGGERED');
               playJarvisBeep('select');
             }
@@ -596,7 +616,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
         gestureTrackerRef.current = null;
       }
     };
-  }, [isAirGesturesOn, activeFocusedWinId, openWindows, minimizedWindows]);
+  }, [isAirGesturesOn]);
 
   const launchApp = (rawAppId) => {
     let appId = rawAppId;
@@ -1299,7 +1319,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
         autoPlay
         playsInline
         muted
-        className="fixed -left-[9999px] -top-[9999px] pointer-events-none opacity-0 w-80 h-60"
+        className="fixed top-0 left-0 w-2 h-2 pointer-events-none opacity-[0.001] z-[-1]"
       />
 
       {/* FLOATING DOCTOR STRANGE SPATIAL SPELL HUD (TOP RIGHT) */}
@@ -1343,21 +1363,19 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
               </div>
             </div>
 
-            {/* Skeletal Joints & Tao Mandala Canvas Thumbnail (collapsible) */}
-            {!isHudCollapsed && (
-              <div className="relative aspect-[4/3] w-full rounded-xl overflow-hidden bg-black border border-amber-500/40 flex items-center justify-center shadow-inner">
-                <canvas
-                  ref={canvasRef}
-                  width={240}
-                  height={180}
-                  className="w-full h-full object-cover scale-x-[-1]"
-                />
-                <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/80 border border-amber-500/40 text-[9px] text-amber-300 font-mono flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                  TAO MANDALA TRACKER
-                </div>
+            {/* Skeletal Joints & Tao Mandala Canvas Thumbnail (collapsible but kept in DOM) */}
+            <div className={`relative aspect-[4/3] w-full rounded-xl overflow-hidden bg-black border border-amber-500/40 flex items-center justify-center shadow-inner ${isHudCollapsed ? 'hidden' : ''}`}>
+              <canvas
+                ref={canvasRef}
+                width={240}
+                height={180}
+                className="w-full h-full object-cover scale-x-[-1]"
+              />
+              <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/80 border border-amber-500/40 text-[9px] text-amber-300 font-mono flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                TAO MANDALA TRACKER
               </div>
-            )}
+            </div>
 
             {/* Live Detected Spell / Gesture Pill */}
             <div className="p-2.5 rounded-xl bg-amber-950/40 border border-amber-500/40 flex flex-col gap-1.5">

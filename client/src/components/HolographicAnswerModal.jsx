@@ -1109,18 +1109,16 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '', ini
             <div className="flex-1 relative overflow-hidden flex items-center justify-center p-2 bg-gradient-to-b from-slate-950 via-slate-900/60 to-slate-950">
             
             {/* 1. AR LIVE WEBCAM VIDEO LAYER (UNDERNEATH CANVAS) */}
-            {arWebcamEnabled && (
-              <div className="absolute inset-0 z-0 overflow-hidden flex items-center justify-center">
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className={`w-full h-full object-cover opacity-75 filter contrast-125 brightness-90 ${peppersGhostMode ? 'scale-x-[-1] scale-y-[-1]' : 'scale-x-[-1]'}`}
-                />
-                <div className="absolute inset-0 bg-cyan-950/20 backdrop-filter" />
-              </div>
-            )}
+            <div className={`absolute inset-0 z-0 overflow-hidden flex items-center justify-center ${arWebcamEnabled ? '' : 'pointer-events-none opacity-[0.001]'}`}>
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className={`w-full h-full object-cover filter contrast-125 brightness-90 ${arWebcamEnabled ? 'opacity-75' : 'opacity-[0.001]'} ${peppersGhostMode ? 'scale-x-[-1] scale-y-[-1]' : 'scale-x-[-1]'}`}
+              />
+              {arWebcamEnabled && <div className="absolute inset-0 bg-cyan-950/20 backdrop-filter" />}
+            </div>
 
             {/* 2. THREE.JS 3D CANVAS VIEWPORT */}
             <div 

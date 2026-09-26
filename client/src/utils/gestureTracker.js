@@ -126,9 +126,9 @@ export class AirGestureTracker {
 
         this.handsInstance.setOptions({
           maxNumHands: 2,
-          modelComplexity: 1,
-          minDetectionConfidence: 0.65,
-          minTrackingConfidence: 0.65
+          modelComplexity: 0,
+          minDetectionConfidence: 0.5,
+          minTrackingConfidence: 0.5
         });
 
         this.handsInstance.onResults((results) => this.handleResults(results));
@@ -181,16 +181,19 @@ export class AirGestureTracker {
   }
 
   handleResults(results) {
-    if (!this.canvasElement || !this.ctx) return;
-    const { width, height } = this.canvasElement;
-    this.ctx.clearRect(0, 0, width, height);
+    const width = this.canvasElement?.width || 640;
+    const height = this.canvasElement?.height || 480;
 
-    // Update global spell rotation angle for Tao Mandalas
-    this.spellAngle += 0.045;
+    if (this.canvasElement && this.ctx) {
+      this.ctx.clearRect(0, 0, width, height);
 
-    // Render active background particles & shockwaves
-    this.updateAndDrawParticles(width, height);
-    this.updateAndDrawShockwaves();
+      // Update global spell rotation angle for Tao Mandalas
+      this.spellAngle += 0.045;
+
+      // Render active background particles & shockwaves
+      this.updateAndDrawParticles(width, height);
+      this.updateAndDrawShockwaves();
+    }
 
     if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
       this.lastPinchPos = null;
@@ -205,14 +208,17 @@ export class AirGestureTracker {
     const handCount = landmarksList.length;
 
     // Draw Doctor Strange Eldritch Skeletal Joints & Tao Mandalas
-    landmarksList.forEach((landmarks, idx) => {
-      this.drawDoctorStrangeHand(landmarks, idx, width, height);
-    });
+    if (this.canvasElement && this.ctx) {
+      landmarksList.forEach((landmarks, idx) => {
+        this.drawDoctorStrangeHand(landmarks, idx, width, height);
+      });
+    }
 
     const now = Date.now();
 
     // -------------------------------------------------------------
     // 0. FINGER SNAP DETECTION (CLOSE ALL APPS - DOCTOR STRANGE / THANOS SNAP)
+    // Primed specifically by Thumb + Middle finger (not index/pinch)
     // -------------------------------------------------------------
     for (let hIdx = 0; hIdx < landmarksList.length; hIdx++) {
       const hLandmarks = landmarksList[hIdx];
@@ -222,12 +228,12 @@ export class AirGestureTracker {
       const wrist = hLandmarks[0];
       const palmMcp = hLandmarks[9];
 
-      // Distance between thumb and middle fingertip
+      // Distance between thumb and middle fingertip (specifically middle, NOT index pinch)
       const distThumbMiddle = Math.hypot(thumb.x - middle.x, thumb.y - middle.y);
       const distThumbIndex = Math.hypot(thumb.x - index.x, thumb.y - index.y);
 
-      // Phase 1: Priming / Touching thumb to middle (or index) finger with tension
-      if (distThumbMiddle < 0.055 || distThumbIndex < 0.05) {
+      // Phase 1: Priming / Touching thumb to middle fingertip with tension (and index is NOT pinching)
+      if (distThumbMiddle < 0.065 && distThumbIndex > 0.06) {
         if (!this.snapArmed) {
           this.snapArmed = true;
           this.snapArmedTime = now;
@@ -247,7 +253,7 @@ export class AirGestureTracker {
           const middleCurled = middle.y > palmMcp.y - 0.02 || Math.hypot(middle.x - wrist.x, middle.y - wrist.y) < 0.28;
           const highVelocity = (separation - 0.05) / (timeSinceArmed / 1000) > 0.35;
 
-          if ((separation > 0.11 || highVelocity) && (now - this.lastSnapTime > 900)) {
+          if ((separation > 0.12 || highVelocity) && middleCurled && (now - this.lastSnapTime > 1200)) {
             // FINGER SNAP TRIGGERED!
             this.lastSnapTime = now;
             this.snapArmed = false;
@@ -330,8 +336,8 @@ export class AirGestureTracker {
     const isThumbUp = !isIndexExt && !isMiddleExt && !isRingExt && !isPinkyExt && (thumbTip.y < thumbMcp.y - 0.07);
     const isThumbDown = !isIndexExt && !isMiddleExt && !isRingExt && !isPinkyExt && (thumbTip.y > thumbMcp.y + 0.07);
 
-    // Fist check
-    const isFist = !isIndexExt && !isMiddleExt && !isRingExt && !isPinkyExt && !isThumbUp && !isThumbDown;
+    // Fist check: require actual curled fingers to prevent false triggers
+    const isFist = !isIndexExt && !isMiddleExt && !isRingExt && !isPinkyExt && !isThumbUp && !isThumbDown && this.isFistLandmarks(hand);
 
     // -------------------------------------------------------------
     // GESTURE: THUMBS UP (CONFIRM / APPROVE)
@@ -528,9 +534,11 @@ export class AirGestureTracker {
   isFingerExtended(hand, tipIdx, pipIdx, wrist) {
     const tip = hand[tipIdx];
     const pip = hand[pipIdx];
+    const mcp = hand[pipIdx - 1] || hand[0];
     const distTip = Math.hypot(tip.x - wrist.x, tip.y - wrist.y);
     const distPip = Math.hypot(pip.x - wrist.x, pip.y - wrist.y);
-    return distTip > distPip * 1.18;
+    const distMcp = Math.hypot(mcp.x - wrist.x, mcp.y - wrist.y);
+    return distTip > distPip * 1.06 && distTip > distMcp * 1.15;
   }
 
   isFistLandmarks(hand) {
