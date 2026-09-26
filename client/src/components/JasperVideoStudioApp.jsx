@@ -3,13 +3,14 @@ import {
   Video, Play, Pause, RotateCcw, Download, UploadCloud, Sparkles, Wand2,
   Film, Layers, Type, Music, Settings, Check, Copy, ExternalLink,
   ChevronRight, Plus, Trash2, Sliders, Volume2, VolumeX, Eye, Share2,
-  RefreshCw, FileText, Layout, Youtube, Clock, AlertCircle
+  RefreshCw, FileText, Layout, Youtube, Clock, AlertCircle, Image as ImageIcon,
+  Flame, Scissors, Palette, Zap, Star
 } from 'lucide-react';
 import geminiClient from '../utils/geminiClient';
 import { getApiBase } from '../utils/apiConfig';
 import { playJarvisBeep, playJarvisPowerUp } from '../utils/jarvisAudioSynth';
 
-// Pre-defined B-Roll background shaders & procedural particle generators
+// Pre-defined visual styles & color accents
 const VISUAL_THEMES = [
   { id: 'cyberpunk', name: 'Cyberpunk Neon', primary: '#06b6d4', secondary: '#ec4899', bg: '#030712' },
   { id: 'space', name: 'Cosmic Galaxy', primary: '#8b5cf6', secondary: '#38bdf8', bg: '#020617' },
@@ -27,17 +28,25 @@ const CAPTION_STYLES = [
   { id: 'bold_box', name: 'Modern Boxed', font: 'Arial Black, sans-serif', color: '#ffffff', highlight: '#f97316' }
 ];
 
-// Built-in BGM presets using Web Audio API procedural synthesis
+// Built-in BGM presets
 const BGM_TRACKS = [
-  { id: 'synthwave', name: 'Cyberpunk Synthwave', tempo: 120, mood: 'Energetic' },
-  { id: 'cinematic', name: 'Epic Cinematic Drone', tempo: 80, mood: 'Atmospheric' },
-  { id: 'lofi', name: 'Lo-Fi Chill Beats', tempo: 90, mood: 'Calm' },
-  { id: 'none', name: 'Voice Only (No Music)', tempo: 0, mood: 'Quiet' }
+  { id: 'synthwave', name: 'Cyberpunk Synthwave', tempo: 120, mood: 'Energetic & Driving' },
+  { id: 'cinematic', name: 'Epic Cinematic Drone', tempo: 80, mood: 'Atmospheric & Deep' },
+  { id: 'lofi', name: 'Lo-Fi Chill Beats', tempo: 90, mood: 'Mellow & Focus' },
+  { id: 'none', name: 'Voice Only (No Music)', tempo: 0, mood: 'Pure Voiceover' }
+];
+
+// Thumbnail Badge Presets
+const THUMBNAIL_BADGES = [
+  { id: 'viral', label: '🔥 VIRAL 2026', bg: '#ef4444' },
+  { id: 'must_watch', label: '⚡ MUST WATCH', bg: '#f59e0b' },
+  { id: 'shocking', label: '😱 SHOCKING REVEAL', bg: '#8b5cf6' },
+  { id: 'secret', label: '🔒 SECRET DISCLOSED', bg: '#06b6d4' }
 ];
 
 export default function JasperVideoStudioApp({ onClose, onLockSystem } = {}) {
   // Navigation & Mode
-  const [activeTab, setActiveTab] = useState('creator'); // 'creator' | 'editor' | 'preview' | 'youtube'
+  const [activeTab, setActiveTab] = useState('creator'); // 'creator' | 'editor' | 'preview' | 'thumbnail' | 'youtube'
   const [creationMode, setCreationMode] = useState('topic'); // 'topic' | 'script'
   const [aspectRatio, setAspectRatio] = useState('16:9'); // '16:9' (YouTube) | '9:16' (Shorts / Reels)
 
@@ -48,16 +57,26 @@ export default function JasperVideoStudioApp({ onClose, onLockSystem } = {}) {
   const [voicePersonality, setVoicePersonality] = useState('jarvis'); // 'jarvis' | 'friday' | 'creator' | 'trailer'
   const [selectedBgm, setSelectedBgm] = useState('synthwave');
   const [selectedCaptionStyle, setSelectedCaptionStyle] = useState('hormozi');
+  const [showSubscribeBadge, setShowSubscribeBadge] = useState(true);
+  const [showAudioVisualizer, setShowAudioVisualizer] = useState(true);
 
   // Generation & Status
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [generationStatus, setGenerationStatus] = useState('');
 
-  // Generated Video Project Data
+  // Viral Title & Hook Optimizer State
+  const [isOptimizingHooks, setIsOptimizingHooks] = useState(false);
+  const [hookSuggestions, setHookSuggestions] = useState([
+    { title: 'The 5 AI Breakthroughs They Hope You Never Notice (2026)', ctr: '97% High CTR', style: 'Curiosity Gap' },
+    { title: 'I Tested 2026 AI for 30 Days — Here Is What Terrified Me', ctr: '94% High CTR', style: 'First-Person Story' },
+    { title: 'Why Everything You Knew About AI Just Became Obsolete', ctr: '91% High CTR', style: 'Urgency & Shock' }
+  ]);
+
+  // Generated Video Project Data with AI Images & Timed Storyboard
   const [videoProject, setVideoProject] = useState({
     title: '5 Mind-Blowing AI Breakthroughs in 2026',
-    description: 'Explore the top AI technologies revolutionizing robotics, quantum computing, and personal intelligence. Created with J.A.S.P.E.R. AI Video Studio.\n\n#AI #Technology #Future #Shorts',
+    description: 'Explore the top AI technologies revolutionizing robotics, quantum computing, and personal intelligence. Created with J.A.S.P.E.R. AI Video Studio.\n\n0:00 - Introduction & Hook\n0:05 - Physical AI & Humanoids\n0:10 - Quantum Neural Networks\n0:16 - Subscribe & Conclusion\n\n#AI #Technology #Future #Shorts',
     tags: 'AI 2026, artificial intelligence, quantum AI, Jasper AI, robotics, tech news, breakthrough',
     scenes: [
       {
@@ -67,7 +86,9 @@ export default function JasperVideoStudioApp({ onClose, onLockSystem } = {}) {
         caption: 'AI IN 2026 HAS CHANGED REALITY',
         duration: 4.5,
         theme: 'cyberpunk',
-        zoomEffect: 'zoomIn'
+        zoomEffect: 'zoomIn',
+        imageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1280&q=80',
+        imagePrompt: 'Cyberpunk futuristic artificial intelligence neural network glowing cybernetic city'
       },
       {
         id: 2,
@@ -76,7 +97,9 @@ export default function JasperVideoStudioApp({ onClose, onLockSystem } = {}) {
         caption: 'HUMANOID WORKFORCE & NEURAL CHIPS',
         duration: 5.0,
         theme: 'stark_hud',
-        zoomEffect: 'panLeft'
+        zoomEffect: 'panLeft',
+        imageUrl: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1280&q=80',
+        imagePrompt: 'Futuristic humanoid robot hand reaching out with glowing stark energy core'
       },
       {
         id: 3,
@@ -85,7 +108,9 @@ export default function JasperVideoStudioApp({ onClose, onLockSystem } = {}) {
         caption: 'QUANTUM NETWORKS SOLVE CENTURIES',
         duration: 5.5,
         theme: 'matrix',
-        zoomEffect: 'zoomOut'
+        zoomEffect: 'zoomOut',
+        imageUrl: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=1280&q=80',
+        imagePrompt: 'Quantum computing holographic processor with digital matrix stream particles'
       },
       {
         id: 4,
@@ -94,7 +119,9 @@ export default function JasperVideoStudioApp({ onClose, onLockSystem } = {}) {
         caption: 'SUBSCRIBE FOR THE FUTURE OF TECH',
         duration: 4.5,
         theme: 'space',
-        zoomEffect: 'zoomIn'
+        zoomEffect: 'zoomIn',
+        imageUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1280&q=80',
+        imagePrompt: 'Deep cosmic nebula with glowing earth and futuristic holographic stars'
       }
     ]
   });
@@ -104,8 +131,15 @@ export default function JasperVideoStudioApp({ onClose, onLockSystem } = {}) {
   const [currentSceneIndex, setCurrentSceneIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
-  const [bgmVolume, setBgmVolume] = useState(0.25);
+  const [bgmVolume, setBgmVolume] = useState(0.3);
   const [activeEditingSceneId, setActiveEditingSceneId] = useState(1);
+
+  // Thumbnail Studio State
+  const [thumbnailHeadline, setThumbnailHeadline] = useState('THEY HID THIS FROM YOU!');
+  const [thumbnailSubhead, setThumbnailSubhead] = useState('2026 AI BREAKTHROUGH');
+  const [selectedBadge, setSelectedBadge] = useState('viral');
+  const [thumbnailTheme, setThumbnailTheme] = useState('cyberpunk');
+  const [thumbnailDownloaded, setThumbnailDownloaded] = useState(false);
 
   // Export & Recording State
   const [isExporting, setIsExporting] = useState(false);
@@ -126,15 +160,161 @@ export default function JasperVideoStudioApp({ onClose, onLockSystem } = {}) {
 
   // Canvas & Audio Refs
   const canvasRef = useRef(null);
+  const thumbnailCanvasRef = useRef(null);
   const audioContextRef = useRef(null);
-  const bgmOscillatorsRef = useRef([]);
-  const animationFrameRef = useRef(null);
-  const playbackStartTimeRef = useRef(0);
+  const audioDestinationRef = useRef(null);
+  const bgmGainNodeRef = useRef(null);
+  const bgmIntervalRef = useRef(null);
+  const imageCacheRef = useRef({});
   const mediaRecorderRef = useRef(null);
   const recordedChunksRef = useRef([]);
 
   // Total video duration calculation
   const totalDuration = videoProject.scenes.reduce((acc, s) => acc + (Number(s.duration) || 4), 0);
+
+  // Pre-load scene images into image cache for stutter-free canvas rendering
+  useEffect(() => {
+    videoProject.scenes.forEach(scene => {
+      if (scene.imageUrl && !imageCacheRef.current[scene.imageUrl]) {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = scene.imageUrl;
+        img.onload = () => {
+          imageCacheRef.current[scene.imageUrl] = img;
+        };
+      }
+    });
+  }, [videoProject.scenes]);
+
+  // -------------------------------------------------------------
+  // PROCEDURAL WEB AUDIO SYNTHESIZER ENGINE (SYNTHWAVE / CINEMATIC / LO-FI)
+  // -------------------------------------------------------------
+  const initAudioEngine = () => {
+    if (!audioContextRef.current) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) {
+        const ctx = new AudioCtx();
+        audioContextRef.current = ctx;
+        audioDestinationRef.current = ctx.createMediaStreamDestination();
+        const gain = ctx.createGain();
+        gain.gain.value = bgmVolume;
+        gain.connect(ctx.destination);
+        gain.connect(audioDestinationRef.current);
+        bgmGainNodeRef.current = gain;
+      }
+    }
+    if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume();
+    }
+  };
+
+  const startBgmPlayback = () => {
+    if (selectedBgm === 'none' || isMuted) return;
+    initAudioEngine();
+    const ctx = audioContextRef.current;
+    if (!ctx || !bgmGainNodeRef.current) return;
+
+    stopBgmPlayback();
+
+    // Notes frequencies
+    const synthNotes = selectedBgm === 'synthwave'
+      ? [110, 130.81, 146.83, 164.81, 196] // A2 minor pentatonic
+      : selectedBgm === 'cinematic'
+        ? [55, 82.41, 110, 123.47] // Deep Drone A1
+        : [130.81, 164.81, 196, 246.94]; // Lo-Fi C major 7th
+
+    let step = 0;
+    const intervalTime = selectedBgm === 'cinematic' ? 1200 : selectedBgm === 'synthwave' ? 350 : 600;
+
+    bgmIntervalRef.current = setInterval(() => {
+      if (!ctx || ctx.state === 'closed') return;
+      try {
+        const osc = ctx.createOscillator();
+        const noteGain = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+
+        osc.type = selectedBgm === 'synthwave' ? 'sawtooth' : selectedBgm === 'cinematic' ? 'sine' : 'triangle';
+        const baseFreq = synthNotes[step % synthNotes.length];
+        osc.frequency.setValueAtTime(baseFreq, ctx.currentTime);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(selectedBgm === 'synthwave' ? 900 : 450, ctx.currentTime);
+
+        noteGain.gain.setValueAtTime(0.001, ctx.currentTime);
+        noteGain.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.05);
+        noteGain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + (intervalTime / 1000) * 0.95);
+
+        osc.connect(filter);
+        filter.connect(noteGain);
+        noteGain.connect(bgmGainNodeRef.current);
+
+        osc.start();
+        osc.stop(ctx.currentTime + (intervalTime / 1000));
+        step++;
+      } catch (e) {}
+    }, intervalTime);
+  };
+
+  const stopBgmPlayback = () => {
+    if (bgmIntervalRef.current) {
+      clearInterval(bgmIntervalRef.current);
+      bgmIntervalRef.current = null;
+    }
+  };
+
+  // Sync BGM with Playback
+  useEffect(() => {
+    if (isPlaying && !isMuted && selectedBgm !== 'none') {
+      startBgmPlayback();
+    } else {
+      stopBgmPlayback();
+    }
+    return () => stopBgmPlayback();
+  }, [isPlaying, isMuted, selectedBgm]);
+
+  // Adjust volume
+  useEffect(() => {
+    if (bgmGainNodeRef.current) {
+      bgmGainNodeRef.current.gain.value = isMuted ? 0 : bgmVolume;
+    }
+  }, [bgmVolume, isMuted]);
+
+  // -------------------------------------------------------------
+  // TEST VOICE SAMPLE PREVIEW
+  // -------------------------------------------------------------
+  const handleTestVoiceSample = (voiceId) => {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    playJarvisBeep('select');
+
+    let text = 'Greetings, Sir. This is your J.A.S.P.E.R. artificial intelligence narrator, locked and calibrated.';
+    if (voiceId === 'friday') text = 'Systems fully operational. I will deliver clear, modern narration for your audience.';
+    if (voiceId === 'creator') text = 'What is up guys! Today we are revealing five insane breakthroughs that will blow your mind!';
+    if (voiceId === 'trailer') text = 'In a world altered by technology... one breakthrough changed reality forever.';
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    const voices = window.speechSynthesis.getVoices();
+    const britishVoice = voices.find(v => v.lang.includes('en-GB') || v.name.includes('UK') || v.name.includes('Oliver') || v.name.includes('George'));
+    const usVoice = voices.find(v => v.lang.includes('en-US') && !v.name.includes('Google'));
+
+    if (voiceId === 'jarvis' && britishVoice) {
+      utterance.voice = britishVoice;
+      utterance.pitch = 0.95;
+      utterance.rate = 1.05;
+    } else if (voiceId === 'trailer') {
+      utterance.pitch = 0.72;
+      utterance.rate = 0.88;
+    } else if (voiceId === 'friday') {
+      const femaleVoice = voices.find(v => v.name.includes('Female') || v.name.includes('Zira') || v.name.includes('Samantha'));
+      if (femaleVoice) utterance.voice = femaleVoice;
+      utterance.pitch = 1.1;
+      utterance.rate = 1.05;
+    } else if (usVoice) {
+      utterance.voice = usVoice;
+      utterance.rate = 1.15;
+    }
+    window.speechSynthesis.speak(utterance);
+  };
 
   // -------------------------------------------------------------
   // AI GENERATOR: TOPIC OR SCRIPT TO FULL STORYBOARD
@@ -142,7 +322,7 @@ export default function JasperVideoStudioApp({ onClose, onLockSystem } = {}) {
   const handleGenerateVideo = async () => {
     setIsGenerating(true);
     setGenerationProgress(15);
-    setGenerationStatus('Synthesizing script and narrative hook with Gemini AI...');
+    setGenerationStatus('Synthesizing script, retention hooks, and timed scenes with Gemini AI...');
     playJarvisPowerUp();
 
     const isShortFormat = aspectRatio === '9:16';
@@ -167,11 +347,12 @@ Return PURE JSON ONLY (no markdown blocks, no formatting text):
       "caption": "PUNCHY 4-6 WORD ALL-CAPS HIGHLIGHT SUBTITLE",
       "duration": 4.5,
       "theme": "cyberpunk" or "space" or "matrix" or "stark_hud" or "abstract" or "sunset",
-      "zoomEffect": "zoomIn" or "zoomOut" or "panLeft" or "panRight"
+      "zoomEffect": "zoomIn" or "zoomOut" or "panLeft" or "panRight",
+      "imagePrompt": "Specific photorealistic descriptive visual prompt for AI image generator"
     }
   ]
 }
-Generate between 4 to 7 scenes tailored to the topic.`;
+Generate between 4 to 6 scenes tailored to the topic.`;
 
     try {
       const apiKey = localStorage.getItem('jasper_gemini_key') || localStorage.getItem('jasper_gemini_api_key');
@@ -208,9 +389,19 @@ Generate between 4 to 7 scenes tailored to the topic.`;
       // Offline fallback heuristic generation if offline or API key missing
       if (!parsedResult || !parsedResult.scenes || parsedResult.scenes.length === 0) {
         setGenerationProgress(70);
-        setGenerationStatus('Assembling intelligent storyboard scenes...');
+        setGenerationStatus('Assembling intelligent storyboard scenes and B-roll prompts...');
         parsedResult = generateLocalStoryboard(creationMode === 'topic' ? promptTopic : rawScriptText, isShortFormat);
       }
+
+      // Automatically attach high-quality AI B-Roll image URLs via Pollinations AI
+      parsedResult.scenes = parsedResult.scenes.map((s, idx) => {
+        const cleanPrompt = encodeURIComponent(s.imagePrompt || `${s.title} futuristic technology cinematic 8k`);
+        const imgUrl = `https://image.pollinations.ai/prompt/${cleanPrompt}?width=1280&height=720&nologo=true&seed=${idx + 100}`;
+        return {
+          ...s,
+          imageUrl: s.imageUrl || imgUrl
+        };
+      });
 
       setGenerationProgress(100);
       setVideoProject(parsedResult);
@@ -250,19 +441,38 @@ Generate between 4 to 7 scenes tailored to the topic.`;
       caption: s.trim().slice(0, 32).toUpperCase(),
       duration: Math.max(3.5, Math.min(7.0, Math.round(s.trim().split(' ').length * 0.45))),
       theme: themes[idx % themes.length],
-      zoomEffect: idx % 2 === 0 ? 'zoomIn' : 'zoomOut'
+      zoomEffect: idx % 2 === 0 ? 'zoomIn' : 'zoomOut',
+      imagePrompt: `${raw} futuristic cinematic scene ${idx + 1} hyperrealistic 8k octane render`
     }));
 
     return {
       title,
-      description: `${raw}\n\nIn this video, we break down everything you need to know about ${raw}.\n\nCreated autonomously with J.A.S.P.E.R. AI Video Studio.\n\n#Technology #AI #Future ${isShort ? '#Shorts' : ''}`,
+      description: `${raw}\n\nIn this video, we break down everything you need to know about ${raw}.\n\n0:00 - Hook & Overview\n0:05 - The Core Discovery\n0:12 - Future Implications\n0:18 - Final Verdict & Subscribe\n\nCreated autonomously with J.A.S.P.E.R. AI Video Studio.\n\n#Technology #AI #Future ${isShort ? '#Shorts' : ''}`,
       tags: `${raw}, AI video, CapCut AI, InVideo, technology, future tech, Jasper OS`,
       scenes
     };
   };
 
+  // 1-Click Regenerate AI B-Roll Image for a Scene
+  const handleRegenerateSceneImage = (sceneId, customPrompt) => {
+    playJarvisBeep('click');
+    const randomSeed = Math.floor(Math.random() * 99999);
+    setVideoProject(prev => ({
+      ...prev,
+      scenes: prev.scenes.map(s => {
+        if (s.id === sceneId) {
+          const prompt = customPrompt || s.imagePrompt || `${s.title} cinematic futuristic 8k`;
+          const clean = encodeURIComponent(prompt);
+          const newUrl = `https://image.pollinations.ai/prompt/${clean}?width=1280&height=720&nologo=true&seed=${randomSeed}`;
+          return { ...s, imageUrl: newUrl, imagePrompt: prompt };
+        }
+        return s;
+      })
+    }));
+  };
+
   // -------------------------------------------------------------
-  // REAL-TIME CANVAS VIDEO RENDERER (KEN BURNS + PROCEDURAL SHADERS + SUBTITLES)
+  // REAL-TIME CANVAS VIDEO RENDERER (KEN BURNS + IMAGES + HUD + SUBTITLES)
   // -------------------------------------------------------------
   const renderCanvasFrame = (timestamp) => {
     const canvas = canvasRef.current;
@@ -302,41 +512,72 @@ Generate between 4 to 7 scenes tailored to the topic.`;
     ctx.fillStyle = '#020617';
     ctx.fillRect(0, 0, width, height);
 
-    // 2. Draw Procedural Dynamic Animated Background
+    // 2. Draw B-Roll Background: Either Cached Image OR Procedural Dynamic Canvas Shader
     const theme = VISUAL_THEMES.find(t => t.id === scene?.theme) || VISUAL_THEMES[0];
+    const cachedImg = scene?.imageUrl ? imageCacheRef.current[scene.imageUrl] : null;
+
     ctx.save();
 
     // Ken-Burns Zoom/Pan transform
     const scale = scene?.zoomEffect === 'zoomIn' 
-      ? 1 + sceneProgress * 0.15 
+      ? 1 + sceneProgress * 0.16 
       : scene?.zoomEffect === 'zoomOut' 
-        ? 1.15 - sceneProgress * 0.15 
-        : 1.05;
-    
-    ctx.translate(width / 2, height / 2);
+        ? 1.16 - sceneProgress * 0.16 
+        : scene?.zoomEffect === 'panLeft'
+          ? 1.08
+          : 1.08;
+
+    const panX = scene?.zoomEffect === 'panLeft' ? (sceneProgress - 0.5) * 35 : 0;
+
+    ctx.translate(width / 2 + panX, height / 2);
     ctx.scale(scale, scale);
     ctx.translate(-width / 2, -height / 2);
 
-    // Dynamic gradient flow
-    const grad = ctx.createRadialGradient(
-      width * 0.5 + Math.sin(timestamp * 0.001) * 100,
-      height * 0.5 + Math.cos(timestamp * 0.0015) * 80,
-      20,
-      width * 0.5,
-      height * 0.5,
-      width * 0.8
-    );
-    grad.addColorStop(0, theme.secondary);
-    grad.addColorStop(0.4, theme.primary);
-    grad.addColorStop(1, theme.bg);
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, width, height);
+    if (cachedImg && cachedImg.complete && cachedImg.naturalWidth > 0) {
+      // Draw Cover Image
+      const imgAspect = cachedImg.naturalWidth / cachedImg.naturalHeight;
+      const canvasAspect = width / height;
+      let drawW, drawH, drawX, drawY;
 
-    // Animated Grid Lines & Particle Stars
+      if (imgAspect > canvasAspect) {
+        drawH = height;
+        drawW = height * imgAspect;
+        drawX = (width - drawW) / 2;
+        drawY = 0;
+      } else {
+        drawW = width;
+        drawH = width / imgAspect;
+        drawX = 0;
+        drawY = (height - drawH) / 2;
+      }
+
+      ctx.drawImage(cachedImg, drawX, drawY, drawW, drawH);
+
+      // Cyber Holographic Color Tint
+      ctx.fillStyle = `${theme.bg}77`;
+      ctx.fillRect(0, 0, width, height);
+    } else {
+      // Dynamic Procedural Gradient Fallback
+      const grad = ctx.createRadialGradient(
+        width * 0.5 + Math.sin(timestamp * 0.001) * 100,
+        height * 0.5 + Math.cos(timestamp * 0.0015) * 80,
+        20,
+        width * 0.5,
+        height * 0.5,
+        width * 0.8
+      );
+      grad.addColorStop(0, theme.secondary);
+      grad.addColorStop(0.4, theme.primary);
+      grad.addColorStop(1, theme.bg);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, width, height);
+    }
+
+    // Animated Grid Lines
     ctx.lineWidth = 1;
-    ctx.strokeStyle = `${theme.primary}33`;
-    const gridSize = 40;
-    const gridOffset = (timestamp * 0.05) % gridSize;
+    ctx.strokeStyle = `${theme.primary}22`;
+    const gridSize = 45;
+    const gridOffset = (timestamp * 0.04) % gridSize;
 
     for (let x = 0; x < width; x += gridSize) {
       ctx.beginPath();
@@ -351,22 +592,22 @@ Generate between 4 to 7 scenes tailored to the topic.`;
       ctx.stroke();
     }
 
-    // Floating Cyber Particles
-    for (let i = 0; i < 24; i++) {
-      const px = ((i * 137.5 + timestamp * 0.04) % width);
-      const py = ((i * 269.3 - timestamp * 0.02) % height + height) % height;
-      const r = (i % 3) + 1.5;
+    // Floating Cyber Energy Particles
+    for (let i = 0; i < 20; i++) {
+      const px = ((i * 137.5 + timestamp * 0.03) % width);
+      const py = ((i * 269.3 - timestamp * 0.015) % height + height) % height;
+      const r = (i % 3) + 1.2;
       ctx.beginPath();
       ctx.arc(px, py, r, 0, Math.PI * 2);
       ctx.fillStyle = i % 2 === 0 ? theme.primary : '#ffffff';
       ctx.shadowColor = theme.secondary;
-      ctx.shadowBlur = 10;
+      ctx.shadowBlur = 8;
       ctx.fill();
     }
 
     // Holographic Stark Center Reticle (HUD circles)
     if (scene?.theme === 'stark_hud' || scene?.theme === 'space') {
-      ctx.strokeStyle = `${theme.primary}88`;
+      ctx.strokeStyle = `${theme.primary}66`;
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.arc(width / 2, height / 2, Math.min(width, height) * 0.28, 0, Math.PI * 2);
@@ -375,7 +616,7 @@ Generate between 4 to 7 scenes tailored to the topic.`;
       ctx.save();
       ctx.translate(width / 2, height / 2);
       ctx.rotate(timestamp * 0.0008);
-      ctx.strokeStyle = `${theme.secondary}aa`;
+      ctx.strokeStyle = `${theme.secondary}88`;
       ctx.setLineDash([12, 18]);
       ctx.beginPath();
       ctx.arc(0, 0, Math.min(width, height) * 0.35, 0, Math.PI * 2);
@@ -386,9 +627,9 @@ Generate between 4 to 7 scenes tailored to the topic.`;
     ctx.restore();
 
     // 3. Cinematic Vignette Overlay
-    const vignette = ctx.createRadialGradient(width / 2, height / 2, width * 0.3, width / 2, height / 2, width * 0.7);
+    const vignette = ctx.createRadialGradient(width / 2, height / 2, width * 0.35, width / 2, height / 2, width * 0.75);
     vignette.addColorStop(0, 'rgba(0,0,0,0)');
-    vignette.addColorStop(1, 'rgba(0,0,0,0.75)');
+    vignette.addColorStop(1, 'rgba(0,0,0,0.85)');
     ctx.fillStyle = vignette;
     ctx.fillRect(0, 0, width, height);
 
@@ -407,7 +648,51 @@ Generate between 4 to 7 scenes tailored to the topic.`;
     ctx.fillText(`SCENE ${sceneIndex + 1}/${videoProject.scenes.length} • ${aspectRatio}`, width - 24, 34);
     ctx.textAlign = 'left';
 
-    // 5. ANIMATED CAPTIONS & SUBTITLES (CapCut / InVideo Style)
+    // 5. Sound Wave Audio Visualizer (Bottom Center)
+    if (showAudioVisualizer && isPlaying) {
+      const bars = 16;
+      const barW = 3.5;
+      const spacing = 3;
+      const totalW = bars * (barW + spacing);
+      const startX = width / 2 - totalW / 2;
+      const startY = aspectRatio === '9:16' ? height * 0.88 : height * 0.92;
+
+      for (let b = 0; b < bars; b++) {
+        const barH = 4 + Math.abs(Math.sin(timestamp * 0.006 + b * 0.4)) * 18;
+        ctx.fillStyle = b % 2 === 0 ? theme.primary : theme.secondary;
+        ctx.shadowColor = theme.primary;
+        ctx.shadowBlur = 6;
+        ctx.fillRect(startX + b * (barW + spacing), startY - barH / 2, barW, barH);
+      }
+      ctx.shadowBlur = 0;
+    }
+
+    // 6. YouTube Animated "SUBSCRIBE" Pill (Appears in Scene 1 and Final Scene)
+    if (showSubscribeBadge && (sceneIndex === 0 || sceneIndex === videoProject.scenes.length - 1)) {
+      const subX = width / 2;
+      const subY = aspectRatio === '9:16' ? height * 0.16 : height * 0.18;
+      const pulseScale = 1 + Math.sin(timestamp * 0.005) * 0.04;
+
+      ctx.save();
+      ctx.translate(subX, subY);
+      ctx.scale(pulseScale, pulseScale);
+      
+      ctx.fillStyle = '#dc2626'; // YouTube Red
+      ctx.shadowColor = '#ef4444';
+      ctx.shadowBlur = 12;
+      ctx.roundRect(-75, -16, 150, 32, 16);
+      ctx.fill();
+
+      ctx.font = 'bold 11px Inter, sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.shadowBlur = 0;
+      ctx.fillText('▶ SUBSCRIBE 🔔', 0, 0);
+      ctx.restore();
+    }
+
+    // 7. ANIMATED CAPTIONS & SUBTITLES (CapCut / InVideo Style)
     if (scene?.caption) {
       const captionStyle = CAPTION_STYLES.find(c => c.id === selectedCaptionStyle) || CAPTION_STYLES[0];
       const words = scene.caption.split(' ');
@@ -422,7 +707,7 @@ Generate between 4 to 7 scenes tailored to the topic.`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
-      const captionY = aspectRatio === '9:16' ? height * 0.72 : height * 0.80;
+      const captionY = aspectRatio === '9:16' ? height * 0.72 : height * 0.78;
 
       // Draw Subtitle Box Background
       const fullText = scene.caption;
@@ -430,10 +715,10 @@ Generate between 4 to 7 scenes tailored to the topic.`;
       const boxW = Math.min(width - 40, textMetrics.width + 36);
       const boxH = fontSize * 1.5;
 
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.78)';
       ctx.roundRect(width / 2 - boxW / 2, captionY - boxH / 2, boxW, boxH, 12);
       ctx.fill();
-      ctx.strokeStyle = `${theme.primary}66`;
+      ctx.strokeStyle = `${theme.primary}77`;
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
@@ -447,8 +732,7 @@ Generate between 4 to 7 scenes tailored to the topic.`;
         if (isCurrentWord) {
           ctx.fillStyle = captionStyle.highlight;
           ctx.shadowColor = captionStyle.highlight;
-          ctx.shadowBlur = 14;
-          // Scale pop
+          ctx.shadowBlur = 16;
           ctx.font = `bold ${Math.round(fontSize * 1.08)}px ${captionStyle.font}`;
         } else {
           ctx.fillStyle = captionStyle.color;
@@ -465,9 +749,9 @@ Generate between 4 to 7 scenes tailored to the topic.`;
       ctx.restore();
     }
 
-    // 6. Bottom Progress Bar
+    // 8. Bottom Progress Bar
     const progressPct = totalDuration > 0 ? (currentTime / totalDuration) : 0;
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
     ctx.fillRect(0, height - 6, width, 6);
     ctx.fillStyle = '#06b6d4';
     ctx.fillRect(0, height - 6, width * progressPct, 6);
@@ -530,7 +814,7 @@ Generate between 4 to 7 scenes tailored to the topic.`;
           utterance.rate = 1.05;
         } else if (usVoice) {
           utterance.voice = usVoice;
-          utterance.rate = 1.1;
+          utterance.rate = 1.12;
         }
 
         window.speechSynthesis.speak(utterance);
@@ -554,7 +838,7 @@ Generate between 4 to 7 scenes tailored to the topic.`;
   };
 
   // -------------------------------------------------------------
-  // CLIENT-SIDE VIDEO EXPORT & MEDIARECORDER RECORDING
+  // CLIENT-SIDE VIDEO EXPORT WITH SOUNDTRACK AUDIO MIXING
   // -------------------------------------------------------------
   const handleExportVideo = async () => {
     if (!canvasRef.current) return;
@@ -564,15 +848,27 @@ Generate between 4 to 7 scenes tailored to the topic.`;
 
     try {
       const canvas = canvasRef.current;
-      const stream = canvas.captureStream(30); // 30 FPS video stream
+      const videoStream = canvas.captureStream(30); // 30 FPS video stream
       recordedChunksRef.current = [];
+
+      // Mix procedural audio destination if available
+      let combinedStream = videoStream;
+      if (audioDestinationRef.current && audioDestinationRef.current.stream) {
+        const audioTracks = audioDestinationRef.current.stream.getAudioTracks();
+        if (audioTracks.length > 0) {
+          combinedStream = new MediaStream([
+            ...videoStream.getVideoTracks(),
+            ...audioTracks
+          ]);
+        }
+      }
 
       const options = { mimeType: 'video/webm;codecs=vp9' };
       let recorder;
       try {
-        recorder = new MediaRecorder(stream, options);
+        recorder = new MediaRecorder(combinedStream, options);
       } catch (e) {
-        recorder = new MediaRecorder(stream);
+        recorder = new MediaRecorder(combinedStream);
       }
 
       recorder.ondataavailable = (event) => {
@@ -630,6 +926,109 @@ Generate between 4 to 7 scenes tailored to the topic.`;
   };
 
   // -------------------------------------------------------------
+  // YOUTUBE THUMBNAIL STUDIO RENDERER & EXPORT
+  // -------------------------------------------------------------
+  const renderThumbnailCanvas = () => {
+    const canvas = thumbnailCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const width = canvas.width;
+    const height = canvas.height;
+    const theme = VISUAL_THEMES.find(t => t.id === thumbnailTheme) || VISUAL_THEMES[0];
+
+    // 1. Background image or dynamic radial glow
+    const firstSceneImg = videoProject.scenes[0]?.imageUrl ? imageCacheRef.current[videoProject.scenes[0].imageUrl] : null;
+    if (firstSceneImg && firstSceneImg.complete && firstSceneImg.naturalWidth > 0) {
+      ctx.drawImage(firstSceneImg, 0, 0, width, height);
+      // Dark vignette & colored lighting
+      const grad = ctx.createLinearGradient(0, 0, width, height);
+      grad.addColorStop(0, 'rgba(0,0,0,0.65)');
+      grad.addColorStop(1, `${theme.bg}cc`);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, width, height);
+    } else {
+      const grad = ctx.createRadialGradient(width * 0.7, height * 0.3, 50, width / 2, height / 2, width * 0.8);
+      grad.addColorStop(0, theme.secondary);
+      grad.addColorStop(0.5, theme.primary);
+      grad.addColorStop(1, '#020617');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, width, height);
+    }
+
+    // High Contrast Neon Border
+    ctx.lineWidth = 14;
+    ctx.strokeStyle = '#ef4444'; // MrBeast Red Outer
+    ctx.strokeRect(0, 0, width, height);
+
+    // Selected Badge (Top Right)
+    const badge = THUMBNAIL_BADGES.find(b => b.id === selectedBadge) || THUMBNAIL_BADGES[0];
+    ctx.save();
+    ctx.translate(width - 170, 50);
+    ctx.rotate(0.04);
+    ctx.fillStyle = badge.bg;
+    ctx.shadowColor = badge.bg;
+    ctx.shadowBlur = 20;
+    ctx.roundRect(-100, -22, 200, 44, 12);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '900 18px Impact, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(badge.label, 0, 0);
+    ctx.restore();
+
+    // High-CTR Giant Headline Subtitle (Yellow with thick black stroke)
+    ctx.save();
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+
+    // Subhead
+    ctx.font = '900 32px Orbitron, sans-serif';
+    ctx.fillStyle = '#38bdf8';
+    ctx.shadowColor = '#0284c7';
+    ctx.shadowBlur = 12;
+    ctx.fillText(thumbnailSubhead.toUpperCase(), 50, height * 0.48);
+
+    // Main Headline (Impact bold yellow)
+    ctx.font = '900 68px Impact, sans-serif';
+    ctx.shadowBlur = 0;
+    ctx.lineWidth = 12;
+    ctx.strokeStyle = '#000000';
+    ctx.strokeText(thumbnailHeadline.toUpperCase(), 50, height * 0.65);
+    ctx.fillStyle = '#facc15';
+    ctx.fillText(thumbnailHeadline.toUpperCase(), 50, height * 0.65);
+
+    // Stark HUD Icon Badge (Bottom Right)
+    ctx.font = 'bold 20px monospace';
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText('⚡ 4K 60FPS • J.A.S.P.E.R. STUDIO', 50, height - 40);
+
+    ctx.restore();
+  };
+
+  useEffect(() => {
+    if (activeTab === 'thumbnail') {
+      renderThumbnailCanvas();
+    }
+  }, [activeTab, thumbnailHeadline, thumbnailSubhead, selectedBadge, thumbnailTheme, videoProject]);
+
+  const handleDownloadThumbnail = () => {
+    const canvas = thumbnailCanvasRef.current;
+    if (!canvas) return;
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = `youtube_thumbnail_${videoProject.title.slice(0, 24).replace(/[^a-zA-Z0-9]/g, '_')}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setThumbnailDownloaded(true);
+    playJarvisBeep('success');
+    setTimeout(() => setThumbnailDownloaded(false), 3000);
+  };
+
+  // -------------------------------------------------------------
   // YOUTUBE UPLOAD & PUBLISH DISPATCH
   // -------------------------------------------------------------
   const handleUploadToYouTube = async () => {
@@ -643,7 +1042,6 @@ Generate between 4 to 7 scenes tailored to the topic.`;
     } catch (e) {}
 
     try {
-      // Check if server has YouTube upload endpoint available
       const apiBase = getApiBase();
       const res = await fetch(`${apiBase}/api/youtube/upload`, {
         method: 'POST',
@@ -663,13 +1061,11 @@ Generate between 4 to 7 scenes tailored to the topic.`;
         setUploadedVideoId(data.videoId || 'dQw4w9WgXcQ');
         setUploadStatus('success');
       } else {
-        // Fallback: Open YouTube Studio upload creator directly with clipboard alert
         setUploadStatus('copied');
         window.open('https://studio.youtube.com/channel/upload', '_blank');
       }
       playJarvisBeep('success');
     } catch (err) {
-      // Offline fallback: Open YouTube Studio web interface
       setUploadStatus('copied');
       window.open('https://studio.youtube.com/channel/upload', '_blank');
       playJarvisBeep('command');
@@ -687,20 +1083,21 @@ Generate between 4 to 7 scenes tailored to the topic.`;
           </div>
           <div>
             <h2 className="text-xs font-bold font-orbitron text-cyan-200 tracking-wider flex items-center gap-1.5">
-              <span>J.A.S.P.E.R. VIDEO STUDIO AI</span>
-              <span className="text-[9px] px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 font-mono border border-cyan-500/30">CAPCUT & INVIDEO ENGINE</span>
+              <span>J.A.S.P.E.R. VIDEO STUDIO PRO</span>
+              <span className="text-[9px] px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 font-mono border border-cyan-500/30">CAPCUT & INVIDEO AI CLASS</span>
             </h2>
-            <p className="text-[10px] text-slate-400 font-mono">Autonomous Script-to-Video & YouTube Channel Publishing</p>
+            <p className="text-[10px] text-slate-400 font-mono">Autonomous Script-to-Video, B-Roll Synthesis & YouTube Publishing</p>
           </div>
         </div>
 
         {/* Tab Switcher */}
         <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-mono">
           {[
-            { id: 'creator', label: '1. AI Prompt & Script', icon: Wand2 },
-            { id: 'preview', label: '2. Live Player & Canvas', icon: Play },
-            { id: 'editor', label: '3. Storyboard & Timeline', icon: Layers },
-            { id: 'youtube', label: '4. YouTube Upload', icon: Youtube }
+            { id: 'creator', label: '1. AI Script', icon: Wand2 },
+            { id: 'preview', label: '2. Live Player', icon: Play },
+            { id: 'editor', label: '3. Storyboard & B-Roll', icon: Layers },
+            { id: 'thumbnail', label: '4. Thumbnail Studio', icon: ImageIcon },
+            { id: 'youtube', label: '5. YouTube Upload', icon: Youtube }
           ].map(tab => {
             const Icon = tab.icon;
             const active = activeTab === tab.id;
@@ -711,7 +1108,7 @@ Generate between 4 to 7 scenes tailored to the topic.`;
                   setActiveTab(tab.id);
                   playJarvisBeep('click');
                 }}
-                className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                className={`px-2.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
                   active 
                     ? 'bg-cyan-500/25 text-cyan-200 border border-cyan-500/40 shadow-[0_0_10px_rgba(6,182,212,0.25)] font-bold' 
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
@@ -728,7 +1125,7 @@ Generate between 4 to 7 scenes tailored to the topic.`;
       {/* ── MAIN WORKSPACE CONTENT ── */}
       <div className="flex-1 overflow-hidden flex flex-col">
 
-        {/* TAB 1: AI CREATOR & SCRIPT GENERATOR */}
+        {/* TAB 1: AI CREATOR & VIRAL SCRIPT GENERATOR */}
         {activeTab === 'creator' && (
           <div className="flex-1 overflow-y-auto p-5 custom-scrollbar grid grid-cols-1 lg:grid-cols-12 gap-5">
             
@@ -771,7 +1168,7 @@ Generate between 4 to 7 scenes tailored to the topic.`;
 
                   {/* Preset Idea Chips */}
                   <div className="flex flex-col gap-1.5">
-                    <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Trending Topic Templates:</span>
+                    <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Trending YouTube Templates:</span>
                     <div className="flex flex-wrap gap-1.5">
                       {[
                         '5 AI Breakthroughs in 2026',
@@ -821,10 +1218,44 @@ Generate between 4 to 7 scenes tailored to the topic.`;
                 ) : (
                   <>
                     <Wand2 className="w-4 h-4 text-cyan-300" />
-                    <span>Generate Storyboard & Visuals with Gemini AI</span>
+                    <span>Generate Storyboard &amp; AI B-Roll with Gemini</span>
                   </>
                 )}
               </button>
+
+              {/* Viral Retention & Hook Optimizer Tool */}
+              <div className="p-4 bg-slate-900/60 border border-amber-500/30 rounded-xl flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono font-bold text-amber-300 flex items-center gap-1.5">
+                    <Flame className="w-4 h-4 text-amber-400" />
+                    <span>Viral Retention &amp; High-CTR Title Optimizer</span>
+                  </span>
+                  <span className="text-[9px] font-mono text-amber-400/80 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                    ALGORITHM BOOSTER
+                  </span>
+                </div>
+                <div className="flex flex-col gap-2">
+                  {hookSuggestions.map((item, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => {
+                        setVideoProject(prev => ({ ...prev, title: item.title }));
+                        setThumbnailHeadline(item.title.slice(0, 26).toUpperCase());
+                        playJarvisBeep('select');
+                      }}
+                      className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-amber-400 flex items-center justify-between gap-2 cursor-pointer transition-all hover:bg-slate-900"
+                    >
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-xs font-sans font-semibold text-slate-200 truncate">{item.title}</span>
+                        <span className="text-[9px] font-mono text-slate-400">{item.style}</span>
+                      </div>
+                      <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/30 whitespace-nowrap">
+                        {item.ctr}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Right Column: Video Specs & Formatting (5 cols) */}
@@ -834,7 +1265,7 @@ Generate between 4 to 7 scenes tailored to the topic.`;
               <div className="p-4 bg-slate-900/60 border border-slate-800 rounded-xl flex flex-col gap-2.5">
                 <span className="text-xs font-mono text-slate-200 font-bold flex items-center gap-1.5">
                   <Layout className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>Format & Aspect Ratio</span>
+                  <span>Format &amp; Aspect Ratio</span>
                 </span>
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -859,39 +1290,88 @@ Generate between 4 to 7 scenes tailored to the topic.`;
                     }`}
                   >
                     <div className="w-5 h-9 border-2 border-current rounded-sm flex items-center justify-center text-[8px] font-mono">9:16</div>
-                    <span className="text-xs font-bold font-mono">Shorts & Reels</span>
+                    <span className="text-xs font-bold font-mono">Shorts &amp; Reels</span>
                     <span className="text-[9px] text-slate-400">1080 × 1920 Vertical</span>
                   </button>
                 </div>
               </div>
 
-              {/* AI Voice Selection */}
+              {/* AI Voice Selection with Live Voice Test Previews */}
               <div className="p-4 bg-slate-900/60 border border-slate-800 rounded-xl flex flex-col gap-2.5">
                 <span className="text-xs font-mono text-slate-200 font-bold flex items-center gap-1.5">
                   <Volume2 className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>AI Voiceover Persona</span>
+                  <span>AI Voiceover Persona (with Live Preview)</span>
                 </span>
                 <div className="grid grid-cols-2 gap-2 text-xs font-mono">
                   {[
-                    { id: 'jarvis', label: 'J.A.R.V.I.S. (UK)', desc: 'Refined, calm British tone' },
-                    { id: 'friday', label: 'Friday (Neural)', desc: 'Clear, modern female voice' },
+                    { id: 'jarvis', label: 'J.A.R.V.I.S. (UK)', desc: 'Refined British tone' },
+                    { id: 'friday', label: 'Friday (Neural)', desc: 'Clear modern female voice' },
                     { id: 'creator', label: 'Viral Creator', desc: 'Punchy high-tempo delivery' },
                     { id: 'trailer', label: 'Epic Movie Trailer', desc: 'Deep cinematic baritone' }
                   ].map(v => (
-                    <button
+                    <div
                       key={v.id}
                       onClick={() => setVoicePersonality(v.id)}
-                      className={`p-2 rounded-lg border text-left flex flex-col transition-all ${
+                      className={`p-2 rounded-lg border text-left flex flex-col justify-between transition-all cursor-pointer ${
                         voicePersonality === v.id
                           ? 'bg-cyan-500/25 border-cyan-400 text-cyan-200'
                           : 'bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-900'
                       }`}
                     >
-                      <span className="font-bold">{v.label}</span>
-                      <span className="text-[9px] text-slate-400 truncate">{v.desc}</span>
+                      <div>
+                        <span className="font-bold block">{v.label}</span>
+                        <span className="text-[9px] text-slate-400 truncate block">{v.desc}</span>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleTestVoiceSample(v.id);
+                        }}
+                        className="mt-1.5 py-0.5 px-2 bg-slate-800 hover:bg-cyan-900 text-[9px] text-cyan-300 rounded border border-slate-700 flex items-center justify-center gap-1 font-bold"
+                        title="Click to test voice"
+                      >
+                        <Volume2 className="w-2.5 h-2.5" /> Test Voice
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Procedural BGM Soundtrack Selector */}
+              <div className="p-4 bg-slate-900/60 border border-slate-800 rounded-xl flex flex-col gap-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono text-slate-200 font-bold flex items-center gap-1.5">
+                    <Music className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>Background Soundtrack (Synth)</span>
+                  </span>
+                  <span className="text-[10px] font-mono text-cyan-400">Vol: {Math.round(bgmVolume * 100)}%</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                  {BGM_TRACKS.map(track => (
+                    <button
+                      key={track.id}
+                      onClick={() => setSelectedBgm(track.id)}
+                      className={`p-2 rounded-lg border text-left flex flex-col transition-all ${
+                        selectedBgm === track.id
+                          ? 'bg-cyan-500/25 border-cyan-400 text-cyan-200'
+                          : 'bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-900'
+                      }`}
+                    >
+                      <span className="font-bold">{track.name}</span>
+                      <span className="text-[9px] text-slate-400 truncate">{track.mood}</span>
                     </button>
                   ))}
                 </div>
+                {/* Volume slider */}
+                <input
+                  type="range"
+                  min="0"
+                  max="0.8"
+                  step="0.05"
+                  value={bgmVolume}
+                  onChange={(e) => setBgmVolume(parseFloat(e.target.value))}
+                  className="w-full h-1 bg-slate-800 rounded appearance-none cursor-pointer accent-cyan-400 mt-1"
+                />
               </div>
 
               {/* Subtitle Caption Styling (CapCut style) */}
@@ -967,7 +1447,7 @@ Generate between 4 to 7 scenes tailored to the topic.`;
                   <div className="flex items-center gap-2">
                     <button
                       onClick={togglePlay}
-                      className="px-4 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl flex items-center gap-1.5 text-xs transition-all shadow-[0_0_12px_rgba(6,182,212,0.3)]"
+                      className="px-4 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl flex items-center gap-1.5 text-xs transition-all shadow-[0_0_12px_rgba(6,182,212,0.3)] cursor-pointer"
                     >
                       {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 fill-current" />}
                       <span>{isPlaying ? 'Pause' : 'Play Video'}</span>
@@ -978,7 +1458,7 @@ Generate between 4 to 7 scenes tailored to the topic.`;
                         setCurrentTime(0);
                         setIsPlaying(false);
                       }}
-                      className="p-1.5 text-slate-400 hover:text-white rounded-lg bg-slate-800 border border-slate-700"
+                      className="p-1.5 text-slate-400 hover:text-white rounded-lg bg-slate-800 border border-slate-700 cursor-pointer"
                       title="Rewind to start"
                     >
                       <RotateCcw className="w-4 h-4" />
@@ -986,10 +1466,20 @@ Generate between 4 to 7 scenes tailored to the topic.`;
 
                     <button
                       onClick={() => setIsMuted(!isMuted)}
-                      className="p-1.5 text-slate-400 hover:text-white rounded-lg bg-slate-800 border border-slate-700"
-                      title={isMuted ? "Unmute Voiceover" : "Mute Voiceover"}
+                      className="p-1.5 text-slate-400 hover:text-white rounded-lg bg-slate-800 border border-slate-700 cursor-pointer"
+                      title={isMuted ? "Unmute Voiceover & Music" : "Mute Voiceover & Music"}
                     >
                       {isMuted ? <VolumeX className="w-4 h-4 text-rose-400" /> : <Volume2 className="w-4 h-4 text-cyan-400" />}
+                    </button>
+
+                    <button
+                      onClick={() => setShowSubscribeBadge(!showSubscribeBadge)}
+                      className={`px-2.5 py-1 rounded-lg text-[10px] font-mono border cursor-pointer ${
+                        showSubscribeBadge ? 'bg-red-500/20 border-red-500 text-red-300' : 'bg-slate-800 border-slate-700 text-slate-400'
+                      }`}
+                      title="Toggle YouTube Subscribe Animation"
+                    >
+                      🔔 Subscribe Pill
                     </button>
                   </div>
 
@@ -998,28 +1488,36 @@ Generate between 4 to 7 scenes tailored to the topic.`;
                     <button
                       onClick={handleExportVideo}
                       disabled={isExporting}
-                      className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-cyan-500/40 text-cyan-200 rounded-xl text-xs font-mono font-bold flex items-center gap-1.5 transition-all"
+                      className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-cyan-500/40 text-cyan-200 rounded-xl text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer"
                     >
                       <Download className="w-3.5 h-3.5 text-cyan-400" />
-                      <span>{isExporting ? `Rendering (${exportProgress}%)` : 'Export WebM'}</span>
+                      <span>{isExporting ? `Rendering (${exportProgress}%)` : 'Export Video & Audio'}</span>
                     </button>
 
                     {exportedVideoUrl && (
                       <button
                         onClick={handleDownloadVideo}
-                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-sm"
+                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
                       >
                         <Check className="w-3.5 h-3.5" />
-                        <span>Download Video</span>
+                        <span>Download .WebM</span>
                       </button>
                     )}
 
                     <button
+                      onClick={() => setActiveTab('thumbnail')}
+                      className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-[0_0_12px_rgba(245,158,11,0.3)] cursor-pointer"
+                    >
+                      <ImageIcon className="w-3.5 h-3.5" />
+                      <span>Thumbnail Studio</span>
+                    </button>
+
+                    <button
                       onClick={() => setActiveTab('youtube')}
-                      className="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-[0_0_12px_rgba(225,29,72,0.3)]"
+                      className="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-[0_0_12px_rgba(225,29,72,0.3)] cursor-pointer"
                     >
                       <Youtube className="w-3.5 h-3.5 fill-current" />
-                      <span>Publish to YouTube</span>
+                      <span>Publish</span>
                     </button>
                   </div>
                 </div>
@@ -1028,7 +1526,7 @@ Generate between 4 to 7 scenes tailored to the topic.`;
           </div>
         )}
 
-        {/* TAB 3: STORYBOARD & TIMELINE EDITOR (CAPCUT STYLE) */}
+        {/* TAB 3: STORYBOARD & TIMELINE & B-ROLL EDITOR (CAPCUT STYLE) */}
         {activeTab === 'editor' && (
           <div className="flex-1 overflow-y-auto p-5 custom-scrollbar flex flex-col gap-4">
             
@@ -1049,12 +1547,13 @@ Generate between 4 to 7 scenes tailored to the topic.`;
                         caption: 'NEW SCENE HEADLINE',
                         duration: 4.5,
                         theme: 'cyberpunk',
-                        zoomEffect: 'zoomIn'
+                        zoomEffect: 'zoomIn',
+                        imagePrompt: 'Futuristic quantum computer server room glowing cyan'
                       }
                     ]
                   }));
                 }}
-                className="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg flex items-center gap-1 font-bold text-xs"
+                className="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg flex items-center gap-1 font-bold text-xs cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Add Scene</span>
@@ -1091,7 +1590,7 @@ Generate between 4 to 7 scenes tailored to the topic.`;
                                 scenes: prev.scenes.filter(s => s.id !== scene.id)
                               }));
                             }}
-                            className="p-1 hover:text-rose-400 text-slate-500 rounded"
+                            className="p-1 hover:text-rose-400 text-slate-500 rounded cursor-pointer"
                             title="Delete Scene"
                           >
                             <Trash2 className="w-3 h-3" />
@@ -1100,65 +1599,81 @@ Generate between 4 to 7 scenes tailored to the topic.`;
                       </div>
                     </div>
 
-                    {/* Edit Narration */}
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-mono text-slate-400">Voiceover Script:</label>
-                      <textarea
-                        value={scene.narration}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setVideoProject(prev => ({
-                            ...prev,
-                            scenes: prev.scenes.map(s => s.id === scene.id ? { ...s, narration: val } : s)
-                          }));
+                    {/* Scene B-Roll Preview Thumbnail */}
+                    <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-black border border-slate-800 flex items-center justify-center">
+                      {scene.imageUrl ? (
+                        <img src={scene.imageUrl} alt={scene.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="text-[10px] font-mono text-slate-500 flex items-center gap-1">
+                          <ImageIcon className="w-3 h-3" /> Procedural Background
+                        </div>
+                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRegenerateSceneImage(scene.id);
                         }}
-                        rows={2}
-                        className="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-xs font-sans text-slate-200 resize-none focus:outline-none focus:border-cyan-500"
-                      />
-                    </div>
-
-                    {/* Edit Caption */}
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-mono text-slate-400">Subtitles / Screen Text:</label>
-                      <input
-                        type="text"
-                        value={scene.caption}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setVideoProject(prev => ({
-                            ...prev,
-                            scenes: prev.scenes.map(s => s.id === scene.id ? { ...s, caption: val } : s)
-                          }));
-                        }}
-                        className="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-xs font-mono text-amber-300 focus:outline-none focus:border-amber-400"
-                      />
-                    </div>
-
-                    {/* Controls Footer */}
-                    <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 text-[10px] font-mono">
-                      <select
-                        value={scene.theme}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setVideoProject(prev => ({
-                            ...prev,
-                            scenes: prev.scenes.map(s => s.id === scene.id ? { ...s, theme: val } : s)
-                          }));
-                        }}
-                        className="bg-slate-900 border border-slate-800 rounded p-1 text-slate-300"
+                        className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-black/80 hover:bg-cyan-950 border border-cyan-500/40 text-[9px] font-mono text-cyan-300 flex items-center gap-1 shadow"
+                        title="Regenerate AI B-Roll Image"
                       >
-                        {VISUAL_THEMES.map(t => (
-                          <option key={t.id} value={t.id}>{t.name}</option>
-                        ))}
-                      </select>
+                        <RefreshCw className="w-2.5 h-2.5" /> AI Image
+                      </button>
+                    </div>
 
-                      <div className="flex items-center gap-1">
-                        <span className="text-slate-500">Dur:</span>
+                    {/* Narration Preview */}
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[10px] font-mono text-slate-400">Voiceover Narration:</span>
+                      <p className="text-xs text-slate-200 line-clamp-2 italic font-sans leading-tight">
+                        "{scene.narration}"
+                      </p>
+                    </div>
+
+                    {/* Animated Caption */}
+                    <div className="flex items-center justify-between text-[10px] font-mono border-t border-slate-800/80 pt-2 text-slate-400">
+                      <span className="text-amber-300 font-bold truncate max-w-[160px]">{scene.caption}</span>
+                      <span className="px-1.5 py-0.5 rounded bg-slate-800 text-[9px] uppercase">{scene.theme}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Selected Scene Detailed Editor Panel */}
+            {activeEditingSceneId && (
+              <div className="p-4 bg-slate-900 border border-cyan-500/30 rounded-2xl flex flex-col gap-3 mt-2">
+                <span className="text-xs font-mono font-bold text-cyan-300 flex items-center gap-1.5">
+                  <Sliders className="w-4 h-4 text-cyan-400" />
+                  <span>Editing Scene {videoProject.scenes.findIndex(s => s.id === activeEditingSceneId) + 1} Properties</span>
+                </span>
+
+                {(() => {
+                  const scene = videoProject.scenes.find(s => s.id === activeEditingSceneId);
+                  if (!scene) return null;
+                  return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs font-mono">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-slate-400">Scene Headline Caption:</label>
+                        <input
+                          type="text"
+                          value={scene.caption}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setVideoProject(prev => ({
+                              ...prev,
+                              scenes: prev.scenes.map(s => s.id === scene.id ? { ...s, caption: val } : s)
+                            }));
+                          }}
+                          className="bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-200 focus:outline-none focus:border-cyan-500"
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-1">
+                        <label className="text-slate-400">Duration (Seconds):</label>
                         <input
                           type="number"
                           step="0.5"
-                          min="2"
-                          max="15"
+                          min="1"
+                          max="20"
                           value={scene.duration}
                           onChange={(e) => {
                             const val = parseFloat(e.target.value) || 4;
@@ -1167,35 +1682,194 @@ Generate between 4 to 7 scenes tailored to the topic.`;
                               scenes: prev.scenes.map(s => s.id === scene.id ? { ...s, duration: val } : s)
                             }));
                           }}
-                          className="w-12 bg-slate-900 border border-slate-800 rounded p-1 text-center text-slate-200"
+                          className="bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-200 focus:outline-none focus:border-cyan-500"
                         />
                       </div>
+
+                      <div className="flex flex-col gap-1">
+                        <label className="text-slate-400">Visual Theme / Shader:</label>
+                        <select
+                          value={scene.theme}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setVideoProject(prev => ({
+                              ...prev,
+                              scenes: prev.scenes.map(s => s.id === scene.id ? { ...s, theme: val } : s)
+                            }));
+                          }}
+                          className="bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-200"
+                        >
+                          {VISUAL_THEMES.map(t => (
+                            <option key={t.id} value={t.id}>{t.name}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="md:col-span-2 flex flex-col gap-1">
+                        <label className="text-slate-400">Exact Voiceover Narration:</label>
+                        <textarea
+                          rows={2}
+                          value={scene.narration}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setVideoProject(prev => ({
+                              ...prev,
+                              scenes: prev.scenes.map(s => s.id === scene.id ? { ...s, narration: val } : s)
+                            }));
+                          }}
+                          className="bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-200 resize-none focus:outline-none focus:border-cyan-500"
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-1">
+                        <label className="text-slate-400">B-Roll Prompt / AI Image:</label>
+                        <div className="flex gap-1.5">
+                          <input
+                            type="text"
+                            value={scene.imagePrompt || ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setVideoProject(prev => ({
+                                ...prev,
+                                scenes: prev.scenes.map(s => s.id === scene.id ? { ...s, imagePrompt: val } : s)
+                              }));
+                            }}
+                            placeholder="AI image prompt..."
+                            className="flex-1 bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-200 text-xs focus:outline-none focus:border-cyan-500"
+                          />
+                          <button
+                            onClick={() => handleRegenerateSceneImage(scene.id, scene.imagePrompt)}
+                            className="px-2.5 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-bold whitespace-nowrap cursor-pointer"
+                          >
+                            Gen
+                          </button>
+                        </div>
+                      </div>
                     </div>
+                  );
+                })()}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 4: YOUTUBE THUMBNAIL STUDIO */}
+        {activeTab === 'thumbnail' && (
+          <div className="flex-1 overflow-y-auto p-5 custom-scrollbar grid grid-cols-1 lg:grid-cols-12 gap-5">
+            {/* Left 7 cols: Live Thumbnail Preview */}
+            <div className="lg:col-span-7 flex flex-col items-center justify-center gap-3">
+              <div className="relative w-full aspect-video max-w-2xl rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.9)] border border-amber-500/50 bg-black flex items-center justify-center">
+                <canvas
+                  ref={thumbnailCanvasRef}
+                  width={1280}
+                  height={720}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+
+              {/* Action Bar */}
+              <div className="flex items-center gap-3 w-full max-w-2xl justify-between">
+                <span className="text-xs font-mono text-slate-400">Resolution: 1280 × 720 High-Res YouTube Thumbnail</span>
+                <button
+                  onClick={handleDownloadThumbnail}
+                  className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-orbitron font-bold text-xs rounded-xl shadow-[0_0_15px_rgba(245,158,11,0.4)] flex items-center gap-2 cursor-pointer transition-all"
+                >
+                  {thumbnailDownloaded ? <Check className="w-4 h-4 text-emerald-950" /> : <Download className="w-4 h-4" />}
+                  <span>{thumbnailDownloaded ? 'Downloaded PNG!' : 'Download Thumbnail (.PNG)'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Right 5 cols: Thumbnail Customization Controls */}
+            <div className="lg:col-span-5 flex flex-col gap-4">
+              <div className="p-4 bg-slate-900/70 border border-slate-800 rounded-xl flex flex-col gap-3">
+                <span className="text-xs font-orbitron font-bold text-amber-300 flex items-center gap-1.5">
+                  <Palette className="w-4 h-4 text-amber-400" />
+                  <span>High-CTR Thumbnail Designer</span>
+                </span>
+
+                {/* Headline Input */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-mono text-slate-400">Bold Punchline Headline (Yellow Text):</label>
+                  <input
+                    type="text"
+                    value={thumbnailHeadline}
+                    onChange={(e) => setThumbnailHeadline(e.target.value)}
+                    className="bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs font-mono text-amber-300 font-bold focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+
+                {/* Subhead Input */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-mono text-slate-400">Subheader / Category (Cyan Glow):</label>
+                  <input
+                    type="text"
+                    value={thumbnailSubhead}
+                    onChange={(e) => setThumbnailSubhead(e.target.value)}
+                    className="bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs font-mono text-cyan-300 font-bold focus:outline-none focus:border-cyan-400"
+                  />
+                </div>
+
+                {/* Badge Selection */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-mono text-slate-400">Viral Sticker / Badge:</label>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {THUMBNAIL_BADGES.map(badge => (
+                      <button
+                        key={badge.id}
+                        onClick={() => setSelectedBadge(badge.id)}
+                        className={`p-2 rounded-lg border text-xs font-mono font-bold transition-all text-left flex items-center justify-between ${
+                          selectedBadge === badge.id
+                            ? 'bg-amber-500/25 border-amber-400 text-amber-200'
+                            : 'bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-900'
+                        }`}
+                      >
+                        <span>{badge.label}</span>
+                      </button>
+                    ))}
                   </div>
-                );
-              })}
+                </div>
+
+                {/* Background Theme */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-mono text-slate-400">Thumbnail Color Palette:</label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {VISUAL_THEMES.map(theme => (
+                      <button
+                        key={theme.id}
+                        onClick={() => setThumbnailTheme(theme.id)}
+                        className={`p-1.5 rounded-lg border text-[10px] font-mono transition-all text-center ${
+                          thumbnailTheme === theme.id
+                            ? 'bg-cyan-500/25 border-cyan-400 text-cyan-200'
+                            : 'bg-slate-950 border-slate-800 text-slate-400'
+                        }`}
+                      >
+                        {theme.name.split(' ')[0]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
 
-        {/* TAB 4: YOUTUBE DIRECT CHANNEL UPLOAD */}
+        {/* TAB 5: YOUTUBE PUBLISHING CENTER */}
         {activeTab === 'youtube' && (
           <div className="flex-1 overflow-y-auto p-5 custom-scrollbar grid grid-cols-1 lg:grid-cols-12 gap-5">
             
-            {/* Left 7 cols: Video Metadata & SEO Settings */}
+            {/* Left 7 cols: Video Metadata Configuration */}
             <div className="lg:col-span-7 flex flex-col gap-4">
               
-              <div className="p-4 bg-slate-900/60 border border-slate-800 rounded-xl flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-rose-600/20 border border-rose-500/40 flex items-center justify-center text-rose-400">
-                    <Youtube className="w-5 h-5 fill-current" />
+              {/* Channel Connect Status */}
+              <div className="p-3 bg-slate-900/60 border border-slate-800 rounded-xl flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full bg-rose-600 flex items-center justify-center text-white font-bold text-xs">
+                    YT
                   </div>
                   <div>
-                    <h3 className="text-xs font-bold font-mono text-slate-200">{youtubeChannel.channelName}</h3>
-                    <p className="text-[10px] text-emerald-400 font-mono flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      Channel Connected • Ready to Publish
-                    </p>
+                    <span className="text-xs font-mono font-bold text-slate-200">{youtubeChannel.channelName}</span>
+                    <span className="text-[10px] text-emerald-400 font-mono block">● Channel Connected &amp; Authenticated</span>
                   </div>
                 </div>
 
@@ -1221,13 +1895,13 @@ Generate between 4 to 7 scenes tailored to the topic.`;
               {/* Description Input */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-mono text-cyan-300 font-bold flex items-center justify-between">
-                  <span>Description & Chapters / Hashtags:</span>
+                  <span>Description &amp; Chapters / Hashtags:</span>
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(videoProject.description);
                       playJarvisBeep('confirm');
                     }}
-                    className="text-[10px] text-cyan-400 hover:underline flex items-center gap-1 font-normal"
+                    className="text-[10px] text-cyan-400 hover:underline flex items-center gap-1 font-normal cursor-pointer"
                   >
                     <Copy className="w-2.5 h-2.5" /> Copy Description
                   </button>
@@ -1279,10 +1953,10 @@ Generate between 4 to 7 scenes tailored to the topic.`;
                     onChange={(e) => setYoutubeChannel(prev => ({ ...prev, category: e.target.value }))}
                     className="bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs font-mono text-slate-200"
                   >
-                    <option value="Science & Technology">Science & Technology</option>
+                    <option value="Science & Technology">Science &amp; Technology</option>
                     <option value="Education">Education</option>
                     <option value="Entertainment">Entertainment</option>
-                    <option value="Howto & Style">Howto & Style</option>
+                    <option value="Howto & Style">Howto &amp; Style</option>
                   </select>
                 </div>
               </div>
@@ -1316,7 +1990,7 @@ Generate between 4 to 7 scenes tailored to the topic.`;
                 ) : uploadStatus === 'copied' ? (
                   <div className="p-3 bg-cyan-950/60 border border-cyan-500/40 rounded-xl text-center flex flex-col gap-1.5">
                     <span className="text-xs font-mono font-bold text-cyan-300">
-                      ✓ Metadata Copied & YouTube Studio Opened!
+                      ✓ Metadata Copied &amp; YouTube Studio Opened!
                     </span>
                     <span className="text-[10px] text-slate-300">
                       Drop your exported video into the opened YouTube Studio tab. All title, tags, and description are in your clipboard!
@@ -1336,7 +2010,7 @@ Generate between 4 to 7 scenes tailored to the topic.`;
                     ) : (
                       <>
                         <UploadCloud className="w-4 h-4" />
-                        <span>Upload & Publish to YouTube Channel</span>
+                        <span>Upload &amp; Publish to YouTube Channel</span>
                       </>
                     )}
                   </button>
@@ -1348,7 +2022,7 @@ Generate between 4 to 7 scenes tailored to the topic.`;
                     navigator.clipboard.writeText(`${videoProject.title}\n\n${videoProject.description}\n\nTags: ${videoProject.tags}`);
                     window.open('https://studio.youtube.com/channel/upload', '_blank');
                   }}
-                  className="w-full py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-mono text-[11px] rounded-lg flex items-center justify-center gap-1.5 transition-all"
+                  className="w-full py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-mono text-[11px] rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                 >
                   <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
                   <span>Open YouTube Studio Upload (Copies Metadata)</span>
@@ -1372,8 +2046,9 @@ Generate between 4 to 7 scenes tailored to the topic.`;
         </div>
         <div className="flex items-center gap-3">
           <span>AI Narration: {voicePersonality.toUpperCase()}</span>
+          <span>BGM: {selectedBgm.toUpperCase()}</span>
           <span>Subtitles: {selectedCaptionStyle.toUpperCase()}</span>
-          <span className="text-amber-400 font-bold">READY TO EXPORT & PUBLISH</span>
+          <span className="text-amber-400 font-bold">READY TO EXPORT &amp; PUBLISH</span>
         </div>
       </div>
     </div>
