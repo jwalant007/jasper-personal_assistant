@@ -4,11 +4,21 @@ import {
   Film, Layers, Type, Music, Settings, Check, Copy, ExternalLink,
   ChevronRight, Plus, Trash2, Sliders, Volume2, VolumeX, Eye, Share2,
   RefreshCw, FileText, Layout, Youtube, Clock, AlertCircle, Image as ImageIcon,
-  Flame, Scissors, Palette, Zap, Star
+  Flame, Scissors, Palette, Zap, Star, Camera, Filter
 } from 'lucide-react';
 import geminiClient from '../utils/geminiClient';
 import { getApiBase } from '../utils/apiConfig';
 import { playJarvisBeep, playJarvisPowerUp } from '../utils/jarvisAudioSynth';
+import JasperVisualMediaStudioModal, {
+  AI_IMAGE_STYLES,
+  MOTION_CLIP_PRESETS,
+  CINEMATIC_FILTERS,
+  MOTION_EFFECTS
+} from './JasperVisualMediaStudioModal';
+import {
+  renderProceduralMotionShader,
+  applyCinematicVisualFilter
+} from '../utils/videoProceduralShaders';
 
 // Pre-defined visual styles & color accents
 const VISUAL_THEMES = [
@@ -60,6 +70,14 @@ export default function JasperVideoStudioApp({ onClose, onLockSystem } = {}) {
   const [showSubscribeBadge, setShowSubscribeBadge] = useState(true);
   const [showAudioVisualizer, setShowAudioVisualizer] = useState(true);
 
+  // Cinematic Visual FX Overlays
+  const [globalFilter, setGlobalFilter] = useState('none'); // 'none' | 'cinematic' | 'film_grain' | 'vhs_glitch' | 'lens_flare'
+  const [cinematicLetterbox, setCinematicLetterbox] = useState(true); // 2.35:1 Widescreen Anamorphic Bars
+
+  // Visual Media Studio Modal State
+  const [isMediaStudioOpen, setIsMediaStudioOpen] = useState(false);
+  const [activeMediaSceneId, setActiveMediaSceneId] = useState(null);
+
   // Generation & Status
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
@@ -86,18 +104,23 @@ export default function JasperVideoStudioApp({ onClose, onLockSystem } = {}) {
         caption: 'AI IN 2026 HAS CHANGED REALITY',
         duration: 4.5,
         theme: 'cyberpunk',
+        mediaType: 'image',
         zoomEffect: 'zoomIn',
+        filterEffect: 'cinematic',
         imageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1280&q=80',
         imagePrompt: 'Cyberpunk futuristic artificial intelligence neural network glowing cybernetic city'
       },
       {
         id: 2,
-        title: 'Neural Physical Systems',
+        title: 'Cyber City Motion Grid',
         narration: 'From autonomous humanoid labor to local neural chips operating directly on your desktop.',
         caption: 'HUMANOID WORKFORCE & NEURAL CHIPS',
         duration: 5.0,
         theme: 'stark_hud',
+        mediaType: 'motion',
+        motionClipId: 'cyber_city',
         zoomEffect: 'panLeft',
+        filterEffect: 'vhs_glitch',
         imageUrl: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1280&q=80',
         imagePrompt: 'Futuristic humanoid robot hand reaching out with glowing stark energy core'
       },
@@ -108,18 +131,23 @@ export default function JasperVideoStudioApp({ onClose, onLockSystem } = {}) {
         caption: 'QUANTUM NETWORKS SOLVE CENTURIES',
         duration: 5.5,
         theme: 'matrix',
+        mediaType: 'image',
         zoomEffect: 'zoomOut',
+        filterEffect: 'lens_flare',
         imageUrl: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=1280&q=80',
         imagePrompt: 'Quantum computing holographic processor with digital matrix stream particles'
       },
       {
         id: 4,
-        title: 'Call to Action',
+        title: 'Cosmic Call to Action',
         narration: 'Subscribe to stay at the cutting edge of personal artificial intelligence. What do you think is coming next?',
         caption: 'SUBSCRIBE FOR THE FUTURE OF TECH',
         duration: 4.5,
         theme: 'space',
+        mediaType: 'motion',
+        motionClipId: 'hyperspace_warp',
         zoomEffect: 'zoomIn',
+        filterEffect: 'film_grain',
         imageUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1280&q=80',
         imagePrompt: 'Deep cosmic nebula with glowing earth and futuristic holographic stars'
       }
@@ -158,7 +186,7 @@ export default function JasperVideoStudioApp({ onClose, onLockSystem } = {}) {
   const [uploadStatus, setUploadStatus] = useState('idle'); // 'idle' | 'uploading' | 'success' | 'copied'
   const [uploadedVideoId, setUploadedVideoId] = useState(null);
 
-  // Canvas & Audio Refs
+  // Canvas & Audio & Video Refs
   const canvasRef = useRef(null);
   const thumbnailCanvasRef = useRef(null);
   const audioContextRef = useRef(null);
@@ -166,16 +194,18 @@ export default function JasperVideoStudioApp({ onClose, onLockSystem } = {}) {
   const bgmGainNodeRef = useRef(null);
   const bgmIntervalRef = useRef(null);
   const imageCacheRef = useRef({});
+  const videoCacheRef = useRef({});
   const mediaRecorderRef = useRef(null);
   const recordedChunksRef = useRef([]);
 
   // Total video duration calculation
   const totalDuration = videoProject.scenes.reduce((acc, s) => acc + (Number(s.duration) || 4), 0);
 
-  // Pre-load scene images into image cache for stutter-free canvas rendering
+  // Pre-load scene images and motion videos into cache for stutter-free canvas rendering
   useEffect(() => {
     videoProject.scenes.forEach(scene => {
-      if (scene.imageUrl && !imageCacheRef.current[scene.imageUrl]) {
+      // Preload image
+      if (scene.imageUrl && !imageCacheRef.current[scene.imageUrl] && scene.mediaType !== 'video') {
         const img = new Image();
         img.crossOrigin = 'anonymous';
         img.src = scene.imageUrl;
@@ -183,8 +213,42 @@ export default function JasperVideoStudioApp({ onClose, onLockSystem } = {}) {
           imageCacheRef.current[scene.imageUrl] = img;
         };
       }
+      // Preload video
+      const videoSrc = scene.videoUrl || (scene.mediaType === 'video' ? scene.imageUrl : null);
+      if (videoSrc && !videoCacheRef.current[videoSrc]) {
+        const vid = document.createElement('video');
+        vid.crossOrigin = 'anonymous';
+        vid.src = videoSrc;
+        vid.muted = true;
+        vid.loop = true;
+        vid.playsInline = true;
+        vid.preload = 'auto';
+        vid.oncanplay = () => {
+          videoCacheRef.current[videoSrc] = vid;
+        };
+        videoCacheRef.current[videoSrc] = vid;
+      }
     });
   }, [videoProject.scenes]);
+
+  // Synchronize HTML5 video playback with video player state
+  useEffect(() => {
+    const scene = videoProject.scenes[currentSceneIndex];
+    if (!scene) return;
+    const videoSrc = scene.videoUrl || (scene.mediaType === 'video' ? scene.imageUrl : null);
+
+    Object.entries(videoCacheRef.current).forEach(([url, vid]) => {
+      if (url === videoSrc) {
+        if (isPlaying) {
+          vid.play().catch(() => {});
+        } else {
+          vid.pause();
+        }
+      } else {
+        if (!vid.paused) vid.pause();
+      }
+    });
+  }, [currentSceneIndex, isPlaying, videoProject.scenes]);
 
   // -------------------------------------------------------------
   // PROCEDURAL WEB AUDIO SYNTHESIZER ENGINE (SYNTHWAVE / CINEMATIC / LO-FI)
@@ -393,13 +457,20 @@ Generate between 4 to 6 scenes tailored to the topic.`;
         parsedResult = generateLocalStoryboard(creationMode === 'topic' ? promptTopic : rawScriptText, isShortFormat);
       }
 
-      // Automatically attach high-quality AI B-Roll image URLs via Pollinations AI
+      // Automatically attach cinema-grade FLUX 8K AI B-Roll image URLs via Pollinations AI
+      const isShort = aspectRatio === '9:16';
+      const genW = isShort ? 720 : 1280;
+      const genH = isShort ? 1280 : 720;
       parsedResult.scenes = parsedResult.scenes.map((s, idx) => {
-        const cleanPrompt = encodeURIComponent(s.imagePrompt || `${s.title} futuristic technology cinematic 8k`);
-        const imgUrl = `https://image.pollinations.ai/prompt/${cleanPrompt}?width=1280&height=720&nologo=true&seed=${idx + 100}`;
+        const fullPrompt = `${s.imagePrompt || `${s.title} futuristic technology`}, cinematic photography, 8k, photorealistic, shot on 35mm lens, atmospheric lighting, Unreal Engine 5 render`;
+        const cleanPrompt = encodeURIComponent(fullPrompt);
+        const imgUrl = `https://image.pollinations.ai/prompt/${cleanPrompt}?model=flux&width=${genW}&height=${genH}&nologo=true&seed=${idx + 100}`;
         return {
           ...s,
-          imageUrl: s.imageUrl || imgUrl
+          mediaType: 'image',
+          imageUrl: s.imageUrl || imgUrl,
+          filterEffect: 'cinematic',
+          zoomEffect: s.zoomEffect || (idx % 2 === 0 ? 'zoomIn' : 'zoomOut')
         };
       });
 
@@ -453,18 +524,28 @@ Generate between 4 to 6 scenes tailored to the topic.`;
     };
   };
 
-  // 1-Click Regenerate AI B-Roll Image for a Scene
+  // 1-Click Regenerate AI B-Roll Image for a Scene with Flux 8K
   const handleRegenerateSceneImage = (sceneId, customPrompt) => {
     playJarvisBeep('click');
     const randomSeed = Math.floor(Math.random() * 99999);
+    const isShort = aspectRatio === '9:16';
+    const genW = isShort ? 720 : 1280;
+    const genH = isShort ? 1280 : 720;
     setVideoProject(prev => ({
       ...prev,
       scenes: prev.scenes.map(s => {
         if (s.id === sceneId) {
-          const prompt = customPrompt || s.imagePrompt || `${s.title} cinematic futuristic 8k`;
+          const prompt = customPrompt || s.imagePrompt || `${s.title} futuristic technology, cinematic lighting, 8k photorealistic, 35mm lens, Unreal Engine 5`;
           const clean = encodeURIComponent(prompt);
-          const newUrl = `https://image.pollinations.ai/prompt/${clean}?width=1280&height=720&nologo=true&seed=${randomSeed}`;
-          return { ...s, imageUrl: newUrl, imagePrompt: prompt };
+          const newUrl = `https://image.pollinations.ai/prompt/${clean}?model=flux&width=${genW}&height=${genH}&nologo=true&seed=${randomSeed}`;
+          return {
+            ...s,
+            mediaType: 'image',
+            imageUrl: newUrl,
+            imagePrompt: prompt,
+            videoUrl: null,
+            motionClipId: null
+          };
         }
         return s;
       })
@@ -472,7 +553,7 @@ Generate between 4 to 6 scenes tailored to the topic.`;
   };
 
   // -------------------------------------------------------------
-  // REAL-TIME CANVAS VIDEO RENDERER (KEN BURNS + IMAGES + HUD + SUBTITLES)
+  // REAL-TIME CANVAS VIDEO RENDERER (KEN BURNS + IMAGES + MOTION CLIPS + HUD + SUBTITLES)
   // -------------------------------------------------------------
   const renderCanvasFrame = (timestamp) => {
     const canvas = canvasRef.current;
@@ -512,28 +593,63 @@ Generate between 4 to 6 scenes tailored to the topic.`;
     ctx.fillStyle = '#020617';
     ctx.fillRect(0, 0, width, height);
 
-    // 2. Draw B-Roll Background: Either Cached Image OR Procedural Dynamic Canvas Shader
+    // 2. Draw B-Roll Background: Procedural Motion Shader OR Real Video Clip OR Cached Image
     const theme = VISUAL_THEMES.find(t => t.id === scene?.theme) || VISUAL_THEMES[0];
+    const isVideo = scene?.mediaType === 'video' || (scene?.videoUrl && scene.videoUrl.length > 0);
+    const videoKey = scene?.videoUrl || (scene?.mediaType === 'video' ? scene?.imageUrl : null);
+    const cachedVideo = videoKey ? videoCacheRef.current[videoKey] : null;
+    const isProceduralMotion = scene?.mediaType === 'motion' || (scene?.motionClipId && !isVideo);
     const cachedImg = scene?.imageUrl ? imageCacheRef.current[scene.imageUrl] : null;
 
     ctx.save();
 
-    // Ken-Burns Zoom/Pan transform
+    // Ken-Burns Dynamic Zoom/Pan transform
     const scale = scene?.zoomEffect === 'zoomIn' 
       ? 1 + sceneProgress * 0.16 
       : scene?.zoomEffect === 'zoomOut' 
         ? 1.16 - sceneProgress * 0.16 
-        : scene?.zoomEffect === 'panLeft'
+        : scene?.zoomEffect === 'panLeft' || scene?.zoomEffect === 'panRight'
           ? 1.08
-          : 1.08;
+          : 1.0;
 
-    const panX = scene?.zoomEffect === 'panLeft' ? (sceneProgress - 0.5) * 35 : 0;
+    const panX = scene?.zoomEffect === 'panLeft' 
+      ? (sceneProgress - 0.5) * 35 
+      : scene?.zoomEffect === 'panRight'
+        ? (0.5 - sceneProgress) * 35
+        : 0;
 
     ctx.translate(width / 2 + panX, height / 2);
     ctx.scale(scale, scale);
     ctx.translate(-width / 2, -height / 2);
 
-    if (cachedImg && cachedImg.complete && cachedImg.naturalWidth > 0) {
+    let mediaRendered = false;
+
+    if (isProceduralMotion) {
+      renderProceduralMotionShader(ctx, scene.motionClipId || 'cyber_city', width, height, timestamp, theme, sceneProgress);
+      mediaRendered = true;
+    } else if (isVideo && cachedVideo && cachedVideo.readyState >= 2) {
+      // Draw live video frame
+      const vAspect = (cachedVideo.videoWidth || 16) / (cachedVideo.videoHeight || 9);
+      const canvasAspect = width / height;
+      let drawW, drawH, drawX, drawY;
+
+      if (vAspect > canvasAspect) {
+        drawH = height;
+        drawW = height * vAspect;
+        drawX = (width - drawW) / 2;
+        drawY = 0;
+      } else {
+        drawW = width;
+        drawH = width / vAspect;
+        drawX = 0;
+        drawY = (height - drawH) / 2;
+      }
+
+      ctx.drawImage(cachedVideo, drawX, drawY, drawW, drawH);
+      ctx.fillStyle = `${theme.bg}44`;
+      ctx.fillRect(0, 0, width, height);
+      mediaRendered = true;
+    } else if (cachedImg && cachedImg.complete && cachedImg.naturalWidth > 0) {
       // Draw Cover Image
       const imgAspect = cachedImg.naturalWidth / cachedImg.naturalHeight;
       const canvasAspect = width / height;
@@ -554,46 +670,38 @@ Generate between 4 to 6 scenes tailored to the topic.`;
       ctx.drawImage(cachedImg, drawX, drawY, drawW, drawH);
 
       // Cyber Holographic Color Tint
-      ctx.fillStyle = `${theme.bg}77`;
+      ctx.fillStyle = `${theme.bg}66`;
       ctx.fillRect(0, 0, width, height);
-    } else {
-      // Dynamic Procedural Gradient Fallback
-      const grad = ctx.createRadialGradient(
-        width * 0.5 + Math.sin(timestamp * 0.001) * 100,
-        height * 0.5 + Math.cos(timestamp * 0.0015) * 80,
-        20,
-        width * 0.5,
-        height * 0.5,
-        width * 0.8
-      );
-      grad.addColorStop(0, theme.secondary);
-      grad.addColorStop(0.4, theme.primary);
-      grad.addColorStop(1, theme.bg);
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, width, height);
+      mediaRendered = true;
     }
 
-    // Animated Grid Lines
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = `${theme.primary}22`;
-    const gridSize = 45;
-    const gridOffset = (timestamp * 0.04) % gridSize;
-
-    for (let x = 0; x < width; x += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, height);
-      ctx.stroke();
+    if (!mediaRendered) {
+      renderProceduralMotionShader(ctx, 'cyber_city', width, height, timestamp, theme, sceneProgress);
     }
-    for (let y = gridOffset; y < height; y += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(width, y);
-      ctx.stroke();
+
+    // Animated Grid Lines (for Cyber and Stark themes)
+    if (scene?.theme === 'cyberpunk' || scene?.theme === 'matrix' || scene?.theme === 'stark_hud') {
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = `${theme.primary}22`;
+      const gridSize = 45;
+      const gridOffset = (timestamp * 0.04) % gridSize;
+
+      for (let x = 0; x < width; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+      for (let y = gridOffset; y < height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
     }
 
     // Floating Cyber Energy Particles
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 18; i++) {
       const px = ((i * 137.5 + timestamp * 0.03) % width);
       const py = ((i * 269.3 - timestamp * 0.015) % height + height) % height;
       const r = (i % 3) + 1.2;
@@ -626,12 +734,24 @@ Generate between 4 to 6 scenes tailored to the topic.`;
 
     ctx.restore();
 
-    // 3. Cinematic Vignette Overlay
-    const vignette = ctx.createRadialGradient(width / 2, height / 2, width * 0.35, width / 2, height / 2, width * 0.75);
+    // 3. Cinematic Visual Filter Overlay (Film Grain, VHS Glitch, Lens Flare, Teal & Orange)
+    const activeFilter = scene?.filterEffect || globalFilter;
+    applyCinematicVisualFilter(ctx, width, height, activeFilter, timestamp, theme);
+
+    // 4. Cinematic Vignette Overlay
+    const vignette = ctx.createRadialGradient(width / 2, height / 2, width * 0.35, width / 2, height / 2, width * 0.76);
     vignette.addColorStop(0, 'rgba(0,0,0,0)');
     vignette.addColorStop(1, 'rgba(0,0,0,0.85)');
     ctx.fillStyle = vignette;
     ctx.fillRect(0, 0, width, height);
+
+    // 5. 2.35:1 Anamorphic Widescreen Letterbox Bars
+    if (cinematicLetterbox && aspectRatio === '16:9') {
+      const barH = Math.round(height * 0.08);
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, width, barH);
+      ctx.fillRect(0, height - barH, width, barH);
+    }
 
     // 4. Branding Badge (Top Left)
     ctx.font = 'bold 13px Orbitron, monospace';
@@ -1474,12 +1594,51 @@ Generate between 4 to 6 scenes tailored to the topic.`;
 
                     <button
                       onClick={() => setShowSubscribeBadge(!showSubscribeBadge)}
-                      className={`px-2.5 py-1 rounded-lg text-[10px] font-mono border cursor-pointer ${
+                      className={`px-2 py-1 rounded-lg text-[10px] font-mono border cursor-pointer ${
                         showSubscribeBadge ? 'bg-red-500/20 border-red-500 text-red-300' : 'bg-slate-800 border-slate-700 text-slate-400'
                       }`}
                       title="Toggle YouTube Subscribe Animation"
                     >
-                      🔔 Subscribe Pill
+                      🔔 Subscribe
+                    </button>
+
+                    <button
+                      onClick={() => setCinematicLetterbox(!cinematicLetterbox)}
+                      className={`px-2 py-1 rounded-lg text-[10px] font-mono border cursor-pointer ${
+                        cinematicLetterbox ? 'bg-indigo-500/20 border-indigo-400 text-indigo-300 font-bold' : 'bg-slate-800 border-slate-700 text-slate-400'
+                      }`}
+                      title="Toggle 2.35:1 Widescreen Anamorphic Letterbox Bars"
+                    >
+                      🖤 2.35:1
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        const nextFilter = globalFilter === 'none' ? 'film_grain' : globalFilter === 'film_grain' ? 'vhs_glitch' : globalFilter === 'vhs_glitch' ? 'lens_flare' : globalFilter === 'lens_flare' ? 'cinematic' : 'none';
+                        setGlobalFilter(nextFilter);
+                        playJarvisBeep('select');
+                      }}
+                      className={`px-2 py-1 rounded-lg text-[10px] font-mono border cursor-pointer ${
+                        globalFilter !== 'none' ? 'bg-amber-500/20 border-amber-400 text-amber-300 font-bold' : 'bg-slate-800 border-slate-700 text-slate-400'
+                      }`}
+                      title="Cycle Global Cinematic Filter: Film Grain, VHS Glitch, Lens Flare, Teal & Orange"
+                    >
+                      ✨ FX: {globalFilter.toUpperCase()}
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        const curScene = videoProject.scenes[currentSceneIndex] || videoProject.scenes[0];
+                        if (curScene) {
+                          setActiveMediaSceneId(curScene.id);
+                          setIsMediaStudioOpen(true);
+                        }
+                      }}
+                      className="px-2.5 py-1 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-lg text-[10px] font-mono font-bold flex items-center gap-1 shadow cursor-pointer"
+                      title="Open Visual Background & Motion Clips Studio"
+                    >
+                      <Camera className="w-3 h-3" />
+                      <span>B-Roll Studio</span>
                     </button>
                   </div>
 
@@ -1600,23 +1759,58 @@ Generate between 4 to 6 scenes tailored to the topic.`;
                     </div>
 
                     {/* Scene B-Roll Preview Thumbnail */}
-                    <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-black border border-slate-800 flex items-center justify-center">
-                      {scene.imageUrl ? (
-                        <img src={scene.imageUrl} alt={scene.title} className="w-full h-full object-cover" />
+                    <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-black border border-slate-800 flex items-center justify-center group">
+                      {scene.mediaType === 'video' || scene.videoUrl ? (
+                        <div className="relative w-full h-full">
+                          <video src={scene.videoUrl || scene.imageUrl} className="w-full h-full object-cover" muted autoPlay loop playsInline />
+                          <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/80 text-[8px] font-mono font-bold text-cyan-300 flex items-center gap-1 border border-cyan-500/40">
+                            <Film className="w-2.5 h-2.5" /> VIDEO CLIP
+                          </span>
+                        </div>
+                      ) : scene.mediaType === 'motion' ? (
+                        <div className="relative w-full h-full">
+                          <img src={scene.imageUrl || 'https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=400&q=80'} alt={scene.title} className="w-full h-full object-cover" />
+                          <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/80 text-[8px] font-mono font-bold text-indigo-300 flex items-center gap-1 border border-indigo-500/40">
+                            <Zap className="w-2.5 h-2.5" /> 60FPS SHADER
+                          </span>
+                        </div>
+                      ) : scene.imageUrl ? (
+                        <div className="relative w-full h-full">
+                          <img src={scene.imageUrl} alt={scene.title} className="w-full h-full object-cover" />
+                          <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/80 text-[8px] font-mono font-bold text-amber-300 flex items-center gap-1 border border-amber-500/40">
+                            <Sparkles className="w-2.5 h-2.5" /> FLUX 8K
+                          </span>
+                        </div>
                       ) : (
                         <div className="text-[10px] font-mono text-slate-500 flex items-center gap-1">
                           <ImageIcon className="w-3 h-3" /> Procedural Background
                         </div>
                       )}
+
+                      {/* Hover action to open B-Roll Studio */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveMediaSceneId(scene.id);
+                          setIsMediaStudioOpen(true);
+                        }}
+                        className="absolute inset-0 bg-slate-950/70 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all backdrop-blur-[1px] cursor-pointer"
+                        title="Open Visual Background & Motion Clips Studio"
+                      >
+                        <span className="px-2.5 py-1 bg-cyan-500 text-slate-950 font-orbitron font-bold text-[10px] rounded-lg shadow-lg flex items-center gap-1">
+                          <Camera className="w-3 h-3" /> Customize B-Roll
+                        </span>
+                      </button>
+
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleRegenerateSceneImage(scene.id);
                         }}
-                        className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-black/80 hover:bg-cyan-950 border border-cyan-500/40 text-[9px] font-mono text-cyan-300 flex items-center gap-1 shadow"
-                        title="Regenerate AI B-Roll Image"
+                        className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-black/80 hover:bg-cyan-950 border border-cyan-500/40 text-[9px] font-mono text-cyan-300 flex items-center gap-1 shadow cursor-pointer"
+                        title="Regenerate Flux 8K AI Image"
                       >
-                        <RefreshCw className="w-2.5 h-2.5" /> AI Image
+                        <RefreshCw className="w-2.5 h-2.5" /> 8K Flux
                       </button>
                     </div>
 
@@ -1641,10 +1835,23 @@ Generate between 4 to 6 scenes tailored to the topic.`;
             {/* Selected Scene Detailed Editor Panel */}
             {activeEditingSceneId && (
               <div className="p-4 bg-slate-900 border border-cyan-500/30 rounded-2xl flex flex-col gap-3 mt-2">
-                <span className="text-xs font-mono font-bold text-cyan-300 flex items-center gap-1.5">
-                  <Sliders className="w-4 h-4 text-cyan-400" />
-                  <span>Editing Scene {videoProject.scenes.findIndex(s => s.id === activeEditingSceneId) + 1} Properties</span>
-                </span>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono font-bold text-cyan-300 flex items-center gap-1.5">
+                    <Sliders className="w-4 h-4 text-cyan-400" />
+                    <span>Editing Scene {videoProject.scenes.findIndex(s => s.id === activeEditingSceneId) + 1} Properties</span>
+                  </span>
+
+                  <button
+                    onClick={() => {
+                      setActiveMediaSceneId(activeEditingSceneId);
+                      setIsMediaStudioOpen(true);
+                    }}
+                    className="px-3 py-1 bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white rounded-lg text-xs font-orbitron font-bold flex items-center gap-1.5 shadow-[0_0_12px_rgba(6,182,212,0.3)] cursor-pointer"
+                  >
+                    <Camera className="w-3.5 h-3.5" />
+                    <span>B-Roll &amp; Motion Clips Studio</span>
+                  </button>
+                </div>
 
                 {(() => {
                   const scene = videoProject.scenes.find(s => s.id === activeEditingSceneId);
@@ -1744,6 +1951,35 @@ Generate between 4 to 6 scenes tailored to the topic.`;
                             Gen
                           </button>
                         </div>
+                      </div>
+
+                      {/* Visual & B-Roll Summary Strip */}
+                      <div className="md:col-span-3 pt-2 border-t border-slate-800 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-mono text-slate-400">Current Visual:</span>
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 uppercase font-bold border border-cyan-500/30">
+                            {scene.mediaType === 'video' ? '🎬 Video Clip' : scene.mediaType === 'motion' ? '⚡ 60FPS Shader' : '👑 Flux 8K Image'}
+                          </span>
+                          {scene.filterEffect && scene.filterEffect !== 'none' && (
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
+                              FX: {scene.filterEffect.toUpperCase()}
+                            </span>
+                          )}
+                          <span className="text-[10px] font-mono text-slate-400">
+                            Motion: {scene.zoomEffect || 'zoomIn'}
+                          </span>
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            setActiveMediaSceneId(scene.id);
+                            setIsMediaStudioOpen(true);
+                          }}
+                          className="text-[11px] font-mono text-cyan-400 hover:text-cyan-300 hover:underline flex items-center gap-1 cursor-pointer"
+                        >
+                          <span>Open Visual Inspector &amp; Stock Clips</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     </div>
                   );
@@ -2051,6 +2287,30 @@ Generate between 4 to 6 scenes tailored to the topic.`;
           <span className="text-amber-400 font-bold">READY TO EXPORT &amp; PUBLISH</span>
         </div>
       </div>
+
+      {/* ── MODAL: AI B-ROLL & MOTION CLIPS STUDIO ── */}
+      {isMediaStudioOpen && (
+        <JasperVisualMediaStudioModal
+          isOpen={isMediaStudioOpen}
+          onClose={() => setIsMediaStudioOpen(false)}
+          scene={videoProject.scenes.find(s => s.id === activeMediaSceneId) || videoProject.scenes[0]}
+          onUpdateScene={(sceneId, updates) => {
+            setVideoProject(prev => ({
+              ...prev,
+              scenes: prev.scenes.map(s => s.id === sceneId ? { ...s, ...updates } : s)
+            }));
+          }}
+          onApplyToAllScenes={(updates) => {
+            setVideoProject(prev => ({
+              ...prev,
+              scenes: prev.scenes.map(s => ({ ...s, ...updates }))
+            }));
+          }}
+          aspectRatio={aspectRatio}
+          onPlayBeep={playJarvisBeep}
+        />
+      )}
     </div>
   );
 }
+
