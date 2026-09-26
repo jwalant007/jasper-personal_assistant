@@ -308,6 +308,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
   const [activeWorkspace, setActiveWorkspace] = useState('all');
   const [appSearchQuery, setAppSearchQuery] = useState('');
   const [openWindows, setOpenWindows] = useState({
+    videoStudio: true,
     searchEngine: true,
     diagnostics: false,
     tvRemote: false,
@@ -333,8 +334,16 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
     const handleProjectToHologram = () => {
       launchApp('hologramStudio');
     };
+    const handleOpenAppEvent = (e) => {
+      const appId = e.detail?.appId || e.detail?.app;
+      if (appId) launchApp(appId);
+    };
     window.addEventListener('jasper:project-to-hologram', handleProjectToHologram);
-    return () => window.removeEventListener('jasper:project-to-hologram', handleProjectToHologram);
+    window.addEventListener('jasper:open-app', handleOpenAppEvent);
+    return () => {
+      window.removeEventListener('jasper:project-to-hologram', handleProjectToHologram);
+      window.removeEventListener('jasper:open-app', handleOpenAppEvent);
+    };
   }, []);
 
   // Air Gesture System State - Doctor Strange Eldritch Spell Engine
@@ -346,7 +355,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
   const [isHudCollapsed, setIsHudCollapsed] = useState(false);
   const [showGestureGuide, setShowGestureGuide] = useState(false);
   const [airCursorPos, setAirCursorPos] = useState(null);
-  const [activeFocusedWinId, setActiveFocusedWinId] = useState('searchEngine');
+  const [activeFocusedWinId, setActiveFocusedWinId] = useState('videoStudio');
   const [maximizedWindows, setMaximizedWindows] = useState({});
   const [snapShockwaveActive, setSnapShockwaveActive] = useState(false);
 
@@ -622,6 +631,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
     let appId = rawAppId;
     if (rawAppId === 'maps' || rawAppId === 'satelliteIntel') appId = 'spatialGps';
     if (rawAppId === 'blenderStudio') appId = 'hologramStudio';
+    if (rawAppId === 'video' || rawAppId === 'youtube' || rawAppId === 'videoCreator' || rawAppId === 'videoStudioApp') appId = 'videoStudio';
     if (!openWindows[appId]) {
       setOpenWindows(prev => ({ ...prev, [appId]: true }));
     }
@@ -633,6 +643,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
     let winId = rawWinId;
     if (rawWinId === 'maps' || rawWinId === 'satelliteIntel') winId = 'spatialGps';
     if (rawWinId === 'blenderStudio') winId = 'hologramStudio';
+    if (rawWinId === 'video' || rawWinId === 'youtube' || rawWinId === 'videoCreator' || rawWinId === 'videoStudioApp') winId = 'videoStudio';
     if (openWindows[winId]) {
       if (minimizedWindows[winId]) {
         bringToTop(winId);
@@ -665,10 +676,12 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
     const matchesSearch = app.title.toLowerCase().includes(appSearchQuery.toLowerCase()) || 
                           app.category.toLowerCase().includes(appSearchQuery.toLowerCase());
     const matchesCategory = activeWorkspace === 'all' || 
-                            (activeWorkspace === 'ai' && app.category.includes('AI')) ||
+                            (activeWorkspace === 'ai' && (app.category.includes('AI') || app.category.includes('Intelligence'))) ||
                             (activeWorkspace === 'control' && app.category.includes('Control')) ||
                             (activeWorkspace === 'system' && app.category.includes('System')) ||
-                            (activeWorkspace === 'tools' && app.category.includes('Tools'));
+                            (activeWorkspace === 'tools' && app.category.includes('Tools')) ||
+                            app.category.toLowerCase().includes(activeWorkspace.toLowerCase()) ||
+                            activeWorkspace.toLowerCase().includes(app.category.toLowerCase());
     return matchesSearch && matchesCategory;
   });
 
@@ -710,6 +723,21 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_#ffd700]" />
             </div>
             <span className="font-orbitron font-extrabold text-xs tracking-wider uppercase text-amber-200">JASPER OS</span>
+          </button>
+
+          {/* Quick Dedicated AI Video Studio Launcher Button */}
+          <button
+            onClick={() => launchApp('videoStudio')}
+            className={`h-8.5 px-3 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer shrink-0 font-mono text-xs font-bold ${
+              openWindows['videoStudio'] && !minimizedWindows['videoStudio']
+                ? 'bg-red-500/30 border-red-400 text-red-200 shadow-[0_0_15px_rgba(239,68,68,0.4)]'
+                : 'bg-gradient-to-r from-red-950/60 to-amber-950/40 border-red-500/50 text-red-300 hover:border-red-400 hover:text-red-100 shadow-[0_0_10px_rgba(239,68,68,0.2)]'
+            }`}
+            title="Launch CapCut/InVideo-style AI Video Creator & YouTube Studio"
+          >
+            <Video className="w-3.5 h-3.5 text-red-400 animate-pulse" />
+            <span className="hidden md:inline">🎬 AI Video Creator &amp; YouTube</span>
+            <span className="md:hidden">🎬 Video Studio</span>
           </button>
 
           <div className="h-4 w-px bg-amber-500/30 mx-0.5 hidden sm:block" />
@@ -893,7 +921,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
 
           {/* App Category Filters */}
           <div className="flex gap-1.5 overflow-x-auto pb-2 mb-2 custom-scrollbar text-[10px]">
-            {['all', 'AI & Intelligence', 'Productivity & Tools', 'System & Hardware', 'Hardware Control', 'Creative & AI', 'Media & Life'].map((category) => (
+            {['all', 'Creative & AI', 'AI & Intelligence', 'Productivity & Tools', 'System & Hardware', 'Hardware Control', 'Media & Life'].map((category) => (
               <button
                 key={category}
                 onClick={() => setActiveWorkspace(category)}

@@ -43,6 +43,7 @@ import BlenderStudioModal from './components/BlenderStudioModal';
 import MapsWidget from './components/MapsWidget';
 import EmergencyAlertToast from './components/EmergencyAlertToast';
 import PhoneSentinelWidget from './components/PhoneSentinelWidget';
+import JasperVideoStudioApp from './components/JasperVideoStudioApp';
 import geminiClient from './utils/geminiClient';
 import { getServerIp, setServerIp, getApiBase, getWsBase } from './utils/apiConfig.js';
 import { getPhoneBrainMode, setPhoneBrainMode, togglePhoneBrainMode } from './utils/mobileBrain.js';
@@ -57,7 +58,7 @@ import {
   captureWebcamFrameAsBase64,
   syncOwnerProfileFromServer
 } from './utils/faceBiometrics.js';
-import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, BookOpen, Activity, Heart, Laptop, Languages, Box, MessageSquare, KeyRound, ShieldAlert } from 'lucide-react';
+import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, BookOpen, Activity, Heart, Laptop, Languages, Box, MessageSquare, KeyRound, ShieldAlert, Video } from 'lucide-react';
 
 import { useJasperApp, useJasperModals, useJasperChat } from './context/index.jsx';
 
@@ -218,6 +219,8 @@ export default function App() {
   const setShowAgentHub = (v) => v ? openModal('agentHub') : closeModal('agentHub');
   const showBlenderStudio = isModalOpen('blenderStudio');
   const setShowBlenderStudio = (v) => v ? openModal('blenderStudio') : closeModal('blenderStudio');
+  const showVideoStudio = isModalOpen('videoStudio');
+  const setShowVideoStudio = (v) => v ? openModal('videoStudio') : closeModal('videoStudio');
 
   // Local Component State
   const [showKey, setShowKey] = useState(false);
@@ -1178,14 +1181,45 @@ export default function App() {
       return;
     }
 
+    // Intercept AI Video Creator & YouTube Publishing requests (e.g. "create video", "make video on X", "generate video", "create a video", "video app")
+    const videoPromptRegex = /(create.*video|make.*video|generate.*video|video.*creator|video.*studio|capcut|invideo|youtube.*video|upload.*youtube|video.*maker)/i;
+    if (videoPromptRegex.test(queryText)) {
+      if (isOsMode) {
+        window.dispatchEvent(new CustomEvent('jasper:open-app', { detail: { appId: 'videoStudio' } }));
+      }
+      setShowVideoStudio(true);
+      const response = `Opening AI Video Creator & YouTube Studio for you, Sir. Ready to transform your topic or script into high-CTR video content and publish directly to YouTube.`;
+      setSpeakingText(response);
+      const newChat = {
+        id: Date.now(),
+        query: queryText,
+        attachments: attachments,
+        response: response,
+        timestamp: new Date().toLocaleString()
+      };
+      setPastChats((prev) => [newChat, ...prev]);
+      setSelectedChatId(newChat.id);
+      if (voiceControllerRef.current) {
+        voiceControllerRef.current.playSuccess();
+      }
+      return;
+    }
+
     // Intercept Voice App Open Commands (e.g. "Jasper open search", "open calculator", "open files", "open whatsapp auto reply", "open blender", "open tv", "open jio stb")
-    const appOpenRegex = /(open|launch|start|show|run)\s+(search|search engine|files|file manager|explorer|code|code studio|terminal|notes|planner|tasks|calculator|calc|tv|tv remote|smart tv|tv screen|jio|jio fiber|jio stb|stb|stb remote|phone|android|pc|pc hub|pc command|security|biometrics|browser|web agent|sports|spatial gps|satellite|satellite intelligence|orbital|maps?|navigation|health|fitband|translator|translation|manual|guide|whatsapp|instagram|auto reply|call auto|social auto|blender|blender 3d|3d studio)/i;
+    const appOpenRegex = /(open|launch|start|show|run)\s+(video|video creator|video studio|video app|youtube studio|capcut|invideo|search|search engine|files|file manager|explorer|code|code studio|terminal|notes|planner|tasks|calculator|calc|tv|tv remote|smart tv|tv screen|jio|jio fiber|jio stb|stb|stb remote|phone|android|pc|pc hub|pc command|security|biometrics|browser|web agent|sports|spatial gps|satellite|satellite intelligence|orbital|maps?|navigation|health|fitband|translator|translation|manual|guide|whatsapp|instagram|auto reply|call auto|social auto|blender|blender 3d|3d studio)/i;
     const appMatch = queryText.match(appOpenRegex);
     if (appMatch) {
       const targetApp = appMatch[2].toLowerCase();
       let openedAppName = 'App';
 
-      if (targetApp.includes('satellite') || targetApp.includes('orbital') || targetApp.includes('spatial') || targetApp.includes('map') || targetApp.includes('nav') || targetApp.includes('gps')) {
+      if (targetApp.includes('video') || targetApp.includes('youtube') || targetApp.includes('capcut') || targetApp.includes('invideo')) {
+        if (isOsMode) {
+          window.dispatchEvent(new CustomEvent('jasper:open-app', { detail: { appId: 'videoStudio' } }));
+        }
+        setShowVideoStudio(true);
+        openedAppName = 'AI Video Creator & YouTube Studio';
+      }
+      else if (targetApp.includes('satellite') || targetApp.includes('orbital') || targetApp.includes('spatial') || targetApp.includes('map') || targetApp.includes('nav') || targetApp.includes('gps')) {
         setModalData('maps', { initialTab: targetApp.includes('nav') || targetApp.includes('route') ? 'navigation' : 'satellite' });
         setShowMaps(true);
         openedAppName = 'Spatial GPS & Satellite Intelligence';
@@ -1571,6 +1605,9 @@ export default function App() {
                 </div>
                 
                 <div className="grid grid-cols-2 gap-1.5">
+                  <button onClick={() => setShowVideoStudio(!showVideoStudio)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-red-500/60 bg-red-950/40 text-red-300 font-extrabold shadow-[0_0_10px_rgba(239,68,68,0.25)] hover:border-red-400 tracking-normal truncate cursor-pointer">
+                    <Video size={11} className="text-red-400 animate-pulse flex-shrink-0" /> <span className="truncate">AI VIDEO &amp; YOUTUBE</span>
+                  </button>
                   <button onClick={() => setShowPhoneSentinel(!showPhoneSentinel)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-red-500/60 bg-red-950/30 text-red-300 font-extrabold shadow-[0_0_10px_rgba(239,68,68,0.2)] hover:border-red-400 tracking-normal truncate cursor-pointer">
                     <ShieldAlert size={11} className="text-red-400 animate-pulse flex-shrink-0" /> <span className="truncate">PHONE SENTINEL</span>
                   </button>
@@ -2006,6 +2043,17 @@ export default function App() {
                   {/* Right: Quick Directives (compact on laptop) */}
 
                   <div className={`grid gap-2 ${isMobileLayout ? 'grid-cols-2 sm:grid-cols-3 max-w-xl w-full px-2' : 'grid-cols-2 flex-1 content-start'}`}>
+                    <button 
+                      onClick={() => setShowVideoStudio(true)}
+                      className="p-2.5 rounded-xl bg-neutral-900/80 hover:bg-amber-500/15 border border-red-500/40 hover:border-red-400 text-left transition-all group flex items-center gap-2.5"
+                    >
+                      <span className="text-lg p-1.5 rounded-lg bg-red-500/15 border border-red-500/30 group-hover:scale-110 transition-transform">🎬</span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-xs font-bold text-red-200 truncate">AI Video Studio</span>
+                        <span className="text-[9px] text-neutral-400 font-mono truncate">CapCut &amp; YouTube Pub</span>
+                      </div>
+                    </button>
+
                     <button 
                       onClick={triggerMorningBriefing}
                       className="p-2.5 rounded-xl bg-neutral-900/80 hover:bg-amber-500/15 border border-amber-500/25 hover:border-amber-400 text-left transition-all group flex items-center gap-2.5"
@@ -3047,6 +3095,15 @@ export default function App() {
       {showAgentHub && (
         <DraggableModalWrapper isOpen={showAgentHub} onClose={() => setShowAgentHub(false)} title="JASPER AI Agent Hub" maxWidth="max-w-6xl">
           <JasperAgentHubWidget onClose={() => setShowAgentHub(false)} />
+        </DraggableModalWrapper>
+      )}
+
+      {/* 26. AI Video Creator & YouTube Studio Modal */}
+      {showVideoStudio && (
+        <DraggableModalWrapper isOpen={showVideoStudio} onClose={() => setShowVideoStudio(false)} title="AI Video Creator & YouTube Studio" maxWidth="max-w-7xl">
+          <div className="w-full h-full min-h-[640px] flex-1 relative flex flex-col">
+            <JasperVideoStudioApp onClose={() => setShowVideoStudio(false)} />
+          </div>
         </DraggableModalWrapper>
       )}
 

@@ -35,7 +35,7 @@ const BGM_TRACKS = [
   { id: 'none', name: 'Voice Only (No Music)', tempo: 0, mood: 'Quiet' }
 ];
 
-export default function JasperVideoStudioApp() {
+export default function JasperVideoStudioApp({ onClose, onLockSystem } = {}) {
   // Navigation & Mode
   const [activeTab, setActiveTab] = useState('creator'); // 'creator' | 'editor' | 'preview' | 'youtube'
   const [creationMode, setCreationMode] = useState('topic'); // 'topic' | 'script'
