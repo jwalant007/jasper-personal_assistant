@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: jasper-assistant
+    name: jasper-personal-assistant
     runtime: node
     plan: free
     region: oregon
@@ -11,3 +11,5 @@ services:
         value: 20.18.0
       - key: NODE_ENV
         value: production
+      - key: PUPPETEER_SKIP_DOWNLOAD
+        value: "true"

@@ -4,7 +4,7 @@
   "description": "JASPER - Personalized AI Assistant",
   "main": "electron/main.js",
   "scripts": {
-    "install-all": "npm install && npm install --prefix server && npm install --prefix client",
+    "install-all": "cross-env PUPPETEER_SKIP_DOWNLOAD=true npm install && npm install --prefix server --omit=dev --no-audit --no-fund && npm install --prefix client --no-audit --no-fund",
     "start": "node server/start.js",
     "server": "node server/server.js",
     "client": "npm run dev --prefix client",
@@ -17,7 +17,8 @@
     "electron:build": "npm run build:client && electron-builder"
   },
   "dependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "cross-env": "^10.1.0"
   },
   "author": "Antigravity",
   "license": "MIT",
