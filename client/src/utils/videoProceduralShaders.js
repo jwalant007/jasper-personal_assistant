@@ -28,6 +28,9 @@ export function renderProceduralMotionShader(ctx, shaderId, width, height, times
     case 'sunset_horizon':
       renderSunsetHorizon(ctx, width, height, timestamp, theme);
       break;
+    case 'football_stadium':
+      renderFootballStadium(ctx, width, height, timestamp, theme);
+      break;
     default:
       renderDynamicGradient(ctx, width, height, timestamp, theme);
       break;
@@ -442,6 +445,111 @@ function renderSunsetHorizon(ctx, width, height, timestamp, theme) {
     ctx.fillStyle = 'rgba(254, 240, 138, 0.6)';
     ctx.beginPath();
     ctx.arc(px, py, 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+/**
+ * 7. DEATH REAPER FOOTBALL STADIUM NIGHT & FLOODLIGHTS
+ */
+function renderFootballStadium(ctx, width, height, timestamp, theme) {
+  // Midnight Champions League sky
+  const sky = ctx.createLinearGradient(0, 0, 0, height);
+  sky.addColorStop(0, '#020617');
+  sky.addColorStop(0.4, '#091e3a');
+  sky.addColorStop(0.65, '#042f1a');
+  sky.addColorStop(1, '#022012');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, width, height);
+
+  const pitchY = height * 0.58;
+
+  // 1. Dual Overhead Volumetric Floodlights (Stadium Arcs)
+  const leftLight = ctx.createRadialGradient(width * 0.15, height * 0.08, 10, width * 0.35, height * 0.65, width * 0.6);
+  leftLight.addColorStop(0, 'rgba(255, 255, 255, 0.85)');
+  leftLight.addColorStop(0.25, 'rgba(224, 242, 254, 0.45)');
+  leftLight.addColorStop(0.6, 'rgba(56, 189, 248, 0.15)');
+  leftLight.addColorStop(1, 'transparent');
+  ctx.fillStyle = leftLight;
+  ctx.fillRect(0, 0, width, height);
+
+  const rightLight = ctx.createRadialGradient(width * 0.85, height * 0.08, 10, width * 0.65, height * 0.65, width * 0.6);
+  rightLight.addColorStop(0, 'rgba(255, 255, 255, 0.85)');
+  rightLight.addColorStop(0.25, 'rgba(224, 242, 254, 0.45)');
+  rightLight.addColorStop(0.6, 'rgba(56, 189, 248, 0.15)');
+  rightLight.addColorStop(1, 'transparent');
+  ctx.fillStyle = rightLight;
+  ctx.fillRect(0, 0, width, height);
+
+  // Stadium Floodlight Towers (Silhouettes)
+  ctx.fillStyle = '#ffffff';
+  ctx.shadowColor = '#38bdf8';
+  ctx.shadowBlur = 15;
+  for (let l = 0; l < 4; l++) {
+    ctx.fillRect(width * 0.12 + l * 8, height * 0.06, 6, 6);
+    ctx.fillRect(width * 0.82 + l * 8, height * 0.06, 6, 6);
+  }
+  ctx.shadowBlur = 0;
+
+  // 2. Football Pitch Surface (Grass Gradient)
+  const grassGrad = ctx.createLinearGradient(0, pitchY, 0, height);
+  grassGrad.addColorStop(0, '#044222');
+  grassGrad.addColorStop(0.5, '#065f32');
+  grassGrad.addColorStop(1, '#022c16');
+  ctx.fillStyle = grassGrad;
+  ctx.fillRect(0, pitchY, width, height - pitchY);
+
+  // Striped grass mowing lines
+  const stripes = 7;
+  for (let s = 0; s < stripes; s++) {
+    if (s % 2 === 0) {
+      const sy = pitchY + (s / stripes) * (height - pitchY);
+      const sh = (height - pitchY) / stripes;
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
+      ctx.fillRect(0, sy, width, sh);
+    }
+  }
+
+  // 3. 3D Perspective Pitch White Chalk Markings
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+  ctx.lineWidth = 2.5;
+
+  // Center line
+  ctx.beginPath();
+  ctx.moveTo(0, pitchY + 4);
+  ctx.lineTo(width, pitchY + 4);
+  ctx.stroke();
+
+  // Center Circle (perspective ellipse)
+  ctx.save();
+  ctx.translate(width / 2, pitchY + (height - pitchY) * 0.4);
+  ctx.scale(1, 0.38);
+  ctx.beginPath();
+  ctx.arc(0, 0, width * 0.22, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Center spot
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.arc(0, 0, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // Touchline perspective sidelines
+  ctx.beginPath();
+  ctx.moveTo(width * 0.15, pitchY);
+  ctx.lineTo(0, height);
+  ctx.moveTo(width * 0.85, pitchY);
+  ctx.lineTo(width, height);
+  ctx.stroke();
+
+  // 4. Floating Stadium Light Embers & Pitch Dust
+  for (let e = 0; e < 30; e++) {
+    const ex = ((e * 179.3 + timestamp * 0.035) % width);
+    const ey = ((e * 283.7 - timestamp * 0.05) % height + height) % height;
+    ctx.fillStyle = e % 3 === 0 ? 'rgba(254, 240, 138, 0.75)' : 'rgba(255, 255, 255, 0.6)';
+    ctx.beginPath();
+    ctx.arc(ex, ey, (e % 2) + 1.2, 0, Math.PI * 2);
     ctx.fill();
   }
 }

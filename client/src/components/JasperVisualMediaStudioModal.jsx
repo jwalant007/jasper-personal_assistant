@@ -47,10 +47,25 @@ export const AI_IMAGE_STYLES = [
     badge: '✨ ANIME ART',
     model: 'turbo',
     suffix: 'makoto shinkai cinematic anime style, beautiful sky, glowing stars, high detailed background art, vibrant colors, studio ghibli lighting'
+  },
+  {
+    id: 'football_cinematic',
+    name: 'Football Stadium & Match',
+    badge: '⚽ FOOTBALL PRO',
+    model: 'flux',
+    suffix: 'cinematic sports photography of professional football soccer match in stadium, dramatic floodlights, grass particles, 8k photorealistic, shot on 400mm lens, shallow depth of field, intense moment'
   }
 ];
 
 export const MOTION_CLIP_PRESETS = [
+  {
+    id: 'football_stadium',
+    name: 'Champions Football Stadium',
+    category: 'Football & Sports',
+    type: 'procedural',
+    thumbnail: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=400&q=80',
+    description: 'Night football stadium with overhead floodlights and 3D perspective pitch'
+  },
   {
     id: 'cyber_city',
     name: 'Cyberpunk Neon City',

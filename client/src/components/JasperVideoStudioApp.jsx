@@ -48,9 +48,11 @@ const BGM_TRACKS = [
 
 // Thumbnail Badge Presets
 const THUMBNAIL_BADGES = [
-  { id: 'viral', label: '🔥 VIRAL 2026', bg: '#ef4444' },
-  { id: 'must_watch', label: '⚡ MUST WATCH', bg: '#f59e0b' },
-  { id: 'shocking', label: '😱 SHOCKING REVEAL', bg: '#8b5cf6' },
+  { id: 'football_goal', label: '⚽ INSANE GOAL', bg: '#10b981' },
+  { id: 'football_transfer', label: '🔥 SHOCK TRANSFER', bg: '#ef4444' },
+  { id: 'goat', label: '🐐 GOAT DEBATE', bg: '#f59e0b' },
+  { id: 'viral', label: '⚡ VIRAL SHORTS', bg: '#8b5cf6' },
+  { id: 'shocking', label: '😱 RECORD BROKEN', bg: '#ec4899' },
   { id: 'secret', label: '🔒 SECRET DISCLOSED', bg: '#06b6d4' }
 ];
 
@@ -58,21 +60,21 @@ export default function JasperVideoStudioApp({ onClose, onLockSystem } = {}) {
   // Navigation & Mode
   const [activeTab, setActiveTab] = useState('creator'); // 'creator' | 'editor' | 'preview' | 'thumbnail' | 'youtube'
   const [creationMode, setCreationMode] = useState('topic'); // 'topic' | 'script'
-  const [aspectRatio, setAspectRatio] = useState('16:9'); // '16:9' (YouTube) | '9:16' (Shorts / Reels)
+  const [aspectRatio, setAspectRatio] = useState('9:16'); // '9:16' (Shorts / Reels) | '16:9' (YouTube)
 
-  // Inputs
-  const [promptTopic, setPromptTopic] = useState('5 Mind-Blowing AI Breakthroughs that Change Everything in 2026');
+  // Inputs - Configured for Death Reaper Football (@death-reaper577)
+  const [promptTopic, setPromptTopic] = useState('5 Football Records That Will NEVER Be Broken ⚽');
   const [rawScriptText, setRawScriptText] = useState('');
   const [targetLength, setTargetLength] = useState('short'); // 'short' (30-60s) | 'medium' (1-2m) | 'explainer' (3m+)
-  const [voicePersonality, setVoicePersonality] = useState('jarvis'); // 'jarvis' | 'friday' | 'creator' | 'trailer'
+  const [voicePersonality, setVoicePersonality] = useState('creator'); // 'creator' (high energy) | 'jarvis' | 'friday' | 'trailer'
   const [selectedBgm, setSelectedBgm] = useState('synthwave');
   const [selectedCaptionStyle, setSelectedCaptionStyle] = useState('hormozi');
   const [showSubscribeBadge, setShowSubscribeBadge] = useState(true);
   const [showAudioVisualizer, setShowAudioVisualizer] = useState(true);
 
   // Cinematic Visual FX Overlays
-  const [globalFilter, setGlobalFilter] = useState('none'); // 'none' | 'cinematic' | 'film_grain' | 'vhs_glitch' | 'lens_flare'
-  const [cinematicLetterbox, setCinematicLetterbox] = useState(true); // 2.35:1 Widescreen Anamorphic Bars
+  const [globalFilter, setGlobalFilter] = useState('cinematic'); // 'none' | 'cinematic' | 'film_grain' | 'vhs_glitch' | 'lens_flare'
+  const [cinematicLetterbox, setCinematicLetterbox] = useState(false); // Default off for 9:16 Shorts
 
   // Visual Media Studio Modal State
   const [isMediaStudioOpen, setIsMediaStudioOpen] = useState(false);
@@ -83,73 +85,73 @@ export default function JasperVideoStudioApp({ onClose, onLockSystem } = {}) {
   const [generationProgress, setGenerationProgress] = useState(0);
   const [generationStatus, setGenerationStatus] = useState('');
 
-  // Viral Title & Hook Optimizer State
+  // Viral Title & Hook Optimizer State (Death Reaper Football Presets)
   const [isOptimizingHooks, setIsOptimizingHooks] = useState(false);
   const [hookSuggestions, setHookSuggestions] = useState([
-    { title: 'The 5 AI Breakthroughs They Hope You Never Notice (2026)', ctr: '97% High CTR', style: 'Curiosity Gap' },
-    { title: 'I Tested 2026 AI for 30 Days — Here Is What Terrified Me', ctr: '94% High CTR', style: 'First-Person Story' },
-    { title: 'Why Everything You Knew About AI Just Became Obsolete', ctr: '91% High CTR', style: 'Urgency & Shock' }
+    { title: '5 Football Records That Defy Human Science (#1 is Impossible)', ctr: '98% Ultra Viral', style: 'Shock & Awe' },
+    { title: 'The Real Reason Nobody Will EVER Break Messi’s 91-Goal Record', ctr: '96% High CTR', style: 'Controversy & Proof' },
+    { title: 'Why Football Officials Tried to Hide This Insane Match Incident', ctr: '94% High CTR', style: 'Curiosity Gap' }
   ]);
 
   // Generated Video Project Data with AI Images & Timed Storyboard
   const [videoProject, setVideoProject] = useState({
-    title: '5 Mind-Blowing AI Breakthroughs in 2026',
-    description: 'Explore the top AI technologies revolutionizing robotics, quantum computing, and personal intelligence. Created with J.A.S.P.E.R. AI Video Studio.\n\n0:00 - Introduction & Hook\n0:05 - Physical AI & Humanoids\n0:10 - Quantum Neural Networks\n0:16 - Subscribe & Conclusion\n\n#AI #Technology #Future #Shorts',
-    tags: 'AI 2026, artificial intelligence, quantum AI, Jasper AI, robotics, tech news, breakthrough',
+    title: '5 Football Records That Will NEVER Be Broken ⚽ #Shorts',
+    description: 'Welcome back to Death Reaper Football – the ultimate destination for every football fan!\n\nToday we break down the top 5 most untouchable records in football history. From Champions League glory to World Cup milestones that will stand forever.\n\n👉 Subscribe now to join one of the fastest-growing football communities on YouTube!\nContact: jwalantjbhatt@gmail.com\n\n#Football #Shorts #Soccer #ChampionsLeague #PremierLeague #DeathReaper #Messi #Ronaldo',
+    tags: 'Death Reaper Football, football shorts, soccer highlights, champions league, premier league, messi, ronaldo, haaland, mbappe, football records, best goals',
     scenes: [
       {
         id: 1,
-        title: 'Hook / Opening',
-        narration: 'Artificial intelligence in 2026 is no longer just software. It has stepped into physical reality.',
-        caption: 'AI IN 2026 HAS CHANGED REALITY',
+        title: 'Hook / The Impossible Feats',
+        narration: 'In the history of football, thousands of records have fallen. But these five? They will literally NEVER be broken.',
+        caption: '5 UNTOUCHABLE FOOTBALL RECORDS',
         duration: 4.5,
-        theme: 'cyberpunk',
-        mediaType: 'image',
+        theme: 'sunset',
+        mediaType: 'motion',
+        motionClipId: 'football_stadium',
         zoomEffect: 'zoomIn',
         filterEffect: 'cinematic',
-        imageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1280&q=80',
-        imagePrompt: 'Cyberpunk futuristic artificial intelligence neural network glowing cybernetic city'
+        imageUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1280&q=80',
+        imagePrompt: 'Epic illuminated football stadium night with roaring crowd, UEFA Champions League floodlights, cinematic sports photography'
       },
       {
         id: 2,
-        title: 'Cyber City Motion Grid',
-        narration: 'From autonomous humanoid labor to local neural chips operating directly on your desktop.',
-        caption: 'HUMANOID WORKFORCE & NEURAL CHIPS',
+        title: 'Messi 91 Goals in a Year',
+        narration: 'Number one. Lionel Messi scoring 91 goals in a single calendar year. Modern sports science calls it statistically impossible to repeat.',
+        caption: 'MESSI 91 GOALS IN ONE YEAR',
         duration: 5.0,
-        theme: 'stark_hud',
-        mediaType: 'motion',
-        motionClipId: 'cyber_city',
-        zoomEffect: 'panLeft',
-        filterEffect: 'vhs_glitch',
-        imageUrl: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1280&q=80',
-        imagePrompt: 'Futuristic humanoid robot hand reaching out with glowing stark energy core'
+        theme: 'cyberpunk',
+        mediaType: 'image',
+        zoomEffect: 'zoomOut',
+        filterEffect: 'film_grain',
+        imageUrl: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1280&q=80',
+        imagePrompt: 'Professional football player celebrating iconic goal under golden stadium floodlights with ball in goal net, 8k'
       },
       {
         id: 3,
-        title: 'Quantum Synthesis',
-        narration: 'Quantum neural networks are solving molecular biology problems in seconds instead of centuries.',
-        caption: 'QUANTUM NETWORKS SOLVE CENTURIES',
-        duration: 5.5,
-        theme: 'matrix',
+        title: 'Fastest World Cup Goal',
+        narration: 'Number two. The fastest World Cup goal in history. Just 10.8 seconds after kickoff, shocking millions of viewers across the globe.',
+        caption: 'GOAL IN JUST 10.8 SECONDS',
+        duration: 5.0,
+        theme: 'stark_hud',
         mediaType: 'image',
-        zoomEffect: 'zoomOut',
+        zoomEffect: 'panLeft',
         filterEffect: 'lens_flare',
-        imageUrl: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=1280&q=80',
-        imagePrompt: 'Quantum computing holographic processor with digital matrix stream particles'
+        imageUrl: 'https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=1280&q=80',
+        imagePrompt: 'Football player striking ball at supersonic speed towards top corner of goal in crowded stadium, cinematic 8k'
       },
       {
         id: 4,
-        title: 'Cosmic Call to Action',
-        narration: 'Subscribe to stay at the cutting edge of personal artificial intelligence. What do you think is coming next?',
-        caption: 'SUBSCRIBE FOR THE FUTURE OF TECH',
+        title: 'Subscribe to Death Reaper',
+        narration: 'Which of these records is your favorite? Subscribe to Death Reaper Football for daily football news and viral shorts!',
+        caption: 'SUBSCRIBE FOR DAILY FOOTBALL SHORTS',
         duration: 4.5,
         theme: 'space',
         mediaType: 'motion',
-        motionClipId: 'hyperspace_warp',
+        motionClipId: 'football_stadium',
         zoomEffect: 'zoomIn',
-        filterEffect: 'film_grain',
-        imageUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1280&q=80',
-        imagePrompt: 'Deep cosmic nebula with glowing earth and futuristic holographic stars'
+        filterEffect: 'cinematic',
+        imageUrl: 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=1280&q=80',
+        imagePrompt: 'Golden football trophy on pitch under dramatic atmospheric lights with football and stadium floodlights'
       }
     ]
   });
@@ -162,11 +164,11 @@ export default function JasperVideoStudioApp({ onClose, onLockSystem } = {}) {
   const [bgmVolume, setBgmVolume] = useState(0.3);
   const [activeEditingSceneId, setActiveEditingSceneId] = useState(1);
 
-  // Thumbnail Studio State
-  const [thumbnailHeadline, setThumbnailHeadline] = useState('THEY HID THIS FROM YOU!');
-  const [thumbnailSubhead, setThumbnailSubhead] = useState('2026 AI BREAKTHROUGH');
-  const [selectedBadge, setSelectedBadge] = useState('viral');
-  const [thumbnailTheme, setThumbnailTheme] = useState('cyberpunk');
+  // Thumbnail Studio State - High CTR Football Style
+  const [thumbnailHeadline, setThumbnailHeadline] = useState('THEY RIGGED THIS MATCH?!');
+  const [thumbnailSubhead, setThumbnailSubhead] = useState('DEATH REAPER FOOTBALL');
+  const [selectedBadge, setSelectedBadge] = useState('football_goal');
+  const [thumbnailTheme, setThumbnailTheme] = useState('sunset');
   const [thumbnailDownloaded, setThumbnailDownloaded] = useState(false);
 
   // Export & Recording State
@@ -175,13 +177,16 @@ export default function JasperVideoStudioApp({ onClose, onLockSystem } = {}) {
   const [exportedVideoUrl, setExportedVideoUrl] = useState(null);
   const [exportedBlob, setExportedBlob] = useState(null);
 
-  // YouTube Upload State
+  // YouTube Upload State - Connected to @death-reaper577
   const [youtubeChannel, setYoutubeChannel] = useState({
-    channelName: "Jwalant's Official Channel",
+    channelName: "Death Reaper Football",
+    handle: "@death-reaper577",
+    channelUrl: "https://youtube.com/@death-reaper577",
+    contactEmail: "jwalantjbhatt@gmail.com",
     isConnected: true,
     privacy: 'public',
-    category: 'Science & Technology',
-    isShorts: false
+    category: 'Sports',
+    isShorts: true
   });
   const [uploadStatus, setUploadStatus] = useState('idle'); // 'idle' | 'uploading' | 'success' | 'copied'
   const [uploadedVideoId, setUploadedVideoId] = useState(null);
@@ -1286,14 +1291,47 @@ Generate between 4 to 6 scenes tailored to the topic.`;
                     className="w-full bg-slate-950 border border-slate-700/80 rounded-lg p-3 text-xs font-mono text-slate-200 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 resize-none"
                   />
 
-                  {/* Preset Idea Chips */}
+                  {/* Death Reaper Football Trending Templates */}
+                  <div className="flex flex-col gap-1.5 p-3 bg-gradient-to-r from-red-950/40 to-slate-900/80 border border-red-500/30 rounded-xl">
+                    <span className="text-[10px] font-mono text-red-300 font-bold flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <span className="text-base">⚽</span>
+                        <span>Death Reaper Football Viral Shorts Templates:</span>
+                      </span>
+                      <span className="text-[9px] text-cyan-400 font-mono">@death-reaper577</span>
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        '5 Football Records That Will NEVER Be Broken',
+                        'The Real Reason Mbappé Stunned Real Madrid & UCL',
+                        'Erling Haaland vs Prime Ronaldo: Insane Goal Stats',
+                        'Top 5 Most Expensive Football Transfers of All Time',
+                        'The Darkest Controversy in El Clásico History',
+                        'Jude Bellingham Journey: World Domination in 60s'
+                      ].map((chip, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => {
+                            setPromptTopic(chip);
+                            setAspectRatio('9:16');
+                            setVoicePersonality('creator');
+                            playJarvisBeep('select');
+                          }}
+                          className="px-2.5 py-1 bg-red-950/60 hover:bg-red-900/80 border border-red-500/40 hover:border-red-400 rounded-lg text-[10px] font-mono text-red-200 transition-all text-left cursor-pointer"
+                        >
+                          ⚽ {chip}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* General Preset Idea Chips */}
                   <div className="flex flex-col gap-1.5">
-                    <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Trending YouTube Templates:</span>
+                    <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Other Trending Templates:</span>
                     <div className="flex flex-wrap gap-1.5">
                       {[
                         '5 AI Breakthroughs in 2026',
                         'Why Discipline Beats Motivation',
-                        'How Stark Arc Reactor Physics Works',
                         'Top 3 Space Mysteries Unsolved',
                         'Quantum Computing Explained in 60s'
                       ].map((chip, idx) => (
@@ -2098,20 +2136,39 @@ Generate between 4 to 6 scenes tailored to the topic.`;
             <div className="lg:col-span-7 flex flex-col gap-4">
               
               {/* Channel Connect Status */}
-              <div className="p-3 bg-slate-900/60 border border-slate-800 rounded-xl flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-rose-600 flex items-center justify-center text-white font-bold text-xs">
-                    YT
+              <div className="p-3.5 bg-gradient-to-r from-red-950/40 via-slate-900/80 to-slate-950 border border-red-500/40 rounded-xl flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-red-600 to-rose-600 flex items-center justify-center text-white font-bold text-base shadow-[0_0_15px_rgba(239,68,68,0.4)] border border-red-400">
+                    ⚽
                   </div>
                   <div>
-                    <span className="text-xs font-mono font-bold text-slate-200">{youtubeChannel.channelName}</span>
-                    <span className="text-[10px] text-emerald-400 font-mono block">● Channel Connected &amp; Authenticated</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono font-bold text-slate-100">{youtubeChannel.channelName}</span>
+                      <span className="text-[10px] text-red-400 font-mono font-bold">{youtubeChannel.handle}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[10px] text-emerald-400 font-mono flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Channel Linked
+                      </span>
+                      <a
+                        href={youtubeChannel.channelUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[10px] text-cyan-300 hover:underline flex items-center gap-0.5 cursor-pointer"
+                      >
+                        <span>View Channel</span>
+                        <ExternalLink className="w-2.5 h-2.5" />
+                      </a>
+                    </div>
                   </div>
                 </div>
 
-                <span className="text-[9px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono border border-rose-500/30">
-                  {aspectRatio === '9:16' ? '#YouTubeShorts' : 'Standard HD'}
-                </span>
+                <div className="flex flex-col items-end gap-1">
+                  <span className="text-[9px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono border border-rose-500/30">
+                    {aspectRatio === '9:16' ? '#YouTubeShorts' : 'Standard HD'}
+                  </span>
+                  <span className="text-[9px] text-slate-400 font-mono">Category: {youtubeChannel.category}</span>
+                </div>
               </div>
 
               {/* Title Input */}
