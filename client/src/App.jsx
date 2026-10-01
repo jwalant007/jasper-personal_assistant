@@ -1518,27 +1518,27 @@ export default function App() {
 
         {/* Left Sidebar */}
         {showSidebar && (
-          <aside className={`sidebar-panel flex flex-col justify-between h-full select-none shrink-0 border-r border-cyan-500/20 bg-black backdrop-blur-2xl transition-all duration-300 ${isMobileLayout ? 'fixed inset-y-0 left-0 z-50 w-[290px] max-w-[88vw] shadow-2xl p-3' : 'w-[290px] relative z-20 p-3'}`}>
-            <div className="flex flex-col gap-4 overflow-y-auto">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse glow-green" />
+          <aside className={`sidebar-panel flex flex-col justify-between h-full select-none shrink-0 border-r border-white/[0.08] bg-slate-950/90 backdrop-blur-3xl transition-all duration-300 ${isMobileLayout ? 'fixed inset-y-0 left-0 z-50 w-[290px] max-w-[88vw] shadow-2xl p-3.5' : 'w-[280px] relative z-20 p-3.5'}`}>
+            <div className="flex flex-col gap-3.5 overflow-y-auto custom-scrollbar">
+              <div className="flex items-center justify-between pb-1 border-b border-white/[0.06]">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse" />
                   <div className="flex flex-col">
-                    <span className="font-orbitron font-extrabold text-sm tracking-widest text-cyan-400 glow-cyan leading-none">
-                      JASPER
+                    <span className="font-sans font-bold text-sm tracking-wide text-slate-100 leading-none">
+                      JASPER AI
                     </span>
-                    <span className="font-mono text-[9px] text-sky-500 tracking-wider mt-0.5">
-                      AI command hub
+                    <span className="font-sans text-[10px] text-slate-400 mt-0.5">
+                      Command Center
                     </span>
                   </div>
                 </div>
                 {isMobileLayout && (
                   <button 
                     onClick={() => setShowSidebar(false)}
-                    className="text-cyan-400 font-bold p-1 hover:text-cyan-200 text-xs font-mono border border-cyan-500/30 rounded bg-cyan-950/20"
+                    className="text-slate-400 font-medium p-1 hover:text-white text-xs border border-white/[0.08] rounded-lg bg-slate-900"
                     title="Hide Sidebar"
                   >
-                    ✕ HIDE
+                    ✕ Hide
                   </button>
                 )}
               </div>
@@ -1546,28 +1546,28 @@ export default function App() {
               {/* Switch Back to OS Spatial Desktop Mode */}
               <button 
                 onClick={() => setIsOsMode(true)}
-                className="w-full py-2.5 px-3 bg-gradient-to-r from-amber-500/25 via-neutral-900/80 to-amber-600/25 hover:from-amber-500/35 hover:to-amber-600/35 border border-amber-400/80 text-amber-200 rounded-xl font-orbitron font-extrabold text-xs tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(245,197,66,0.22)] mt-1"
+                className="w-full py-2.5 px-3 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-400/40 text-indigo-200 rounded-xl font-sans font-semibold text-xs tracking-wide flex items-center justify-center gap-2 transition-all shadow-sm mt-1 cursor-pointer"
               >
-                <Monitor className="w-4 h-4 text-amber-300 animate-pulse" />
-                <span>JASPER OS DESKTOP</span>
+                <Monitor className="w-4 h-4 text-indigo-400" />
+                <span>Launch OS Desktop</span>
               </button>
 
               {/* 3D Hologram Workstation Direct Launcher */}
               <button 
                 onClick={() => setShowHologramModal(true)}
-                className="w-full py-2.5 px-3 bg-gradient-to-r from-cyan-500/25 via-neutral-900/80 to-blue-600/25 hover:from-cyan-500/35 hover:to-blue-600/35 border border-cyan-400/80 text-cyan-200 rounded-xl font-orbitron font-extrabold text-xs tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(0,229,255,0.25)] mt-1.5"
+                className="w-full py-2.5 px-3 bg-slate-900/80 hover:bg-slate-850 border border-white/[0.08] hover:border-sky-400/40 text-slate-200 rounded-xl font-sans font-medium text-xs tracking-wide flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
               >
-                <Box className="w-4 h-4 text-cyan-300 animate-pulse" />
-                <span>3D HOLOGRAM WORKSTATION</span>
+                <Box className="w-4 h-4 text-sky-400" />
+                <span>3D Hologram Studio</span>
               </button>
 
               <button 
                 onClick={() => {
                   handleNewChat();
                 }}
-                className="btn-sidebar w-full mt-2"
+                className="btn-sidebar w-full mt-1 font-sans text-xs"
               >
-                NEW CHAT
+                + New Chat
               </button>
               
               <button 
@@ -1575,28 +1575,28 @@ export default function App() {
                   setShowAudioPage(true);
                   handleReactorClick();
                 }}
-                className="btn-sidebar btn-sidebar-blue w-full flex gap-1.5 items-center justify-center font-bold"
+                className="w-full py-2 px-3 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.08] text-slate-200 hover:text-white flex gap-2 items-center justify-center font-sans text-xs font-medium transition-all cursor-pointer"
               >
-                <Radio size={12} className="text-amber-400 animate-pulse" />
-                AUDIO CONVERSATION
+                <Radio size={13} className="text-indigo-400 animate-pulse" />
+                Audio Conversation
               </button>
 
               <button 
                 onClick={() => {
                   handleImageGeneration();
                 }}
-                className="btn-sidebar btn-sidebar-purple w-full flex gap-1.5 items-center justify-center"
+                className="w-full py-2 px-3 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.08] text-slate-200 hover:text-white flex gap-2 items-center justify-center font-sans text-xs font-medium transition-all cursor-pointer"
               >
-                <Sparkles size={12} className="text-amber-400" />
-                IMAGE SYNTHESIS
+                <Sparkles size={13} className="text-purple-400" />
+                Image Generation
               </button>
 
               <button 
                 onClick={() => setShowManual(true)}
-                className="btn-sidebar btn-sidebar-blue w-full flex gap-1.5 items-center justify-center font-bold border-amber-500/40 bg-amber-950/30 text-amber-300"
+                className="w-full py-2 px-3 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.08] text-slate-200 hover:text-white flex gap-2 items-center justify-center font-sans text-xs font-medium transition-all cursor-pointer"
               >
-                <BookOpen size={12} className="text-amber-400 animate-pulse" />
-                USER MANUAL &amp; GUIDE
+                <BookOpen size={13} className="text-slate-400" />
+                User Manual & Guide
               </button>
 
               <div className="flex gap-1.5 w-full">
@@ -1604,16 +1604,16 @@ export default function App() {
                   onClick={() => {
                     setShowTvRemote(!showTvRemote);
                   }}
-                  className="btn-sidebar btn-sidebar-blue flex-1 text-[10px] py-3 flex gap-1.5 items-center justify-center"
+                  className="flex-1 py-2 px-3 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.08] text-slate-200 hover:text-white text-xs font-sans font-medium flex gap-1.5 items-center justify-center transition-all cursor-pointer"
                 >
-                  <Tv size={12} className="text-amber-400" />
-                  CONNECT TV
+                  <Tv size={13} className="text-sky-400" />
+                  Smart TV
                 </button>
                 <button 
                   onClick={() => setShowTvRemote(!showTvRemote)}
-                  className="btn-sidebar btn-sidebar-blue px-3 flex items-center justify-center"
+                  className="px-2.5 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.08] text-slate-400 hover:text-white flex items-center justify-center transition-all cursor-pointer"
                 >
-                  <ChevronDown size={14} className="text-amber-400" />
+                  <ChevronDown size={13} />
                 </button>
               </div>
               
@@ -1621,10 +1621,10 @@ export default function App() {
                 onClick={() => {
                   setShowPhoneControl(!showPhoneControl);
                 }}
-                className="btn-sidebar btn-sidebar-blue w-full flex gap-1.5 items-center justify-center"
+                className="w-full py-2 px-3 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.08] text-slate-200 hover:text-white flex gap-2 items-center justify-center font-sans text-xs font-medium transition-all cursor-pointer"
               >
-                <Smartphone size={12} className="text-amber-400" />
-                CONNECT PHONE
+                <Smartphone size={13} className="text-indigo-400" />
+                Phone Control
               </button>
 
               <button 
@@ -1632,82 +1632,81 @@ export default function App() {
                   setShowLaptopConnect(true);
                   if (isMobileLayout) setShowSidebar(false);
                 }}
-                className="btn-sidebar btn-sidebar-blue w-full flex gap-1.5 items-center justify-center font-bold border-amber-400/60 bg-amber-950/40 text-amber-300 shadow-[0_0_12px_rgba(245,197,66,0.2)] hover:bg-amber-900/50"
+                className="w-full py-2 px-3 rounded-xl bg-indigo-600/15 hover:bg-indigo-600/25 border border-indigo-400/30 text-indigo-200 flex gap-2 items-center justify-center font-sans text-xs font-semibold transition-all cursor-pointer shadow-sm"
               >
-                <Laptop size={14} className="text-amber-400 animate-pulse" />
-                CONNECT TO LAPTOP MODE
+                <Laptop size={13} className="text-indigo-400" />
+                Laptop Remote Bridge
               </button>
 
-              {/* Feature Modules Suite: 2 Columns Spread (No more endless single-column scroll) */}
-              <div className="border-t border-amber-500/20 pt-2 mt-1">
-                <div className="flex items-center justify-between mb-1.5 px-1">
-                  <span className="font-mono text-[9px] text-amber-400 font-bold uppercase tracking-widest">Feature Suite</span>
-                  <span className="font-mono text-[8px] text-neutral-400 bg-neutral-900 px-1.5 py-0.5 rounded border border-neutral-800">2 COLUMNS</span>
+              {/* Feature Modules Suite */}
+              <div className="border-t border-white/[0.06] pt-2.5 mt-0.5">
+                <div className="flex items-center justify-between mb-2 px-0.5">
+                  <span className="font-sans text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Features & Apps</span>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-1.5">
-                  <button onClick={() => setShowVideoStudio(!showVideoStudio)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-red-500/60 bg-red-950/40 text-red-300 font-extrabold shadow-[0_0_10px_rgba(239,68,68,0.25)] hover:border-red-400 tracking-normal truncate cursor-pointer">
-                    <Video size={11} className="text-red-400 animate-pulse flex-shrink-0" /> <span className="truncate">AI VIDEO &amp; YOUTUBE</span>
+                  <button onClick={() => setShowVideoStudio(!showVideoStudio)} className="p-2 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.06] hover:border-indigo-400/30 text-slate-300 hover:text-white text-[11px] font-sans flex items-center gap-1.5 transition-all truncate cursor-pointer">
+                    <Video size={12} className="text-rose-400 flex-shrink-0" /> <span className="truncate">Video Studio</span>
                   </button>
-                  <button onClick={() => setShowPhoneSentinel(!showPhoneSentinel)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-red-500/60 bg-red-950/30 text-red-300 font-extrabold shadow-[0_0_10px_rgba(239,68,68,0.2)] hover:border-red-400 tracking-normal truncate cursor-pointer">
-                    <ShieldAlert size={11} className="text-red-400 animate-pulse flex-shrink-0" /> <span className="truncate">PHONE SENTINEL</span>
+                  <button onClick={() => setShowPhoneSentinel(!showPhoneSentinel)} className="p-2 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.06] hover:border-indigo-400/30 text-slate-300 hover:text-white text-[11px] font-sans flex items-center gap-1.5 transition-all truncate cursor-pointer">
+                    <ShieldAlert size={12} className="text-amber-400 flex-shrink-0" /> <span className="truncate">Sentinel</span>
                   </button>
-                  <button onClick={() => setShowSocialAutoReply(!showSocialAutoReply)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-400/60 bg-amber-500/15 text-amber-300 font-extrabold shadow-[0_0_10px_rgba(245,197,66,0.2)] tracking-normal truncate cursor-pointer">
-                    <MessageSquare size={11} className="text-amber-400 animate-pulse flex-shrink-0" /> <span className="truncate">WHATSAPP &amp; IG</span>
+                  <button onClick={() => setShowSocialAutoReply(!showSocialAutoReply)} className="p-2 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.06] hover:border-indigo-400/30 text-slate-300 hover:text-white text-[11px] font-sans flex items-center gap-1.5 transition-all truncate cursor-pointer">
+                    <MessageSquare size={12} className="text-emerald-400 flex-shrink-0" /> <span className="truncate">Social Auto</span>
                   </button>
-                  <button onClick={() => setShowLiveTranslation(!showLiveTranslation)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-400/50 bg-neutral-900/60 text-amber-300 font-bold shadow-[0_0_10px_rgba(245,197,66,0.15)] tracking-normal truncate cursor-pointer">
-                    <Languages size={11} className="text-amber-400 animate-pulse flex-shrink-0" /> <span className="truncate">TRANSLATE</span>
+                  <button onClick={() => setShowLiveTranslation(!showLiveTranslation)} className="p-2 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.06] hover:border-indigo-400/30 text-slate-300 hover:text-white text-[11px] font-sans flex items-center gap-1.5 transition-all truncate cursor-pointer">
+                    <Languages size={12} className="text-sky-400 flex-shrink-0" /> <span className="truncate">Translate</span>
                   </button>
-                  <button onClick={() => setShowHologramModal(!showHologramModal)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-cyan-500/50 bg-gradient-to-r from-cyan-950/40 via-purple-950/30 to-slate-900/60 text-cyan-300 font-bold shadow-[0_0_10px_rgba(0,229,255,0.2)] hover:border-cyan-400 tracking-normal truncate cursor-pointer">
-                    <Box size={11} className="text-cyan-400 animate-pulse flex-shrink-0" /> <span className="truncate">3D HOLOGRAM &amp; BLENDER</span>
+                  <button onClick={() => setShowHologramModal(!showHologramModal)} className="p-2 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.06] hover:border-indigo-400/30 text-slate-300 hover:text-white text-[11px] font-sans flex items-center gap-1.5 transition-all truncate cursor-pointer">
+                    <Box size={12} className="text-cyan-400 flex-shrink-0" /> <span className="truncate">3D Blender</span>
                   </button>
-                  <button onClick={() => setShowAgenticActions(!showAgenticActions)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-400/50 bg-neutral-900/60 text-amber-300 font-bold tracking-normal truncate cursor-pointer">
-                    <PhoneCall size={11} className="text-amber-400 animate-pulse flex-shrink-0" /> <span className="truncate">AGENTIC ACTIONS</span>
+                  <button onClick={() => setShowAgenticActions(!showAgenticActions)} className="p-2 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.06] hover:border-indigo-400/30 text-slate-300 hover:text-white text-[11px] font-sans flex items-center gap-1.5 transition-all truncate cursor-pointer">
+                    <PhoneCall size={12} className="text-indigo-400 flex-shrink-0" /> <span className="truncate">Agent Actions</span>
                   </button>
-                  <button onClick={() => setShowHealthHub(!showHealthHub)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/40 bg-neutral-900/60 text-amber-300 font-bold tracking-normal truncate cursor-pointer">
-                    <Activity size={11} className="text-amber-400 animate-pulse flex-shrink-0" /> <span className="truncate">HEALTH HUB</span>
+                  <button onClick={() => setShowHealthHub(!showHealthHub)} className="p-2 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.06] hover:border-indigo-400/30 text-slate-300 hover:text-white text-[11px] font-sans flex items-center gap-1.5 transition-all truncate cursor-pointer">
+                    <Activity size={12} className="text-emerald-400 flex-shrink-0" /> <span className="truncate">Health Hub</span>
                   </button>
-                  <button onClick={() => setShowMissionControl(!showMissionControl)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
-                    <LayoutDashboard size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">MISSION CTRL</span>
+                  <button onClick={() => setShowMissionControl(!showMissionControl)} className="p-2 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.06] hover:border-indigo-400/30 text-slate-300 hover:text-white text-[11px] font-sans flex items-center gap-1.5 transition-all truncate cursor-pointer">
+                    <LayoutDashboard size={12} className="text-purple-400 flex-shrink-0" /> <span className="truncate">Mission Ctrl</span>
                   </button>
-                  <button onClick={() => { setModalData('maps', { initialTab: 'satellite' }); setShowMaps(!showMaps); }} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-cyan-500/50 bg-gradient-to-r from-cyan-950/40 via-blue-950/30 to-slate-900/60 text-cyan-300 font-bold tracking-normal truncate cursor-pointer shadow-[0_0_12px_rgba(6,182,212,0.2)] hover:border-cyan-400">
-                    <Globe size={11} className="text-cyan-400 animate-pulse flex-shrink-0" /> <span className="truncate">SPATIAL GPS &amp; SATELLITE</span>
+                  <button onClick={() => { setModalData('maps', { initialTab: 'satellite' }); setShowMaps(!showMaps); }} className="p-2 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.06] hover:border-indigo-400/30 text-slate-300 hover:text-white text-[11px] font-sans flex items-center gap-1.5 transition-all truncate cursor-pointer">
+                    <Globe size={12} className="text-sky-400 flex-shrink-0" /> <span className="truncate">Satellite Maps</span>
                   </button>
-                  <button onClick={() => setShowSportsHub(!showSportsHub)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
-                    <Trophy size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">SPORTS HUB</span>
+                  <button onClick={() => setShowSportsHub(!showSportsHub)} className="p-2 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.06] hover:border-indigo-400/30 text-slate-300 hover:text-white text-[11px] font-sans flex items-center gap-1.5 transition-all truncate cursor-pointer">
+                    <Trophy size={12} className="text-amber-400 flex-shrink-0" /> <span className="truncate">Sports Hub</span>
                   </button>
-                  <button onClick={() => setShowAutomation(!showAutomation)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
-                    <Workflow size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">AUTOMATION</span>
+                  <button onClick={() => setShowAutomation(!showAutomation)} className="p-2 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.06] hover:border-indigo-400/30 text-slate-300 hover:text-white text-[11px] font-sans flex items-center gap-1.5 transition-all truncate cursor-pointer">
+                    <Workflow size={12} className="text-indigo-400 flex-shrink-0" /> <span className="truncate">Automation</span>
                   </button>
-                  <button onClick={() => setShowThemes(!showThemes)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/40 bg-amber-950/20 text-amber-300 tracking-normal truncate cursor-pointer">
-                    <Palette size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">CUSTOM THEMES</span>
+                  <button onClick={() => setShowThemes(!showThemes)} className="p-2 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.06] hover:border-indigo-400/30 text-slate-300 hover:text-white text-[11px] font-sans flex items-center gap-1.5 transition-all truncate cursor-pointer">
+                    <Palette size={12} className="text-purple-400 flex-shrink-0" /> <span className="truncate">Themes</span>
                   </button>
-                  <button onClick={() => setShowPcCommand(!showPcCommand)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
-                    <Monitor size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">PC COMMAND</span>
+                  <button onClick={() => setShowPcCommand(!showPcCommand)} className="p-2 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.06] hover:border-indigo-400/30 text-slate-300 hover:text-white text-[11px] font-sans flex items-center gap-1.5 transition-all truncate cursor-pointer">
+                    <Monitor size={12} className="text-sky-400 flex-shrink-0" /> <span className="truncate">PC Command</span>
                   </button>
-                  <button onClick={() => setShowBrowserAgent(!showBrowserAgent)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
-                    <Globe size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">BROWSER AGENT</span>
+                  <button onClick={() => setShowBrowserAgent(!showBrowserAgent)} className="p-2 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.06] hover:border-indigo-400/30 text-slate-300 hover:text-white text-[11px] font-sans flex items-center gap-1.5 transition-all truncate cursor-pointer">
+                    <Globe size={12} className="text-indigo-400 flex-shrink-0" /> <span className="truncate">Browser Agent</span>
                   </button>
-                  <button onClick={() => setShowPersonalAssistant(!showPersonalAssistant)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
-                    <Calendar size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">AI ASSISTANT</span>
+                  <button onClick={() => setShowPersonalAssistant(!showPersonalAssistant)} className="p-2 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.06] hover:border-indigo-400/30 text-slate-300 hover:text-white text-[11px] font-sans flex items-center gap-1.5 transition-all truncate cursor-pointer">
+                    <Calendar size={12} className="text-emerald-400 flex-shrink-0" /> <span className="truncate">AI Assistant</span>
                   </button>
-                  <button onClick={() => setShowMemory(!showMemory)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
-                    <Brain size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">MEMORY HUB</span>
+                  <button onClick={() => setShowMemory(!showMemory)} className="p-2 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.06] hover:border-indigo-400/30 text-slate-300 hover:text-white text-[11px] font-sans flex items-center gap-1.5 transition-all truncate cursor-pointer">
+                    <Brain size={12} className="text-violet-400 flex-shrink-0" /> <span className="truncate">Memory Hub</span>
                   </button>
-                  <button onClick={() => setShowSkillsStore(!showSkillsStore)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
-                    <Store size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">SKILLS STORE</span>
+                  <button onClick={() => setShowSkillsStore(!showSkillsStore)} className="p-2 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.06] hover:border-indigo-400/30 text-slate-300 hover:text-white text-[11px] font-sans flex items-center gap-1.5 transition-all truncate cursor-pointer">
+                    <Store size={12} className="text-sky-400 flex-shrink-0" /> <span className="truncate">Skills Store</span>
                   </button>
-                  <button onClick={() => setShowAnalytics(!showAnalytics)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
-                    <BarChart3 size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">ANALYTICS</span>
+                  <button onClick={() => setShowAnalytics(!showAnalytics)} className="p-2 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.06] hover:border-indigo-400/30 text-slate-300 hover:text-white text-[11px] font-sans flex items-center gap-1.5 transition-all truncate cursor-pointer">
+                    <BarChart3 size={12} className="text-indigo-400 flex-shrink-0" /> <span className="truncate">Analytics</span>
                   </button>
-                  <button onClick={() => setShowAvatar(!showAvatar)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
-                    <Bot size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">AI AVATAR</span>
+                  <button onClick={() => setShowAvatar(!showAvatar)} className="p-2 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.06] hover:border-indigo-400/30 text-slate-300 hover:text-white text-[11px] font-sans flex items-center gap-1.5 transition-all truncate cursor-pointer">
+                    <Bot size={12} className="text-pink-400 flex-shrink-0" /> <span className="truncate">AI Avatar</span>
                   </button>
-                  <button onClick={() => setShowSecurity(!showSecurity)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
-                    <ShieldCheck size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">SECURITY CTR</span>
+                  <button onClick={() => setShowSecurity(!showSecurity)} className="p-2 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.06] hover:border-indigo-400/30 text-slate-300 hover:text-white text-[11px] font-sans flex items-center gap-1.5 transition-all truncate cursor-pointer">
+                    <ShieldCheck size={12} className="text-emerald-400 flex-shrink-0" /> <span className="truncate">Security Hub</span>
                   </button>
-                  <button onClick={() => setShowDiagnostics(!showDiagnostics)} className="btn-sidebar text-[9px] py-2 px-1.5 flex items-center justify-start gap-1.5 border-amber-500/30 tracking-normal truncate cursor-pointer">
-                    <Cpu size={11} className="text-amber-400 flex-shrink-0" /> <span className="truncate">DIAGNOSTICS</span>
+                  <button onClick={() => setShowDiagnostics(!showDiagnostics)} className="p-2 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.06] hover:border-indigo-400/30 text-slate-300 hover:text-white text-[11px] font-sans flex items-center gap-1.5 transition-all truncate cursor-pointer">
+                    <Cpu size={12} className="text-cyan-400 flex-shrink-0" /> <span className="truncate">Diagnostics</span>
                   </button>
                 </div>
               </div>
@@ -1718,33 +1717,33 @@ export default function App() {
                   onClick={() => {
                     handleToggleViewMode();
                   }}
-                  className="btn-sidebar btn-sidebar-blue w-full text-[10px] py-2.5 mt-1 border-amber-500/40 bg-amber-950/30 text-amber-300 font-bold"
+                  className="w-full py-2.5 px-3 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-400/30 text-indigo-200 font-sans font-semibold text-xs transition-all cursor-pointer mt-1"
                 >
-                  {viewMode === 'mobile' ? '💻 SWITCH TO PC LAYOUT' : '📱 SWITCH TO MOBILE LAYOUT'}
+                  {viewMode === 'mobile' ? '💻 Switch to PC Layout' : '📱 Switch to Mobile Layout'}
                 </button>
               )}
 
               {/* System Routines Panel */}
-              <div className="flex flex-col gap-3 mt-2">
-                <span className="font-mono text-[9px] text-amber-500/80 uppercase tracking-widest border-b border-amber-500/15 pb-1.5 font-bold">
-                  System Routines
+              <div className="flex flex-col gap-2 mt-1">
+                <span className="font-sans text-[10px] text-slate-400 font-semibold uppercase tracking-wider border-b border-white/[0.06] pb-1">
+                  Quick Routines
                 </span>
                 <div className="flex gap-2">
                   <button 
                     onClick={() => {
                       runMacro('cinema');
                     }}
-                    className="btn-sidebar flex-1 text-[10px] py-2 flex items-center justify-center gap-1 border-amber-500/30 hover:border-amber-400 bg-amber-950/20"
+                    className="flex-1 py-1.5 px-2.5 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.08] text-slate-300 hover:text-white font-sans text-xs transition-all cursor-pointer"
                   >
-                    CINEMA
+                    Cinema
                   </button>
                   <button 
                     onClick={() => {
                       runMacro('study');
                     }}
-                    className="btn-sidebar flex-1 text-[10px] py-2 flex items-center justify-center gap-1 border-amber-500/30 hover:border-amber-400 bg-amber-950/20"
+                    className="flex-1 py-1.5 px-2.5 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.08] text-slate-300 hover:text-white font-sans text-xs transition-all cursor-pointer"
                   >
-                    STUDY
+                    Study
                   </button>
                 </div>
               </div>
@@ -1756,25 +1755,29 @@ export default function App() {
               </div>
 
               {/* Past Chats List */}
-              <div className="flex flex-col gap-3 mt-4">
-                <span className="font-mono text-[9px] text-amber-500/80 uppercase tracking-widest border-b border-amber-500/15 pb-1.5 font-bold">
-                  Past Chats
+              <div className="flex flex-col gap-2.5 mt-2">
+                <span className="font-sans text-[10px] text-slate-400 uppercase tracking-wider border-b border-white/[0.06] pb-1 font-semibold">
+                  Recent Conversations
                 </span>
                 
-                <div className="flex flex-col gap-2 overflow-y-auto max-h-[320px] pr-1">
+                <div className="flex flex-col gap-1.5 overflow-y-auto max-h-[300px] pr-1 custom-scrollbar">
                   {pastChats.map((chat) => (
                     <div 
                       key={chat.id} 
                       onClick={() => {
                         setSelectedChatId(chat.id);
                       }}
-                      className={`chat-history-card flex items-center justify-between gap-2 text-left transition-all ${selectedChatId === chat.id ? 'active' : ''}`}
+                      className={`p-2 rounded-xl border flex items-center justify-between gap-2 text-left transition-all cursor-pointer ${
+                        selectedChatId === chat.id 
+                          ? 'bg-indigo-600/20 border-indigo-400/40 text-indigo-200 shadow-sm' 
+                          : 'bg-slate-900/50 border-white/[0.06] hover:bg-slate-850 hover:border-white/[0.12] text-slate-300'
+                      }`}
                     >
                       <div className="flex flex-col overflow-hidden">
-                        <span className="font-semibold text-[11px] text-amber-100 truncate w-44">
+                        <span className="font-medium text-xs truncate w-44">
                           {chat.query}
                         </span>
-                        <span className="text-[8px] text-amber-600/70 font-mono mt-0.5">
+                        <span className="text-[10px] text-slate-500 mt-0.5">
                           {chat.timestamp}
                         </span>
                       </div>
@@ -1786,7 +1789,7 @@ export default function App() {
                             setSelectedChatId(null);
                           }
                         }}
-                        className="w-5 h-5 text-[9px] cursor-pointer btn-delete-chat"
+                        className="w-5 h-5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 text-xs flex items-center justify-center cursor-pointer transition-colors"
                         title="Delete Chat"
                       >
                         ✕
@@ -1799,11 +1802,11 @@ export default function App() {
 
             {/* Active Reminders countdown block */}
             {reminders.length > 0 && (
-              <div className="flex flex-col gap-2 mt-4 border-t border-amber-500/15 pt-3">
-                <span className="font-mono text-[9px] text-amber-500/80 uppercase tracking-widest font-bold">
+              <div className="flex flex-col gap-2 mt-3 border-t border-white/[0.06] pt-2.5">
+                <span className="font-sans text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
                   Active Reminders
                 </span>
-                <div className="flex flex-col gap-1.5 max-h-[150px] overflow-y-auto pr-1">
+                <div className="flex flex-col gap-1.5 max-h-[140px] overflow-y-auto pr-1 custom-scrollbar">
                   {reminders.map((r) => {
                     const timeLeft = Math.max(0, Math.round((r.targetTime - Date.now()) / 1000));
                     const mins = Math.floor(timeLeft / 60);
@@ -1811,14 +1814,14 @@ export default function App() {
                     const timeString = `${mins}:${secs.toString().padStart(2, '0')}`;
                     
                     return (
-                      <div key={r.id} className="flex justify-between items-center bg-amber-950/20 border border-amber-500/20 rounded px-2 py-1.5 text-[10px]">
+                      <div key={r.id} className="flex justify-between items-center bg-slate-900/70 border border-white/[0.08] rounded-xl px-2.5 py-1.5 text-xs">
                         <div className="flex flex-col overflow-hidden">
-                          <span className="text-amber-100 truncate w-32 font-medium">{r.task}</span>
-                          <span className="text-[8px] text-amber-600 font-mono">T-MINUS: {timeString}</span>
+                          <span className="text-slate-200 truncate w-32 font-medium">{r.task}</span>
+                          <span className="text-[10px] text-indigo-400 font-mono">In {timeString}</span>
                         </div>
                         <button 
                           onClick={() => setReminders(prev => prev.filter(item => item.id !== r.id))}
-                          className="text-red-400 hover:text-red-300 font-bold px-1"
+                          className="text-slate-400 hover:text-rose-400 font-bold px-1 transition-colors cursor-pointer"
                           title="Cancel Reminder"
                         >
                           ✕
@@ -1831,9 +1834,12 @@ export default function App() {
             )}
 
             {/* Footer details in sidebar */}
-            <div className="border-t border-amber-500/15 pt-3 flex items-center justify-between text-[8px] font-mono text-amber-600/70 uppercase">
-              <span>JWALANT BHATT CREATION v4.1</span>
-              <span>SECURE HUD</span>
+            <div className="border-t border-white/[0.06] pt-3 flex items-center justify-between text-[10px] font-sans text-slate-500">
+              <span>JASPER AI</span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                Active
+              </span>
             </div>
           </aside>
         )}
@@ -1843,95 +1849,95 @@ export default function App() {
           
           {/* Header Panel (Only shown in Classic mode) */}
           {!isOsMode && (
-            <header className={`flex items-center justify-between border-b border-amber-500/20 bg-black/95 backdrop-blur-md shrink-0 ${isMobileLayout ? 'px-3 py-2.5 gap-2' : 'px-4 py-2 gap-2'}`}>
+            <header className={`flex items-center justify-between border-b border-white/[0.08] bg-slate-950/85 backdrop-blur-2xl shrink-0 ${isMobileLayout ? 'px-3 py-2.5 gap-2' : 'px-4 py-2 gap-2'}`}>
               <div className="flex items-center gap-2.5">
                 <button 
                   onClick={() => setShowSidebar(prev => !prev)}
-                  className="btn-hdr-action py-1.5 px-3 font-bold text-xs text-amber-400 border-amber-500/40 bg-amber-950/40 hover:bg-amber-900/60 transition-all flex items-center gap-1.5 cursor-pointer shrink-0 z-30 shadow-[0_0_10px_rgba(245,197,66,0.2)]"
+                  className="py-1.5 px-3 rounded-xl font-medium text-xs text-slate-200 border border-white/[0.08] bg-slate-900/80 hover:bg-slate-850 hover:border-indigo-400/30 transition-all flex items-center gap-1.5 cursor-pointer shrink-0 z-30 shadow-sm"
                   title="Toggle Navigation Menu"
                 >
-                  <span className="text-sm font-extrabold leading-none">☰</span>
-                  <span className="text-[10px] font-mono uppercase tracking-wider">{showSidebar ? 'Hide Menu' : 'Menu'}</span>
+                  <span className="text-sm font-bold leading-none">☰</span>
+                  <span className="text-[11px] font-sans">{showSidebar ? 'Hide' : 'Menu'}</span>
                 </button>
                 <div className="flex flex-col shrink-0">
-                  <h1 className={`font-orbitron font-extrabold tracking-[0.2em] text-amber-400 glow-gold leading-none ${isMobileLayout ? 'text-xs sm:text-sm' : 'text-lg'}`}>
-                    J.A.S.P.E.R
-                  </h1>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
+                    <h1 className={`font-sans font-bold tracking-tight text-slate-100 leading-none ${isMobileLayout ? 'text-xs sm:text-sm' : 'text-base'}`}>
+                      JASPER AI
+                    </h1>
+                  </div>
                   {!isMobileLayout && (
-                    <span className="font-mono text-[9px] text-amber-500/80 tracking-wider mt-1.5 uppercase font-semibold">
-                      Futuristic AI assistant interface
+                    <span className="font-sans text-[10px] text-slate-400 tracking-wide mt-1">
+                      Assistant Workspace
                     </span>
                   )}
                 </div>
               </div>
 
               {/* Actions list */}
-              <div className={`flex items-center gap-1 sm:gap-1.5 ${isMobileLayout ? 'justify-start max-w-[calc(100vw-120px)] overflow-x-auto touch-pan-x overscroll-x-contain scroll-smooth no-scrollbar flex-nowrap py-0.5 shrink-0' : 'gap-2'}`}>
+              <div className={`flex items-center gap-1.5 ${isMobileLayout ? 'justify-start max-w-[calc(100vw-120px)] overflow-x-auto touch-pan-x overscroll-x-contain scroll-smooth no-scrollbar flex-nowrap py-0.5 shrink-0' : 'gap-2'}`}>
                 {updateAvailable && (
                   <a
                     href={apkDownloadUrl || '/api/apk/download'}
                     download="JASPER_Assistant.apk"
-                    className="bg-green-950/90 text-green-300 border border-green-400/80 px-2 py-1 rounded text-[10px] font-mono font-extrabold flex items-center gap-1 hover:bg-green-900 transition-all animate-pulse shadow-[0_0_12px_rgba(34,197,94,0.4)]"
+                    className="bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 px-2.5 py-1 rounded-xl text-[11px] font-sans font-medium flex items-center gap-1 hover:bg-emerald-500/30 transition-all shadow-sm"
                     title="New APK build compiled! Tap to download & update your phone."
                   >
-                    🚀 {isMobileLayout ? 'APK UPDATE' : 'APK UPDATE READY'}
+                    🚀 {isMobileLayout ? 'APK' : 'APK Update Ready'}
                   </a>
                 )}
                 {/* Active AI Engine Provider Badge */}
                 <button 
                   onClick={() => openModal('settings')}
-                  className={`btn-hdr-action text-[10px] py-1 px-2 font-mono font-bold border transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
-                    aiProvider === 'gemini'
-                      ? 'text-purple-300 border-purple-500/40 bg-purple-950/40 hover:bg-purple-900/60 shadow-[0_0_10px_rgba(168,85,247,0.2)]'
-                      : 'text-cyan-300 border-cyan-500/40 bg-cyan-950/40 hover:bg-cyan-900/60 shadow-[0_0_10px_rgba(6,182,212,0.2)]'
-                  }`}
-                  title={`Active AI Engine: ${aiProvider === 'gemini' ? 'Google Gemini Cloud (with seamless Local Ollama failover)' : `Local Ollama (${ollamaModel})`}. Click to configure.`}
+                  className="text-[11px] py-1 px-2.5 rounded-xl font-sans font-medium border border-white/[0.08] bg-slate-900 hover:bg-slate-850 text-slate-300 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+                  title={`Active AI Engine: ${aiProvider === 'gemini' ? 'Google Gemini Cloud' : `Local Ollama (${ollamaModel})`}. Click to configure.`}
                 >
-                  <span className={`w-1.5 h-1.5 rounded-full ${aiProvider === 'gemini' ? 'bg-purple-400 animate-pulse' : 'bg-cyan-400 animate-pulse'}`} />
-                  {aiProvider === 'gemini' ? '☁️ CLOUD AI' : `🦙 LOCAL AI`}
+                  <span className={`w-1.5 h-1.5 rounded-full ${aiProvider === 'gemini' ? 'bg-purple-400 animate-pulse' : 'bg-sky-400 animate-pulse'}`} />
+                  {aiProvider === 'gemini' ? 'Cloud AI' : 'Local AI'}
                 </button>
 
                 <button 
                   onClick={() => setIsOsMode(true)}
-                  className="btn-hdr-action text-[10px] py-1 px-2.5 font-mono font-extrabold text-amber-300 border-amber-400/80 bg-amber-950/80 hover:bg-amber-800/90 transition-all flex items-center gap-1 cursor-pointer shadow-[0_0_15px_rgba(245,197,66,0.3)] animate-pulse"
+                  className="text-[11px] py-1 px-2.5 rounded-xl font-sans font-semibold text-indigo-200 border border-indigo-400/40 bg-indigo-600/20 hover:bg-indigo-600/30 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
                   title="Switch to JASPER OS Spatial Desktop Environment"
                 >
-                  🖥️ {isMobileLayout ? 'OS MODE' : 'OS DESKTOP MODE'}
+                  <Monitor size={12} className="text-indigo-400" />
+                  {isMobileLayout ? 'OS Mode' : 'OS Desktop'}
                 </button>
                 <button 
                   onClick={() => {
                     setSelectedChatId(null);
                     scrollToTop();
                   }}
-                  className="btn-hdr-action text-[10px] py-1 px-2.5 font-mono font-extrabold text-amber-300 border-amber-400/60 bg-amber-950/70 hover:bg-amber-800/80 transition-all flex items-center gap-1 cursor-pointer shadow-[0_0_12px_rgba(245,197,66,0.25)]"
-                  title="Return to Main J.A.R.V.I.S. Home HUD"
+                  className="text-[11px] py-1 px-2.5 rounded-xl font-sans font-medium text-slate-300 border border-white/[0.08] bg-slate-900 hover:bg-slate-850 hover:text-white transition-all flex items-center gap-1 cursor-pointer"
+                  title="Return to Main Chat"
                 >
-                  🏠 {isMobileLayout ? 'HOME' : 'HOME HUD'}
+                  🏠 {isMobileLayout ? 'Home' : 'Home'}
                 </button>
                 <button 
                   onClick={() => setViewMode(prev => prev === 'mobile' ? 'pc' : 'mobile')}
-                  className="btn-hdr-action text-[10px] py-1 px-2 font-mono font-bold text-amber-300 border-amber-500/50 bg-amber-950/40 hover:bg-amber-900/60 transition-all flex items-center gap-1 cursor-pointer"
+                  className="text-[11px] py-1 px-2.5 rounded-xl font-sans font-medium text-slate-300 border border-white/[0.08] bg-slate-900 hover:bg-slate-850 hover:text-white transition-all flex items-center gap-1 cursor-pointer"
                   title="Switch UI Layout between Mobile Touch & Full PC HUD"
                 >
-                  {viewMode === 'mobile' ? '🖥️ PC Layout' : '📱 Mobile Layout'}
+                  {viewMode === 'mobile' ? '🖥️ PC Layout' : '📱 Mobile'}
                 </button>
 
                 <button 
                   onClick={() => setShowLaptopConnect(true)}
-                  className="btn-hdr-action text-[10px] py-1 px-2 font-mono font-bold text-amber-300 border-amber-500/50 bg-amber-950/60 hover:bg-amber-900/80 transition-all flex items-center gap-1 cursor-pointer shadow-[0_0_10px_rgba(245,197,66,0.2)]"
+                  className="text-[11px] py-1 px-2.5 rounded-xl font-sans font-medium text-slate-300 border border-white/[0.08] bg-slate-900 hover:bg-slate-850 hover:text-white transition-all flex items-center gap-1 cursor-pointer"
                   title="Connect to Laptop Mode"
                 >
-                  <Laptop size={12} className="text-amber-400" />
-                  {isMobileLayout ? '💻 Laptop' : '💻 Connect Laptop'}
+                  <Laptop size={12} className="text-indigo-400" />
+                  {isMobileLayout ? 'Laptop' : 'Laptop'}
                 </button>
 
                 <button 
                   onClick={() => setShowBlenderStudio(true)}
-                  className="btn-hdr-action text-[10px] py-1 px-2 font-mono font-bold text-cyan-300 border-cyan-500/50 bg-cyan-950/60 hover:bg-cyan-900/80 transition-all flex items-center gap-1 cursor-pointer shadow-[0_0_10px_rgba(6,182,212,0.2)]"
+                  className="text-[11px] py-1 px-2.5 rounded-xl font-sans font-medium text-slate-300 border border-white/[0.08] bg-slate-900 hover:bg-slate-850 hover:text-white transition-all flex items-center gap-1 cursor-pointer"
                   title="Open Blender 3D Graphics Studio"
                 >
-                  <Box size={12} className="text-cyan-400" />
-                  {isMobileLayout ? '🎨 3D' : '🎨 Blender 3D'}
+                  <Box size={12} className="text-sky-400" />
+                  {isMobileLayout ? '3D' : '3D Studio'}
                 </button>
 
                 <button 
@@ -1939,30 +1945,27 @@ export default function App() {
                     const updated = togglePhoneBrainMode();
                     setIsPhoneBrainModeState(updated);
                   }}
-                  className={`btn-hdr-action text-[10px] py-1 px-2 font-mono font-bold transition-all flex items-center gap-1 ${
+                  className={`text-[11px] py-1 px-2.5 rounded-xl font-sans font-medium transition-all flex items-center gap-1 ${
                     isPhoneBrainMode 
-                      ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-[0_0_10px_rgba(245,197,66,0.3)]' 
-                      : 'text-amber-400 hover:text-amber-200'
+                      ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-400/40 shadow-sm' 
+                      : 'text-slate-400 hover:text-slate-200 border border-white/[0.08] bg-slate-900'
                   }`}
                   title="Toggle Mobile Master Brain Mode"
                 >
-                  {isPhoneBrainMode ? (isMobileLayout ? '📱 MOBILE CORE' : '📱 PHONE IS BRAIN') : (isMobileLayout ? '🧠 PC CORE' : '🧠 PC IS CORE')}
+                  {isPhoneBrainMode ? (isMobileLayout ? '📱 Phone Core' : '📱 Phone Core') : (isMobileLayout ? '🧠 PC Core' : '🧠 PC Core')}
                 </button>
                 <button 
                   onClick={() => setIsLocked(true)}
-                  className="btn-hdr-action text-[10px] py-1 px-2"
+                  className="text-[11px] py-1 px-2.5 rounded-xl font-sans text-rose-300 bg-rose-500/15 border border-rose-500/25 hover:bg-rose-500/25 transition-all cursor-pointer"
                 >
-                  {isMobileLayout ? 'Lock' : 'Back to login'}
+                  {isMobileLayout ? 'Lock' : 'Lock'}
                 </button>
                 <button 
                   onClick={() => setShowSettings(true)}
-                  className="btn-hdr-status glow-gold cursor-pointer text-[10px] py-1 px-2 flex items-center gap-1 font-mono font-bold"
+                  className="cursor-pointer text-[11px] py-1 px-2.5 rounded-xl font-sans font-medium bg-slate-900 border border-white/[0.08] text-slate-300 hover:text-white flex items-center gap-1"
                   title="Configure AI Engine & Provider"
                 >
-                  {aiProvider === 'ollama' 
-                    ? (isMobileLayout ? '🦙 Ollama' : `🦙 Ollama (${ollamaModel})`)
-                    : (apiKey ? (isMobileLayout ? '☁️ Gemini' : '☁️ Gemini Cloud') : (isMobileLayout ? '○ Offline' : 'Core Offline'))
-                  }
+                  ⚙️ Settings
                 </button>
               </div>
             </header>
@@ -2007,29 +2010,27 @@ export default function App() {
             <div 
               ref={hudPanelRef}
               onScroll={handleHudScroll}
-              className={`hud-panel flex-1 overflow-y-auto relative bg-black border border-amber-500/20 ${isMobileLayout ? 'p-3 sm:p-5' : 'p-4'}`}
+              className={`flex-1 overflow-y-auto relative bg-slate-950/80 border border-white/[0.08] rounded-2xl backdrop-blur-2xl shadow-2xl ${isMobileLayout ? 'p-3 sm:p-5' : 'p-5'} transition-all`}
             >
-              {/* Scanline laser */}
-              <div className="absolute inset-x-0 top-0 h-0.5 bg-amber-500/20 pointer-events-none animate-pulse" />
+              {/* Subtle Ambient Top Border Highlight */}
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent pointer-events-none" />
               
-              {/* Loader */}
+              {/* Modern Loader */}
               {jasperState === 'processing' && (
-                <div className="absolute inset-0 bg-black/75 backdrop-blur-sm flex flex-col items-center justify-center gap-4 z-20 animate-in fade-in duration-200">
-                  <div className="relative w-12 h-12 flex items-center justify-center border border-amber-500/40 rounded-full animate-spin" style={{ animationDuration: '6s' }}>
-                    <div className="w-8 h-8 border border-amber-400/60 rounded-full animate-ping" />
-                  </div>
-                  <div className="font-mono text-[9px] text-amber-400 tracking-widest uppercase animate-pulse">
-                    COMPUTING NEURAL PATHWAYS...
+                <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center gap-3.5 z-20 animate-in fade-in duration-200">
+                  <div className="w-8 h-8 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+                  <div className="font-sans text-xs text-slate-300 font-medium tracking-wide">
+                    Processing directive...
                   </div>
                 </div>
               )}
 
               {/* Chat View */}
               {selectedChatId ? (
-                <div className={`flex flex-col gap-4 leading-relaxed text-slate-200 ${isMobileLayout ? 'text-[18px]' : 'text-[14px]'}`} style={{ fontSize: isMobileLayout ? '18px' : '14px' }}>
-                  <div className="flex justify-between items-center border-b border-amber-500/20 pb-2 mb-1 select-none font-orbitron text-[9px] text-amber-400 tracking-wider">
-                    <span className="truncate max-w-[70%]">QUERY: {pastChats.find(c => c.id === selectedChatId)?.query}</span>
-                    <span className="shrink-0">{pastChats.find(c => c.id === selectedChatId)?.timestamp}</span>
+                <div className={`flex flex-col gap-4 leading-relaxed text-slate-200 ${isMobileLayout ? 'text-[16px]' : 'text-[14px]'}`}>
+                  <div className="flex justify-between items-center px-4 py-2 rounded-xl bg-slate-900/80 border border-white/[0.08] select-none text-xs text-slate-300 shadow-sm">
+                    <span className="truncate max-w-[70%] font-medium">Prompt: {pastChats.find(c => c.id === selectedChatId)?.query}</span>
+                    <span className="shrink-0 text-slate-500 text-[11px]">{pastChats.find(c => c.id === selectedChatId)?.timestamp}</span>
                   </div>
 
                   {/* Attached Files in user message */}
@@ -2039,20 +2040,20 @@ export default function App() {
                         att.isImage ? (
                           <div 
                             key={att.id} 
-                            className="relative group cursor-pointer border border-amber-500/30 rounded-lg overflow-hidden bg-black/60 p-1.5 hover:border-amber-400 transition-all shadow-[0_0_15px_rgba(245,197,66,0.15)]"
+                            className="relative group cursor-pointer border border-white/[0.1] rounded-xl overflow-hidden bg-slate-900/80 p-1.5 hover:border-indigo-400/50 transition-all shadow-md"
                             onClick={() => setLightboxImage(att.dataUrl)}
                           >
-                            <img src={att.dataUrl} alt={att.name} className="h-36 max-w-xs object-cover rounded" />
-                            <div className="absolute inset-0 bg-amber-950/75 opacity-0 group-hover:opacity-100 flex items-center justify-center text-amber-300 font-mono text-xs transition-opacity">
+                            <img src={att.dataUrl} alt={att.name} className="h-36 max-w-xs object-cover rounded-lg" />
+                            <div className="absolute inset-0 bg-slate-950/75 opacity-0 group-hover:opacity-100 flex items-center justify-center text-indigo-300 font-sans text-xs font-medium transition-opacity">
                               🔍 Expand Image
                             </div>
                           </div>
                         ) : (
-                          <div key={att.id} className="flex items-center gap-2.5 px-3 py-2 bg-neutral-900/90 border border-amber-500/30 rounded-lg font-mono text-xs text-amber-200">
+                          <div key={att.id} className="flex items-center gap-2.5 px-3 py-2 bg-slate-900/90 border border-white/[0.08] rounded-xl font-sans text-xs text-slate-200 shadow-sm">
                             <span className="text-xl">{att.icon || '📄'}</span>
                             <div className="flex flex-col">
-                              <span className="font-semibold text-amber-100 truncate max-w-[200px]">{att.name}</span>
-                              <span className="text-[10px] text-amber-400/80">{(att.size / 1024).toFixed(1)} KB</span>
+                              <span className="font-medium text-slate-100 truncate max-w-[200px]">{att.name}</span>
+                              <span className="text-[10px] text-slate-400">{(att.size / 1024).toFixed(1)} KB</span>
                             </div>
                           </div>
                         )
@@ -2060,104 +2061,106 @@ export default function App() {
                     </div>
                   )}
 
-                  <div style={{ fontSize: isMobileLayout ? '18px' : '14px' }}>{renderResponseText(pastChats.find(c => c.id === selectedChatId)?.response)}</div>
+                  <div className="p-4 rounded-2xl bg-slate-900/50 border border-white/[0.06] shadow-sm leading-relaxed text-slate-100 font-sans">
+                    {renderResponseText(pastChats.find(c => c.id === selectedChatId)?.response)}
+                  </div>
                 </div>
               ) : (
-                /* Welcomes user with heroic Arc Reactor and J.A.R.V.I.S. Quick Pills */
-                <div className={`flex ${isMobileLayout ? 'flex-col items-center justify-center h-full gap-5 py-4' : 'flex-row items-start gap-5 py-2 h-full'}`}>
-                  {/* Left: Arc Reactor + Title (column on mobile, left panel on laptop) */}
-                  <div className={`flex flex-col items-center justify-center gap-3 ${isMobileLayout ? '' : 'w-44 shrink-0 pt-6'}`}>
-                    <div className="text-center font-orbitron">
-                      <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 mb-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
-                        <span className="text-[9px] font-bold tracking-wider text-amber-300">J.A.S.P.E.R. v4.1</span>
+                /* Welcomes user with sleek Obsidian Hero and Bento Directives */
+                <div className={`flex ${isMobileLayout ? 'flex-col items-center justify-center h-full gap-5 py-4' : 'flex-row items-start gap-6 py-4 h-full'}`}>
+                  {/* Left: Core Avatar + Welcome text */}
+                  <div className={`flex flex-col items-center justify-center gap-3.5 ${isMobileLayout ? '' : 'w-48 shrink-0 pt-4'}`}>
+                    <div className="text-center font-sans">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-400/20 mb-2">
+                        <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
+                        <span className="text-xs font-semibold text-indigo-300">JASPER AI CORE</span>
                       </div>
-                      <h3 className="text-amber-400 font-extrabold text-xs tracking-widest glow-gold">AT YOUR SERVICE</h3>
-                      <p className="font-mono text-[9px] text-amber-400/70 uppercase tracking-wider mt-0.5">
-                        {isMobileLayout ? 'Speak your directive.' : 'Select a command or speak.'}
+                      <h3 className="text-slate-100 font-bold text-base tracking-tight">At Your Service</h3>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        {isMobileLayout ? 'Speak or type your prompt.' : 'Select a directive or ask anything.'}
                       </p>
                     </div>
-                    <div className={`hero-arc-animated ${isMobileLayout ? 'w-36 h-36' : 'w-32 h-32'}`}>
+                    <div className={`hero-arc-animated ${isMobileLayout ? 'w-32 h-32' : 'w-28 h-28'} cursor-pointer hover:scale-105 transition-transform`}>
                       <ArcReactor state={jasperState} onClick={handleReactorClick} />
                     </div>
                   </div>
-                  {/* Right: Quick Directives (compact on laptop) */}
 
-                  <div className={`grid gap-2 ${isMobileLayout ? 'grid-cols-2 sm:grid-cols-3 max-w-xl w-full px-2' : 'grid-cols-2 flex-1 content-start'}`}>
+                  {/* Right: Quick Bento Directives */}
+                  <div className={`grid gap-2.5 ${isMobileLayout ? 'grid-cols-2 sm:grid-cols-3 max-w-xl w-full px-2' : 'grid-cols-2 flex-1 content-start'}`}>
                     <button 
                       onClick={() => setShowVideoStudio(true)}
-                      className="p-2.5 rounded-xl bg-neutral-900/80 hover:bg-amber-500/15 border border-red-500/40 hover:border-red-400 text-left transition-all group flex items-center gap-2.5"
+                      className="p-3 rounded-2xl bg-slate-900/60 hover:bg-slate-850 hover:border-indigo-400/40 border border-white/[0.08] text-left transition-all group flex items-center gap-3 shadow-sm cursor-pointer"
                     >
-                      <span className="text-lg p-1.5 rounded-lg bg-red-500/15 border border-red-500/30 group-hover:scale-110 transition-transform">🎬</span>
+                      <span className="text-xl p-2 rounded-xl bg-indigo-500/15 border border-indigo-400/20 group-hover:scale-105 transition-transform">🎬</span>
                       <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-bold text-red-200 truncate">AI Video Studio</span>
-                        <span className="text-[9px] text-neutral-400 font-mono truncate">CapCut &amp; YouTube Pub</span>
+                        <span className="text-xs font-semibold text-slate-100 truncate">AI Video Studio</span>
+                        <span className="text-[10px] text-slate-400 truncate">Shorts & YouTube Pub</span>
                       </div>
                     </button>
 
                     <button 
                       onClick={triggerMorningBriefing}
-                      className="p-2.5 rounded-xl bg-neutral-900/80 hover:bg-amber-500/15 border border-amber-500/25 hover:border-amber-400 text-left transition-all group flex items-center gap-2.5"
+                      className="p-3 rounded-2xl bg-slate-900/60 hover:bg-slate-850 hover:border-indigo-400/40 border border-white/[0.08] text-left transition-all group flex items-center gap-3 shadow-sm cursor-pointer"
                     >
-                      <span className="text-lg p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 group-hover:scale-110 transition-transform">☀️</span>
+                      <span className="text-xl p-2 rounded-xl bg-amber-500/15 border border-amber-400/20 group-hover:scale-105 transition-transform">☀️</span>
                       <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-bold text-amber-200 truncate">Morning Brief</span>
-                        <span className="text-[9px] text-neutral-400 font-mono truncate">News, weather & agenda</span>
+                        <span className="text-xs font-semibold text-slate-100 truncate">Morning Brief</span>
+                        <span className="text-[10px] text-slate-400 truncate">News, weather & agenda</span>
                       </div>
                     </button>
 
                     <button 
                       onClick={() => handleCommand('Hey Jasper, get ready for work')}
-                      className="p-2.5 rounded-xl bg-neutral-900/80 hover:bg-amber-500/15 border border-amber-500/25 hover:border-amber-400 text-left transition-all group flex items-center gap-2.5"
+                      className="p-3 rounded-2xl bg-slate-900/60 hover:bg-slate-850 hover:border-indigo-400/40 border border-white/[0.08] text-left transition-all group flex items-center gap-3 shadow-sm cursor-pointer"
                     >
-                      <span className="text-lg p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 group-hover:scale-110 transition-transform">💼</span>
+                      <span className="text-xl p-2 rounded-xl bg-sky-500/15 border border-sky-400/20 group-hover:scale-105 transition-transform">💼</span>
                       <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-bold text-amber-200 truncate">Work Mode</span>
-                        <span className="text-[9px] text-neutral-400 font-mono truncate">Open productivity suite</span>
+                        <span className="text-xs font-semibold text-slate-100 truncate">Work Mode</span>
+                        <span className="text-[10px] text-slate-400 truncate">Open productivity suite</span>
                       </div>
                     </button>
 
                     <button 
                       onClick={() => setShowHealthHub(true)}
-                      className="p-2.5 rounded-xl bg-neutral-900/80 hover:bg-amber-500/15 border border-amber-500/25 hover:border-amber-400 text-left transition-all group flex items-center gap-2.5"
+                      className="p-3 rounded-2xl bg-slate-900/60 hover:bg-slate-850 hover:border-indigo-400/40 border border-white/[0.08] text-left transition-all group flex items-center gap-3 shadow-sm cursor-pointer"
                     >
-                      <span className="text-lg p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 group-hover:scale-110 transition-transform">🩺</span>
+                      <span className="text-xl p-2 rounded-xl bg-emerald-500/15 border border-emerald-400/20 group-hover:scale-105 transition-transform">🩺</span>
                       <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-bold text-amber-200 truncate">Health Vitals</span>
-                        <span className="text-[9px] text-neutral-400 font-mono truncate">Fitband & ECG monitor</span>
+                        <span className="text-xs font-semibold text-slate-100 truncate">Health Vitals</span>
+                        <span className="text-[10px] text-slate-400 truncate">Fitband & ECG monitor</span>
                       </div>
                     </button>
 
                     <button 
                       onClick={triggerVisionAnalysis}
-                      className="p-2.5 rounded-xl bg-neutral-900/80 hover:bg-amber-500/15 border border-amber-500/25 hover:border-amber-400 text-left transition-all group flex items-center gap-2.5"
+                      className="p-3 rounded-2xl bg-slate-900/60 hover:bg-slate-850 hover:border-indigo-400/40 border border-white/[0.08] text-left transition-all group flex items-center gap-3 shadow-sm cursor-pointer"
                     >
-                      <span className="text-lg p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 group-hover:scale-110 transition-transform">👁️</span>
+                      <span className="text-xl p-2 rounded-xl bg-purple-500/15 border border-purple-400/20 group-hover:scale-105 transition-transform">👁️</span>
                       <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-bold text-amber-200 truncate">Vision AI Scan</span>
-                        <span className="text-[9px] text-neutral-400 font-mono truncate">Scan desk & camera</span>
+                        <span className="text-xs font-semibold text-slate-100 truncate">Vision AI Scan</span>
+                        <span className="text-[10px] text-slate-400 truncate">Scan desk & camera</span>
                       </div>
                     </button>
 
                     <button 
                       onClick={() => setShowHologramModal(true)}
-                      className="p-2.5 rounded-xl bg-neutral-900/80 hover:bg-amber-500/15 border border-amber-500/25 hover:border-amber-400 text-left transition-all group flex items-center gap-2.5"
+                      className="p-3 rounded-2xl bg-slate-900/60 hover:bg-slate-850 hover:border-indigo-400/40 border border-white/[0.08] text-left transition-all group flex items-center gap-3 shadow-sm cursor-pointer"
                     >
-                      <span className="text-lg p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 group-hover:scale-110 transition-transform">🌌</span>
+                      <span className="text-xl p-2 rounded-xl bg-cyan-500/15 border border-cyan-400/20 group-hover:scale-105 transition-transform">🌌</span>
                       <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-bold text-amber-200 truncate">3D Hologram</span>
-                        <span className="text-[9px] text-neutral-400 font-mono truncate">Blender 3D Graphics</span>
+                        <span className="text-xs font-semibold text-slate-100 truncate">3D Hologram</span>
+                        <span className="text-[10px] text-slate-400 truncate">Blender 3D Graphics</span>
                       </div>
                     </button>
 
                     <button 
                       onClick={() => setShowTvRemote(!showTvRemote)}
-                      className="p-2.5 rounded-xl bg-neutral-900/80 hover:bg-amber-500/15 border border-amber-500/25 hover:border-amber-400 text-left transition-all group flex items-center gap-2.5"
+                      className="p-3 rounded-2xl bg-slate-900/60 hover:bg-slate-850 hover:border-indigo-400/40 border border-white/[0.08] text-left transition-all group flex items-center gap-3 shadow-sm cursor-pointer"
                     >
-                      <span className="text-lg p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 group-hover:scale-110 transition-transform">📺</span>
+                      <span className="text-xl p-2 rounded-xl bg-indigo-500/15 border border-indigo-400/20 group-hover:scale-105 transition-transform">📺</span>
                       <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-bold text-amber-200 truncate">Remote & Volume</span>
-                        <span className="text-[9px] text-neutral-400 font-mono truncate">Control TV & PC audio</span>
+                        <span className="text-xs font-semibold text-slate-100 truncate">Remote & Volume</span>
+                        <span className="text-[10px] text-slate-400 truncate">Control TV & PC audio</span>
                       </div>
                     </button>
                   </div>
@@ -2176,8 +2179,8 @@ export default function App() {
                       <div className="chat-attachment-icon-badge">{att.icon}</div>
                     )}
                     <div className="flex flex-col text-left">
-                      <span className="font-medium text-amber-100 truncate max-w-[140px]">{att.name}</span>
-                      <span className="text-[9px] text-amber-400">{(att.size / 1024).toFixed(1)} KB</span>
+                      <span className="font-medium text-slate-100 truncate max-w-[140px]">{att.name}</span>
+                      <span className="text-[10px] text-slate-400">{(att.size / 1024).toFixed(1)} KB</span>
                     </div>
                     <button
                       type="button"
@@ -2202,13 +2205,13 @@ export default function App() {
               accept="image/*,application/pdf,text/*,.js,.jsx,.ts,.tsx,.json,.csv,.py,.md,.html,.css,.c,.cpp,.java,.mp3,.wav,.ogg,.m4a"
             />
 
-            {/* Input Form */}
-            <form onSubmit={handleManualSubmit} className={`flex border-t border-amber-500/20 select-none shrink-0 ${isMobileLayout ? 'flex-col gap-2 mt-2 pt-2' : 'flex-row gap-2 mt-2 pt-2'}`}>
-              <div className="flex items-center gap-2 w-full">
+            {/* Input Form (Obsidian Frosted Glass Bar) */}
+            <form onSubmit={handleManualSubmit} className={`flex items-center gap-2 p-1.5 bg-slate-950/90 border border-white/[0.1] rounded-2xl backdrop-blur-2xl shadow-xl mt-3 select-none shrink-0 ${isMobileLayout ? 'flex-col gap-2' : 'flex-row'}`}>
+              <div className="flex items-center gap-2 w-full flex-1">
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="btn-attach shrink-0 text-amber-400 hover:text-amber-200"
+                  className="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-850 text-slate-400 hover:text-indigo-300 border border-white/[0.08] transition-all cursor-pointer shrink-0"
                   title="Upload image or file"
                 >
                   📎
@@ -2218,15 +2221,15 @@ export default function App() {
                   value={manualInput}
                   onChange={(e) => setManualInput(e.target.value)}
                   onPaste={handlePaste}
-                  placeholder={pendingAttachments.length > 0 ? "Ask JASPER about uploaded file(s)..." : "Enter command or question, paste or drop files..."}
-                  className={`input-main bg-black/60 px-4 py-3 border border-amber-500/30 text-amber-100 placeholder-amber-700/60 outline-none font-mono text-sm sm:text-base w-full focus:border-amber-400/80 transition-all`}
-                  style={{ fontSize: '16px' }}
+                  placeholder={pendingAttachments.length > 0 ? "Ask JASPER about uploaded file(s)..." : "Ask JASPER anything, enter a command, or paste files..."}
+                  className="input-main flex-1 bg-transparent px-3 py-2 text-slate-100 placeholder-slate-500 outline-none font-sans text-sm sm:text-base w-full transition-all"
+                  style={{ fontSize: '15px' }}
                 />
               </div>
-              <div className={`flex gap-2 ${isMobileLayout ? 'w-full shrink-0' : ''}`}>
+              <div className={`flex items-center gap-2 ${isMobileLayout ? 'w-full justify-between' : 'shrink-0'}`}>
                 <button 
                   type="submit" 
-                  className={`btn-send flex items-center justify-center shrink-0 ${isMobileLayout ? 'flex-1 py-2.5 text-xs' : ''}`}
+                  className={`btn-send flex items-center justify-center ${isMobileLayout ? 'flex-1 py-2 text-xs' : ''}`}
                 >
                   Send
                 </button>
@@ -2238,14 +2241,14 @@ export default function App() {
                       voiceControllerRef.current.toggleListening();
                     }
                   }}
-                  className={`btn-speak flex items-center justify-center shrink-0 ${isMobileLayout ? 'flex-1 py-2.5 text-xs' : ''}`}
+                  className={`btn-speak flex items-center justify-center ${isMobileLayout ? 'flex-1 py-2 text-xs' : ''}`}
                 >
                   Speak
                 </button>
                 <button 
                   type="button" 
                   onClick={handleClear}
-                  className={`btn-clear flex items-center justify-center shrink-0 ${isMobileLayout ? 'flex-1 py-2.5 text-xs' : ''}`}
+                  className={`btn-clear flex items-center justify-center ${isMobileLayout ? 'flex-1 py-2 text-xs' : ''}`}
                 >
                   Clear
                 </button>
