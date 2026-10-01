@@ -314,16 +314,8 @@ function OsWindow({
 export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'idle', onMicClick, onLockSystem, onOpenSettings, aiStatusLabel = 'Core Offline', isAiOnline = false }) {
   const [activeWorkspace, setActiveWorkspace] = useState('all');
   const [appSearchQuery, setAppSearchQuery] = useState('');
-  const [openWindows, setOpenWindows] = useState({
-    videoStudio: true,
-    searchEngine: true,
-    diagnostics: false,
-    tvRemote: false,
-    pcHub: false,
-    phoneControl: false,
-    security: false,
-    agentic: false
-  });
+  // Clean Desktop Startup: No apps opened by default
+  const [openWindows, setOpenWindows] = useState({});
   const [minimizedWindows, setMinimizedWindows] = useState({});
   const [activeZIndex, setActiveZIndex] = useState({});
   const [topZ, setTopZ] = useState(20);
