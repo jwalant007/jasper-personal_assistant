@@ -174,6 +174,78 @@ const TOOL_REGISTRY = {
     }
   },
 
+  get_account_balances: {
+    name: 'get_account_balances',
+    description: 'Get liquid balances across all payment accounts, credit cards, budget status, and financial runway',
+    permissionLevel: 0,
+    parameters: { accountName: 'string (optional)' },
+    async handler({ accountName }) {
+      const summary = dbManager.getFinanceData();
+      if (accountName) {
+        const acc = summary.accounts.find(a => a.name.toLowerCase().includes(accountName.toLowerCase()) || a.type.toLowerCase().includes(accountName.toLowerCase()));
+        if (acc) return { account: acc, currency: summary.settings.defaultCurrency };
+      }
+      return {
+        liquidBalance: summary.analytics.liquidBalance,
+        creditUsed: summary.analytics.creditUsed,
+        netWorth: summary.analytics.netWorth,
+        monthSpend: summary.budget.monthSpend,
+        budgetLimit: summary.budget.monthlyLimit,
+        budgetState: summary.budget.state,
+        runwayDays: summary.analytics.runwayDays,
+        dailyBurnRate: summary.analytics.dailyBurnRate,
+        accounts: summary.accounts.map(a => ({ name: a.name, type: a.type, balance: a.balance })),
+        currency: summary.settings.defaultCurrency
+      };
+    }
+  },
+
+  get_savings_advice: {
+    name: 'get_savings_advice',
+    description: 'Get tailored financial intelligence, high-burn category analysis, and cost-cutting advice',
+    permissionLevel: 0,
+    parameters: {},
+    async handler() {
+      const summary = dbManager.getFinanceData();
+      return {
+        recommendations: summary.analytics.recommendations,
+        topCategories: summary.analytics.categoryBreakdown.slice(0, 3),
+        burnRate: summary.analytics.dailyBurnRate,
+        runwayDays: summary.analytics.runwayDays
+      };
+    }
+  },
+
+  record_payment_transaction: {
+    name: 'record_payment_transaction',
+    description: 'Record an income or expense transaction to an account and update balances',
+    permissionLevel: 1,
+    parameters: { amount: 'number', type: "'expense'|'income'", description: 'string', category: 'string (optional)', accountName: 'string (optional)' },
+    async handler({ amount, type = 'expense', description = 'Expenditure', category, accountName }) {
+      const summary = dbManager.getFinanceData();
+      let targetAcc = summary.accounts[0];
+      if (accountName) {
+        const matched = summary.accounts.find(a => a.name.toLowerCase().includes(accountName.toLowerCase()) || a.type.toLowerCase().includes(accountName.toLowerCase()));
+        if (matched) targetAcc = matched;
+      }
+      const result = dbManager.addTransaction({
+        accountId: targetAcc ? targetAcc.id : 'acc_1',
+        amount: Math.abs(Number(amount)) || 0,
+        type,
+        description,
+        category: category || (type === 'income' ? 'Income' : 'General')
+      });
+      return {
+        success: true,
+        transaction: result.transaction,
+        accountName: targetAcc?.name,
+        newBalance: targetAcc?.balance,
+        budgetState: result.financeSummary?.budget?.state,
+        alertTriggered: result.shouldAlertGuardian
+      };
+    }
+  },
+
   // ── L1: Low-Risk Actions ───────────────────────────────────────────────────
 
   set_pc_volume: {
@@ -613,6 +685,31 @@ Key Directives:
     const results = [];
 
     // ── Intent Routing ──────────────────────────────────────────────────────
+
+    // Financial Account Balance & Budget
+    if (lower.match(/balance|how much (money|cash)|bank account|pay vault|net worth|what('s| is) my (balance|money)|runway|burn rate|budget limit|guardian alert/)) {
+      const r = await this.executeTool('get_account_balances', {});
+      results.push({ intent: 'financial_balance', ...r });
+    }
+
+    // Savings Advice & Cost-cutting
+    if (lower.match(/save money|saving tip|cost cutting|how to save|financial advice|frugal/)) {
+      const r = await this.executeTool('get_savings_advice', {});
+      results.push({ intent: 'savings_advice', ...r });
+    }
+
+    // Expense / Income logging
+    if (lower.match(/(log|record|add|spent|spend)\s+(an?\s+)?(expense|payment|income|\$[\d\.]+|\d+\s*dollars?)/)) {
+      const numMatch = lower.match(/(?:\$|usd\s*|inr\s*|₹\s*)?(\d+(?:\.\d+)?)/);
+      const amount = numMatch ? parseFloat(numMatch[1]) : 20;
+      const isIncome = lower.includes('income') || lower.includes('salary') || lower.includes('deposit');
+      const r = await this.executeTool('record_payment_transaction', {
+        amount,
+        type: isIncome ? 'income' : 'expense',
+        description: query.replace(/(log|record|add|spent|spend)/gi, '').trim() || 'Logged via Jasper'
+      });
+      results.push({ intent: isIncome ? 'record_income' : 'record_expense', ...r });
+    }
 
     // Volume
     if (lower.match(/volume|mute|unmute|louder|quieter|sound/)) {

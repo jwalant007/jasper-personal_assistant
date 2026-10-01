@@ -43,12 +43,14 @@ import BlenderStudioModal from './BlenderStudioModal';
 import HolographicAnswerModal from './HolographicAnswerModal';
 import PhoneSentinelWidget from './PhoneSentinelWidget';
 import JasperVideoStudioApp from './JasperVideoStudioApp';
-import { Calculator, FileCode, Compass, MessageSquare, ShieldAlert, Video } from 'lucide-react';
+import PaymentBalanceWidget from './PaymentBalanceWidget';
+import { Calculator, FileCode, Compass, MessageSquare, ShieldAlert, Video, Wallet } from 'lucide-react';
 
 /**
- * ALL NATIVE JASPER OS APPLICATIONS REGISTRY (31 NATIVE APPS)
+ * ALL NATIVE JASPER OS APPLICATIONS REGISTRY
  */
 const JASPER_OS_APPS_REGISTRY = [
+  { id: 'payVault', title: 'Pay Vault & Guardian Budget', category: 'Finance & Security', icon: Wallet, component: PaymentBalanceWidget, defaultSize: { w: 940, h: 640 } },
   { id: 'videoStudio', title: 'AI Video Creator & YouTube Studio', category: 'Creative & AI', icon: Video, component: JasperVideoStudioApp, defaultSize: { w: 980, h: 660 } },
   { id: 'phoneSentinel', title: 'Phone Sentinel & Offline Alerts', category: 'Hardware Control', icon: ShieldAlert, component: PhoneSentinelWidget, defaultSize: { w: 760, h: 580 } },
   { id: 'agentHub', title: 'JASPER AI Agent Hub', category: 'AI & Intelligence', icon: Brain, component: JasperAgentHubWidget, defaultSize: { w: 920, h: 640 } },

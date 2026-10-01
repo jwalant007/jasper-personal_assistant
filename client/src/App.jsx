@@ -44,6 +44,7 @@ import MapsWidget from './components/MapsWidget';
 import EmergencyAlertToast from './components/EmergencyAlertToast';
 import PhoneSentinelWidget from './components/PhoneSentinelWidget';
 import JasperVideoStudioApp from './components/JasperVideoStudioApp';
+import PaymentBalanceWidget from './components/PaymentBalanceWidget';
 import geminiClient from './utils/geminiClient';
 import { getServerIp, setServerIp, getApiBase, getWsBase } from './utils/apiConfig.js';
 import { getPhoneBrainMode, setPhoneBrainMode, togglePhoneBrainMode } from './utils/mobileBrain.js';
@@ -203,6 +204,8 @@ export default function App() {
   const setShowCalculator = (v) => v ? openModal('calculator') : closeModal('calculator');
   const showLaptopConnect = isModalOpen('laptopConnect');
   const setShowLaptopConnect = (v) => v ? openModal('laptopConnect') : closeModal('laptopConnect');
+  const showPaymentBalance = isModalOpen('paymentBalance') || isModalOpen('payVault');
+  const setShowPaymentBalance = (v) => v ? openModal('paymentBalance') : closeModal('paymentBalance');
   const showHologramModal = isModalOpen('hologram');
   const setShowHologramModal = (v) => v ? openModal('hologram') : closeModal('hologram');
   const [hologramQuery, setHologramQuery] = useState('');
@@ -1165,6 +1168,27 @@ export default function App() {
     if (isDirectMapQuery) {
       setShowMaps(true);
       const response = `Opening Spatial GPS & Satellite Intelligence for you, Sir. Real-time satellite positioning, turn-by-turn routing, and orbital recon are active.`;
+      const newChat = {
+        id: Date.now(),
+        query: queryText,
+        attachments: attachments,
+        response: response,
+        timestamp: new Date().toLocaleString()
+      };
+      setPastChats((prev) => [newChat, ...prev]);
+      setSelectedChatId(newChat.id);
+      setSpeakingText(response);
+      if (voiceControllerRef.current) {
+        voiceControllerRef.current.playSuccess();
+      }
+      return;
+    }
+
+    // Intercept Payment & Guardian Budget Commands
+    const isPaymentQuery = /^(check\s+balance|account\s+balance|my\s+balance|total\s+balance|open\s+(payment|balance|finances?|pay\s+vault|budget)|guardian\s+budget|how\s+much\s+money\s+do\s+i\s+have)(\s+app)?$/i.test(queryText.trim());
+    if (isPaymentQuery) {
+      setShowPaymentBalance(true);
+      const response = `Opening your Pay Vault & Guardian Budget Sentinel, Sir. Displaying multi-account liquidity, monthly budget limits, and runway projections.`;
       const newChat = {
         id: Date.now(),
         query: queryText,
@@ -3103,6 +3127,15 @@ export default function App() {
         <DraggableModalWrapper isOpen={showVideoStudio} onClose={() => setShowVideoStudio(false)} title="AI Video Creator & YouTube Studio" maxWidth="max-w-7xl">
           <div className="w-full h-full min-h-[640px] flex-1 relative flex flex-col">
             <JasperVideoStudioApp onClose={() => setShowVideoStudio(false)} />
+          </div>
+        </DraggableModalWrapper>
+      )}
+
+      {/* 27. JASPER Payment & Guardian Budget Modal */}
+      {showPaymentBalance && (
+        <DraggableModalWrapper isOpen={showPaymentBalance} onClose={() => setShowPaymentBalance(false)} title="JASPER Pay Vault & Guardian Hub" maxWidth="max-w-6xl">
+          <div className="w-full h-full min-h-[580px] flex-1 relative flex flex-col">
+            <PaymentBalanceWidget onClose={() => setShowPaymentBalance(false)} />
           </div>
         </DraggableModalWrapper>
       )}

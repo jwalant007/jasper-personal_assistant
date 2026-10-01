@@ -2208,6 +2208,195 @@ app.delete('/api/memory/:id', (req, res) => {
   res.json({ success: true, memories });
 });
 
+// -------------------------------------------------------------
+// JASPER FINANCE & GUARDIAN BUDGET CORE ENDPOINTS
+// -------------------------------------------------------------
+
+// Helper to dispatch Guardian Alert message
+async function dispatchGuardianAlertMessage(details) {
+  const { guardianName, guardianPhone, guardianPlatform, limit, currentSpend, excessAmount, latestExpense } = details;
+  const currency = dbManager.getFinanceData()?.settings?.defaultCurrency || '$';
+  const alertText = `⚠️ JASPER Financial Sentinel Alert:\n` +
+    `Hello ${guardianName || 'Guardian'}, this is an autonomous advisory from Jwalant's JASPER Assistant.\n` +
+    `The monthly spending limit of ${currency}${limit} has been EXCEEDED.\n` +
+    `• Current Total Spend: ${currency}${currentSpend} (+${currency}${excessAmount} over budget)\n` +
+    `• Recent Transaction: ${latestExpense || 'Expenditure logged'}\n` +
+    `• Time: ${new Date().toLocaleTimeString()}\n` +
+    `Jasper has registered this overspend event in system security logs.`;
+
+  console.log(`[Guardian Alert] Dispatching alert to ${guardianName} (${guardianPhone}) via ${guardianPlatform}...`);
+
+  let sendResult = { simulated: true };
+  try {
+    if (guardianPlatform === 'sms' && phoneController?.sendSMS) {
+      sendResult = await phoneController.sendSMS(guardianPhone, alertText);
+    } else if (phoneController?.whatsappSend) {
+      sendResult = await phoneController.whatsappSend(guardianPhone, alertText, '+91 98200 12345');
+    }
+  } catch (err) {
+    console.error('[Guardian Alert] Dispatch error (falling back to log):', err.message);
+  }
+
+  // Record in guardian alert history & social logs
+  dbManager.recordGuardianAlert({
+    type: 'breach',
+    message: alertText,
+    deliveredTo: `${guardianName} (${guardianPhone} via ${guardianPlatform.toUpperCase()})`,
+    status: 'Delivered'
+  });
+
+  dbManager.addSocialLog({
+    platform: guardianPlatform || 'whatsapp',
+    type: 'guardian_financial_alert',
+    recipient: guardianPhone,
+    recipientName: guardianName,
+    incomingTextOrCall: 'Budget Threshold Breach Event',
+    actionTaken: 'Autonomous Guardian Alert Dispatched',
+    messageSent: alertText,
+    status: 'Delivered'
+  });
+
+  broadcastToClients({
+    type: 'GUARDIAN_ALERT_TRIGGERED',
+    alert: {
+      title: 'Guardian Alert Dispatched',
+      guardianName,
+      guardianPhone,
+      message: alertText,
+      excessAmount
+    }
+  });
+
+  return sendResult;
+}
+
+// Full Financial Data Summary
+app.get('/api/finance/summary', (req, res) => {
+  try {
+    const data = dbManager.getFinanceData();
+    res.json({ success: true, ...data });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Accounts CRUD
+app.post('/api/finance/accounts', (req, res) => {
+  try {
+    const account = dbManager.addPaymentAccount(req.body);
+    broadcastToClients({ type: 'FINANCE_UPDATED', summary: dbManager.getFinanceData() });
+    res.json({ success: true, account });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/finance/accounts/:id', (req, res) => {
+  try {
+    const updated = dbManager.updatePaymentAccount(req.params.id, req.body);
+    if (!updated) return res.status(404).json({ error: 'Account not found' });
+    broadcastToClients({ type: 'FINANCE_UPDATED', summary: dbManager.getFinanceData() });
+    res.json({ success: true, account: updated });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/finance/accounts/:id', (req, res) => {
+  try {
+    const accounts = dbManager.deletePaymentAccount(req.params.id);
+    broadcastToClients({ type: 'FINANCE_UPDATED', summary: dbManager.getFinanceData() });
+    res.json({ success: true, accounts });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Transactions
+app.post('/api/finance/transactions', async (req, res) => {
+  try {
+    const result = dbManager.addTransaction(req.body);
+    if (result.shouldAlertGuardian && result.guardianAlertDetails) {
+      // Asynchronously dispatch the guardian message
+      dispatchGuardianAlertMessage(result.guardianAlertDetails).catch(err => {
+        console.error('[Guardian Alert] Async dispatch error:', err);
+      });
+    }
+
+    broadcastToClients({ type: 'FINANCE_UPDATED', summary: dbManager.getFinanceData() });
+    res.json({ success: true, ...result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/finance/transactions/:id', (req, res) => {
+  try {
+    const summary = dbManager.deleteTransaction(req.params.id);
+    broadcastToClients({ type: 'FINANCE_UPDATED', summary });
+    res.json({ success: true, summary });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Transfer Funds
+app.post('/api/finance/transfer', (req, res) => {
+  try {
+    const { fromAccountId, toAccountId, amount, description } = req.body;
+    if (!fromAccountId || !toAccountId || !amount) {
+      return res.status(400).json({ error: 'fromAccountId, toAccountId, and amount are required' });
+    }
+    const result = dbManager.transferFunds({ fromAccountId, toAccountId, amount, description });
+    broadcastToClients({ type: 'FINANCE_UPDATED', summary: dbManager.getFinanceData() });
+    res.json({ success: true, ...result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Budget Settings Update
+app.put('/api/finance/budget', (req, res) => {
+  try {
+    const summary = dbManager.updateBudgetSettings(req.body);
+    broadcastToClients({ type: 'FINANCE_UPDATED', summary });
+    res.json({ success: true, budget: summary.budget });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Finance Settings Update (Currency, Privacy Mode)
+app.put('/api/finance/settings', (req, res) => {
+  try {
+    const settings = dbManager.updateFinanceSettings(req.body);
+    broadcastToClients({ type: 'FINANCE_UPDATED', summary: dbManager.getFinanceData() });
+    res.json({ success: true, settings });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Test Guardian Alert Trigger
+app.post('/api/finance/guardian-alert/test', async (req, res) => {
+  try {
+    const fin = dbManager.getFinanceData();
+    const details = {
+      guardianName: fin.budget?.guardianName || 'Mom',
+      guardianPhone: fin.budget?.guardianPhone || '+91 98200 12345',
+      guardianPlatform: fin.budget?.guardianPlatform || 'whatsapp',
+      limit: fin.budget?.monthlyLimit || 500,
+      currentSpend: fin.budget?.monthSpend || 540,
+      excessAmount: Math.max(0, (fin.budget?.monthSpend || 540) - (fin.budget?.monthlyLimit || 500)),
+      latestExpense: 'Test Simulation: Starbucks Coffee ($5.50)'
+    };
+    const result = await dispatchGuardianAlertMessage(details);
+    res.json({ success: true, message: 'Test Guardian Alert dispatched successfully', result, details });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Analytics Store Endpoint
 const ANALYTICS_FILE = path.join(__dirname, 'analytics_store.json');
 function getAnalytics() {

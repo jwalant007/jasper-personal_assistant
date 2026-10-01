@@ -158,10 +158,48 @@ const DEFAULT_SCHEMA = {
     }
   ],
   settings: {
-    theme: 'cyber-blue',
+    theme: 'obsidian-modern',
     serverIp: 'localhost',
     fitbandMac: 'F4:67:F4:16:7C:53',
     pcMac: '74:12:B3:ED:1C:BF'
+  },
+  finance: {
+    accounts: [
+      { id: 'acc_1', name: 'Primary Checking', type: 'bank', balance: 5420.00, currency: '$', institution: 'Chase Private Client', isDefault: true, color: 'from-blue-600 to-indigo-700' },
+      { id: 'acc_2', name: 'Emergency Vault', type: 'savings', balance: 8200.00, currency: '$', institution: 'High-Yield Reserve', isDefault: false, color: 'from-emerald-600 to-teal-700' },
+      { id: 'acc_3', name: 'Apple Pay / Digital Wallet', type: 'wallet', balance: 480.00, currency: '$', institution: 'Apple Cash', isDefault: false, color: 'from-purple-600 to-violet-700' },
+      { id: 'acc_4', name: 'Obsidian Credit Card', type: 'credit', balance: 750.00, limit: 3500.00, currency: '$', institution: 'Titanium Card', isDefault: false, color: 'from-zinc-700 to-neutral-900' },
+      { id: 'acc_5', name: 'Physical Petty Cash', type: 'cash', balance: 120.00, currency: '$', institution: 'Desk Vault', isDefault: false, color: 'from-amber-600 to-orange-700' }
+    ],
+    budget: {
+      monthlyLimit: 500.00,
+      alertThresholdPercent: 85,
+      guardianName: 'Mom',
+      guardianPhone: '+91 98200 12345',
+      guardianPlatform: 'whatsapp',
+      guardianAlertsEnabled: true,
+      lastAlertDispatchedAt: null,
+      cooldownHours: 24,
+      alertsHistory: [
+        {
+          id: 'ALT-INIT',
+          date: new Date(Date.now() - 86400000 * 5).toISOString(),
+          type: 'warning',
+          message: 'Warning: 85% of monthly budget limit reached ($425 / $500).',
+          deliveredTo: 'Mom (+91 98200 12345 via WhatsApp)',
+          status: 'Delivered'
+        }
+      ]
+    },
+    transactions: [
+      { id: 'tx_1', date: new Date(Date.now() - 86400000 * 2).toISOString(), accountId: 'acc_1', type: 'income', amount: 3200.00, category: 'Salary / Income', description: 'Monthly Direct Deposit', merchant: 'Employer Direct Pay' },
+      { id: 'tx_2', date: new Date(Date.now() - 86400000).toISOString(), accountId: 'acc_3', type: 'expense', amount: 42.50, category: 'Food & Dining', description: 'Dinner with colleagues', merchant: 'Trattoria Bella' },
+      { id: 'tx_3', date: new Date().toISOString(), accountId: 'acc_4', type: 'expense', amount: 89.99, category: 'Software & Tech', description: 'Cloud server hosting renewal', merchant: 'Render / AWS Cloud' }
+    ],
+    settings: {
+      defaultCurrency: '$',
+      privacyMask: false
+    }
   }
 };
 
@@ -552,6 +590,349 @@ class DatabaseManager {
     this.data.social_logs = [];
     this.save();
     return [];
+  }
+
+  // --- FINANCE, ACCOUNTS & GUARDIAN BUDGET CORE ---
+  getFinanceData() {
+    if (!this.data.finance) {
+      this.data.finance = JSON.parse(JSON.stringify(DEFAULT_SCHEMA.finance));
+      this.save();
+    }
+    const fin = this.data.finance;
+    if (!fin.accounts) fin.accounts = [];
+    if (!fin.transactions) fin.transactions = [];
+    if (!fin.budget) fin.budget = { ...DEFAULT_SCHEMA.finance.budget };
+    if (!fin.settings) fin.settings = { defaultCurrency: '$', privacyMask: false };
+
+    // Calculate live analytics
+    let liquidBalance = 0;
+    let creditUsed = 0;
+    let creditLimitTotal = 0;
+
+    fin.accounts.forEach(acc => {
+      const bal = Number(acc.balance) || 0;
+      if (acc.type === 'credit') {
+        creditUsed += bal;
+        creditLimitTotal += (Number(acc.limit) || 0);
+      } else {
+        liquidBalance += bal;
+      }
+    });
+
+    const netWorth = liquidBalance - creditUsed;
+
+    // Monthly Spend & Income Calculation
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    let monthSpend = 0;
+    let monthIncome = 0;
+    const categoryTotals = {};
+
+    fin.transactions.forEach(tx => {
+      const txDate = new Date(tx.date || Date.now());
+      const isThisMonth = txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear;
+      const amount = Number(tx.amount) || 0;
+
+      if (tx.type === 'expense') {
+        if (isThisMonth) monthSpend += amount;
+        const cat = tx.category || 'General';
+        categoryTotals[cat] = (categoryTotals[cat] || 0) + amount;
+      } else if (tx.type === 'income') {
+        if (isThisMonth) monthIncome += amount;
+      }
+    });
+
+    // Budget Status
+    const budgetLimit = Number(fin.budget.monthlyLimit) || 500;
+    const thresholdPercent = Number(fin.budget.alertThresholdPercent) || 85;
+    const percentSpent = budgetLimit > 0 ? Math.round((monthSpend / budgetLimit) * 100) : 0;
+    let budgetState = 'safe'; // 'safe' | 'warning' | 'breached'
+    if (percentSpent >= 100) {
+      budgetState = 'breached';
+    } else if (percentSpent >= thresholdPercent) {
+      budgetState = 'warning';
+    }
+
+    // Daily Burn Rate (using 30-day window or current month days)
+    const daysPassedInMonth = Math.max(1, now.getDate());
+    const dailyBurnRate = monthSpend > 0 ? Math.round((monthSpend / daysPassedInMonth) * 100) / 100 : 18.50;
+    const runwayDays = dailyBurnRate > 0 ? Math.max(0, Math.floor(liquidBalance / dailyBurnRate)) : 999;
+
+    // Trajectory Forecasting (30, 60, 90 days)
+    const dailyIncomeEst = monthIncome > 0 ? monthIncome / 30 : 0;
+    const netDailyFlow = dailyIncomeEst - dailyBurnRate;
+    const projected30 = Math.round(liquidBalance + (netDailyFlow * 30));
+    const projected60 = Math.round(liquidBalance + (netDailyFlow * 60));
+    const projected90 = Math.round(liquidBalance + (netDailyFlow * 90));
+
+    // Category Breakdown Percentages
+    const categoryBreakdown = Object.entries(categoryTotals).map(([name, total]) => ({
+      name,
+      amount: Math.round(total * 100) / 100,
+      percentage: monthSpend > 0 ? Math.round((total / monthSpend) * 100) : 0
+    })).sort((a, b) => b.amount - a.amount);
+
+    // AI Savings Recommendations based on categories
+    const recommendations = [];
+    const topCategory = categoryBreakdown[0];
+    if (topCategory && topCategory.percentage > 30) {
+      recommendations.push({
+        id: 'rec_1',
+        title: `High Burn in ${topCategory.name}`,
+        desc: `${topCategory.name} accounts for ${topCategory.percentage}% of your expenses ($${topCategory.amount}). Reducing this by 20% would preserve $${Math.round(topCategory.amount * 0.20)} every month.`,
+        impact: `+$${Math.round(topCategory.amount * 0.20)}/mo`,
+        type: 'high_burn'
+      });
+    }
+
+    if (creditUsed > (creditLimitTotal * 0.4) && creditLimitTotal > 0) {
+      recommendations.push({
+        id: 'rec_2',
+        title: 'Credit Utilization Warning',
+        desc: `Credit card utilization is at ${Math.round((creditUsed / creditLimitTotal) * 100)}%. Pay down $${Math.round(creditUsed - creditLimitTotal * 0.3)} to keep utilization under the optimal 30% mark.`,
+        impact: 'Boost Score',
+        type: 'credit'
+      });
+    }
+
+    recommendations.push({
+      id: 'rec_3',
+      title: 'Vault Runway Target',
+      desc: `At current burn rate ($${dailyBurnRate}/day), your emergency reserves last ${runwayDays} days. Aim for a 90-day liquid reserve of $${Math.round(dailyBurnRate * 90)}.`,
+      impact: `${runwayDays}d safety`,
+      type: 'runway'
+    });
+
+    return {
+      accounts: fin.accounts,
+      budget: {
+        ...fin.budget,
+        monthSpend: Math.round(monthSpend * 100) / 100,
+        monthIncome: Math.round(monthIncome * 100) / 100,
+        percentSpent,
+        remainingBudget: Math.max(0, Math.round((budgetLimit - monthSpend) * 100) / 100),
+        state: budgetState
+      },
+      transactions: fin.transactions,
+      settings: fin.settings,
+      analytics: {
+        liquidBalance: Math.round(liquidBalance * 100) / 100,
+        creditUsed: Math.round(creditUsed * 100) / 100,
+        creditLimitTotal: Math.round(creditLimitTotal * 100) / 100,
+        netWorth: Math.round(netWorth * 100) / 100,
+        dailyBurnRate,
+        runwayDays,
+        projections: {
+          d30: projected30,
+          d60: projected60,
+          d90: projected90
+        },
+        categoryBreakdown,
+        recommendations
+      }
+    };
+  }
+
+  addPaymentAccount(account) {
+    if (!this.data.finance) this.getFinanceData();
+    const newAccount = {
+      id: `acc_${Date.now()}`,
+      name: account.name || 'New Account',
+      type: account.type || 'bank', // bank, savings, wallet, credit, cash
+      balance: Number(account.balance) || 0,
+      limit: account.type === 'credit' ? (Number(account.limit) || 2000) : 0,
+      currency: account.currency || this.data.finance.settings?.defaultCurrency || '$',
+      institution: account.institution || 'Personal Vault',
+      isDefault: !!account.isDefault,
+      color: account.color || 'from-cyan-600 to-blue-700',
+      createdAt: new Date().toISOString()
+    };
+
+    if (newAccount.isDefault) {
+      this.data.finance.accounts.forEach(a => { a.isDefault = false; });
+    }
+    this.data.finance.accounts.push(newAccount);
+    this.save();
+    return newAccount;
+  }
+
+  updatePaymentAccount(id, updates) {
+    if (!this.data.finance) this.getFinanceData();
+    const idx = this.data.finance.accounts.findIndex(a => a.id === id);
+    if (idx === -1) return null;
+
+    if (updates.isDefault) {
+      this.data.finance.accounts.forEach(a => { a.isDefault = false; });
+    }
+
+    const current = this.data.finance.accounts[idx];
+    this.data.finance.accounts[idx] = {
+      ...current,
+      ...updates,
+      balance: updates.balance !== undefined ? Number(updates.balance) : current.balance,
+      limit: updates.limit !== undefined ? Number(updates.limit) : current.limit
+    };
+
+    this.save();
+    return this.data.finance.accounts[idx];
+  }
+
+  deletePaymentAccount(id) {
+    if (!this.data.finance) this.getFinanceData();
+    this.data.finance.accounts = this.data.finance.accounts.filter(a => a.id !== id);
+    this.save();
+    return this.data.finance.accounts;
+  }
+
+  addTransaction(tx) {
+    if (!this.data.finance) this.getFinanceData();
+    const amount = Math.abs(Number(tx.amount) || 0);
+    const type = tx.type || 'expense'; // 'expense', 'income', 'transfer'
+
+    const newTx = {
+      id: `tx_${Date.now()}`,
+      date: tx.date || new Date().toISOString(),
+      accountId: tx.accountId || this.data.finance.accounts[0]?.id || 'acc_1',
+      toAccountId: tx.toAccountId || null,
+      type,
+      amount,
+      category: tx.category || (type === 'income' ? 'Income' : 'General Expense'),
+      description: tx.description || 'Transaction',
+      merchant: tx.merchant || '',
+      tags: tx.tags || []
+    };
+
+    // Update account balances atomically
+    const acc = this.data.finance.accounts.find(a => a.id === newTx.accountId);
+    if (acc) {
+      if (type === 'expense') {
+        acc.balance = Math.round((Number(acc.balance) - amount) * 100) / 100;
+      } else if (type === 'income') {
+        acc.balance = Math.round((Number(acc.balance) + amount) * 100) / 100;
+      } else if (type === 'transfer' && newTx.toAccountId) {
+        acc.balance = Math.round((Number(acc.balance) - amount) * 100) / 100;
+        const targetAcc = this.data.finance.accounts.find(a => a.id === newTx.toAccountId);
+        if (targetAcc) {
+          targetAcc.balance = Math.round((Number(targetAcc.balance) + amount) * 100) / 100;
+        }
+      }
+    }
+
+    this.data.finance.transactions.unshift(newTx);
+    if (this.data.finance.transactions.length > 500) {
+      this.data.finance.transactions = this.data.finance.transactions.slice(0, 500);
+    }
+
+    // Check Budget Limit & Guardian Protocol
+    const summary = this.getFinanceData();
+    let shouldAlertGuardian = false;
+    let guardianAlertDetails = null;
+
+    if (type === 'expense' && summary.budget.guardianAlertsEnabled && summary.budget.state === 'breached') {
+      const lastAlert = summary.budget.lastAlertDispatchedAt ? new Date(summary.budget.lastAlertDispatchedAt).getTime() : 0;
+      const cooldownMs = (Number(summary.budget.cooldownHours) || 24) * 3600 * 1000;
+      const isPastCooldown = (Date.now() - lastAlert) > cooldownMs;
+
+      if (isPastCooldown) {
+        shouldAlertGuardian = true;
+        guardianAlertDetails = {
+          guardianName: summary.budget.guardianName || 'Guardian',
+          guardianPhone: summary.budget.guardianPhone || '',
+          guardianPlatform: summary.budget.guardianPlatform || 'whatsapp',
+          limit: summary.budget.monthlyLimit,
+          currentSpend: summary.budget.monthSpend,
+          excessAmount: Math.round((summary.budget.monthSpend - summary.budget.monthlyLimit) * 100) / 100,
+          latestExpense: `${newTx.description} (${summary.settings.defaultCurrency}${amount})`
+        };
+        this.data.finance.budget.lastAlertDispatchedAt = new Date().toISOString();
+      }
+    }
+
+    this.save();
+    return {
+      transaction: newTx,
+      financeSummary: summary,
+      shouldAlertGuardian,
+      guardianAlertDetails
+    };
+  }
+
+  deleteTransaction(id) {
+    if (!this.data.finance) this.getFinanceData();
+    const tx = this.data.finance.transactions.find(t => t.id === id);
+    if (tx) {
+      // Reverse balance impact
+      const acc = this.data.finance.accounts.find(a => a.id === tx.accountId);
+      const amount = Number(tx.amount) || 0;
+      if (acc) {
+        if (tx.type === 'expense') {
+          acc.balance = Math.round((Number(acc.balance) + amount) * 100) / 100;
+        } else if (tx.type === 'income') {
+          acc.balance = Math.round((Number(acc.balance) - amount) * 100) / 100;
+        } else if (tx.type === 'transfer' && tx.toAccountId) {
+          acc.balance = Math.round((Number(acc.balance) + amount) * 100) / 100;
+          const targetAcc = this.data.finance.accounts.find(a => a.id === tx.toAccountId);
+          if (targetAcc) {
+            targetAcc.balance = Math.round((Number(targetAcc.balance) - amount) * 100) / 100;
+          }
+        }
+      }
+      this.data.finance.transactions = this.data.finance.transactions.filter(t => t.id !== id);
+      this.save();
+    }
+    return this.getFinanceData();
+  }
+
+  transferFunds({ fromAccountId, toAccountId, amount, description = 'Internal Transfer' }) {
+    return this.addTransaction({
+      accountId: fromAccountId,
+      toAccountId,
+      type: 'transfer',
+      amount,
+      category: 'Transfer',
+      description
+    });
+  }
+
+  updateBudgetSettings(updates) {
+    if (!this.data.finance) this.getFinanceData();
+    this.data.finance.budget = {
+      ...this.data.finance.budget,
+      ...updates
+    };
+    this.save();
+    return this.getFinanceData();
+  }
+
+  recordGuardianAlert(alertRecord) {
+    if (!this.data.finance) this.getFinanceData();
+    if (!this.data.finance.budget.alertsHistory) this.data.finance.budget.alertsHistory = [];
+    const entry = {
+      id: `ALT-${Date.now()}`,
+      date: new Date().toISOString(),
+      type: alertRecord.type || 'breach',
+      message: alertRecord.message || 'Guardian Alert Dispatched',
+      deliveredTo: alertRecord.deliveredTo || '',
+      status: alertRecord.status || 'Delivered'
+    };
+    this.data.finance.budget.alertsHistory.unshift(entry);
+    if (this.data.finance.budget.alertsHistory.length > 50) {
+      this.data.finance.budget.alertsHistory = this.data.finance.budget.alertsHistory.slice(0, 50);
+    }
+    this.save();
+    return entry;
+  }
+
+  updateFinanceSettings(updates) {
+    if (!this.data.finance) this.getFinanceData();
+    this.data.finance.settings = {
+      ...this.data.finance.settings,
+      ...updates
+    };
+    this.save();
+    return this.data.finance.settings;
   }
 
   // --- IMPORT / EXPORT ---
