@@ -36,7 +36,7 @@ export function JasperAppProvider({ children }) {
 
   // Layout & Device View
   const [viewMode, setViewMode] = useState(() => {
-    return localStorage.getItem('jasper_view_mode') || 'hud'; // 'hud' | 'desktop' | 'mobile'
+    return localStorage.getItem('jasper_view_mode') || 'pc'; // 'pc' | 'mobile'
   });
   const [isMobileScreen, setIsMobileScreen] = useState(false);
 

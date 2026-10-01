@@ -1480,6 +1480,21 @@ export default function App() {
   return (
     <div className={`relative flex flex-col overflow-hidden bg-black text-cyan-50 select-none ${viewMode === 'mobile' && !isMobileScreen ? 'w-[360px] h-[800px] max-w-[100vw] max-h-[100dvh] mx-auto my-auto rounded-2xl border border-cyan-500/40 shadow-[0_0_50px_rgba(0,240,255,0.25)]' : 'w-full h-screen'}`}>
       
+      {/* Universal Exit Phone Mode Banner (Always visible on laptop screens) */}
+      {viewMode === 'mobile' && !isMobileScreen && (
+        <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[999999] flex items-center gap-3 px-4 py-2 rounded-full bg-slate-950/95 border border-sky-400 shadow-[0_0_30px_rgba(56,189,248,0.5)] backdrop-blur-2xl">
+          <span className="text-xs font-semibold text-sky-200">📱 Mobile View Active</span>
+          <button
+            onClick={() => setViewMode('pc')}
+            className="px-3.5 py-1 rounded-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-all shadow-lg cursor-pointer"
+            title="Switch back to full laptop/PC screen"
+          >
+            <Monitor size={13} />
+            <span>Switch Back to PC Layout</span>
+          </button>
+        </div>
+      )}
+
       {/* Electron Drag Region */}
       {typeof window !== 'undefined' && (window.electronAPI || (navigator.userAgent && navigator.userAgent.toLowerCase().includes('electron'))) ? (
         <div style={{ WebkitAppRegion: 'drag', height: '24px', width: '100%', position: 'absolute', top: 0, left: 0, zIndex: 9999, pointerEvents: 'none' }}></div>
