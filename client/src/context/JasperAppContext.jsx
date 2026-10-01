@@ -6,9 +6,14 @@ import { getPhoneBrainMode } from '../utils/mobileBrain.js';
 const JasperAppContext = createContext(null);
 
 export function JasperAppProvider({ children }) {
-  // Theme State
+  // Theme State (Modern Obsidian Bento & Frosted Glass Default)
   const [currentTheme, setCurrentTheme] = useState(() => {
-    return localStorage.getItem('jasper_theme') || 'matte-gold';
+    const saved = localStorage.getItem('jasper_theme');
+    if (!saved || saved === 'matte-gold' || saved === 'obsidian-gold') {
+      try { localStorage.setItem('jasper_theme', 'obsidian-modern'); } catch(_) {}
+      return 'obsidian-modern';
+    }
+    return saved;
   });
 
   useEffect(() => {

@@ -3025,13 +3025,14 @@ export default function App() {
               </button>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
+                { id: 'obsidian-modern', name: 'Obsidian Modern (Bento & Frosted Glass)', color: 'bg-gradient-to-tr from-indigo-500 to-sky-400 text-white', border: 'border-indigo-400' },
                 { id: 'matte-gold', name: 'Obsidian Gold (Matte Black & Gold)', color: 'bg-amber-400 text-black', border: 'border-amber-400' },
-                { id: 'cyber-blue', name: 'Cyber Blue', color: 'bg-cyan-500', border: 'border-cyan-500' },
-                { id: 'matrix-green', name: 'Matrix Green', color: 'bg-emerald-500', border: 'border-emerald-500' },
-                { id: 'iron-man-red', name: 'Iron Man Red', color: 'bg-rose-600', border: 'border-rose-600' },
-                { id: 'purple-neon', name: 'Purple Neon', color: 'bg-purple-500', border: 'border-purple-500' },
+                { id: 'cyber-blue', name: 'Cyber Blue', color: 'bg-cyan-500 text-black', border: 'border-cyan-500' },
+                { id: 'matrix-green', name: 'Matrix Green', color: 'bg-emerald-500 text-black', border: 'border-emerald-500' },
+                { id: 'iron-man-red', name: 'Iron Man Red', color: 'bg-rose-600 text-white', border: 'border-rose-600' },
+                { id: 'purple-neon', name: 'Purple Neon', color: 'bg-purple-500 text-white', border: 'border-purple-500' },
                 { id: 'amoled-black', name: 'AMOLED Black', color: 'bg-black text-white', border: 'border-slate-700' },
                 { id: 'pure-white', name: 'Pure White', color: 'bg-slate-100 text-slate-950', border: 'border-slate-300' },
               ].map(theme => (
@@ -3040,16 +3041,16 @@ export default function App() {
                   onClick={() => {
                     setCurrentTheme(theme.id);
                   }}
-                  className={`p-3 rounded-xl border flex flex-col items-center gap-2 text-xs font-bold transition-all ${
+                  className={`p-3 rounded-2xl border flex flex-col items-center gap-2.5 text-xs font-semibold transition-all cursor-pointer ${
                     currentTheme === theme.id 
-                      ? 'bg-amber-500/20 border-amber-400 text-amber-300 ring-2 ring-amber-500/40' 
-                      : 'bg-neutral-900/80 border-neutral-800 text-neutral-300 hover:border-amber-500/30'
+                      ? 'bg-indigo-500/20 border-indigo-400 text-indigo-200 ring-2 ring-indigo-500/40 shadow-lg' 
+                      : 'bg-slate-900/80 border-white/[0.08] text-slate-300 hover:border-white/[0.2] hover:bg-slate-900'
                   }`}
                 >
                   <div className={`w-8 h-8 rounded-full ${theme.color} border shadow-lg flex items-center justify-center`}>
-                    {currentTheme === theme.id && <CheckCircle2 className="w-4 h-4 text-amber-950" />}
+                    {currentTheme === theme.id && <CheckCircle2 className="w-4 h-4 text-white drop-shadow" />}
                   </div>
-                  <span className="text-center">{theme.name}</span>
+                  <span className="text-center text-[11px] leading-tight">{theme.name}</span>
                 </button>
               ))}
             </div>
