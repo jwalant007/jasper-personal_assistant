@@ -52,6 +52,26 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+// Global Automated Authentication & Passcode Header Interceptor
+if (typeof window !== 'undefined' && window.fetch) {
+  const nativeFetch = window.fetch;
+  window.fetch = function(input, init) {
+    const token = localStorage.getItem('jasper_auth_token') || 'jasper';
+    const isApi = (typeof input === 'string' && (input.startsWith('/api') || input.includes('/api/'))) ||
+                  (input instanceof Request && input.url && input.url.includes('/api/'));
+
+    if (isApi) {
+      init = init || {};
+      const customHeaders = new Headers(init.headers || {});
+      if (!customHeaders.has('x-jasper-token')) {
+        customHeaders.set('x-jasper-token', token);
+      }
+      init.headers = customHeaders;
+    }
+    return nativeFetch.call(this, input, init);
+  };
+}
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ErrorBoundary>

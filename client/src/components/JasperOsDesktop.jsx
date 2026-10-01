@@ -4,46 +4,51 @@ import {
   Activity, X, Minus, Square, Maximize2, RefreshCw, Layout, Layers, Volume2, 
   Zap, Radio, Settings, HelpCircle, HardDrive, Wifi, BatteryCharging, Search,
   Bot, Palette, Music, Workflow, BarChart3, Brain, Store, Trophy, MapPin, Heart, Languages, BookOpen, Laptop, Grid, AppWindow, Lock,
-  Hand, Camera, CameraOff, Move, ThumbsUp, ThumbsDown, Crosshair, ChevronDown, ChevronUp, MoveVertical, Eye, EyeOff, Power, Check
+  Hand, Camera, CameraOff, Move, ThumbsUp, ThumbsDown, Crosshair, ChevronDown, ChevronUp, MoveVertical, Eye, EyeOff, Power, Check,
+  Database, Download, Upload
 } from 'lucide-react';
 import { AirGestureTracker } from '../utils/gestureTracker';
 import { playJarvisBeep, playJarvisScan, playJarvisPowerUp, playMysticSnap } from '../utils/jarvisAudioSynth';
 
-import UniversalTvRemoteWidget from './UniversalTvRemoteWidget';
+// Lightweight Core Widgets
 import DiagnosticWidget from './DiagnosticWidget';
-import PcMasterHubWidget from './PcMasterHubWidget';
-import PhoneControlWidget from './PhoneControlWidget';
-import SecurityCenterWidget from './SecurityCenterWidget';
-import AgenticActionsWidget from './AgenticActionsWidget';
-import BrowserAgentWidget from './BrowserAgentWidget';
-import AiMasterHubWidget from './AiMasterHubWidget';
-import ImageGeneratorWidget from './ImageGeneratorWidget';
-import MusicMasterHubWidget from './MusicMasterHubWidget';
-import DevicesMasterHubWidget from './DevicesMasterHubWidget';
-import PersonalAssistantWidget from './PersonalAssistantWidget';
-import MemoryDashboardWidget from './MemoryDashboardWidget';
-import SkillsStoreWidget from './SkillsStoreWidget';
-import AnalyticsWidget from './AnalyticsWidget';
-import AutomationBuilderWidget from './AutomationBuilderWidget';
-import MissionControlWidget from './MissionControlWidget';
-import SportsHubWidget from './SportsHubWidget';
-import MapsWidget from './MapsWidget';
-import HealthFitbandWidget from './HealthFitbandWidget';
-import LiveTranslationWidget from './LiveTranslationWidget';
-import UserManualWidget from './UserManualWidget';
-import SocialAutoReplyWidget from './SocialAutoReplyWidget';
-import JasperSearchApp from './JasperSearchApp';
-import JasperBrowserApp from './JasperBrowserApp';
-import JasperFileManagerApp from './JasperFileManagerApp';
-import JasperCodeStudioApp from './JasperCodeStudioApp';
-import JasperNotesPlannerApp from './JasperNotesPlannerApp';
-import JasperCalculatorApp from './JasperCalculatorApp';
-import JasperAgentHubWidget from './JasperAgentHubWidget';
-import BlenderStudioModal from './BlenderStudioModal';
-import HolographicAnswerModal from './HolographicAnswerModal';
-import PhoneSentinelWidget from './PhoneSentinelWidget';
-import JasperVideoStudioApp from './JasperVideoStudioApp';
 import PaymentBalanceWidget from './PaymentBalanceWidget';
+
+// Code-Split Dynamic Heavy Modules (Loads on demand when window opens)
+const UniversalTvRemoteWidget = React.lazy(() => import('./UniversalTvRemoteWidget'));
+const PcMasterHubWidget = React.lazy(() => import('./PcMasterHubWidget'));
+const PhoneControlWidget = React.lazy(() => import('./PhoneControlWidget'));
+const SecurityCenterWidget = React.lazy(() => import('./SecurityCenterWidget'));
+const AgenticActionsWidget = React.lazy(() => import('./AgenticActionsWidget'));
+const BrowserAgentWidget = React.lazy(() => import('./BrowserAgentWidget'));
+const AiMasterHubWidget = React.lazy(() => import('./AiMasterHubWidget'));
+const ImageGeneratorWidget = React.lazy(() => import('./ImageGeneratorWidget'));
+const MusicMasterHubWidget = React.lazy(() => import('./MusicMasterHubWidget'));
+const DevicesMasterHubWidget = React.lazy(() => import('./DevicesMasterHubWidget'));
+const PersonalAssistantWidget = React.lazy(() => import('./PersonalAssistantWidget'));
+const MemoryDashboardWidget = React.lazy(() => import('./MemoryDashboardWidget'));
+const SkillsStoreWidget = React.lazy(() => import('./SkillsStoreWidget'));
+const AnalyticsWidget = React.lazy(() => import('./AnalyticsWidget'));
+const AutomationBuilderWidget = React.lazy(() => import('./AutomationBuilderWidget'));
+const MissionControlWidget = React.lazy(() => import('./MissionControlWidget'));
+const SportsHubWidget = React.lazy(() => import('./SportsHubWidget'));
+const MapsWidget = React.lazy(() => import('./MapsWidget'));
+const HealthFitbandWidget = React.lazy(() => import('./HealthFitbandWidget'));
+const LiveTranslationWidget = React.lazy(() => import('./LiveTranslationWidget'));
+const UserManualWidget = React.lazy(() => import('./UserManualWidget'));
+const SocialAutoReplyWidget = React.lazy(() => import('./SocialAutoReplyWidget'));
+const JasperSearchApp = React.lazy(() => import('./JasperSearchApp'));
+const JasperBrowserApp = React.lazy(() => import('./JasperBrowserApp'));
+const JasperFileManagerApp = React.lazy(() => import('./JasperFileManagerApp'));
+const JasperCodeStudioApp = React.lazy(() => import('./JasperCodeStudioApp'));
+const JasperNotesPlannerApp = React.lazy(() => import('./JasperNotesPlannerApp'));
+const JasperCalculatorApp = React.lazy(() => import('./JasperCalculatorApp'));
+const JasperAgentHubWidget = React.lazy(() => import('./JasperAgentHubWidget'));
+const BlenderStudioModal = React.lazy(() => import('./BlenderStudioModal'));
+const HolographicAnswerModal = React.lazy(() => import('./HolographicAnswerModal'));
+const PhoneSentinelWidget = React.lazy(() => import('./PhoneSentinelWidget'));
+const JasperVideoStudioApp = React.lazy(() => import('./JasperVideoStudioApp'));
+
 import { Calculator, FileCode, Compass, MessageSquare, ShieldAlert, Video, Wallet } from 'lucide-react';
 
 /**
@@ -326,6 +331,77 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
   const [dockTwoRows, setDockTwoRows] = useState(false);
   const [desktopLayoutMode, setDesktopLayoutMode] = useState('matrix'); // 'matrix' (All On Screen) | 'shelf' (2-Row Shelf)
   const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Satellite Hardware Bridge & DB Persistence
+  const [satelliteOnline, setSatelliteOnline] = useState(false);
+  const [showSatelliteModal, setShowSatelliteModal] = useState(false);
+  const [dbBackupStatus, setDbBackupStatus] = useState('');
+  const dbFileInputRef = useRef(null);
+
+  useEffect(() => {
+    const checkSatellite = async () => {
+      try {
+        const res = await fetch('/api/satellite/status');
+        if (res.ok) {
+          const data = await res.json();
+          setSatelliteOnline(Boolean(data.connected));
+        }
+      } catch (_) {}
+    };
+    checkSatellite();
+    const interval = setInterval(checkSatellite, 8000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleExportDb = async () => {
+    try {
+      setDbBackupStatus('Saving...');
+      const res = await fetch('/api/db/export');
+      if (!res.ok) throw new Error('Export failed');
+      const data = await res.json();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `jasper-db-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setDbBackupStatus('Saved!');
+      setTimeout(() => setDbBackupStatus(''), 2500);
+    } catch (err) {
+      setDbBackupStatus('Err: ' + err.message);
+      setTimeout(() => setDbBackupStatus(''), 3000);
+    }
+  };
+
+  const handleImportDb = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        setDbBackupStatus('Restoring...');
+        const parsed = JSON.parse(e.target.result);
+        const res = await fetch('/api/db/import', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(parsed)
+        });
+        if (!res.ok) throw new Error('Restore failed');
+        setDbBackupStatus('Done!');
+        setTimeout(() => {
+          setDbBackupStatus('');
+          window.location.reload();
+        }, 1200);
+      } catch (err) {
+        setDbBackupStatus('Err: ' + err.message);
+        setTimeout(() => setDbBackupStatus(''), 3000);
+      }
+    };
+    reader.readAsText(file);
+  };
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -835,6 +911,47 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
             </button>
           )}
 
+          {/* Satellite Bridge Hardware Status */}
+          <button
+            onClick={() => setShowSatelliteModal(true)}
+            className={`h-8.5 px-3 rounded-xl font-mono text-xs flex items-center gap-1.5 transition-all border whitespace-nowrap shrink-0 cursor-pointer ${
+              satelliteOnline
+                ? 'bg-emerald-500/15 hover:bg-emerald-500/25 border-emerald-500/50 text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.15)]'
+                : 'bg-neutral-900/80 hover:bg-neutral-850 border-neutral-800 text-neutral-400 hover:text-neutral-200'
+            }`}
+            title="Satellite Hardware Bridge: Connects home PC, TV & ADB to Cloud"
+          >
+            <Radio className={`w-3.5 h-3.5 shrink-0 ${satelliteOnline ? 'text-emerald-400 animate-pulse' : 'text-neutral-500'}`} />
+            <span>Satellite: {satelliteOnline ? 'PC Linked' : 'Offline'}</span>
+          </button>
+
+          {/* Database Backup & Cloud Persistence */}
+          <div className="flex items-center gap-1 bg-black/80 border border-neutral-800 rounded-xl p-0.5 h-8.5 shrink-0">
+            <button
+              onClick={handleExportDb}
+              className="h-7 px-2.5 hover:bg-neutral-800 text-neutral-300 hover:text-amber-300 rounded-lg font-mono text-[11px] flex items-center gap-1.5 transition-all cursor-pointer"
+              title="Download full JSON backup of memories, finances, notes and settings"
+            >
+              <Download className="w-3 h-3 text-amber-400 shrink-0" />
+              <span>{dbBackupStatus || 'Backup DB'}</span>
+            </button>
+            <input
+              type="file"
+              ref={dbFileInputRef}
+              onChange={handleImportDb}
+              accept=".json"
+              className="hidden"
+            />
+            <button
+              onClick={() => dbFileInputRef.current?.click()}
+              className="h-7 px-2 hover:bg-neutral-800 text-neutral-400 hover:text-white rounded-lg font-mono text-[11px] flex items-center gap-1 transition-all cursor-pointer"
+              title="Restore database from a saved JSON backup"
+            >
+              <Upload className="w-3 h-3 shrink-0" />
+              <span>Restore</span>
+            </button>
+          </div>
+
           {/* 3. Special Gestures & Spells Tab */}
           <button
             onClick={() => {
@@ -886,6 +1003,62 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
         </div>
         </div>
       </div>
+
+      {/* SATELLITE BRIDGE HARDWARE CONNECTOR MODAL */}
+      {showSatelliteModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[99999] flex items-center justify-center p-4">
+          <div className="w-full max-w-lg bg-neutral-950 border border-neutral-800 rounded-2xl p-6 shadow-[0_0_50px_rgba(0,0,0,0.9)] animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-neutral-800 pb-3 mb-4">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-xl ${satelliteOnline ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-amber-500/20 text-amber-400 border border-amber-500/40'}`}>
+                  <Radio className="w-5 h-5 animate-pulse" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-neutral-100 font-orbitron">Hardware Satellite Bridge</h3>
+                  <p className="text-xs text-neutral-400 font-mono">Cloud-to-Local Physical Device Relay</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSatelliteModal(false)}
+                className="p-1 rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-white cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs font-mono">
+              <div className={`p-3 rounded-xl border flex items-center justify-between ${
+                satelliteOnline ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-200' : 'bg-neutral-900 border-neutral-800 text-neutral-400'
+              }`}>
+                <span>Bridge Status:</span>
+                <span className="font-bold">{satelliteOnline ? '🟢 ONLINE & LINKED' : '⚪ OFFLINE'}</span>
+              </div>
+
+              <p className="text-neutral-300 leading-relaxed font-sans text-xs">
+                When JASPER is hosted in the cloud on Render, cloud servers cannot directly adjust your physical laptop speakers, launch desktop apps, or send ADB taps to your phone.
+              </p>
+
+              <div className="bg-black/70 border border-neutral-800 p-3 rounded-xl space-y-2">
+                <span className="text-[11px] font-bold text-amber-400 block font-mono">HOW TO LINK YOUR LAPTOP:</span>
+                <ol className="list-decimal list-inside space-y-1.5 text-neutral-300 text-[11px]">
+                  <li>Navigate to your JASPER folder on this PC.</li>
+                  <li>Double-click <code className="text-sky-300 bg-neutral-900 px-1 py-0.5 rounded">start-satellite.bat</code></li>
+                  <li>Your PC will securely link to Render via WebSocket and execute hardware directives seamlessly!</li>
+                </ol>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  onClick={() => setShowSatelliteModal(false)}
+                  className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold font-sans text-xs cursor-pointer transition-all"
+                >
+                  Got It
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* OS APP CENTER & START LAUNCHER DRAWER (FULL MULTI-ROW MATRIX) */}
       {showStartMenu && (
@@ -1275,7 +1448,14 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
                 isGestureActive={isAirGesturesOn}
                 bodyRef={(el) => { if (el) windowBodyRefs.current[app.id] = el; }}
               >
-                <AppComponent onLockSystem={onLockSystem} />
+                <React.Suspense fallback={
+                  <div className="flex flex-col items-center justify-center p-12 text-slate-400 gap-3">
+                    <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                    <span className="text-xs font-mono">Loading module...</span>
+                  </div>
+                }>
+                  <AppComponent onLockSystem={onLockSystem} />
+                </React.Suspense>
               </OsWindow>
             </div>
           );

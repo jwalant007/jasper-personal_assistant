@@ -36,6 +36,11 @@ export function JasperAppProvider({ children }) {
 
   // Layout & Device View
   const [viewMode, setViewMode] = useState(() => {
+    // If on a laptop/desktop screen (>= 1024px), automatically force and reset to 'pc' mode
+    if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+      try { localStorage.setItem('jasper_view_mode', 'pc'); } catch(_) {}
+      return 'pc';
+    }
     return localStorage.getItem('jasper_view_mode') || 'pc'; // 'pc' | 'mobile'
   });
   const [isMobileScreen, setIsMobileScreen] = useState(false);

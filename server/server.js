@@ -248,6 +248,93 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// -------------------------------------------------------------
+// SECURE AUTHENTICATION & ACCESS CONTROL
+// -------------------------------------------------------------
+const JASPER_AUTH_SECRET = (process.env.JASPER_AUTH_TOKEN || 'jasper').trim();
+
+// Token Verification Endpoint
+app.post('/api/auth/verify', (req, res) => {
+  const { token } = req.body || {};
+  if (token === JASPER_AUTH_SECRET) {
+    return res.json({ success: true, message: 'Authenticated to JASPER Core' });
+  }
+  return res.status(401).json({ success: false, error: 'Invalid Authorization Passcode' });
+});
+
+// Satellite Bridge Status Endpoint
+app.get('/api/satellite/status', (req, res) => {
+  res.json({
+    success: true,
+    connected: isSatelliteConnected(),
+    mode: process.env.RENDER ? 'cloud_relay' : 'local_host'
+  });
+});
+
+// Auth Guard Middleware
+app.use((req, res, next) => {
+  // Allow non-API routes (static client bundle, index.html, favicon)
+  if (!req.path.startsWith('/api')) return next();
+
+  // Public health & verification endpoints
+  const publicApiPaths = ['/api/health', '/api/ping', '/api/auth/verify', '/api/satellite/status'];
+  if (publicApiPaths.includes(req.path)) return next();
+
+  // Extract client token
+  const clientToken = req.headers['x-jasper-token'] || 
+                      req.headers['authorization']?.replace(/^Bearer\s+/i, '') || 
+                      req.query.token;
+
+  if (clientToken === JASPER_AUTH_SECRET) {
+    return next();
+  }
+
+  // Local loopback grace (for local development without token enforcement unless STRICT_AUTH=true)
+  const isLoopback = req.ip === '127.0.0.1' || req.ip === '::1' || req.ip === '::ffff:127.0.0.1';
+  if (isLoopback && !process.env.STRICT_AUTH) {
+    return next();
+  }
+
+  console.warn(`[Security Alert] Blocked unauthenticated request to ${req.method} ${req.path} from IP ${req.ip}`);
+  return res.status(401).json({
+    error: 'Access Denied: Protected JASPER API endpoint. Valid x-jasper-token required.',
+    requiresAuth: true
+  });
+});
+
+// -------------------------------------------------------------
+// SATELLITE BRIDGE (Cloud-to-Local Host Hardware Relay)
+// -------------------------------------------------------------
+let activeSatelliteWs = null;
+const satellitePendingRequests = new Map();
+
+function isSatelliteConnected() {
+  return activeSatelliteWs !== null && activeSatelliteWs.readyState === WebSocket.OPEN;
+}
+
+function forwardToSatellite(tool, args, timeoutMs = 8000) {
+  return new Promise((resolve) => {
+    if (!isSatelliteConnected()) {
+      return resolve({
+        success: false,
+        error: 'Satellite Host PC is offline. Please launch JASPER on your home laptop to bridge hardware directives.'
+      });
+    }
+
+    const reqId = `sat_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const timer = setTimeout(() => {
+      satellitePendingRequests.delete(reqId);
+      resolve({ success: false, error: `Satellite execution timed out after ${timeoutMs}ms.` });
+    }, timeoutMs);
+
+    satellitePendingRequests.set(reqId, { resolve, timer });
+    activeSatelliteWs.send(JSON.stringify({ type: 'EXECUTE_TOOL', reqId, tool, args }));
+  });
+}
+
+global.forwardToSatellite = forwardToSatellite;
+global.isSatelliteConnected = isSatelliteConnected;
+
 // Create HTTP server & WebSocket Server
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
@@ -257,9 +344,17 @@ let backgroundListenerProcess = null;
 let lastWakeTime = 0;
 const WAKE_COOLDOWN = 3000; // 3 seconds cooldown to prevent multiple quick trigger actions
 
-wss.on('connection', (ws) => {
+wss.on('connection', (ws, req) => {
   console.log('[WebSocket] Client connected');
   activeSockets.add(ws);
+
+  // Check if connecting client is the Home Laptop Satellite Bridge
+  const reqUrl = req?.url || '';
+  if (reqUrl.includes('/satellite') || reqUrl.includes('role=satellite')) {
+    console.log('[Satellite Bridge] Home Host Laptop connected as Satellite Hardware Agent!');
+    activeSatelliteWs = ws;
+    broadcastToClients({ type: 'SATELLITE_STATUS', connected: true });
+  }
 
   ws.on('message', (rawMsg) => {
     try {
@@ -268,12 +363,26 @@ wss.on('connection', (ws) => {
       if (msg.type === 'PERMISSION_RESPONSE') {
         permissionLayer.handleConfirmationResponse(msg.id, msg.approved, msg.reason);
       }
+      // Handle Satellite execution results returned from home laptop
+      if (msg.type === 'TOOL_RESULT' && msg.reqId) {
+        const pending = satellitePendingRequests.get(msg.reqId);
+        if (pending) {
+          clearTimeout(pending.timer);
+          pending.resolve(msg.result);
+          satellitePendingRequests.delete(msg.reqId);
+        }
+      }
     } catch (_e) {}
   });
 
   ws.on('close', () => {
     console.log('[WebSocket] Client disconnected');
     activeSockets.delete(ws);
+    if (activeSatelliteWs === ws) {
+      activeSatelliteWs = null;
+      console.log('[Satellite Bridge] Home Host Laptop Satellite disconnected.');
+      broadcastToClients({ type: 'SATELLITE_STATUS', connected: false });
+    }
   });
 });
 

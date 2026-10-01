@@ -8,43 +8,45 @@ import MediaControllerWidget from './components/MediaControllerWidget';
 import ImageGeneratorWidget from './components/ImageGeneratorWidget';
 import PhoneControlWidget from './components/PhoneControlWidget';
 import AudioConversationPage from './components/AudioConversationPage';
-import PcCommandCenterWidget from './components/PcCommandCenterWidget';
-import BrowserAgentWidget from './components/BrowserAgentWidget';
-import PersonalAssistantWidget from './components/PersonalAssistantWidget';
-import MemoryDashboardWidget from './components/MemoryDashboardWidget';
-import SkillsStoreWidget from './components/SkillsStoreWidget';
-import AnalyticsWidget from './components/AnalyticsWidget';
-import AiAvatarWidget from './components/AiAvatarWidget';
-import SecurityCenterWidget from './components/SecurityCenterWidget';
-import AutomationBuilderWidget from './components/AutomationBuilderWidget';
-import MissionControlWidget from './components/MissionControlWidget';
-import PcMasterHubWidget from './components/PcMasterHubWidget';
-import MusicMasterHubWidget from './components/MusicMasterHubWidget';
-import DevicesMasterHubWidget from './components/DevicesMasterHubWidget';
-import AiMasterHubWidget from './components/AiMasterHubWidget';
-import SportsHubWidget from './components/SportsHubWidget';
-import AgenticActionsWidget from './components/AgenticActionsWidget';
-import UserManualWidget from './components/UserManualWidget';
-import HealthFitbandWidget from './components/HealthFitbandWidget';
-import LaptopConnectModal from './components/LaptopConnectModal';
-import LiveTranslationWidget from './components/LiveTranslationWidget';
-import SocialAutoReplyWidget from './components/SocialAutoReplyWidget';
-import HolographicAnswerModal from './components/HolographicAnswerModal';
 import DraggableModalWrapper from './components/DraggableModalWrapper';
 import JasperOsDesktop from './components/JasperOsDesktop';
-import JasperSearchApp from './components/JasperSearchApp';
-import JasperBrowserApp from './components/JasperBrowserApp';
-import JasperFileManagerApp from './components/JasperFileManagerApp';
-import JasperCodeStudioApp from './components/JasperCodeStudioApp';
-import JasperNotesPlannerApp from './components/JasperNotesPlannerApp';
-import JasperCalculatorApp from './components/JasperCalculatorApp';
-import JasperAgentHubWidget from './components/JasperAgentHubWidget';
-import BlenderStudioModal from './components/BlenderStudioModal';
-import MapsWidget from './components/MapsWidget';
 import EmergencyAlertToast from './components/EmergencyAlertToast';
-import PhoneSentinelWidget from './components/PhoneSentinelWidget';
-import JasperVideoStudioApp from './components/JasperVideoStudioApp';
-import PaymentBalanceWidget from './components/PaymentBalanceWidget';
+
+// Code-Split Dynamic Modal Apps & Widgets (Loaded on-demand)
+const PcCommandCenterWidget = React.lazy(() => import('./components/PcCommandCenterWidget'));
+const BrowserAgentWidget = React.lazy(() => import('./components/BrowserAgentWidget'));
+const PersonalAssistantWidget = React.lazy(() => import('./components/PersonalAssistantWidget'));
+const MemoryDashboardWidget = React.lazy(() => import('./components/MemoryDashboardWidget'));
+const SkillsStoreWidget = React.lazy(() => import('./components/SkillsStoreWidget'));
+const AnalyticsWidget = React.lazy(() => import('./components/AnalyticsWidget'));
+const AiAvatarWidget = React.lazy(() => import('./components/AiAvatarWidget'));
+const SecurityCenterWidget = React.lazy(() => import('./components/SecurityCenterWidget'));
+const AutomationBuilderWidget = React.lazy(() => import('./components/AutomationBuilderWidget'));
+const MissionControlWidget = React.lazy(() => import('./components/MissionControlWidget'));
+const PcMasterHubWidget = React.lazy(() => import('./components/PcMasterHubWidget'));
+const MusicMasterHubWidget = React.lazy(() => import('./components/MusicMasterHubWidget'));
+const DevicesMasterHubWidget = React.lazy(() => import('./components/DevicesMasterHubWidget'));
+const AiMasterHubWidget = React.lazy(() => import('./components/AiMasterHubWidget'));
+const SportsHubWidget = React.lazy(() => import('./components/SportsHubWidget'));
+const AgenticActionsWidget = React.lazy(() => import('./components/AgenticActionsWidget'));
+const UserManualWidget = React.lazy(() => import('./components/UserManualWidget'));
+const HealthFitbandWidget = React.lazy(() => import('./components/HealthFitbandWidget'));
+const LaptopConnectModal = React.lazy(() => import('./components/LaptopConnectModal'));
+const LiveTranslationWidget = React.lazy(() => import('./components/LiveTranslationWidget'));
+const SocialAutoReplyWidget = React.lazy(() => import('./components/SocialAutoReplyWidget'));
+const HolographicAnswerModal = React.lazy(() => import('./components/HolographicAnswerModal'));
+const JasperSearchApp = React.lazy(() => import('./components/JasperSearchApp'));
+const JasperBrowserApp = React.lazy(() => import('./components/JasperBrowserApp'));
+const JasperFileManagerApp = React.lazy(() => import('./components/JasperFileManagerApp'));
+const JasperCodeStudioApp = React.lazy(() => import('./components/JasperCodeStudioApp'));
+const JasperNotesPlannerApp = React.lazy(() => import('./components/JasperNotesPlannerApp'));
+const JasperCalculatorApp = React.lazy(() => import('./components/JasperCalculatorApp'));
+const JasperAgentHubWidget = React.lazy(() => import('./components/JasperAgentHubWidget'));
+const BlenderStudioModal = React.lazy(() => import('./components/BlenderStudioModal'));
+const MapsWidget = React.lazy(() => import('./components/MapsWidget'));
+const PhoneSentinelWidget = React.lazy(() => import('./components/PhoneSentinelWidget'));
+const JasperVideoStudioApp = React.lazy(() => import('./components/JasperVideoStudioApp'));
+const PaymentBalanceWidget = React.lazy(() => import('./components/PaymentBalanceWidget'));
 import geminiClient from './utils/geminiClient';
 import { getServerIp, setServerIp, getApiBase, getWsBase } from './utils/apiConfig.js';
 import { getPhoneBrainMode, setPhoneBrainMode, togglePhoneBrainMode } from './utils/mobileBrain.js';
@@ -2852,6 +2854,8 @@ export default function App() {
         triggerWake={triggerWakeOnMount}
       />
 
+      {/* Modular Code-Split Modals Wrapped in React.Suspense */}
+      <React.Suspense fallback={null}>
       {/* 1. PC Command Center Modal */}
       {showPcCommand && (
         <DraggableModalWrapper isOpen={showPcCommand} onClose={() => setShowPcCommand(false)} title="PC Command Center">
@@ -3204,6 +3208,7 @@ export default function App() {
           </div>
         </DraggableModalWrapper>
       )}
+      </React.Suspense>
 
       {/* 19. Lightbox Image Preview Modal */}
       {lightboxImage && (

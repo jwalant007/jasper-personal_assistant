@@ -646,7 +646,27 @@ Key Directives:
         args
       }, broadcast);
 
-      const result = await tool.handler(args);
+      // Check if this is a hardware/local PC command and we should route to Satellite
+      const HARDWARE_TOOLS = [
+        'set_pc_volume', 'open_application', 'send_tv_command', 'wake_tv',
+        'open_phone_app', 'control_device', 'tune_stb_channel', 'tune_d2h_channel',
+        'send_phone_sms', 'make_call', 'run_powershell'
+      ];
+
+      let result;
+      if (HARDWARE_TOOLS.includes(toolName) && (process.env.RENDER || (global.isSatelliteConnected && global.isSatelliteConnected()))) {
+        if (global.isSatelliteConnected && global.isSatelliteConnected()) {
+          console.log(`[Satellite Relay] Routing ${toolName} to Home Laptop Satellite...`);
+          result = await global.forwardToSatellite(toolName, args);
+        } else {
+          result = {
+            success: false,
+            error: 'Satellite Host Laptop is offline. Launch JASPER Satellite on your laptop to execute local hardware and device actions from the cloud.'
+          };
+        }
+      } else {
+        result = await tool.handler(args);
+      }
       const elapsed = Date.now() - startTime;
 
       appendActivityLog({
