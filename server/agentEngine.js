@@ -20,6 +20,8 @@ const tvController = require('./tvController');
 const dbManager = require('./database');
 const permissionLayer = require('./permissionLayer');
 const busyModeEngine = require('./busyModeEngine');
+const meetingEngine = require('./meetingEngine');
+const telephonyEngine = require('./telephonyEngine');
 const { exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
@@ -504,6 +506,81 @@ const TOOL_REGISTRY = {
       console.log(`[AgentEngine] Security setting change requested: ${setting} = ${value}`);
       return { success: true, setting, value, note: 'Security setting staged. Requires OS-level integration.' };
     }
+  },
+
+  // ── L1: Meeting & Conference Setup ──────────────────────────────────────────
+
+  pull_up_meeting: {
+    name: 'pull_up_meeting',
+    description: 'Pull up the Google Meet or video conference meeting for the active client on the PC workstation hands-free',
+    permissionLevel: 1,
+    parameters: { meetingId: 'string (optional)', clientName: 'string (optional)', url: 'string (optional)' },
+    async handler({ meetingId, clientName, url } = {}) {
+      const result = await meetingEngine.pullUpMeeting({ meetingId, clientName, url });
+      return result;
+    }
+  },
+
+  schedule_meeting: {
+    name: 'schedule_meeting',
+    description: 'Schedule a new client conference call or Google Meet room',
+    permissionLevel: 1,
+    parameters: { title: 'string', clientName: 'string', url: 'string', dealValue: 'number', scheduledTime: 'string' },
+    async handler(args) {
+      const result = meetingEngine.addMeeting(args);
+      return { success: true, meeting: result };
+    }
+  },
+
+  // ── L2: Telephony Receptionist & Multi-Line Relay ───────────────────────────
+
+  call_owner_urgent: {
+    name: 'call_owner_urgent',
+    description: 'Autonomously place an urgent voice telephone call to the founder/owner personal line',
+    permissionLevel: 2,
+    parameters: { reason: 'string', clientName: 'string', dealValue: 'number', urgencyMinutes: 'number' },
+    async handler({ reason, clientName = 'High-Value Client', dealValue = 17000, urgencyMinutes = 20 } = {}) {
+      const relay = await telephonyEngine.startMultiLineRelay({
+        clientCallSid: `manual-${Date.now()}`,
+        clientPhone: '+13055550199',
+        clientName,
+        company: 'Enterprise Client',
+        dealValue,
+        urgencyMinutes,
+        originalSpeech: reason || `Client wants to sign for $${dealValue.toLocaleString()} within ${urgencyMinutes} minutes.`
+      });
+      return { success: true, relayId: relay.relayId, dealValue, message: `Urgent call dispatched to owner for ${clientName}` };
+    }
+  },
+
+  relay_to_held_client: {
+    name: 'relay_to_held_client',
+    description: 'Relay a spoken instruction or ETA to the client waiting on hold on Line 1',
+    permissionLevel: 2,
+    parameters: { relayId: 'string', responseText: 'string' },
+    async handler({ relayId, responseText } = {}) {
+      const targetRelayId = relayId || telephonyEngine.getActiveRelays()[0]?.relayId;
+      if (!targetRelayId) {
+        return { success: false, error: 'No active multi-line relay session found.' };
+      }
+      const result = await telephonyEngine.handleOwnerResponse(targetRelayId, responseText);
+      return result;
+    }
+  },
+
+  // ── L0: Telephony Status ───────────────────────────────────────────────────
+
+  telephony_receptionist_status: {
+    name: 'telephony_receptionist_status',
+    description: 'Get status of the AI voice receptionist, active lines, and held calls',
+    permissionLevel: 0,
+    parameters: {},
+    async handler() {
+      const cfg = telephonyEngine.getConfig();
+      const activeRelays = telephonyEngine.getActiveRelays();
+      const logs = telephonyEngine.getLogs().slice(0, 5);
+      return { enabled: cfg.enabled, voicePersona: cfg.persona, activeRelaysCount: activeRelays.length, activeRelays, recentLogs: logs };
+    }
   }
 };
 
@@ -802,6 +879,23 @@ Key Directives:
       if (queryMatch) {
         const r = await this.executeTool('search_files', { query: queryMatch[1].trim() });
         results.push({ intent: 'file_search', ...r });
+      }
+    }
+
+    // Meeting pull-up / Google Meet hands-free
+    if (lower.match(/\b(pull up.*meet|open.*meet|start.*meet|join.*meet|google meet|the meeting|conference call)\b/)) {
+      const r = await this.executeTool('pull_up_meeting', {});
+      results.push({ intent: 'pull_up_meeting', ...r });
+    }
+
+    // Telephony & Urgent Call Dispatch
+    if (lower.match(/\b(call me|urgent call|dispatch call|ring me|telephony|receptionist)\b/)) {
+      if (lower.match(/\b(status|check)\b/)) {
+        const r = await this.executeTool('telephony_receptionist_status', {});
+        results.push({ intent: 'telephony_status', ...r });
+      } else {
+        const r = await this.executeTool('call_owner_urgent', { reason: query });
+        results.push({ intent: 'call_owner_urgent', ...r });
       }
     }
 

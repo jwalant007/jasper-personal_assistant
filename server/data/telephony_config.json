@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "receptionistName": "JASPER",
+  "persona": "British AI Executive Assistant",
+  "voice": "Polly.Brian",
+  "greetingText": "Good day. You have reached the private office of Jwalant. I am JASPER, his personal AI assistant. How may I direct your call today?",
+  "urgentThresholdDollars": 1000,
+  "ownerPhoneNumber": "+15551234567",
+  "twilioAccountSid": "",
+  "twilioAuthToken": "",
+  "twilioPhoneNumber": "",
+  "holdMusicUrl": "http://com.twilio.sounds.music.s3.amazonaws.com/ClockworkWaltz.mp3",
+  "autoRelayToOwner": true
+}

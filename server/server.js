@@ -20,6 +20,8 @@ const blenderController = require('./blenderController');
 const notificationManager = require('./notificationManager');
 const weatherSentinel = require('./weatherSentinel');
 const ollamaBridge = require('./ollamaBridge');
+const telephonyEngine = require('./telephonyEngine');
+const meetingEngine = require('./meetingEngine');
 
 // Optional WhatsApp Web Client (whatsapp-web.js) for laptop WhatsApp Web auto-send
 let Client, LocalAuth, WAStatus;
@@ -247,6 +249,7 @@ app.use(cors({
   }
 }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // -------------------------------------------------------------
 // SECURE AUTHENTICATION & ACCESS CONTROL
@@ -278,7 +281,12 @@ app.use((req, res, next) => {
 
   // Public health & verification endpoints
   const publicApiPaths = ['/api/health', '/api/ping', '/api/auth/verify', '/api/satellite/status'];
-  if (publicApiPaths.includes(req.path)) return next();
+  if (publicApiPaths.includes(req.path) || 
+      req.path.startsWith('/api/telephony/inbound') || 
+      req.path.startsWith('/api/telephony/owner-gather') || 
+      req.path.startsWith('/api/telephony/outbound-twiml')) {
+    return next();
+  }
 
   // Extract client token
   const clientToken = req.headers['x-jasper-token'] || 
@@ -372,6 +380,24 @@ wss.on('connection', (ws, req) => {
           satellitePendingRequests.delete(msg.reqId);
         }
       }
+      // Handle hands-free meeting pull-up command from WebSocket
+      if (msg.type === 'PULL_UP_MEETING') {
+        meetingEngine.pullUpMeeting(msg).then(res => {
+          ws.send(JSON.stringify({ type: 'PULL_UP_MEETING_RESULT', result: res }));
+        });
+      }
+      // Handle owner response to multi-line relay
+      if (msg.type === 'RESPOND_TO_RELAY' && msg.relayId) {
+        telephonyEngine.handleOwnerResponse(msg.relayId, msg.responseText).then(res => {
+          ws.send(JSON.stringify({ type: 'RELAY_RESPONSE_RESULT', result: res }));
+        });
+      }
+      // Handle reel simulation request from frontend
+      if (msg.type === 'SIMULATE_REEL_SCENARIO') {
+        runReelSimulation().then(res => {
+          ws.send(JSON.stringify({ type: 'SIMULATE_REEL_RESULT', result: res }));
+        });
+      }
     } catch (_e) {}
   });
 
@@ -400,6 +426,8 @@ function broadcastToClients(data) {
 agentEngine.setBroadcastFn(broadcastToClients);
 permissionLayer.setBroadcastFn(broadcastToClients);
 busyModeEngine.setBroadcastFn(broadcastToClients);
+telephonyEngine.setBroadcastFn(broadcastToClients);
+meetingEngine.setBroadcastFn(broadcastToClients);
 
 // Spawns the background listener.ps1 script
 function startBackgroundVoiceListener() {
@@ -3572,6 +3600,189 @@ app.post('/api/sentinel/config', (req, res) => {
     cityName: cityName || undefined
   });
   res.json({ success: true, status: weatherSentinel.getSentinelStatus() });
+});
+
+// =============================================================
+// REEL SIMULATION & TELEPHONY / MEETING ROUTING
+// =============================================================
+
+async function runReelSimulation() {
+  console.log('[Simulation] Executing end-to-end $17k Miami Client Reel Flow...');
+  
+  // Step 1: Autonomous Inbound Telephony Receptionist
+  // Inbound call comes in from Miami client
+  const inboundRes = await telephonyEngine.handleInboundCall({
+    callSid: `sim-miami-${Date.now()}`,
+    from: '+1 (305) 555-0199',
+    speechResult: 'This is the Miami client on the line. We want to sign tonight for $17,000, but I have to leave in 20 minutes. I need Jwalant immediately.',
+    isSimulation: true
+  });
+
+  const relayId = inboundRes.relayId;
+
+  // Step 2 & 3: Outbound Call to Owner & Holding on Line 1
+  // Dispatched automatically by telephonyEngine.startMultiLineRelay()
+  
+  // Step 4: After 2 seconds, simulate owner response ("I'm on my way, 1 minute!")
+  setTimeout(async () => {
+    await telephonyEngine.handleOwnerResponse(relayId, "I'm on my way, tell him 1 minute!");
+
+    // Step 5 & 6: Relay confirmation sent to client on Line 1, and Pull Up Meeting on PC Workstation
+    setTimeout(async () => {
+      await meetingEngine.pullUpMeeting({
+        clientName: 'Miami Enterprise Client',
+        url: 'https://meet.google.com/xyz-qwer-abc'
+      });
+    }, 1500);
+  }, 2500);
+
+  return {
+    success: true,
+    flow: 'REEL_FLOW_TRIGGERED',
+    relayId,
+    message: 'Simulated $17k Miami client call received, priority hold engaged, outbound owner dispatch initiated, and meeting auto-launch queued.'
+  };
+}
+
+// -------------------------------------------------------------
+// TELEPHONY & AUTONOMOUS RECEPTIONIST ROUTES
+// -------------------------------------------------------------
+
+// Get telephony configuration
+app.get('/api/telephony/config', (req, res) => {
+  res.json({ success: true, config: telephonyEngine.getConfig() });
+});
+
+// Update telephony configuration
+app.post('/api/telephony/config', (req, res) => {
+  const updated = telephonyEngine.updateConfig(req.body || {});
+  res.json({ success: true, config: updated });
+});
+
+// Get call history & transcripts
+app.get('/api/telephony/logs', (req, res) => {
+  res.json({ success: true, logs: telephonyEngine.getLogs() });
+});
+
+// Get active multi-line relays
+app.get('/api/telephony/relays', (req, res) => {
+  res.json({ success: true, relays: telephonyEngine.getActiveRelays() });
+});
+
+// FEATURE 1: Inbound Webhook (Twilio / Simulator)
+app.post('/api/telephony/inbound', async (req, res) => {
+  const speechResult = req.body?.SpeechResult || req.body?.speechResult || req.body?.speech;
+  const from = req.body?.From || req.body?.from || '+13055550199';
+  const callSid = req.body?.CallSid || req.body?.callSid;
+
+  const result = await telephonyEngine.handleInboundCall({
+    callSid,
+    from,
+    speechResult,
+    isSimulation: Boolean(req.body?.isSimulation)
+  });
+
+  // If caller expects XML/TwiML
+  if (req.headers['content-type']?.includes('x-www-form-urlencoded') || req.headers['accept']?.includes('xml')) {
+    res.type('text/xml');
+    return res.send(result.twiml);
+  }
+  res.json({ success: true, ...result });
+});
+
+// FEATURE 2: Outbound Call Webhook (Twilio Owner TwiML callback)
+app.all('/api/telephony/outbound-twiml', (req, res) => {
+  const relayId = req.query.relayId;
+  const relay = telephonyEngine.getRelay(relayId);
+  const cfg = telephonyEngine.getConfig();
+
+  const dealStr = relay ? `$${relay.dealInfo.value.toLocaleString()}` : '$17,000';
+  const clientName = relay?.clientLine?.name || 'Miami Client';
+  const deadline = relay?.dealInfo?.deadlineMinutes || 20;
+
+  const prompt = `Sir, the ${clientName} is on the other line. He wants to sign tonight, ${dealStr}, but I am the only one with you. He is leaving in ${deadline} minutes. Should I tell him you are on your way?`;
+
+  const twiml = `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Say voice="${cfg.voice || 'Polly.Brian'}">${prompt}</Say>
+  <Gather input="speech" timeout="5" action="/api/telephony/owner-gather?relayId=${relayId}">
+    <Say voice="${cfg.voice || 'Polly.Brian'}">Please speak your instruction now, Sir.</Say>
+  </Gather>
+</Response>`;
+
+  res.type('text/xml');
+  res.send(twiml);
+});
+
+// FEATURE 3: Owner Speech Gather Callback (Twilio Line 2 response)
+app.post('/api/telephony/owner-gather', async (req, res) => {
+  const relayId = req.query.relayId;
+  const spokenText = req.body?.SpeechResult || req.body?.speechResult || "I'm on my way, tell him 1 minute!";
+  const cfg = telephonyEngine.getConfig();
+
+  const result = await telephonyEngine.handleOwnerResponse(relayId, spokenText);
+
+  // If owner confirmed heading over, auto-trigger meeting setup on workstation
+  if (result.relay?.ownerResponse?.isComing) {
+    meetingEngine.pullUpMeeting({
+      clientName: result.relay?.clientLine?.name || 'Client',
+      url: result.meetingUrl
+    });
+  }
+
+  const twiml = `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Say voice="${cfg.voice || 'Polly.Brian'}">Understood, Sir. I have relayed your ETA to the client on Line 1, and I am pulling up the Google Meet session on your workstation now.</Say>
+</Response>`;
+
+  res.type('text/xml');
+  res.send(twiml);
+});
+
+// Owner Response relay endpoint (for UI or local simulation)
+app.post('/api/telephony/relay-response', async (req, res) => {
+  const { relayId, responseText } = req.body || {};
+  const result = await telephonyEngine.handleOwnerResponse(relayId, responseText);
+  if (result.relay?.ownerResponse?.isComing) {
+    meetingEngine.pullUpMeeting({
+      clientName: result.relay?.clientLine?.name,
+      url: result.meetingUrl
+    });
+  }
+  res.json(result);
+});
+
+// 🎬 SIMULATE REEL SCENARIO (Full 1-Click End-to-End Test)
+app.post('/api/telephony/simulate-reel-scenario', async (req, res) => {
+  const simResult = await runReelSimulation();
+  res.json(simResult);
+});
+
+// -------------------------------------------------------------
+// MEETING ENGINE ROUTES (AUTOMATED GOOGLE MEET LAUNCHER)
+// -------------------------------------------------------------
+
+// Get all meetings
+app.get('/api/meetings', (req, res) => {
+  res.json({ success: true, meetings: meetingEngine.getMeetings() });
+});
+
+// Add / schedule meeting
+app.post('/api/meetings', (req, res) => {
+  const meeting = meetingEngine.addMeeting(req.body || {});
+  res.json({ success: true, meeting });
+});
+
+// Delete meeting
+app.delete('/api/meetings/:id', (req, res) => {
+  const ok = meetingEngine.deleteMeeting(req.params.id);
+  res.json({ success: ok });
+});
+
+// FEATURE 6: Pull up meeting hands-free on PC workstation
+app.post('/api/meetings/pull-up', async (req, res) => {
+  const result = await meetingEngine.pullUpMeeting(req.body || {});
+  res.json(result);
 });
 
 // Wildcard fallback to serve index.html for SPA client routing

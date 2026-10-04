@@ -1,6 +1,24 @@
 {
   "entries": [
     {
+      "id": "al-1791126207026-mzhp",
+      "timestamp": "2026-10-04T15:03:27.026Z",
+      "type": "tool_completed",
+      "icon": "✅",
+      "tool": "pull_up_meeting",
+      "result": "{\"success\":true,\"action\":\"MEETING_LAUNCHED\",\"url\":\"https://meet.google.com/xyz-qwer-abc\",\"title\":\"Urgent Contract Signing ($17,000)\",\"clientName\":\"Miami Enterprise Client\",\"dealValue\":17000,\"message\":",
+      "elapsedMs": 7545
+    },
+    {
+      "id": "al-1791126199488-nv95",
+      "timestamp": "2026-10-04T15:03:19.488Z",
+      "type": "tool_executing",
+      "icon": "⚙️",
+      "tool": "pull_up_meeting",
+      "level": 1,
+      "args": {}
+    },
+    {
       "id": "al-1789931521238-8zah",
       "timestamp": "2026-09-20T19:12:01.238Z",
       "type": "tool_completed",

@@ -1,0 +1,28 @@
+[
+  {
+    "id": "meet-miami-17k",
+    "title": "Contract Signing & Onboarding ($17k)",
+    "clientName": "Miami Enterprise Client",
+    "company": "Miami Tech Partners LLC",
+    "dealValue": 17000,
+    "currency": "USD",
+    "platform": "Google Meet",
+    "url": "https://meet.google.com/xyz-qwer-abc",
+    "scheduledTime": "Tonight (Urgent)",
+    "deadlineMinutes": 20,
+    "notes": "High-value closing call. Client wants to sign immediately.",
+    "status": "ready"
+  },
+  {
+    "id": "meet-weekly-sync",
+    "title": "Executive Agency Review",
+    "clientName": "Blake Stephens & Partners",
+    "company": "AI Solutions Ltd",
+    "dealValue": 5000,
+    "currency": "USD",
+    "platform": "Google Meet",
+    "url": "https://meet.google.com/new",
+    "scheduledTime": "Tomorrow 10:00 AM",
+    "status": "scheduled"
+  }
+]

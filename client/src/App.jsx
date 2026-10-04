@@ -47,6 +47,7 @@ const MapsWidget = React.lazy(() => import('./components/MapsWidget'));
 const PhoneSentinelWidget = React.lazy(() => import('./components/PhoneSentinelWidget'));
 const JasperVideoStudioApp = React.lazy(() => import('./components/JasperVideoStudioApp'));
 const PaymentBalanceWidget = React.lazy(() => import('./components/PaymentBalanceWidget'));
+const TelephonyReceptionistWidget = React.lazy(() => import('./components/TelephonyReceptionistWidget'));
 import geminiClient from './utils/geminiClient';
 import { getServerIp, setServerIp, getApiBase, getWsBase } from './utils/apiConfig.js';
 import { getPhoneBrainMode, setPhoneBrainMode, togglePhoneBrainMode } from './utils/mobileBrain.js';
@@ -61,7 +62,7 @@ import {
   captureWebcamFrameAsBase64,
   syncOwnerProfileFromServer
 } from './utils/faceBiometrics.js';
-import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, BookOpen, Activity, Heart, Laptop, Languages, Box, MessageSquare, KeyRound, ShieldAlert, Video } from 'lucide-react';
+import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, PhoneForwarded, BookOpen, Activity, Heart, Laptop, Languages, Box, MessageSquare, KeyRound, ShieldAlert, Video } from 'lucide-react';
 
 import { useJasperApp, useJasperModals, useJasperChat } from './context/index.jsx';
 
@@ -183,6 +184,8 @@ export default function App() {
   const setShowSportsHub = (v) => v ? openModal('sportsHub') : closeModal('sportsHub');
   const showMaps = isModalOpen('maps');
   const setShowMaps = (v) => v ? openModal('maps') : closeModal('maps');
+  const showTelephony = isModalOpen('telephony');
+  const setShowTelephony = (v) => v ? openModal('telephony') : closeModal('telephony');
   const showPhoneSentinel = isModalOpen('phoneSentinel');
   const setShowPhoneSentinel = (v) => v ? openModal('phoneSentinel') : closeModal('phoneSentinel');
   const showAgenticActions = isModalOpen('agenticActions');
@@ -261,6 +264,19 @@ export default function App() {
           if (data.type === 'EMERGENCY_ALERT' && data.emergency) {
             console.log('[App] 🚨 CRITICAL EMERGENCY ALERT RECEIVED:', data.emergency);
             setActiveEmergency(data.emergency);
+          } else if (data.type === 'AUTONOMOUS_OUTBOUND_CALL_TO_OWNER') {
+            console.log('[App] 📞 AUTONOMOUS OUTBOUND CALL TO OWNER RECEIVED:', data);
+            setActiveEmergency({
+              id: data.relayId,
+              source: 'telephony_receptionist',
+              sender: data.clientName,
+              senderName: `${data.clientName} ($${data.dealValue?.toLocaleString()})`,
+              message: data.speechPrompt,
+              urgency: 'high',
+              isTelephonyRelay: true,
+              relayId: data.relayId
+            });
+            setShowTelephony(true);
           } else if (data.type === 'EMERGENCY_DISMISSED') {
             setActiveEmergency(null);
           }
@@ -1653,6 +1669,9 @@ export default function App() {
                   </button>
                   <button onClick={() => setShowSocialAutoReply(!showSocialAutoReply)} className="p-2 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.06] hover:border-indigo-400/30 text-slate-300 hover:text-white text-[11px] font-sans flex items-center gap-1.5 transition-all truncate cursor-pointer">
                     <MessageSquare size={12} className="text-emerald-400 flex-shrink-0" /> <span className="truncate">Social Auto</span>
+                  </button>
+                  <button onClick={() => setShowTelephony(!showTelephony)} className="p-2 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-cyan-500/30 hover:border-cyan-400 text-slate-300 hover:text-white text-[11px] font-sans flex items-center gap-1.5 transition-all truncate cursor-pointer shadow-md shadow-cyan-500/10 ring-1 ring-cyan-500/20">
+                    <PhoneForwarded size={12} className="text-cyan-400 flex-shrink-0 animate-pulse" /> <span className="truncate font-semibold text-cyan-200">Telephony Hub</span>
                   </button>
                   <button onClick={() => setShowLiveTranslation(!showLiveTranslation)} className="p-2 rounded-xl bg-slate-900/60 hover:bg-slate-850 border border-white/[0.06] hover:border-indigo-400/30 text-slate-300 hover:text-white text-[11px] font-sans flex items-center gap-1.5 transition-all truncate cursor-pointer">
                     <Languages size={12} className="text-sky-400 flex-shrink-0" /> <span className="truncate">Translate</span>
@@ -3121,6 +3140,13 @@ export default function App() {
       {showSocialAutoReply && (
         <DraggableModalWrapper isOpen={showSocialAutoReply} onClose={() => setShowSocialAutoReply(false)} title="WhatsApp & Instagram Auto-Reply Hub" maxWidth="max-w-6xl">
           <SocialAutoReplyWidget onClose={() => setShowSocialAutoReply(false)} />
+        </DraggableModalWrapper>
+      )}
+
+      {/* 23b. Autonomous Telephony & AI Receptionist Hub Modal */}
+      {showTelephony && (
+        <DraggableModalWrapper isOpen={showTelephony} onClose={() => setShowTelephony(false)} title="JASPER Telephony Core & Multi-Line Receptionist" maxWidth="max-w-5xl">
+          <TelephonyReceptionistWidget onClose={() => setShowTelephony(false)} />
         </DraggableModalWrapper>
       )}
 
