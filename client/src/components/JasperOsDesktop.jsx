@@ -48,13 +48,15 @@ const BlenderStudioModal = React.lazy(() => import('./BlenderStudioModal'));
 const HolographicAnswerModal = React.lazy(() => import('./HolographicAnswerModal'));
 const PhoneSentinelWidget = React.lazy(() => import('./PhoneSentinelWidget'));
 const JasperVideoStudioApp = React.lazy(() => import('./JasperVideoStudioApp'));
+const TelephonyReceptionistWidget = React.lazy(() => import('./TelephonyReceptionistWidget'));
 
-import { Calculator, FileCode, Compass, MessageSquare, ShieldAlert, Video, Wallet } from 'lucide-react';
+import { Calculator, FileCode, Compass, MessageSquare, ShieldAlert, Video, Wallet, PhoneForwarded } from 'lucide-react';
 
 /**
  * ALL NATIVE JASPER OS APPLICATIONS REGISTRY
  */
 const JASPER_OS_APPS_REGISTRY = [
+  { id: 'telephonyHub', title: 'Autonomous Telephony & Receptionist App', category: 'Hardware Control', icon: PhoneForwarded, component: TelephonyReceptionistWidget, defaultSize: { w: 960, h: 640 } },
   { id: 'payVault', title: 'Pay Vault & Guardian Budget', category: 'Finance & Security', icon: Wallet, component: PaymentBalanceWidget, defaultSize: { w: 940, h: 640 } },
   { id: 'videoStudio', title: 'AI Video Creator & YouTube Studio', category: 'Creative & AI', icon: Video, component: JasperVideoStudioApp, defaultSize: { w: 980, h: 660 } },
   { id: 'phoneSentinel', title: 'Phone Sentinel & Offline Alerts', category: 'Hardware Control', icon: ShieldAlert, component: PhoneSentinelWidget, defaultSize: { w: 760, h: 580 } },
