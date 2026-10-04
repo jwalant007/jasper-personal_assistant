@@ -163,6 +163,26 @@ async function handleToolExecution(tool, args) {
       });
     }
 
+    case 'pull_up_meeting': {
+      const targetUrl = args.url || 'https://meet.google.com/new';
+      console.log(`[Satellite] Pulling up meeting hands-free: ${targetUrl}`);
+      // 1. Adjust local PC volume to 80%
+      exec(`powershell.exe -NoProfile -Command "[AudioEndpointVolume]::SetMasterVolumeLevelScalar(0.80, [Guid]::Empty)"`, () => {});
+      // 2. Launch Chrome or default browser maximized
+      exec(`start "" chrome.exe --start-maximized "${targetUrl}"`, (err) => {
+        if (err) {
+          // Fallback to standard start
+          exec(`start "" "${targetUrl}"`);
+        }
+      });
+      return {
+        success: true,
+        action: 'MEETING_LAUNCHED',
+        url: targetUrl,
+        message: 'Google Meet launched maximized and volume prepped at 80% on host PC.'
+      };
+    }
+
     default:
       return { success: false, error: `Tool '${tool}' not supported by Satellite Agent` };
   }

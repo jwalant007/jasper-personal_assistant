@@ -340,12 +340,13 @@ class TelephonyEngine {
     // 1. Live Twilio Outbound Call (if configured)
     if (this._twilioClient && cfg.twilioPhoneNumber && cfg.ownerPhoneNumber) {
       try {
+        const baseUrl = (process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || cfg.publicUrl || 'https://jasper-personal-assistant.onrender.com').replace(/\/$/, '');
         const call = await this._twilioClient.calls.create({
           to: cfg.ownerPhoneNumber,
           from: cfg.twilioPhoneNumber,
           twiml: `<Response>
             <Say voice="${cfg.voice || 'Polly.Brian'}">${speechPrompt}</Say>
-            <Gather input="speech" timeout="6" action="/api/telephony/owner-gather?relayId=${relayId}">
+            <Gather input="speech" timeout="6" action="${baseUrl}/api/telephony/owner-gather?relayId=${relayId}">
               <Say voice="${cfg.voice || 'Polly.Brian'}">Please speak your instruction now.</Say>
             </Gather>
           </Response>`
