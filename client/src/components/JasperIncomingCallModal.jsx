@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Phone, PhoneCall, PhoneOff, Mic, MicOff, Volume2, ShieldAlert, Sparkles, CheckCircle2 } from 'lucide-react';
 import { unlockDeviceAudio, speakDeviceAudio } from '../utils/speakDeviceAudio';
+import { getApiBase } from '../utils/apiConfig.js';
 
 /**
  * Realistic Web Audio Telephone Ringtone Generator
@@ -216,35 +217,45 @@ export default function JasperIncomingCallModal({
       try { recognitionRef.current.stop(); } catch (e) {}
     }
 
-    // Jasper speaks confirmation back to owner
-    const confirmation = "Understood sir. Relaying to the client on Line 1 and launching Google Meet on your screen right now.";
-    speakDeviceAudio(confirmation, {
-      onEnd: async () => {
-        await executeRelay(responseText);
-      }
-    });
-  };
-
-  const executeRelay = async (responseText) => {
     try {
       const relayId = callData?.relayId;
-      // Post to backend relay handler
-      const res = await fetch('/api/telephony/relay-response', {
+      const res = await fetch(`${getApiBase()}/api/telephony/relay-response`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-jasper-token': 'jasper'
+        },
         body: JSON.stringify({
           relayId,
-          response: responseText
+          response: responseText,
+          responseText: responseText
         })
       });
       const data = await res.json();
       console.log('[JasperIncomingCallModal] Relay dispatched:', data);
+
+      const feedback = data?.relay?.ownerResponse?.ownerFeedback || 
+        (data?.relay?.ownerResponse?.isComing !== false
+          ? "Understood sir. Relaying to the client on Line 1 and launching Google Meet on your screen right now."
+          : "Understood sir. I have informed the client that you are unavailable tonight. The meeting has been stood down.");
+
+      speakDeviceAudio(feedback, {
+        onEnd: () => {
+          setTimeout(() => {
+            setCallState('finished');
+            if (onRelaySuccess) onRelaySuccess();
+          }, 800);
+        },
+        onError: () => {
+          setCallState('finished');
+          if (onRelaySuccess) onRelaySuccess();
+        }
+      });
     } catch (e) {
       console.warn('[JasperIncomingCallModal] Relay dispatch warning:', e);
+      setCallState('finished');
+      if (onRelaySuccess) onRelaySuccess();
     }
-
-    setCallState('finished');
-    if (onRelaySuccess) onRelaySuccess();
   };
 
   return (
@@ -357,6 +368,20 @@ export default function JasperIncomingCallModal({
                 className="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-200 border border-cyan-500/30 font-orbitron font-bold text-xs tracking-wider transition-all"
               >
                 "5 MINUTES"
+              </button>
+
+              <button
+                onClick={() => handleOwnerInstruction("Tell him I'm in traffic, give me 10 minutes.")}
+                className="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-200 border border-cyan-500/30 font-orbitron font-bold text-xs tracking-wider transition-all"
+              >
+                "10 MINUTES"
+              </button>
+
+              <button
+                onClick={() => handleOwnerInstruction("I can't make it tonight, please decline and reschedule for tomorrow.")}
+                className="px-3 py-2.5 rounded-xl bg-red-950/60 hover:bg-red-900/80 text-red-300 border border-red-500/30 font-orbitron font-bold text-xs tracking-wider transition-all"
+              >
+                "DECLINE / BUSY"
               </button>
             </div>
           </div>

@@ -397,22 +397,38 @@ class TelephonyEngine {
     // Parse owner ETA / intent
     let etaMinutes = 1;
     const etaMatch = ownerSpokenText.match(/(\d+)\s*(?:minute|min)/i);
-    if (etaMatch) etaMinutes = parseInt(etaMatch[1], 10);
+    if (etaMatch) {
+      etaMinutes = parseInt(etaMatch[1], 10);
+    } else if (/\bfive\b/i.test(ownerSpokenText)) {
+      etaMinutes = 5;
+    } else if (/\bten\b/i.test(ownerSpokenText)) {
+      etaMinutes = 10;
+    } else if (/\btwo\b/i.test(ownerSpokenText)) {
+      etaMinutes = 2;
+    } else if (/\bthree\b/i.test(ownerSpokenText)) {
+      etaMinutes = 3;
+    }
 
-    const isComing = /on my way|coming|heading|in the car|driving|1 minute|be there/i.test(ownerSpokenText);
+    const isDecline = /decline|cannot|can't|not now|busy|\bno\b|pass|reject|tomorrow|cancel|unavailable/i.test(ownerSpokenText);
+    const isComing = !isDecline && (/on my way|coming|heading|in the car|driving|minute|be there|\byes\b|accept|okay|\bok\b|sure|joining|ready/i.test(ownerSpokenText) || etaMatch !== null);
+
+    const ownerFeedback = isComing
+      ? `Understood, Sir. Relaying your ETA of ${etaMinutes} ${etaMinutes === 1 ? 'minute' : 'minutes'} to the client on Line 1, and launching Google Meet on your workstation right now.`
+      : `Understood, Sir. I have politely informed the client that you are unavailable tonight and will follow up with them tomorrow. The meeting has been stood down.`;
 
     relay.ownerResponse = {
       text: ownerSpokenText,
       isComing,
       etaMinutes,
+      ownerFeedback,
       receivedAt: new Date().toLocaleTimeString()
     };
-    relay.ownerLine.status = 'CONNECTED_ACKNOWLEDGED';
+    relay.ownerLine.status = isComing ? 'CONNECTED_ACCEPTED' : 'CONNECTED_DECLINED';
 
     // Generate relay message back to the held client on Line 1
     const relayMessage = isComing
       ? `Thank you for holding. Jwalant has been notified on his priority line and confirmed he is en route to his workstation right now. He expects to be online in the video conference room in approximately ${etaMinutes} ${etaMinutes === 1 ? 'minute' : 'minutes'}. I am pulling up the Google Meet room for you.`
-      : `Thank you for holding. Jwalant has received your message. He has noted the agreement and will follow up with you directly.`;
+      : `Thank you for holding. Jwalant has received your message. He is currently occupied in a priority engagement and cannot join the video call tonight. He has noted the contract terms and will reach out to you directly tomorrow morning.`;
 
     relay.relayToClientMessage = relayMessage;
     relay.status = 'RELAYED_TO_CLIENT';

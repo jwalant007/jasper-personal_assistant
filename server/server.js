@@ -3734,9 +3734,14 @@ app.post('/api/telephony/owner-gather', async (req, res) => {
     });
   }
 
+  const responseSpeech = result.relay?.ownerResponse?.ownerFeedback || 
+    (result.relay?.ownerResponse?.isComing
+      ? `Understood, Sir. I have relayed your ETA to the client on Line 1, and I am pulling up the Google Meet session on your workstation now.`
+      : `Understood, Sir. I have informed the client that you are unavailable. Have a good evening.`);
+
   const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Say voice="${cfg.voice || 'Polly.Brian'}">Understood, Sir. I have relayed your ETA to the client on Line 1, and I am pulling up the Google Meet session on your workstation now.</Say>
+  <Say voice="${cfg.voice || 'Polly.Brian'}">${responseSpeech}</Say>
 </Response>`;
 
   res.type('text/xml');
