@@ -3623,18 +3623,22 @@ async function runReelSimulation() {
   // Step 2 & 3: Outbound Call to Owner & Holding on Line 1
   // Dispatched automatically by telephonyEngine.startMultiLineRelay()
   
-  // Step 4: After 2 seconds, simulate owner response ("I'm on my way, 1 minute!")
+  // Step 4: Fallback timeout (35s) ONLY if owner doesn't answer via incoming call UI
   setTimeout(async () => {
-    await telephonyEngine.handleOwnerResponse(relayId, "I'm on my way, tell him 1 minute!");
+    const relay = telephonyEngine.getRelay(relayId);
+    if (relay && relay.status === 'relaying_to_owner') {
+      console.log(`[Simulation] Timeout reached: Auto-answering for Relay [${relayId}]`);
+      await telephonyEngine.handleOwnerResponse(relayId, "I'm on my way, tell him 1 minute!");
 
-    // Step 5 & 6: Relay confirmation sent to client on Line 1, and Pull Up Meeting on PC Workstation
-    setTimeout(async () => {
-      await meetingEngine.pullUpMeeting({
-        clientName: 'Miami Enterprise Client',
-        url: 'https://meet.google.com/xyz-qwer-abc'
-      });
-    }, 1500);
-  }, 2500);
+      // Step 5 & 6: Relay confirmation sent to client on Line 1, and Pull Up Meeting on PC Workstation
+      setTimeout(async () => {
+        await meetingEngine.pullUpMeeting({
+          clientName: 'Miami Enterprise Client',
+          url: 'https://meet.google.com/xyz-qwer-abc'
+        });
+      }, 1500);
+    }
+  }, 35000);
 
   return {
     success: true,
@@ -3741,7 +3745,8 @@ app.post('/api/telephony/owner-gather', async (req, res) => {
 
 // Owner Response relay endpoint (for UI or local simulation)
 app.post('/api/telephony/relay-response', async (req, res) => {
-  const { relayId, responseText } = req.body || {};
+  const { relayId } = req.body || {};
+  const responseText = req.body?.responseText || req.body?.response || "I'm on my way, tell him 1 minute!";
   const result = await telephonyEngine.handleOwnerResponse(relayId, responseText);
   if (result.relay?.ownerResponse?.isComing) {
     meetingEngine.pullUpMeeting({

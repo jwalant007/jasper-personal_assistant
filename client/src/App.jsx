@@ -11,6 +11,7 @@ import AudioConversationPage from './components/AudioConversationPage';
 import DraggableModalWrapper from './components/DraggableModalWrapper';
 import JasperOsDesktop from './components/JasperOsDesktop';
 import EmergencyAlertToast from './components/EmergencyAlertToast';
+import JasperIncomingCallModal from './components/JasperIncomingCallModal';
 
 // Code-Split Dynamic Modal Apps & Widgets (Loaded on-demand)
 const PcCommandCenterWidget = React.lazy(() => import('./components/PcCommandCenterWidget'));
@@ -235,6 +236,7 @@ export default function App() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [apkDownloadUrl, setApkDownloadUrl] = useState('');
   const [activeEmergency, setActiveEmergency] = useState(null);
+  const [incomingJasperCall, setIncomingJasperCall] = useState(null);
 
   // High-Priority Emergency Toast & Alert Poller + WebSocket Listener
   useEffect(() => {
@@ -266,17 +268,8 @@ export default function App() {
             setActiveEmergency(data.emergency);
           } else if (data.type === 'AUTONOMOUS_OUTBOUND_CALL_TO_OWNER') {
             console.log('[App] 📞 AUTONOMOUS OUTBOUND CALL TO OWNER RECEIVED:', data);
-            setActiveEmergency({
-              id: data.relayId,
-              source: 'telephony_receptionist',
-              sender: data.clientName,
-              senderName: `${data.clientName} ($${data.dealValue?.toLocaleString()})`,
-              message: data.speechPrompt,
-              urgency: 'high',
-              isTelephonyRelay: true,
-              relayId: data.relayId
-            });
-            setShowTelephony(true);
+            // Trigger dedicated incoming voice call screen (Audio Ringtone + Voice Dialogue)
+            setIncomingJasperCall(data);
           } else if (data.type === 'MEETING_PULLED_UP' && data.url) {
             console.log('[App] 🎥 MEETING PULLED UP EVENT RECEIVED:', data);
             try {
@@ -3269,6 +3262,18 @@ export default function App() {
           emergency={activeEmergency}
           onDismiss={handleDismissEmergency}
           onOpenHub={() => setShowSocialAutoReply(true)}
+        />
+      )}
+
+      {/* 21. Real-Time Autonomous Voice Call from JASPER (Priority Line 2) */}
+      {incomingJasperCall && (
+        <JasperIncomingCallModal
+          callData={incomingJasperCall}
+          onDecline={() => setIncomingJasperCall(null)}
+          onRelaySuccess={() => {
+            setIncomingJasperCall(null);
+            setShowTelephony(true);
+          }}
         />
       )}
     </div>
