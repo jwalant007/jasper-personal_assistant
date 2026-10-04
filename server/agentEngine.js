@@ -727,7 +727,7 @@ Key Directives:
       const HARDWARE_TOOLS = [
         'set_pc_volume', 'open_application', 'send_tv_command', 'wake_tv',
         'open_phone_app', 'control_device', 'tune_stb_channel', 'tune_d2h_channel',
-        'send_phone_sms', 'make_call', 'run_powershell'
+        'send_phone_sms', 'make_call', 'run_powershell', 'pull_up_meeting'
       ];
 
       let result;

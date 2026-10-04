@@ -277,6 +277,13 @@ export default function App() {
               relayId: data.relayId
             });
             setShowTelephony(true);
+          } else if (data.type === 'MEETING_PULLED_UP' && data.url) {
+            console.log('[App] 🎥 MEETING PULLED UP EVENT RECEIVED:', data);
+            try {
+              window.open(data.url, '_blank');
+            } catch (openErr) {
+              console.warn('[App] Could not automatically open popup tab:', openErr);
+            }
           } else if (data.type === 'EMERGENCY_DISMISSED') {
             setActiveEmergency(null);
           }
