@@ -601,6 +601,28 @@ const TOOL_REGISTRY = {
       const session = callIntelligenceEngine.getSession(targetId);
       return { success: true, session, contextMemory: session?.contextMemory };
     }
+  },
+
+  sync_telephony_contacts: {
+    name: 'sync_telephony_contacts',
+    description: 'Synchronize phone address book, Android call logs, WhatsApp threads, and database contacts into the Telephony Hub directory for caller ID recognition and VIP screening',
+    permissionLevel: 1,
+    parameters: {},
+    async handler(_args) {
+      const result = await telephonyEngine.syncContacts();
+      return result;
+    }
+  },
+
+  get_telephony_contacts: {
+    name: 'get_telephony_contacts',
+    description: 'Get all synchronized contacts from Telephony Hub address book',
+    permissionLevel: 0,
+    parameters: {},
+    async handler(_args) {
+      const contacts = telephonyEngine.getContacts();
+      return { success: true, count: contacts.length, contacts };
+    }
   }
 };
 
@@ -908,8 +930,20 @@ Key Directives:
       results.push({ intent: 'pull_up_meeting', ...r });
     }
 
+    // Telephony Contacts Synchronization & Speed Dial
+    if (lower.match(/\b(sync contacts|sync my contacts|contacts in (the )?telephon(y|e)|telephony contacts)\b/)) {
+      const r = await this.executeTool('sync_telephony_contacts', {});
+      results.push({ intent: 'sync_telephony_contacts', ...r });
+    }
+
+    // Call Screening & Live Call Intelligence
+    if (lower.match(/\b(call context|call intelligence|screening context|call screening|caller briefing|what did caller say|practice details)\b/)) {
+      const r = await this.executeTool('get_call_intelligence', {});
+      results.push({ intent: 'call_intelligence', ...r });
+    }
+
     // Telephony & Urgent Call Dispatch
-    if (lower.match(/\b(call me|urgent call|dispatch call|ring me|telephony|receptionist)\b/)) {
+    if (!lower.includes('contact') && lower.match(/\b(call me|urgent call|dispatch call|ring me|receptionist|emergency call)\b/)) {
       if (lower.match(/\b(status|check)\b/)) {
         const r = await this.executeTool('telephony_receptionist_status', {});
         results.push({ intent: 'telephony_status', ...r });
@@ -917,12 +951,6 @@ Key Directives:
         const r = await this.executeTool('call_owner_urgent', { reason: query });
         results.push({ intent: 'call_owner_urgent', ...r });
       }
-    }
-
-    // Call Screening & Live Call Intelligence
-    if (lower.match(/\b(call context|call intelligence|screening context|call screening|caller briefing|what did caller say|practice details)\b/)) {
-      const r = await this.executeTool('get_call_intelligence', {});
-      results.push({ intent: 'call_intelligence', ...r });
     }
 
     // Build AI response

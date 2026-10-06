@@ -23,6 +23,106 @@ const callIntelligenceEngine = require('./callIntelligenceEngine');
 
 const CONFIG_FILE = path.join(__dirname, 'data', 'telephony_config.json');
 const LOGS_FILE = path.join(__dirname, 'data', 'telephony_logs.json');
+const CONTACTS_FILE = path.join(__dirname, 'data', 'telephony_contacts.json');
+
+const DEFAULT_CONTACTS = [
+  {
+    id: 'tc-mom',
+    name: 'Mom',
+    phone: '+91 98200 12345',
+    category: 'Family',
+    isVip: true,
+    avatar: '❤️',
+    avatarColor: 'from-pink-500 to-rose-500',
+    notes: 'Family Priority • Whitelisted for screening bypass',
+    lastInteraction: 'Incoming Call (Today)',
+    source: 'permanent_store'
+  },
+  {
+    id: 'tc-sarah',
+    name: 'Sarah (Office Boss)',
+    phone: '+91 98233 45678',
+    category: 'Work',
+    isVip: true,
+    avatar: '💼',
+    avatarColor: 'from-blue-500 to-cyan-500',
+    notes: 'Engineering & Product Lead • High Urgency',
+    lastInteraction: 'Project update',
+    source: 'permanent_store'
+  },
+  {
+    id: 'tc-rahul',
+    name: 'Rahul (Football Coach)',
+    phone: '+91 98765 43210',
+    category: 'Personal',
+    isVip: false,
+    avatar: '⚽',
+    avatarColor: 'from-emerald-500 to-teal-500',
+    notes: 'Football trial coordinator • Autonomous Screening',
+    lastInteraction: 'Practice scheduling',
+    source: 'permanent_store'
+  },
+  {
+    id: 'tc-miami',
+    name: 'Miami Client ($17k Deal)',
+    phone: '+1 305 555 0199',
+    category: 'Client',
+    isVip: true,
+    avatar: '💎',
+    avatarColor: 'from-amber-500 to-orange-500',
+    notes: 'Enterprise contract client • Auto-hold Line 1',
+    lastInteraction: 'Urgent contract signing',
+    source: 'permanent_store'
+  },
+  {
+    id: 'tc-mehta',
+    name: 'Dr. Mehta (Dentist)',
+    phone: '+91 98211 23456',
+    category: 'Health',
+    isVip: false,
+    avatar: '🩺',
+    avatarColor: 'from-teal-500 to-emerald-500',
+    notes: 'Dental clinic appointment desk',
+    lastInteraction: 'Appointment check',
+    source: 'permanent_store'
+  },
+  {
+    id: 'tc-alex',
+    name: 'Alex (Auto Mechanic)',
+    phone: '+91 98222 34567',
+    category: 'Services',
+    isVip: false,
+    avatar: '🔧',
+    avatarColor: 'from-amber-500 to-yellow-500',
+    notes: 'Vehicle servicing center',
+    lastInteraction: 'Car inspection',
+    source: 'permanent_store'
+  },
+  {
+    id: 'tc-fatih',
+    name: 'Fatih Makes',
+    phone: '+1 555 382 9901',
+    category: 'Work',
+    isVip: false,
+    avatar: '🛠️',
+    avatarColor: 'from-purple-500 to-indigo-500',
+    notes: 'CAD Engineering partner',
+    lastInteraction: 'Design review',
+    source: 'permanent_store'
+  },
+  {
+    id: 'tc-pizza',
+    name: 'Pizza Express',
+    phone: '+91 98244 56789',
+    category: 'Services',
+    isVip: false,
+    avatar: '🍕',
+    avatarColor: 'from-red-500 to-orange-500',
+    notes: 'Local order desk',
+    lastInteraction: 'Order',
+    source: 'permanent_store'
+  }
+];
 
 class TelephonyEngine {
   constructor() {
@@ -61,6 +161,10 @@ class TelephonyEngine {
 
     if (!fs.existsSync(LOGS_FILE)) {
       fs.writeFileSync(LOGS_FILE, JSON.stringify([], null, 2));
+    }
+
+    if (!fs.existsSync(CONTACTS_FILE)) {
+      fs.writeFileSync(CONTACTS_FILE, JSON.stringify(DEFAULT_CONTACTS, null, 2));
     }
   }
 
@@ -122,6 +226,348 @@ class TelephonyEngine {
       this._broadcastFn({ type: 'TELEPHONY_CALL_LOGGED', log: logItem });
     }
     return logItem;
+  }
+
+  // =========================================================================
+  // TELEPHONY CONTACTS & SPEED DIAL DIRECTORY
+  // =========================================================================
+
+  getContacts() {
+    try {
+      if (!fs.existsSync(CONTACTS_FILE)) {
+        fs.writeFileSync(CONTACTS_FILE, JSON.stringify(DEFAULT_CONTACTS, null, 2));
+        return DEFAULT_CONTACTS;
+      }
+      return JSON.parse(fs.readFileSync(CONTACTS_FILE, 'utf8'));
+    } catch {
+      return DEFAULT_CONTACTS;
+    }
+  }
+
+  saveContacts(contacts) {
+    try {
+      fs.writeFileSync(CONTACTS_FILE, JSON.stringify(contacts, null, 2));
+      return true;
+    } catch (e) {
+      console.error('[TelephonyEngine] Error saving contacts:', e.message);
+      return false;
+    }
+  }
+
+  normalizePhone(phone = '') {
+    if (!phone) return '';
+    const digits = String(phone).replace(/\D/g, '');
+    return digits.length > 10 ? digits.slice(-10) : digits;
+  }
+
+  findContactByPhone(number = '') {
+    if (!number) return null;
+    const targetNorm = this.normalizePhone(number);
+    if (!targetNorm) return null;
+
+    const contacts = this.getContacts();
+    for (const c of contacts) {
+      const cNorm = this.normalizePhone(c.phone);
+      if (cNorm && (cNorm === targetNorm || targetNorm.endsWith(cNorm) || cNorm.endsWith(targetNorm))) {
+        return c;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Synchronizes contacts from:
+   * 1. Android Phone via ADB (Real Address Book, Call Logs, WhatsApp notifications)
+   * 2. PhoneController Fallback contacts
+   * 3. Database Social Contacts (WhatsApp / Instagram)
+   * 4. Busy Mode Priority Contacts
+   */
+  async syncContacts(options = {}) {
+    try {
+      const existingContacts = this.getContacts();
+      const contactMap = new Map();
+
+      // Index existing contacts by normalized phone number
+      for (const c of existingContacts) {
+        const norm = this.normalizePhone(c.phone);
+        if (norm) {
+          contactMap.set(norm, { ...c });
+        }
+      }
+
+      let primarySource = 'database';
+      let newlyAdded = 0;
+
+      // 1. Sync Live Android Phone Contacts & Call Logs via phoneController
+      try {
+        const phoneLiveContacts = await phoneController.syncPhoneContacts();
+        if (phoneLiveContacts && phoneLiveContacts.length > 0) {
+          primarySource = 'phone_adb';
+          for (const pc of phoneLiveContacts) {
+            const norm = this.normalizePhone(pc.phone);
+            if (!norm) continue;
+
+            if (contactMap.has(norm)) {
+              const current = contactMap.get(norm);
+              current.lastInteraction = pc.lastMessage || current.lastInteraction;
+              current.source = pc.source || current.source || 'phone_adb';
+            } else {
+              contactMap.set(norm, {
+                id: pc.id || `tc-adb-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+                name: pc.name || `Caller ${pc.phone}`,
+                phone: pc.phone,
+                category: pc.source === 'call_app' ? 'Recent Caller' : 'Personal',
+                isVip: false,
+                avatar: '📱',
+                avatarColor: pc.avatarColor || 'from-cyan-500 to-blue-500',
+                notes: pc.lastMessage || 'Synced from connected Android device',
+                lastInteraction: pc.lastTimestamp || 'Live Synced',
+                source: 'phone_adb'
+              });
+              newlyAdded++;
+            }
+          }
+        }
+      } catch (err) {
+        console.log(`[TelephonyEngine] Notice: ADB phone contacts sync: ${err.message}`);
+      }
+
+      // 2. Incorporate phoneController dialer fallback contacts
+      try {
+        const fallbackContacts = phoneController.fallbackContacts();
+        for (const fc of fallbackContacts) {
+          const norm = this.normalizePhone(fc.phone);
+          if (!norm) continue;
+
+          if (!contactMap.has(norm)) {
+            contactMap.set(norm, {
+              id: `tc-fb-${fc.id}`,
+              name: fc.name,
+              phone: fc.phone,
+              category: fc.category || 'Personal',
+              isVip: fc.category === 'Family' || fc.category === 'Work',
+              avatar: fc.avatar || '👤',
+              avatarColor: 'from-blue-500 to-indigo-500',
+              notes: fc.defaultTask || 'Dialer contact',
+              lastInteraction: 'Address Book',
+              source: 'phone_dialer'
+            });
+            newlyAdded++;
+          }
+        }
+      } catch (_) {}
+
+      // 3. Incorporate Database Social Contacts
+      try {
+        const dbManager = require('./database');
+        const socialContacts = dbManager.getSocialContacts();
+        if (socialContacts && Array.isArray(socialContacts)) {
+          for (const sc of socialContacts) {
+            const norm = this.normalizePhone(sc.phone);
+            if (!norm) continue;
+
+            if (!contactMap.has(norm)) {
+              contactMap.set(norm, {
+                id: `tc-soc-${sc.id}`,
+                name: sc.name,
+                phone: sc.phone,
+                category: sc.name.includes('Mom') ? 'Family' : (sc.name.includes('Boss') ? 'Work' : 'Personal'),
+                isVip: sc.name.includes('Mom') || sc.name.includes('Boss'),
+                avatar: sc.name.includes('Mom') ? '❤️' : '👤',
+                avatarColor: sc.avatarColor || 'from-emerald-500 to-cyan-500',
+                notes: sc.lastMessage || 'Social contact thread',
+                lastInteraction: sc.lastTimestamp || 'Active',
+                source: 'database'
+              });
+              newlyAdded++;
+            }
+          }
+        }
+      } catch (_) {}
+
+      // 4. Incorporate Busy Mode Priority Contacts
+      try {
+        const busyModeEngine = require('./busyModeEngine');
+        const priorityContacts = busyModeEngine.getPriorityContacts();
+        if (priorityContacts && Array.isArray(priorityContacts)) {
+          for (const pc of priorityContacts) {
+            const norm = this.normalizePhone(pc.phone);
+            if (!norm) continue;
+
+            if (contactMap.has(norm)) {
+              contactMap.get(norm).isVip = true;
+            } else {
+              contactMap.set(norm, {
+                id: pc.id || `tc-pri-${Date.now()}`,
+                name: pc.name,
+                phone: pc.phone,
+                category: pc.category || 'VIP',
+                isVip: true,
+                avatar: '⭐',
+                avatarColor: 'from-amber-500 to-rose-500',
+                notes: 'Priority Whitelist contact',
+                lastInteraction: 'Priority List',
+                source: 'busy_mode'
+              });
+              newlyAdded++;
+            }
+          }
+        }
+      } catch (_) {}
+
+      const merged = Array.from(contactMap.values());
+      this.saveContacts(merged);
+
+      if (this._broadcastFn) {
+        this._broadcastFn({
+          type: 'TELEPHONY_CONTACTS_SYNCED',
+          count: merged.length,
+          newlyAdded,
+          source: primarySource,
+          contacts: merged
+        });
+      }
+
+      console.log(`[TelephonyEngine] Synced ${merged.length} contacts into Telephony Hub (Source: ${primarySource}, New: ${newlyAdded}).`);
+
+      return {
+        success: true,
+        count: merged.length,
+        newlyAdded,
+        source: primarySource,
+        contacts: merged,
+        message: `Successfully synchronized ${merged.length} contacts into Telephony Hub!`
+      };
+    } catch (err) {
+      console.error('[TelephonyEngine] Error syncing contacts:', err);
+      return { success: false, error: err.message, contacts: this.getContacts() };
+    }
+  }
+
+  addContact(contactData = {}) {
+    const contacts = this.getContacts();
+    const newContact = {
+      id: `tc-custom-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      name: contactData.name || 'New Contact',
+      phone: contactData.phone || '+1 555 0000',
+      category: contactData.category || 'Personal',
+      isVip: Boolean(contactData.isVip),
+      avatar: contactData.avatar || (contactData.isVip ? '⭐' : '👤'),
+      avatarColor: contactData.avatarColor || 'from-cyan-500 to-blue-500',
+      notes: contactData.notes || 'Manually added in Telephony Hub',
+      lastInteraction: 'Just added',
+      source: 'manual'
+    };
+    contacts.unshift(newContact);
+    this.saveContacts(contacts);
+
+    if (this._broadcastFn) {
+      this._broadcastFn({ type: 'TELEPHONY_CONTACT_ADDED', contact: newContact });
+    }
+    return newContact;
+  }
+
+  updateContact(contactId, updates = {}) {
+    const contacts = this.getContacts();
+    const idx = contacts.findIndex(c => c.id === contactId);
+    if (idx >= 0) {
+      contacts[idx] = { ...contacts[idx], ...updates };
+      this.saveContacts(contacts);
+      if (this._broadcastFn) {
+        this._broadcastFn({ type: 'TELEPHONY_CONTACT_UPDATED', contact: contacts[idx] });
+      }
+      return contacts[idx];
+    }
+    return null;
+  }
+
+  deleteContact(contactId) {
+    let contacts = this.getContacts();
+    const filtered = contacts.filter(c => c.id !== contactId);
+    this.saveContacts(filtered);
+    if (this._broadcastFn) {
+      this._broadcastFn({ type: 'TELEPHONY_CONTACT_DELETED', contactId });
+    }
+    return true;
+  }
+
+  toggleVip(contactId) {
+    const contacts = this.getContacts();
+    const contact = contacts.find(c => c.id === contactId);
+    if (contact) {
+      contact.isVip = !contact.isVip;
+      if (contact.isVip && contact.avatar === '👤') contact.avatar = '⭐';
+      this.saveContacts(contacts);
+      if (this._broadcastFn) {
+        this._broadcastFn({ type: 'TELEPHONY_CONTACT_UPDATED', contact });
+      }
+      return contact;
+    }
+    return null;
+  }
+
+  /**
+   * 1-Click Simulation: Screen an inbound call from a specific synced contact
+   */
+  async screenCallForContact(contactId, customSpeech) {
+    const contact = this.getContacts().find(c => c.id === contactId);
+    if (!contact) throw new Error('Contact not found');
+
+    const defaultSpeech = contact.isVip
+      ? `Hey Jwalant, this is ${contact.name}. I have an urgent matter requiring your input right away.`
+      : `Hi Jwalant, this is ${contact.name}. I was hoping we could catch up regarding our upcoming plans.`;
+
+    const speechResult = customSpeech || defaultSpeech;
+    const callSid = `sim-screen-${contact.id}-${Date.now()}`;
+
+    const session = await callIntelligenceEngine.startScreening({
+      callId: callSid,
+      from: contact.phone,
+      callerName: contact.name,
+      speechResult,
+      isSimulation: true,
+      contact
+    });
+
+    return {
+      success: true,
+      callId: callSid,
+      contact,
+      session,
+      message: `Initiated autonomous call screening for ${contact.name} (${contact.phone}).`
+    };
+  }
+
+  /**
+   * 1-Click Simulation: Quick dial out to a synced contact
+   */
+  async quickDialContact(contactId) {
+    const contact = this.getContacts().find(c => c.id === contactId);
+    if (!contact) throw new Error('Contact not found');
+
+    let phoneResult = null;
+    try {
+      phoneResult = await phoneController.makeCall(contact.phone);
+    } catch (_) {}
+
+    const log = this._addLog({
+      callSid: `outbound-${contact.id}-${Date.now()}`,
+      direction: 'outbound',
+      from: this.getConfig().ownerPhoneNumber || '+91 7984173128',
+      callerName: contact.name,
+      to: contact.phone,
+      speechTranscript: `Outbound call to ${contact.name}`,
+      status: 'dialed',
+      isUrgent: contact.isVip
+    });
+
+    return {
+      success: true,
+      contact,
+      log,
+      phoneResult,
+      message: `Outbound call placed to ${contact.name} (${contact.phone}).`
+    };
   }
 
   /**
@@ -199,11 +645,23 @@ class TelephonyEngine {
 
     const analysis = this.analyzeCallerIntent(callerSpeech);
 
+    // Caller ID lookup against Synced Telephony Contacts
+    const matchedContact = this.findContactByPhone(from);
+    if (matchedContact) {
+      analysis.clientName = matchedContact.name;
+      analysis.contact = matchedContact;
+      if (matchedContact.isVip) {
+        analysis.isUrgent = true;
+        analysis.isVip = true;
+      }
+    }
+
     const log = this._addLog({
       callSid: sid,
       direction: 'inbound',
       from,
       callerName: analysis.clientName,
+      contact: matchedContact || null,
       speechTranscript: callerSpeech,
       dealValue: analysis.dealValue,
       urgencyMinutes: analysis.urgencyMinutes,
@@ -217,6 +675,7 @@ class TelephonyEngine {
         call: {
           callSid: sid,
           from,
+          contact: matchedContact || null,
           analysis,
           speech: callerSpeech,
           timestamp: new Date().toLocaleTimeString()
@@ -232,7 +691,8 @@ class TelephonyEngine {
         from,
         callerName: analysis.clientName,
         speechResult: callerSpeech,
-        isSimulation
+        isSimulation,
+        contact: matchedContact || null
       });
     } catch (_) {}
 

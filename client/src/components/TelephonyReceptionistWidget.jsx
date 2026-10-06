@@ -5,11 +5,11 @@ import {
   Play, Settings, Clock, DollarSign, ShieldAlert, Sparkles, 
   CheckCircle2, AlertTriangle, ExternalLink, RefreshCw, Volume2, 
   Send, Users, Calendar, ArrowRight, Zap, Radio, UserCheck, 
-  BookmarkPlus, Check, Mic
+  BookmarkPlus, Check, Mic, Star, Search, Plus, Trash2, Shield, Smartphone
 } from 'lucide-react';
 
 export default function TelephonyReceptionistWidget({ onClose }) {
-  const [activeTab, setActiveTab] = useState('intelligence'); // 'intelligence' | 'switchboard' | 'meetings' | 'logs' | 'config'
+  const [activeTab, setActiveTab] = useState('intelligence'); // 'intelligence' | 'contacts' | 'switchboard' | 'meetings' | 'logs' | 'config'
   const [config, setConfig] = useState({
     enabled: true,
     receptionistName: 'JASPER',
@@ -35,6 +35,18 @@ export default function TelephonyReceptionistWidget({ onClose }) {
   const [pullUpStatus, setPullUpStatus] = useState('');
   const [customReply, setCustomReply] = useState('');
 
+  // Synced Contacts & Speed Dial state
+  const [contacts, setContacts] = useState([]);
+  const [isSyncingContacts, setIsSyncingContacts] = useState(false);
+  const [contactSearch, setContactSearch] = useState('');
+  const [contactCategoryFilter, setContactCategoryFilter] = useState('all'); // 'all' | 'vip' | 'Family' | 'Work' | 'Client' | 'Personal' | 'Services'
+  const [showAddContactModal, setShowAddContactModal] = useState(false);
+  const [newContactName, setNewContactName] = useState('');
+  const [newContactPhone, setNewContactPhone] = useState('');
+  const [newContactCategory, setNewContactCategory] = useState('Personal');
+  const [newContactIsVip, setNewContactIsVip] = useState(false);
+  const [newContactNotes, setNewContactNotes] = useState('');
+
   // New meeting form state
   const [newTitle, setNewTitle] = useState('');
   const [newClient, setNewClient] = useState('');
@@ -45,12 +57,13 @@ export default function TelephonyReceptionistWidget({ onClose }) {
   // Fetch all telephony & meeting data
   const fetchData = async () => {
     try {
-      const [cfgRes, relayRes, meetRes, logRes, liveRes] = await Promise.all([
+      const [cfgRes, relayRes, meetRes, logRes, liveRes, contactRes] = await Promise.all([
         fetch(`${getApiBase()}/api/telephony/config`).then(r => r.json()).catch(() => ({})),
         fetch(`${getApiBase()}/api/telephony/relays`).then(r => r.json()).catch(() => ({})),
         fetch(`${getApiBase()}/api/meetings`).then(r => r.json()).catch(() => ({})),
         fetch(`${getApiBase()}/api/telephony/logs`).then(r => r.json()).catch(() => ({})),
-        fetch(`${getApiBase()}/api/telephony/live/sessions`).then(r => r.json()).catch(() => ({}))
+        fetch(`${getApiBase()}/api/telephony/live/sessions`).then(r => r.json()).catch(() => ({})),
+        fetch(`${getApiBase()}/api/telephony/contacts`).then(r => r.json()).catch(() => ({}))
       ]);
 
       if (cfgRes.success) setConfig(cfgRes.config);
@@ -58,6 +71,7 @@ export default function TelephonyReceptionistWidget({ onClose }) {
       if (meetRes.success) setMeetings(meetRes.meetings);
       if (logRes.success) setLogs(logRes.logs);
       if (liveRes.success) setLiveSessions(liveRes.active?.length ? liveRes.active : (liveRes.recent || []));
+      if (contactRes.success) setContacts(contactRes.contacts || []);
     } catch (err) {
       console.error('[TelephonyWidget] Error fetching data:', err);
     }
@@ -274,6 +288,122 @@ export default function TelephonyReceptionistWidget({ onClose }) {
     }
   };
 
+  // Contact Actions
+  const handleSyncContacts = async () => {
+    setIsSyncingContacts(true);
+    setStatusMessage('Syncing contacts from Android Phone (ADB), Call Logs, WhatsApp, & Database...');
+    try {
+      const res = await fetch(`${getApiBase()}/api/telephony/sync-contacts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setContacts(data.contacts || []);
+        setStatusMessage(`✅ ${data.message || `Successfully synced ${data.count} contacts!`}`);
+      } else {
+        setStatusMessage(`⚠️ Sync notice: ${data.error || 'Failed'}`);
+      }
+    } catch (e) {
+      setStatusMessage(`Sync error: ${e.message}`);
+    } finally {
+      setIsSyncingContacts(false);
+      setTimeout(fetchData, 1000);
+      setTimeout(() => setStatusMessage(''), 5000);
+    }
+  };
+
+  const handleToggleVip = async (contactId) => {
+    try {
+      const res = await fetch(`${getApiBase()}/api/telephony/contacts/${contactId}/toggle-vip`, {
+        method: 'POST'
+      });
+      const data = await res.json();
+      if (data.success) {
+        setContacts(prev => prev.map(c => c.id === contactId ? data.contact : c));
+        setStatusMessage(`Updated VIP status for ${data.contact.name}.`);
+        setTimeout(() => setStatusMessage(''), 3000);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleScreenContact = async (contact) => {
+    setStatusMessage(`Initiating autonomous call screening for ${contact.name}...`);
+    try {
+      const res = await fetch(`${getApiBase()}/api/telephony/contacts/${contact.id}/screen-call`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setStatusMessage(`⚡ Screened incoming call initiated for ${contact.name}! Opening HUD...`);
+        fetchData();
+        setActiveTab('intelligence');
+      }
+    } catch (e) {
+      setStatusMessage(`Screening failed: ${e.message}`);
+    }
+  };
+
+  const handleQuickDial = async (contact) => {
+    setStatusMessage(`Dialing out to ${contact.name} (${contact.phone})...`);
+    try {
+      const res = await fetch(`${getApiBase()}/api/telephony/contacts/${contact.id}/quick-dial`, {
+        method: 'POST'
+      });
+      const data = await res.json();
+      if (data.success) {
+        setStatusMessage(`📞 Outbound call placed to ${contact.name}!`);
+        fetchData();
+      }
+    } catch (e) {
+      setStatusMessage(`Call failed: ${e.message}`);
+    }
+  };
+
+  const handleAddContactSubmit = async (e) => {
+    e.preventDefault();
+    if (!newContactName || !newContactPhone) return;
+    try {
+      const res = await fetch(`${getApiBase()}/api/telephony/contacts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newContactName,
+          phone: newContactPhone,
+          category: newContactCategory,
+          isVip: newContactIsVip,
+          notes: newContactNotes
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setContacts(prev => [data.contact, ...prev]);
+        setShowAddContactModal(false);
+        setNewContactName('');
+        setNewContactPhone('');
+        setNewContactNotes('');
+        setStatusMessage(`Added ${data.contact.name} to Telephony Directory.`);
+        setTimeout(() => setStatusMessage(''), 3000);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleDeleteContact = async (contactId) => {
+    try {
+      await fetch(`${getApiBase()}/api/telephony/contacts/${contactId}`, {
+        method: 'DELETE'
+      });
+      setContacts(prev => prev.filter(c => c.id !== contactId));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const activeRelay = relays[0];
 
   return (
@@ -296,8 +426,18 @@ export default function TelephonyReceptionistWidget({ onClose }) {
           </div>
         </div>
 
-        {/* Quick Actions: Simulations */}
+        {/* Quick Actions: Simulations & Sync */}
         <div className="flex items-center gap-2">
+          <button
+            onClick={handleSyncContacts}
+            disabled={isSyncingContacts}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600/30 to-indigo-600/30 hover:from-blue-600/40 hover:to-indigo-600/40 border border-blue-500/50 text-blue-300 font-semibold text-xs tracking-wide shadow-md transition-all active:scale-95 disabled:opacity-50"
+            title="Sync Phone Address Book, ADB Call Logs, & Database Contacts"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-blue-400 ${isSyncingContacts ? 'animate-spin' : ''}`} />
+            <span>{isSyncingContacts ? 'SYNCING...' : '🔄 SYNC CONTACTS'}</span>
+          </button>
+
           <button
             onClick={handleSimulateFootballScenario}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600/30 to-cyan-600/30 hover:from-emerald-600/40 hover:to-cyan-600/40 border border-emerald-500/50 text-emerald-300 font-semibold text-xs tracking-wide shadow-md transition-all active:scale-95"
@@ -338,6 +478,7 @@ export default function TelephonyReceptionistWidget({ onClose }) {
       <div className="flex border-b border-slate-800 bg-slate-950/40 px-4 gap-2">
         {[
           { id: 'intelligence', label: 'Live Call Intelligence', icon: Sparkles, badge: liveSessions.length > 0 ? 'ACTIVE' : 'NEW' },
+          { id: 'contacts', label: 'Synced Contacts & Speed Dial', icon: Users, badge: contacts.length > 0 ? `${contacts.length} SYNCED` : null },
           { id: 'switchboard', label: 'Multi-Line Switchboard', icon: PhoneForwarded, badge: relays.length > 0 ? 'ACTIVE' : null },
           { id: 'meetings', label: 'Google Meet Launcher', icon: Video, badge: meetings.length },
           { id: 'logs', label: 'Call Intelligence Logs', icon: Clock, badge: logs.length },
@@ -390,13 +531,36 @@ export default function TelephonyReceptionistWidget({ onClose }) {
                 </p>
               </div>
 
-              <button
-                onClick={handleSimulateFootballScenario}
-                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-orbitron font-bold text-xs tracking-wider shadow-lg shadow-cyan-900/40 flex items-center gap-2 active:scale-95 shrink-0"
-              >
-                <Zap className="w-4 h-4 text-emerald-300" />
-                <span>⚽ TEST FOOTBALL TRIAL SCENARIO</span>
-              </button>
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                {contacts.length > 0 && (
+                  <select
+                    onChange={(e) => {
+                      const c = contacts.find(item => item.id === e.target.value);
+                      if (c) {
+                        handleScreenContact(c);
+                        e.target.value = '';
+                      }
+                    }}
+                    defaultValue=""
+                    className="px-3 py-2 rounded-xl bg-slate-900 border border-cyan-500/40 text-cyan-200 text-xs font-semibold focus:outline-none cursor-pointer"
+                  >
+                    <option value="" disabled>⚡ Screen Any Synced Contact...</option>
+                    {contacts.map(c => (
+                      <option key={c.id} value={c.id}>
+                        {c.isVip ? '⭐ ' : ''}{c.name} ({c.category})
+                      </option>
+                    ))}
+                  </select>
+                )}
+
+                <button
+                  onClick={handleSimulateFootballScenario}
+                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-orbitron font-bold text-xs tracking-wider shadow-lg shadow-cyan-900/40 flex items-center gap-2 active:scale-95 shrink-0"
+                >
+                  <Zap className="w-4 h-4 text-emerald-300" />
+                  <span>⚽ TEST FOOTBALL SCENARIO</span>
+                </button>
+              </div>
             </div>
 
             {/* 4 Pillars Architecture Grid */}
@@ -731,6 +895,241 @@ export default function TelephonyReceptionistWidget({ onClose }) {
                   })}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* TAB: SYNCED CONTACTS & SPEED DIAL */}
+        {activeTab === 'contacts' && (
+          <div className="space-y-4 animate-in fade-in">
+            {/* Header / Actions Banner */}
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-950/60 via-slate-900/80 to-slate-950/80 border border-blue-500/40 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-blue-400" />
+                  <h3 className="font-orbitron font-bold text-base text-blue-200 uppercase tracking-wider">
+                    Synced Contacts & Speed Dial Directory
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-300 mt-1 max-w-2xl">
+                  Unified address book synchronized across <b>Android Phone (ADB)</b>, <b>Call Logs</b>, <b>WhatsApp</b>, and <b>Core Database</b>. J.A.S.P.E.R. recognizes contacts during incoming calls and applies VIP screening rules.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={handleSyncContacts}
+                  disabled={isSyncingContacts}
+                  className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-orbitron font-bold text-xs tracking-wider shadow-lg shadow-blue-900/40 flex items-center gap-2 active:scale-95 disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isSyncingContacts ? 'animate-spin' : ''}`} />
+                  <span>{isSyncingContacts ? 'SYNCING...' : 'SYNC CONTACTS NOW'}</span>
+                </button>
+
+                <button
+                  onClick={() => setShowAddContactModal(true)}
+                  className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-cyan-500/30 text-cyan-300 font-orbitron font-bold text-xs tracking-wider flex items-center gap-1.5 active:scale-95"
+                >
+                  <Plus className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>ADD CONTACT</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Telemetry Strip / Stats */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
+                  <Users className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-[10px] text-slate-400 font-mono uppercase">Total Contacts</div>
+                  <div className="text-sm font-bold font-orbitron text-white">{contacts.length}</div>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                  <Star className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-[10px] text-slate-400 font-mono uppercase">VIP Whitelist</div>
+                  <div className="text-sm font-bold font-orbitron text-amber-300">{contacts.filter(c => c.isVip).length}</div>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                  <Smartphone className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-[10px] text-slate-400 font-mono uppercase">Sync Sources</div>
+                  <div className="text-xs font-semibold text-emerald-300">ADB, Dialer, DB</div>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                  <Shield className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-[10px] text-slate-400 font-mono uppercase">Caller ID Status</div>
+                  <div className="text-xs font-semibold text-cyan-300">Live Active</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Search & Filter Bar */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-slate-950/50 p-2.5 rounded-xl border border-slate-800">
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  value={contactSearch}
+                  onChange={(e) => setContactSearch(e.target.value)}
+                  placeholder="Search contacts by name, phone number, role, notes..."
+                  className="w-full bg-slate-900/90 border border-slate-700/80 rounded-lg pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
+                />
+              </div>
+
+              {/* Filter Pills */}
+              <div className="flex flex-wrap items-center gap-1 text-[11px]">
+                {[
+                  { id: 'all', label: `All (${contacts.length})` },
+                  { id: 'vip', label: `⭐ VIP (${contacts.filter(c => c.isVip).length})` },
+                  { id: 'Family', label: 'Family' },
+                  { id: 'Work', label: 'Work' },
+                  { id: 'Client', label: 'Client' },
+                  { id: 'Personal', label: 'Personal' },
+                  { id: 'Services', label: 'Services' }
+                ].map(pill => {
+                  const isSelected = contactCategoryFilter === pill.id;
+                  return (
+                    <button
+                      key={pill.id}
+                      onClick={() => setContactCategoryFilter(pill.id)}
+                      className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
+                        isSelected
+                          ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/50 shadow-sm'
+                          : 'bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-slate-800'
+                      }`}
+                    >
+                      {pill.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Contacts Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              {contacts
+                .filter(c => {
+                  if (contactCategoryFilter === 'vip') return c.isVip;
+                  if (contactCategoryFilter !== 'all') {
+                    if (contactCategoryFilter === 'Services') return c.category === 'Services' || c.category === 'Health';
+                    return c.category?.toLowerCase() === contactCategoryFilter.toLowerCase();
+                  }
+                  return true;
+                })
+                .filter(c => {
+                  if (!contactSearch.trim()) return true;
+                  const q = contactSearch.toLowerCase();
+                  return (
+                    c.name?.toLowerCase().includes(q) ||
+                    c.phone?.toLowerCase().includes(q) ||
+                    c.category?.toLowerCase().includes(q) ||
+                    c.notes?.toLowerCase().includes(q)
+                  );
+                })
+                .map(contact => {
+                  return (
+                    <div
+                      key={contact.id}
+                      className={`p-3.5 rounded-xl border transition-all relative overflow-hidden flex flex-col justify-between gap-3 ${
+                        contact.isVip
+                          ? 'bg-slate-950/80 border-amber-500/40 shadow-lg shadow-amber-500/5'
+                          : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
+                      }`}
+                    >
+                      {/* Top Contact Identity */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-xl bg-gradient-to-tr ${contact.avatarColor || 'from-cyan-500 to-blue-500'} flex items-center justify-center text-lg shadow-md ring-1 ring-white/10 shrink-0`}>
+                            {contact.avatar || '👤'}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-1.5">
+                              <h4 className="font-bold text-xs text-white tracking-wide">{contact.name}</h4>
+                              {contact.isVip && (
+                                <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-amber-500/20 border border-amber-500/40 text-amber-300 font-mono flex items-center gap-0.5">
+                                  <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" /> VIP
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[11px] font-mono text-cyan-300/80 mt-0.5">{contact.phone}</div>
+                          </div>
+                        </div>
+
+                        {/* Category Badge & VIP Toggle */}
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => handleToggleVip(contact.id)}
+                            className={`p-1 rounded-md transition-colors ${
+                              contact.isVip
+                                ? 'text-amber-400 hover:bg-amber-950/40'
+                                : 'text-slate-500 hover:text-amber-400 hover:bg-slate-800'
+                            }`}
+                            title={contact.isVip ? 'Remove VIP Whitelist' : 'Add to VIP Whitelist'}
+                          >
+                            <Star className={`w-3.5 h-3.5 ${contact.isVip ? 'fill-amber-400' : ''}`} />
+                          </button>
+                          <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-900 border border-slate-700/60 text-slate-300">
+                            {contact.category || 'General'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Notes / Last Interaction */}
+                      <div className="text-[11px] text-slate-400 bg-slate-900/60 p-2 rounded-lg border border-slate-800/80">
+                        <div className="text-slate-300 font-medium truncate">{contact.notes || 'Contact synced to Telephony Hub.'}</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5 flex items-center justify-between">
+                          <span>{contact.lastInteraction || 'Active'}</span>
+                          <span className="font-mono text-[9px] text-slate-600 uppercase">{contact.source || 'synced'}</span>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons: Screen Inbound & Quick Dial */}
+                      <div className="flex items-center gap-2 pt-1 border-t border-slate-800/80">
+                        <button
+                          onClick={() => handleScreenContact(contact)}
+                          className="flex-1 py-1.5 px-2 rounded-lg bg-gradient-to-r from-emerald-600/30 to-cyan-600/30 hover:from-emerald-600/40 hover:to-cyan-600/40 border border-emerald-500/40 text-emerald-300 font-semibold text-[11px] flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-sm"
+                          title="Simulate autonomous call screening for this contact"
+                        >
+                          <Zap className="w-3 h-3 text-emerald-400" />
+                          <span>SCREEN CALL</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleQuickDial(contact)}
+                          className="py-1.5 px-3 rounded-lg bg-blue-600/30 hover:bg-blue-600/40 border border-blue-500/40 text-blue-300 font-semibold text-[11px] flex items-center justify-center gap-1.5 transition-all active:scale-95"
+                          title="Place outbound call to this contact"
+                        >
+                          <PhoneCall className="w-3 h-3 text-blue-400" />
+                          <span>DIAL</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleDeleteContact(contact.id)}
+                          className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-slate-800 transition-colors"
+                          title="Delete contact"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
             </div>
           </div>
         )}
@@ -1185,6 +1584,104 @@ export default function TelephonyReceptionistWidget({ onClose }) {
           </form>
         )}
       </div>
+
+      {/* ADD DIRECTORY CONTACT MODAL */}
+      {showAddContactModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-cyan-500/40 rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-cyan-400" />
+                <h3 className="font-orbitron font-bold text-sm text-cyan-200">ADD DIRECTORY CONTACT</h3>
+              </div>
+              <button onClick={() => setShowAddContactModal(false)} className="text-slate-400 hover:text-white">✕</button>
+            </div>
+
+            <form onSubmit={handleAddContactSubmit} className="space-y-3 text-xs">
+              <div>
+                <label className="text-slate-300 block mb-1 font-medium">Full Name / Title</label>
+                <input
+                  type="text"
+                  required
+                  value={newContactName}
+                  onChange={(e) => setNewContactName(e.target.value)}
+                  placeholder="e.g. Rahul (Football Coach)"
+                  className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-cyan-400"
+                />
+              </div>
+
+              <div>
+                <label className="text-slate-300 block mb-1 font-medium">Phone Number</label>
+                <input
+                  type="text"
+                  required
+                  value={newContactPhone}
+                  onChange={(e) => setNewContactPhone(e.target.value)}
+                  placeholder="e.g. +91 98765 43210"
+                  className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white font-mono focus:outline-none focus:border-cyan-400"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-slate-300 block mb-1 font-medium">Category</label>
+                  <select
+                    value={newContactCategory}
+                    onChange={(e) => setNewContactCategory(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-cyan-400"
+                  >
+                    <option value="Personal">Personal</option>
+                    <option value="Family">Family</option>
+                    <option value="Work">Work</option>
+                    <option value="Client">Client</option>
+                    <option value="Health">Health</option>
+                    <option value="Services">Services</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col justify-end">
+                  <label className="flex items-center gap-2 cursor-pointer p-2 rounded-lg bg-slate-950 border border-slate-700 text-slate-300 select-none hover:border-amber-500/50">
+                    <input
+                      type="checkbox"
+                      checked={newContactIsVip}
+                      onChange={(e) => setNewContactIsVip(e.target.checked)}
+                      className="accent-amber-400 rounded"
+                    />
+                    <span className="font-semibold text-amber-300">⭐ VIP Whitelist</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-slate-300 block mb-1 font-medium">Notes / Relationship Context</label>
+                <input
+                  type="text"
+                  value={newContactNotes}
+                  onChange={(e) => setNewContactNotes(e.target.value)}
+                  placeholder="e.g. Practice trial coordinator • Call screening allowed"
+                  className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-cyan-400"
+                />
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddContactModal(false)}
+                  className="flex-1 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold"
+                >
+                  Save Contact
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

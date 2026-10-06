@@ -239,16 +239,19 @@ Return JSON with:
     from = '+91 98765 43210',
     callerName = 'Rahul',
     speechResult = 'Hey, I wanted to talk to Jwalant about the football trial tomorrow.',
-    isSimulation = false
+    isSimulation = false,
+    contact = null
   }) {
     const id = callId || `call-intel-${Date.now()}`;
     const analysis = await this.analyzeInitialScreening(speechResult, from);
-    const resolvedCaller = (callerName && callerName !== 'Unknown Caller') ? callerName : analysis.caller;
+    const resolvedCaller = contact?.name || ((callerName && callerName !== 'Unknown Caller') ? callerName : analysis.caller);
 
     const session = {
       callId: id,
       caller: resolvedCaller,
       phone: from,
+      contact: contact || null,
+      isVip: Boolean(contact?.isVip),
       status: 'waiting_decision', // 'screening' | 'waiting_decision' | 'active_live' | 'rejected' | 'concluded'
       createdAt: new Date().toISOString(),
       displayTime: new Date().toLocaleTimeString(),

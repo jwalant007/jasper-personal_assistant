@@ -3717,6 +3717,92 @@ app.get('/api/telephony/relays', (req, res) => {
   res.json({ success: true, relays: telephonyEngine.getActiveRelays() });
 });
 
+// -------------------------------------------------------------
+// TELEPHONY CONTACTS & SPEED DIAL DIRECTORY ENDPOINTS
+// -------------------------------------------------------------
+
+// Get all synchronized telephony contacts
+app.get('/api/telephony/contacts', (req, res) => {
+  try {
+    const contacts = telephonyEngine.getContacts();
+    res.json({ success: true, count: contacts.length, contacts });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Trigger full contacts synchronization across Android Phone (ADB), Social threads, and Database
+app.post('/api/telephony/sync-contacts', async (req, res) => {
+  try {
+    const result = await telephonyEngine.syncContacts(req.body || {});
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Add new contact to Telephony Hub
+app.post('/api/telephony/contacts', (req, res) => {
+  try {
+    const contact = telephonyEngine.addContact(req.body || {});
+    res.json({ success: true, contact });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Update contact in Telephony Hub
+app.put('/api/telephony/contacts/:id', (req, res) => {
+  try {
+    const contact = telephonyEngine.updateContact(req.params.id, req.body || {});
+    if (!contact) return res.status(404).json({ success: false, error: 'Contact not found' });
+    res.json({ success: true, contact });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Delete contact from Telephony Hub
+app.delete('/api/telephony/contacts/:id', (req, res) => {
+  try {
+    telephonyEngine.deleteContact(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Toggle VIP whitelist for a contact
+app.post('/api/telephony/contacts/:id/toggle-vip', (req, res) => {
+  try {
+    const contact = telephonyEngine.toggleVip(req.params.id);
+    if (!contact) return res.status(404).json({ success: false, error: 'Contact not found' });
+    res.json({ success: true, contact });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 1-Click Screen Call for specific synced contact
+app.post('/api/telephony/contacts/:id/screen-call', async (req, res) => {
+  try {
+    const result = await telephonyEngine.screenCallForContact(req.params.id, req.body?.speech);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Quick dial out to synced contact
+app.post('/api/telephony/contacts/:id/quick-dial', async (req, res) => {
+  try {
+    const result = await telephonyEngine.quickDialContact(req.params.id);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // FEATURE 1: Inbound Webhook (Twilio / Simulator)
 app.post('/api/telephony/inbound', async (req, res) => {
   const speechResult = req.body?.SpeechResult || req.body?.speechResult || req.body?.speech;
