@@ -165,14 +165,14 @@ const DEFAULT_SCHEMA = {
   },
   finance: {
     accounts: [
-      { id: 'acc_1', name: 'Primary Checking', type: 'bank', balance: 5420.00, currency: '$', institution: 'Chase Private Client', isDefault: true, color: 'from-blue-600 to-indigo-700' },
-      { id: 'acc_2', name: 'Emergency Vault', type: 'savings', balance: 8200.00, currency: '$', institution: 'High-Yield Reserve', isDefault: false, color: 'from-emerald-600 to-teal-700' },
-      { id: 'acc_3', name: 'Apple Pay / Digital Wallet', type: 'wallet', balance: 480.00, currency: '$', institution: 'Apple Cash', isDefault: false, color: 'from-purple-600 to-violet-700' },
-      { id: 'acc_4', name: 'Obsidian Credit Card', type: 'credit', balance: 750.00, limit: 3500.00, currency: '$', institution: 'Titanium Card', isDefault: false, color: 'from-zinc-700 to-neutral-900' },
-      { id: 'acc_5', name: 'Physical Petty Cash', type: 'cash', balance: 120.00, currency: '$', institution: 'Desk Vault', isDefault: false, color: 'from-amber-600 to-orange-700' }
+      { id: 'acc_1', name: 'Primary Checking', type: 'bank', balance: 5420.00, currency: '₹', institution: 'State Bank / Private Client', isDefault: true, color: 'from-blue-600 to-indigo-700' },
+      { id: 'acc_2', name: 'Emergency Vault', type: 'savings', balance: 8200.00, currency: '₹', institution: 'High-Yield Reserve', isDefault: false, color: 'from-emerald-600 to-teal-700' },
+      { id: 'acc_3', name: 'Apple Pay / Digital Wallet', type: 'wallet', balance: 480.00, currency: '₹', institution: 'Paytm / UPI Wallet', isDefault: false, color: 'from-purple-600 to-violet-700' },
+      { id: 'acc_4', name: 'Obsidian Credit Card', type: 'credit', balance: 750.00, limit: 3500.00, currency: '₹', institution: 'Titanium Card', isDefault: false, color: 'from-zinc-700 to-neutral-900' },
+      { id: 'acc_5', name: 'Physical Petty Cash', type: 'cash', balance: 120.00, currency: '₹', institution: 'Desk Vault', isDefault: false, color: 'from-amber-600 to-orange-700' }
     ],
     budget: {
-      monthlyLimit: 500.00,
+      monthlyLimit: 2000.00,
       alertThresholdPercent: 85,
       guardianName: 'Mom',
       guardianPhone: '+91 98200 12345',
@@ -185,19 +185,19 @@ const DEFAULT_SCHEMA = {
           id: 'ALT-INIT',
           date: new Date(Date.now() - 86400000 * 5).toISOString(),
           type: 'warning',
-          message: 'Warning: 85% of monthly budget limit reached ($425 / $500).',
+          message: 'Warning: 85% of monthly pocket money limit reached (₹1,700 / ₹2,000).',
           deliveredTo: 'Mom (+91 98200 12345 via WhatsApp)',
           status: 'Delivered'
         }
       ]
     },
     transactions: [
-      { id: 'tx_1', date: new Date(Date.now() - 86400000 * 2).toISOString(), accountId: 'acc_1', type: 'income', amount: 3200.00, category: 'Salary / Income', description: 'Monthly Direct Deposit', merchant: 'Employer Direct Pay' },
-      { id: 'tx_2', date: new Date(Date.now() - 86400000).toISOString(), accountId: 'acc_3', type: 'expense', amount: 42.50, category: 'Food & Dining', description: 'Dinner with colleagues', merchant: 'Trattoria Bella' },
+      { id: 'tx_1', date: new Date(Date.now() - 86400000 * 2).toISOString(), accountId: 'acc_1', type: 'income', amount: 3200.00, category: 'Salary / Income', description: 'Monthly Direct Deposit', merchant: 'Direct Pay' },
+      { id: 'tx_2', date: new Date(Date.now() - 86400000).toISOString(), accountId: 'acc_3', type: 'expense', amount: 42.50, category: 'Food & Dining', description: 'Snacks & refreshment', merchant: 'Café Coffee Day' },
       { id: 'tx_3', date: new Date().toISOString(), accountId: 'acc_4', type: 'expense', amount: 89.99, category: 'Software & Tech', description: 'Cloud server hosting renewal', merchant: 'Render / AWS Cloud' }
     ],
     settings: {
-      defaultCurrency: '$',
+      defaultCurrency: '₹',
       privacyMask: false
     }
   }
@@ -602,7 +602,7 @@ class DatabaseManager {
     if (!fin.accounts) fin.accounts = [];
     if (!fin.transactions) fin.transactions = [];
     if (!fin.budget) fin.budget = { ...DEFAULT_SCHEMA.finance.budget };
-    if (!fin.settings) fin.settings = { defaultCurrency: '$', privacyMask: false };
+    if (!fin.settings) fin.settings = { defaultCurrency: '₹', privacyMask: false };
 
     // Calculate live analytics
     let liquidBalance = 0;
@@ -645,7 +645,7 @@ class DatabaseManager {
     });
 
     // Budget Status
-    const budgetLimit = Number(fin.budget.monthlyLimit) || 500;
+    const budgetLimit = Number(fin.budget.monthlyLimit) || 2000;
     const thresholdPercent = Number(fin.budget.alertThresholdPercent) || 85;
     const percentSpent = budgetLimit > 0 ? Math.round((monthSpend / budgetLimit) * 100) : 0;
     let budgetState = 'safe'; // 'safe' | 'warning' | 'breached'
@@ -657,7 +657,7 @@ class DatabaseManager {
 
     // Daily Burn Rate (using 30-day window or current month days)
     const daysPassedInMonth = Math.max(1, now.getDate());
-    const dailyBurnRate = monthSpend > 0 ? Math.round((monthSpend / daysPassedInMonth) * 100) / 100 : 18.50;
+    const dailyBurnRate = monthSpend > 0 ? Math.round((monthSpend / daysPassedInMonth) * 100) / 100 : Math.round((budgetLimit / 30) * 100) / 100;
     const runwayDays = dailyBurnRate > 0 ? Math.max(0, Math.floor(liquidBalance / dailyBurnRate)) : 999;
 
     // Trajectory Forecasting (30, 60, 90 days)

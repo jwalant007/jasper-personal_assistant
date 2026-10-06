@@ -43,7 +43,14 @@ const SYNONYM_MAP = {
   'ac': ['air conditioner', 'cooling', 'climate', 'temperature'],
   'name': ['identity', 'user', 'called'],
   'preference': ['prefer', 'likes', 'favorite', 'loves'],
-  'prefer': ['preference', 'likes', 'favorite']
+  'prefer': ['preference', 'likes', 'favorite'],
+  'pocket': ['money', 'allowance', 'budget', 'rupees', 'cash', 'inr'],
+  'money': ['pocket', 'allowance', 'budget', 'cash', 'rupees', 'funds', 'finances', 'inr'],
+  'allowance': ['pocket money', 'budget', 'stipend', 'money', 'allowance'],
+  'budget': ['allowance', 'limit', 'monthly limit', 'pocket money', 'spending'],
+  'rupees': ['rupee', 'inr', 'rs', 'money', 'cash'],
+  'rupee': ['rupees', 'inr', 'rs'],
+  'inr': ['rupees', 'rupee', 'rs']
 };
 
 /**
@@ -374,6 +381,7 @@ class VectorMemoryEngine {
       { regex: /remember that ([a-z0-9\s]+)/i, category: 'fact' },
       { regex: /keep in mind that ([a-z0-9\s]+)/i, category: 'fact' },
       { regex: /don'?t forget that ([a-z0-9\s]+)/i, category: 'fact' },
+      { regex: /(?:my\s+)?(?:monthly\s+)?(?:pocket\s*money|allowance|budget)\s+is\s+([a-z0-9\s₹rs]+)/i, category: 'financial' },
       { regex: /my ([a-z0-9\s]+) is ([a-z0-9\s]+)/i, category: 'general' }
     ];
 

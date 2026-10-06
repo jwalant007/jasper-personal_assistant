@@ -248,6 +248,41 @@ const TOOL_REGISTRY = {
     }
   },
 
+  set_monthly_budget: {
+    name: 'set_monthly_budget',
+    description: 'Set monthly budget allowance or pocket money limit in Pay Vault and Guardian Sentinel',
+    permissionLevel: 1,
+    parameters: { amount: 'number', currency: 'string (optional, default ₹)' },
+    async handler({ amount, currency = '₹' }) {
+      const numericAmount = Math.abs(Number(amount)) || 2000;
+      const summary = dbManager.updateBudgetSettings({ monthlyLimit: numericAmount });
+      if (currency) {
+        dbManager.updateFinanceSettings({ defaultCurrency: currency });
+      }
+      // Store in long-term vector memory
+      vectorMemory.addMemory(
+        `User's monthly pocket money is ${currency}${numericAmount.toLocaleString('en-IN')} (monthly allowance / budget limit).`,
+        'financial',
+        { source: 'agent_tool', amount: numericAmount, currency }
+      );
+      const thresholdPercent = summary.budget?.alertThresholdPercent || 85;
+      const guardianWarningThreshold = Math.round((numericAmount * (thresholdPercent / 100)) * 100) / 100;
+      const dailyBurnRate = Math.round((numericAmount / 30) * 100) / 100;
+
+      return {
+        success: true,
+        monthlyLimit: numericAmount,
+        currency,
+        dailyBurnRate,
+        alertThresholdPercent: thresholdPercent,
+        guardianWarningThreshold,
+        guardianName: summary.budget?.guardianName || 'Mom',
+        guardianPhone: summary.budget?.guardianPhone || '+91 98200 12345',
+        guardianPlatform: summary.budget?.guardianPlatform || 'whatsapp'
+      };
+    }
+  },
+
   // ── L1: Low-Risk Actions ───────────────────────────────────────────────────
 
   set_pc_volume: {
@@ -825,10 +860,40 @@ Key Directives:
 
     // ── Intent Routing ──────────────────────────────────────────────────────
 
+    // Pocket Money / Monthly Allowance / Budget setting directive
+    if (lower.match(/\b(pocket\s*money|allowance|monthly\s*budget|budget\s*limit)\b/)) {
+      const isDeclaring = lower.match(/\b(is|set|make|update|to)\b/) || lower.match(/\b(\d+k?|\d+)\s*(rupees?|rs|inr|₹)?\b/);
+      const isQuestion = lower.includes('what') || lower.includes('how much') || lower.includes('check');
+
+      if (isDeclaring && !isQuestion) {
+        let amount = null;
+        const kMatch = lower.match(/(\d+(?:\.\d+)?)\s*k\b/i);
+        if (kMatch) {
+          amount = parseFloat(kMatch[1]) * 1000;
+        } else {
+          const numMatch = lower.match(/(?:₹|rs\.?|inr)?\s*(\d+(?:\.\d+)?)\s*(?:rupees?|rs|inr|₹|bucks)?/i);
+          if (numMatch && numMatch[1]) {
+            amount = parseFloat(numMatch[1]);
+          }
+        }
+
+        if (amount && amount > 0) {
+          const r = await this.executeTool('set_monthly_budget', { amount, currency: '₹' });
+          results.push({ intent: 'set_pocket_money', ...r, ...(r.result || {}) });
+        } else {
+          const r = await this.executeTool('get_account_balances', {});
+          results.push({ intent: 'check_pocket_money', ...r, ...(r.result || {}) });
+        }
+      } else {
+        const r = await this.executeTool('get_account_balances', {});
+        results.push({ intent: 'check_pocket_money', ...r, ...(r.result || {}) });
+      }
+    }
+
     // Financial Account Balance & Budget
-    if (lower.match(/balance|how much (money|cash)|bank account|pay vault|net worth|what('s| is) my (balance|money)|runway|burn rate|budget limit|guardian alert/)) {
+    else if (lower.match(/balance|how much (money|cash)|bank account|pay vault|net worth|what('s| is) my (balance|money)|runway|burn rate|guardian alert/)) {
       const r = await this.executeTool('get_account_balances', {});
-      results.push({ intent: 'financial_balance', ...r });
+      results.push({ intent: 'financial_balance', ...r, ...(r.result || {}) });
     }
 
     // Savings Advice & Cost-cutting
@@ -960,9 +1025,19 @@ Key Directives:
 
     let response;
     if (results.length > 0) {
-      const successCount = results.filter(r => r.success !== false).length;
-      const toolNames = results.map(r => r.tool || r.intent).join(', ');
-      response = `At your service, Sir. I have executed ${successCount} directive(s): ${toolNames}.${memCtx ? ' ' + memCtx : ''}`;
+      const pocketTool = results.find(r => r.intent === 'set_pocket_money');
+      const checkPocket = results.find(r => r.intent === 'check_pocket_money');
+
+      if (pocketTool) {
+        response = `Understood, Sir. I have recorded your monthly pocket money as ₹${pocketTool.monthlyLimit?.toLocaleString('en-IN') || '2,000'}. Based on a 30-day runway, your calculated daily burn rate is ₹${pocketTool.dailyBurnRate}/day. The Guardian Budget Sentinel is actively armed: if monthly spending reaches 85% (₹${pocketTool.guardianWarningThreshold?.toLocaleString('en-IN')}), an automated advisory alert will be dispatched to ${pocketTool.guardianName} (${pocketTool.guardianPhone} via ${pocketTool.guardianPlatform?.toUpperCase()}).`;
+      } else if (checkPocket) {
+        const curr = checkPocket.currency || '₹';
+        response = `Your current monthly pocket money allowance is ${curr}${checkPocket.budgetLimit?.toLocaleString('en-IN') || '2,000'}, with ${curr}${checkPocket.monthSpend || 0} spent this month. Current budget status is ${checkPocket.budgetState?.toUpperCase() || 'SAFE'}, with an estimated daily burn rate of ${curr}${checkPocket.dailyBurnRate || '66.67'}/day.`;
+      } else {
+        const successCount = results.filter(r => r.success !== false).length;
+        const toolNames = results.map(r => r.tool || r.intent).join(', ');
+        response = `At your service, Sir. I have executed ${successCount} directive(s): ${toolNames}.${memCtx ? ' ' + memCtx : ''}`;
+      }
     } else {
       // Intelligent local conversational handling
       if (lower.match(/\b(hello|hi|hey|good morning|good afternoon|good evening)\b/)) {
