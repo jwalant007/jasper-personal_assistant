@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-10-06T18:34:01.363Z",
+  "lastUpdated": "2026-10-06T19:28:51.624Z",
   "memories": [
     {
       "id": 1,
@@ -16,11 +16,11 @@
     }
   ],
   "analytics": {
-    "conversations": 42,
-    "voiceCommands": 128,
-    "imagesGenerated": 15,
-    "automationRuns": 24,
-    "connectedDevices": 3,
+    "conversations": 0,
+    "voiceCommands": 0,
+    "imagesGenerated": 0,
+    "automationRuns": 0,
+    "connectedDevices": 0,
     "startTime": 1785650061434
   },
   "reservations": [],
@@ -53,20 +53,7 @@
       "createdAt": "2026-08-21T06:44:20.938Z"
     }
   ],
-  "health_vitals": [
-    {
-      "id": 1787294660938,
-      "bpm": 74,
-      "spO2": 98,
-      "steps": 6480,
-      "calories": 320,
-      "stress": 22,
-      "hrv": 65,
-      "device": "Virtual Fitband Pro",
-      "status": "Normal",
-      "timestamp": "12:14:20 pm"
-    }
-  ],
+  "health_vitals": [],
   "settings": {
     "theme": "cyber-blue",
     "serverIp": "localhost",
@@ -4540,7 +4527,7 @@
         "id": "acc_1",
         "name": "Primary Checking",
         "type": "bank",
-        "balance": 5420,
+        "balance": 9920,
         "currency": "₹",
         "institution": "State Bank / Private Client",
         "isDefault": true,
@@ -4610,39 +4597,60 @@
     },
     "transactions": [
       {
-        "id": "tx_1",
-        "date": "2026-10-04T18:33:14.745Z",
+        "id": "tx_1791314931624",
+        "date": "2026-10-02T00:00:00.000Z",
         "accountId": "acc_1",
+        "toAccountId": null,
         "type": "income",
-        "amount": 3200,
-        "category": "Salary / Income",
-        "description": "Monthly Direct Deposit",
-        "merchant": "Direct Pay"
+        "amount": 2000,
+        "category": "Other",
+        "description": "Pocket Money Allowance",
+        "merchant": "Allowance",
+        "tags": []
       },
       {
-        "id": "tx_2",
-        "date": "2026-10-05T18:33:14.745Z",
-        "accountId": "acc_3",
-        "type": "expense",
-        "amount": 42.5,
-        "category": "Food & Dining",
-        "description": "Snacks & refreshment",
-        "merchant": "Café Coffee Day"
+        "id": "tx_1791314931618",
+        "date": "2026-10-01T00:00:00.000Z",
+        "accountId": "acc_1",
+        "toAccountId": null,
+        "type": "income",
+        "amount": 250,
+        "category": "Food",
+        "description": "Swiggy Food Order",
+        "merchant": "Swiggy",
+        "tags": []
       },
       {
-        "id": "tx_3",
-        "date": "2026-10-06T18:33:14.745Z",
-        "accountId": "acc_4",
-        "type": "expense",
-        "amount": 89.99,
-        "category": "Software & Tech",
-        "description": "Cloud server hosting renewal",
-        "merchant": "Render / AWS Cloud"
+        "id": "tx_1791314870790",
+        "date": "2026-10-02T00:00:00.000Z",
+        "accountId": "acc_1",
+        "toAccountId": null,
+        "type": "income",
+        "amount": 2000,
+        "category": "Other",
+        "description": "Pocket Money Allowance",
+        "merchant": "Allowance",
+        "tags": []
+      },
+      {
+        "id": "tx_1791314870783",
+        "date": "2026-10-01T00:00:00.000Z",
+        "accountId": "acc_1",
+        "toAccountId": null,
+        "type": "income",
+        "amount": 250,
+        "category": "Food",
+        "description": "Swiggy Food Order",
+        "merchant": "Swiggy",
+        "tags": []
       }
     ],
     "settings": {
       "defaultCurrency": "₹",
-      "privacyMask": false
+      "privacyMask": false,
+      "merchantCategoryRules": {
+        "netflix streaming": "Subscriptions"
+      }
     }
   }
 }

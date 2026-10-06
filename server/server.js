@@ -23,6 +23,7 @@ const ollamaBridge = require('./ollamaBridge');
 const telephonyEngine = require('./telephonyEngine');
 const meetingEngine = require('./meetingEngine');
 const callIntelligenceEngine = require('./callIntelligenceEngine');
+const financialIntelligenceEngine = require('./financialIntelligenceEngine');
 
 // Optional WhatsApp Web Client (whatsapp-web.js) for laptop WhatsApp Web auto-send
 let Client, LocalAuth, WAStatus;
@@ -2396,7 +2397,7 @@ app.delete('/api/memory/:id', (req, res) => {
 // Helper to dispatch Guardian Alert message
 async function dispatchGuardianAlertMessage(details) {
   const { guardianName, guardianPhone, guardianPlatform, limit, currentSpend, excessAmount, latestExpense } = details;
-  const currency = dbManager.getFinanceData()?.settings?.defaultCurrency || '$';
+  const currency = dbManager.getFinanceData()?.settings?.defaultCurrency || '₹';
   const alertText = `⚠️ JASPER Financial Sentinel Alert:\n` +
     `Hello ${guardianName || 'Guardian'}, this is an autonomous advisory from Jwalant's JASPER Assistant.\n` +
     `The monthly spending limit of ${currency}${limit} has been EXCEEDED.\n` +
@@ -2578,16 +2579,98 @@ app.post('/api/finance/guardian-alert/test', async (req, res) => {
   }
 });
 
+// --- ADVANCED FINANCIAL INTELLIGENCE ENDPOINTS ---
+// Statement Import (CSV or text statements)
+app.post('/api/finance/import-statement', (req, res) => {
+  try {
+    const { statementText, format = 'csv', accountId = 'acc_1' } = req.body;
+    if (!statementText) {
+      return res.status(400).json({ error: 'statementText is required' });
+    }
+    const result = financialIntelligenceEngine.importStatement(statementText, format, accountId);
+    if (result.success) {
+      broadcastToClients({ type: 'FINANCE_UPDATED', summary: dbManager.getFinanceData() });
+    }
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Category Manual Correction & Learning
+app.post('/api/finance/categories/correct', (req, res) => {
+  try {
+    const { merchant, category } = req.body;
+    if (!merchant || !category) {
+      return res.status(400).json({ error: 'merchant and category are required' });
+    }
+    const result = financialIntelligenceEngine.learnMerchantCategory(merchant, category);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Multi-Horizon Financial Forecast (1m, 3m, 6m, 1y, 3y, 5y)
+app.get('/api/finance/forecast', (req, res) => {
+  try {
+    const forecast = financialIntelligenceEngine.generateForecast(req.query);
+    res.json({ success: true, ...forecast });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// What-If Scenario Simulation
+app.post('/api/finance/what-if', (req, res) => {
+  try {
+    const simulation = financialIntelligenceEngine.simulateWhatIf(req.body);
+    res.json({ success: true, ...simulation });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Subscriptions & Recurring Payment Detection
+app.get('/api/finance/subscriptions', (req, res) => {
+  try {
+    const subscriptions = financialIntelligenceEngine.detectSubscriptions();
+    res.json({ success: true, subscriptions });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Unusual Spending / Anomaly Detection
+app.get('/api/finance/anomalies', (req, res) => {
+  try {
+    const anomalies = financialIntelligenceEngine.detectAnomalies();
+    res.json({ success: true, anomalies });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Safe Weekly Spend Allowance
+app.get('/api/finance/safe-weekly', (req, res) => {
+  try {
+    const safeSpend = financialIntelligenceEngine.getSafeWeeklySpend();
+    res.json({ success: true, ...safeSpend });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Analytics Store Endpoint
 const ANALYTICS_FILE = path.join(__dirname, 'analytics_store.json');
 function getAnalytics() {
   if (!fs.existsSync(ANALYTICS_FILE)) {
     const initial = {
-      conversations: 42,
-      voiceCommands: 128,
-      imagesGenerated: 15,
-      automationRuns: 24,
-      connectedDevices: 3,
+      conversations: 0,
+      voiceCommands: 0,
+      imagesGenerated: 0,
+      automationRuns: 0,
+      connectedDevices: 0,
       startTime: Date.now()
     };
     fs.writeFileSync(ANALYTICS_FILE, JSON.stringify(initial, null, 2));
@@ -2595,7 +2678,7 @@ function getAnalytics() {
   try {
     return JSON.parse(fs.readFileSync(ANALYTICS_FILE, 'utf8'));
   } catch (e) {
-    return { conversations: 0, voiceCommands: 0, imagesGenerated: 0, automationRuns: 0, connectedDevices: 1, startTime: Date.now() };
+    return { conversations: 0, voiceCommands: 0, imagesGenerated: 0, automationRuns: 0, connectedDevices: 0, startTime: Date.now() };
   }
 }
 

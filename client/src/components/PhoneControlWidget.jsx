@@ -292,21 +292,7 @@ export default function PhoneControlWidget() {
     setLoading(false);
   };
 
-  const toggleVirtual = async (enabled) => {
-    setLoading(true);
-    try {
-      await fetch(`${API_BASE}/api/phone/toggle-virtual`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ enabled })
-      });
-      await checkStatus();
-      if (enabled) refreshScreen();
-    } catch (e) {
-      console.error(e);
-    }
-    setLoading(false);
-  };
+  const [showAdbGuide, setShowAdbGuide] = useState(false);
 
   const fetchNotifications = async () => {
     try {
@@ -354,35 +340,55 @@ export default function PhoneControlWidget() {
     return (
       <div className="phone-panel select-none">
         <div className="p-4 flex flex-col gap-3">
-          <div className="flex items-center gap-2 text-cyan-400 font-orbitron font-bold">
-            <Smartphone size={16} />
-            PHONE UPLINK BRIDGE
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-cyan-400 font-orbitron font-bold">
+              <Smartphone size={16} />
+              PHONE UPLINK BRIDGE
+            </div>
+            <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+              SETUP REQUIRED / OFFLINE
+            </span>
           </div>
-          <div className="text-xs font-mono text-cyan-100/60">
-            Connect to your Android phone via Wireless ADB (IP:Port) or USB cable.
+
+          <div className="text-xs font-mono text-cyan-100/70">
+            Connect your physical Android smartphone via Wireless ADB (IP:Port) or USB cable.
           </div>
+
           <input 
             type="text" 
             value={ip} 
             onChange={(e) => setIp(e.target.value)}
-            className="remote-input p-2 w-full rounded font-mono text-xs"
+            className="remote-input p-2 w-full rounded font-mono text-xs bg-slate-900 border border-cyan-500/30 text-white"
             placeholder="IP Address & Port (e.g. 192.168.29.159:42931)"
           />
+
           <div className="flex flex-col gap-2">
             <button 
               onClick={connectPhone}
               disabled={loading}
-              className="btn-control p-2 text-xs font-bold text-cyan-400 border-cyan-500/40 bg-cyan-950/20 hover:bg-cyan-900/30 transition-colors"
+              className="btn-control p-2.5 text-xs font-bold text-cyan-400 border-cyan-500/40 bg-cyan-950/40 hover:bg-cyan-900/40 rounded transition-colors"
             >
-              {loading ? 'CONNECTING...' : 'CONNECT PHYSICAL MOBILE'}
+              {loading ? 'CONNECTING VIA ADB...' : 'CONNECT PHYSICAL MOBILE'}
             </button>
+
             <button 
-              onClick={() => toggleVirtual(true)}
-              disabled={loading}
-              className="p-2 text-[11px] font-mono text-slate-400 hover:text-cyan-300 border border-slate-700/60 rounded bg-slate-900/40 hover:border-cyan-500/40 transition-colors"
+              onClick={() => setShowAdbGuide(!showAdbGuide)}
+              className="p-2 text-[11px] font-mono text-cyan-300/80 hover:text-cyan-200 border border-cyan-500/20 rounded bg-slate-900/60 transition-colors flex items-center justify-between"
             >
-              SIMULATE VIRTUAL ANDROID (DEMO PREVIEW)
+              <span>WIRELESS ADB PAIRING GUIDE</span>
+              <span>{showAdbGuide ? '▲' : '▼'}</span>
             </button>
+
+            {showAdbGuide && (
+              <div className="p-3 rounded-lg bg-slate-950/80 border border-cyan-500/30 text-[11px] text-slate-300 space-y-1.5 animate-in fade-in">
+                <div className="font-bold text-cyan-300">How to Pair Android:</div>
+                <div>1. Go to <strong>Settings → About Phone</strong> and tap <strong>Build Number</strong> 7 times to enable Developer Options.</div>
+                <div>2. Open <strong>Developer Options → Wireless Debugging</strong> and toggle it <strong>ON</strong>.</div>
+                <div>3. Check the displayed <strong>IP Address & Port</strong> (e.g., <code className="text-cyan-400">192.168.1.50:42931</code>).</div>
+                <div>4. Enter the IP:Port above and click <strong>Connect Physical Mobile</strong>.</div>
+                <div>5. Or plug phone via <strong>USB cable</strong> with <strong>USB Debugging enabled</strong>.</div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -399,21 +405,11 @@ export default function PhoneControlWidget() {
             {status.model || 'ANDROID DEVICE'}
           </div>
           <div className="text-[9px] font-mono text-sky-400 tracking-wider flex items-center gap-2 mt-0.5">
-            <span>BATT: {status.batteryLevel}%</span>
+            <span>BATT: {status.batteryLevel || '--'}%</span>
             <span>|</span>
-            <span>OS: Android {status.androidVersion}</span>
+            <span>OS: Android {status.androidVersion || '--'}</span>
             <span>|</span>
-            {status.isVirtual ? (
-              <button 
-                onClick={() => toggleVirtual(false)}
-                title="Click to exit virtual simulation"
-                className="text-amber-400 hover:text-amber-300 font-semibold underline decoration-dotted"
-              >
-                Virtual Demo (Exit)
-              </button>
-            ) : (
-              <span className="text-emerald-400 font-semibold">Physical Live</span>
-            )}
+            <span className="text-emerald-400 font-semibold">Physical Device Live</span>
           </div>
         </div>
         <div className="flex gap-1.5">

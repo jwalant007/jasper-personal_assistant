@@ -213,7 +213,7 @@ const PhoneController = {
     try {
       return await runAdb(`shell am start -a android.intent.action.SENDTO -d sms:${cleanNumber} --es sms_body "${safeText}"`);
     } catch (e) {
-      return `[Virtual ADB Bridge] Sent SMS to ${cleanNumber}: "${message}"`;
+      throw new Error(`Failed to dispatch SMS: ${e.message}. Physical Android device connection required.`);
     }
   },
 
@@ -225,11 +225,10 @@ const PhoneController = {
 
     try {
       await runAdb(`shell am start -a android.intent.action.CALL -d "tel:${cleanNumber}"`);
+      return { success: true, method: 'cellular_call', number: cleanNumber, mode: 'adb' };
     } catch (e) {
-      console.warn('[PhoneController] Direct action.CALL failed/virtual fallback:', e.message);
+      throw new Error(`Failed to initiate cellular call: ${e.message}. Physical Android device connection required.`);
     }
-
-    return { success: true, method: 'cellular_call', number: cleanNumber, mode: PhoneController.virtualMode ? 'virtual' : 'adb' };
   },
 
   toggleSpeaker: async () => {
@@ -237,9 +236,9 @@ const PhoneController = {
       await runAdb(`shell media volume --stream 0 --set 15`);
       await runAdb(`shell media volume --stream 3 --set 15`);
       await runAdb(`shell input keyevent KEYCODE_SPEAKER`);
-      return { success: true, message: 'Toggled speakerphone' };
+      return { success: true, message: 'Toggled speakerphone on device' };
     } catch (e) {
-      return { success: true, message: 'Toggled speakerphone (Virtual Uplink)' };
+      throw new Error(`Failed to toggle speakerphone: ${e.message}`);
     }
   },
 
@@ -260,7 +259,7 @@ const PhoneController = {
       await runAdb(`shell stagefright -a -p /sdcard/jasper_speech.mp3`);
       return { success: true, text };
     } catch (e) {
-      return { success: true, text, mode: 'virtual_device_speech' };
+      throw new Error(`Failed to speak on device: ${e.message}`);
     }
   },
 
@@ -269,7 +268,7 @@ const PhoneController = {
     try {
       return await runAdb(`shell settings put system screen_brightness ${scaled}`);
     } catch (e) {
-      return `Brightness set to ${level}% (Virtual Uplink)`;
+      throw new Error(`Failed to adjust screen brightness: ${e.message}`);
     }
   },
 
@@ -278,7 +277,7 @@ const PhoneController = {
     try {
       return await runAdb(`shell svc wifi ${action}`);
     } catch (e) {
-      return `Wi-Fi ${action}d (Virtual Uplink)`;
+      throw new Error(`Failed to toggle Wi-Fi: ${e.message}`);
     }
   },
 
@@ -287,7 +286,7 @@ const PhoneController = {
     try {
       return await runAdb(`shell svc bluetooth ${action}`);
     } catch (e) {
-      return `Bluetooth ${action}d (Virtual Uplink)`;
+      throw new Error(`Failed to toggle Bluetooth: ${e.message}`);
     }
   },
 
@@ -318,7 +317,7 @@ const PhoneController = {
     try {
       return await runAdb(`shell monkey -p ${targetPkg} -c android.intent.category.LAUNCHER 1`);
     } catch (e) {
-      return `Opened ${targetPkg} (Virtual Uplink)`;
+      throw new Error(`Failed to open application ${targetPkg}: ${e.message}`);
     }
   },
 
@@ -327,16 +326,7 @@ const PhoneController = {
       const stdout = await runAdb(`shell pm list packages -3`);
       return stdout.split('\n').map(line => line.replace('package:', '').trim()).filter(Boolean);
     } catch (e) {
-      return [
-        'com.whatsapp',
-        'com.instagram.android',
-        'com.spotify.music',
-        'com.google.android.youtube',
-        'com.google.android.apps.maps',
-        'com.android.chrome',
-        'com.netflix.mediaclient',
-        'com.twitter.android'
-      ];
+      return [];
     }
   },
 
@@ -460,17 +450,22 @@ const PhoneController = {
       }
     } catch (err) {}
 
-    // Fallback cleanly to high-fidelity virtual phone screenshot preview
-    return generateVirtualPhoneScreenshot();
+    // No physical device connected; return null so frontend displays authentic Setup Required state
+    return null;
   },
 
   findPhone: async () => {
+    if (!isPhysicalConnected()) {
+      return { success: false, error: 'Physical Android device offline. Connect via USB or Wireless ADB.' };
+    }
     try {
       await runAdb(`shell media volume --stream 3 --set 15`);
       await runAdb(`shell media volume --stream 2 --set 15`);
       await runAdb(`shell am start -a android.intent.action.VIEW -d "content://settings/system/ringtone" -t "audio/*"`);
-    } catch (e) {}
-    return { success: true, message: 'Phone alarm activated at max volume (Virtual Uplink)' };
+      return { success: true, message: 'Phone alarm activated at max volume on physical device' };
+    } catch (e) {
+      return { success: false, error: `Failed to trigger alarm: ${e.message}` };
+    }
   },
 
   whatsappReply: async (number, message) => {
@@ -499,23 +494,24 @@ const PhoneController = {
           mode: 'whatsapp_web' 
         };
       } catch (waErr) {
-        console.warn(`[PhoneController] WhatsApp Web send failed: ${waErr.message}. Falling back to ADB/Virtual...`);
+        console.warn(`[PhoneController] WhatsApp Web send failed: ${waErr.message}. Attempting ADB intent...`);
       }
     }
 
-    // 2. Fallback to ADB Android Intent or Virtual Uplink
+    // 2. Fallback to ADB Android Intent
     try {
-      if (!PhoneController.virtualMode) {
+      if (isPhysicalConnected()) {
         await runAdb(`shell am start -a android.intent.action.VIEW -d "https://api.whatsapp.com/send?phone=${cleanNum}&text=${safeMsg}"`);
         setTimeout(async () => {
           try {
             await runAdb(`shell input keyevent KEYCODE_ENTER`);
           } catch (e) {}
         }, 1200);
+        return { success: true, platform: 'whatsapp', sender, recipient: cleanNum, message, status: 'Delivered', mode: 'adb' };
       }
-      return { success: true, platform: 'whatsapp', sender, recipient: cleanNum, message, status: 'Delivered', mode: PhoneController.virtualMode ? 'virtual' : 'adb' };
+      return { success: false, platform: 'whatsapp', error: 'No physical Android device or WhatsApp Web connection active', status: 'Failed' };
     } catch (e) {
-      return { success: true, platform: 'whatsapp', sender, recipient: cleanNum, message, status: 'Delivered', mode: 'virtual' };
+      return { success: false, platform: 'whatsapp', error: e.message || 'Dispatch failed', status: 'Failed' };
     }
   },
 
@@ -524,28 +520,32 @@ const PhoneController = {
     const sender = senderHandle || '@jwalantbhatt_07';
 
     try {
-      if (!PhoneController.virtualMode) {
-        // Trigger Instagram direct message intent via ADB on linked Android device
+      if (isPhysicalConnected()) {
         await runAdb(`shell am start -a android.intent.action.VIEW -d "https://instagram.com/_u/${cleanUser}"`);
+        return { 
+          success: true, 
+          platform: 'instagram', 
+          sender, 
+          recipient: `@${cleanUser}`, 
+          message, 
+          status: 'Delivered', 
+          mode: 'adb' 
+        };
       }
-      return { 
-        success: true, 
-        platform: 'instagram', 
-        sender, 
-        recipient: `@${cleanUser}`, 
-        message, 
-        status: 'Delivered', 
-        mode: PhoneController.virtualMode ? 'virtual' : 'adb' 
+      return {
+        success: false,
+        platform: 'instagram',
+        sender,
+        recipient: `@${cleanUser}`,
+        error: 'Instagram direct dispatch requires active Android device with Instagram app or Meta Graph API configuration',
+        status: 'Setup Required'
       };
     } catch (e) {
       return { 
-        success: true, 
+        success: false, 
         platform: 'instagram', 
-        sender, 
-        recipient: `@${cleanUser}`, 
-        message, 
-        status: 'Delivered', 
-        mode: 'virtual' 
+        error: e.message || 'Instagram dispatch failed', 
+        status: 'Failed' 
       };
     }
   },

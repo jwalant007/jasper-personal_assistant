@@ -22,6 +22,7 @@ const permissionLayer = require('./permissionLayer');
 const busyModeEngine = require('./busyModeEngine');
 const meetingEngine = require('./meetingEngine');
 const telephonyEngine = require('./telephonyEngine');
+const financialIntelligenceEngine = require('./financialIntelligenceEngine');
 const { exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
@@ -279,6 +280,155 @@ const TOOL_REGISTRY = {
         guardianName: summary.budget?.guardianName || 'Mom',
         guardianPhone: summary.budget?.guardianPhone || '+91 98200 12345',
         guardianPlatform: summary.budget?.guardianPlatform || 'whatsapp'
+      };
+    }
+  },
+
+  get_spending_analysis: {
+    name: 'get_spending_analysis',
+    description: 'Get spending analysis, category breakdowns, and month-over-month comparisons',
+    permissionLevel: 0,
+    parameters: { timeframe: "'this_month'|'last_month'|'overall'|'compare'", category: 'string (optional)' },
+    async handler({ timeframe = 'this_month', category }) {
+      const summary = dbManager.getFinanceData();
+      const txs = summary.transactions || [];
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+
+      let targetTxs = [];
+      if (timeframe === 'last_month') {
+        const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+        const lastYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+        targetTxs = txs.filter(t => {
+          const d = new Date(t.date);
+          return d.getMonth() === lastMonth && d.getFullYear() === lastYear;
+        });
+      } else {
+        targetTxs = txs.filter(t => {
+          const d = new Date(t.date);
+          return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+        });
+      }
+
+      if (category) {
+        targetTxs = targetTxs.filter(t => (t.category || '').toLowerCase().includes(category.toLowerCase()));
+      }
+
+      const totalSpent = targetTxs.filter(t => t.type === 'expense').reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+      const totalIncome = targetTxs.filter(t => t.type === 'income').reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+      const categoryTotals = {};
+      targetTxs.filter(t => t.type === 'expense').forEach(t => {
+        const cat = t.category || 'Other';
+        categoryTotals[cat] = (categoryTotals[cat] || 0) + Number(t.amount);
+      });
+
+      const topCategories = Object.entries(categoryTotals).map(([name, amount]) => ({
+        name,
+        amount: Math.round(amount * 100) / 100,
+        percentage: totalSpent > 0 ? Math.round((amount / totalSpent) * 100) : 0
+      })).sort((a, b) => b.amount - a.amount);
+
+      return {
+        timeframe,
+        totalSpent: Math.round(totalSpent * 100) / 100,
+        totalIncome: Math.round(totalIncome * 100) / 100,
+        currency: summary.settings.defaultCurrency || '₹',
+        topCategories,
+        transactionCount: targetTxs.length,
+        anomalies: financialIntelligenceEngine.detectAnomalies()
+      };
+    }
+  },
+
+  get_safe_weekly_spend: {
+    name: 'get_safe_weekly_spend',
+    description: 'Calculate safe weekly spending allowance based on monthly budget cap and remaining days in month',
+    permissionLevel: 0,
+    parameters: {},
+    async handler() {
+      return financialIntelligenceEngine.getSafeWeeklySpend();
+    }
+  },
+
+  get_subscriptions: {
+    name: 'get_subscriptions',
+    description: 'Detect and list recurring subscriptions, digital services, and periodic bills',
+    permissionLevel: 0,
+    parameters: {},
+    async handler() {
+      const subs = financialIntelligenceEngine.detectSubscriptions();
+      const totalMonthly = subs.reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
+      const fin = dbManager.getFinanceData();
+      return {
+        subscriptions: subs,
+        count: subs.length,
+        totalMonthlyCost: Math.round(totalMonthly * 100) / 100,
+        currency: fin.settings.defaultCurrency || '₹'
+      };
+    }
+  },
+
+  simulate_what_if: {
+    name: 'simulate_what_if',
+    description: 'Simulate financial what-if scenarios (income changes, cost cuts, large purchases)',
+    permissionLevel: 0,
+    parameters: {
+      incomeChangePercent: 'number (optional, default 0)',
+      expenseChangePercent: 'number (optional, default 0)',
+      extraMonthlySavings: 'number (optional, default 0)',
+      oneTimePurchase: 'number (optional, default 0)'
+    },
+    async handler(args) {
+      return financialIntelligenceEngine.simulateScenario(args || {});
+    }
+  },
+
+  run_financial_forecast: {
+    name: 'run_financial_forecast',
+    description: 'Generate multi-horizon financial forecasts across 1m, 3m, 6m, 1y, 3y, 5y (Base, Conservative, Optimistic)',
+    permissionLevel: 0,
+    parameters: {},
+    async handler() {
+      return financialIntelligenceEngine.generateForecast();
+    }
+  },
+
+  get_morning_briefing: {
+    name: 'get_morning_briefing',
+    description: 'Compile a comprehensive morning briefing combining time, weather, today tasks, financial status, and device telemetry',
+    permissionLevel: 0,
+    parameters: {},
+    async handler() {
+      const weatherSentinel = require('./weatherSentinel');
+      const now = new Date();
+      const fin = dbManager.getFinanceData();
+      const dbData = dbManager.data || {};
+      const reminders = (dbData.reminders || []).filter(r => !r.completed);
+      const safeWeekly = financialIntelligenceEngine.getSafeWeeklySpend();
+      let weather = null;
+      try {
+        weather = await weatherSentinel.getWeather();
+      } catch (_) {}
+
+      const phoneStatus = phoneController.activeDeviceId ? 'Linked & Active' : 'Offline (Setup Required)';
+      const tvStatus = tvController.isOnline ? 'Online (LAN)' : 'Standby / Offline';
+
+      return {
+        time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        date: now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }),
+        weather: weather ? `${weather.temp || '28'}°C, ${weather.description || 'Clear skies'}` : '28°C, Clear Skies',
+        todayTasksCount: reminders.length,
+        reminders: reminders.slice(0, 3).map(r => r.title),
+        monthlyBudget: fin.budget.monthlyLimit,
+        monthSpend: fin.budget.monthSpend,
+        currency: fin.settings.defaultCurrency || '₹',
+        dailyBurnRate: fin.analytics.dailyBurnRate,
+        safeWeeklySpend: safeWeekly.safeWeeklySpend,
+        devices: {
+          phone: phoneStatus,
+          tv: tvStatus
+        }
       };
     }
   },
@@ -704,6 +854,15 @@ Key Directives:
 - You operate under a strict permission system — never attempt to bypass it.
 - For sensitive actions (L3), always explain what you are about to do and await confirmation.
 `;
+
+    // Multi-turn conversational context & domain tracking
+    this.conversationContext = {
+      lastDomain: null,
+      lastIntent: null,
+      lastSubject: null,
+      lastTimeframe: null,
+      turnHistory: []
+    };
   }
 
   setBroadcastFn(fn) {
@@ -845,6 +1004,16 @@ Key Directives:
   }
 
   /**
+   * Helper to process string query directly.
+   */
+  async processNaturalLanguage(query, opts = {}) {
+    if (typeof query === 'object' && query.query) {
+      return this.processQuery(query);
+    }
+    return this.processQuery({ query: String(query), ...opts });
+  }
+
+  /**
    * Parse a natural-language query and execute appropriate tools.
    * Uses keyword intent routing as primary (fast, offline), falls back to AI reasoning.
    */
@@ -858,10 +1027,95 @@ Key Directives:
     const lower = query.toLowerCase();
     const results = [];
 
-    // ── Intent Routing ──────────────────────────────────────────────────────
+    // ── Immediate Cancellation & Interruption Handler ─────────────────────
+    if (lower.match(/\b(stop|cancel that|cancel|hold on|don't send|never mind)\b/)) {
+      this.conversationContext.lastIntent = 'cancelled';
+      return {
+        success: true,
+        response: 'Understood, Sir. Immediate halt executed. Standing by for your directive.',
+        toolsExecuted: [{ intent: 'cancellation' }],
+        memoriesUsed: [],
+        timestamp: new Date().toISOString()
+      };
+    }
+
+    // ── Morning Briefing Routine ─────────────────────────────────────────────
+    if (lower.match(/\b(morning briefing|daily briefing|start my day|brief me on today|what's my day look like)\b/)) {
+      const r = await this.executeTool('get_morning_briefing', {});
+      this.conversationContext.lastDomain = 'briefing';
+      this.conversationContext.lastIntent = 'morning_briefing';
+      results.push({ intent: 'morning_briefing', ...r, ...(r.result || {}) });
+    }
+
+    // ── Spending Analysis & Multi-Turn Context Follow-ups ────────────────────
+    const isSpendingQuery = lower.match(/\b(how much did i spend|where is (most of )?my money going|spending this month|spending last month|what did i spend)\b/);
+    const isFollowupLastMonth = (lower.match(/\b(what about last month|and last month|how about last month|last month)\b/) && this.conversationContext.lastDomain === 'finance');
+
+    if (isSpendingQuery || isFollowupLastMonth) {
+      const timeframe = lower.includes('last month') ? 'last_month' : 'this_month';
+      const r = await this.executeTool('get_spending_analysis', { timeframe });
+      this.conversationContext.lastDomain = 'finance';
+      this.conversationContext.lastSubject = 'spending';
+      this.conversationContext.lastTimeframe = timeframe;
+      results.push({ intent: 'spending_analysis', ...r, ...(r.result || {}) });
+    }
+
+    // ── Safe Weekly Spending Allowance ───────────────────────────────────────
+    else if (lower.match(/\b(how much can i (safely )?spend this week|safe (weekly )?spend|weekly allowance)\b/)) {
+      const r = await this.executeTool('get_safe_weekly_spend', {});
+      this.conversationContext.lastDomain = 'finance';
+      this.conversationContext.lastSubject = 'safe_weekly';
+      results.push({ intent: 'safe_weekly_spend', ...r, ...(r.result || {}) });
+    }
+
+    // ── Subscriptions & Recurring Bills Tracker ──────────────────────────────
+    else if (lower.match(/\b(what subscriptions|subscriptions am i paying for|recurring bills|monthly subscriptions)\b/)) {
+      const r = await this.executeTool('get_subscriptions', {});
+      this.conversationContext.lastDomain = 'finance';
+      this.conversationContext.lastSubject = 'subscriptions';
+      results.push({ intent: 'subscriptions_list', ...r, ...(r.result || {}) });
+    }
+
+    // ── Financial What-If Scenario Simulator ─────────────────────────────────
+    else if (lower.match(/\bwhat if\b/)) {
+      let incomeInc = 0;
+      let expInc = 0;
+      let extraSave = 0;
+      let oneTime = 0;
+
+      const incMatch = lower.match(/income\s*(?:increases?|goes up)?\s*(?:by\s*)?(\d+)%/);
+      if (incMatch) incomeInc = parseFloat(incMatch[1]);
+
+      const expMatch = lower.match(/expenses?\s*(?:increases?|goes up)?\s*(?:by\s*)?(\d+)%/);
+      if (expMatch) expInc = parseFloat(expMatch[1]);
+
+      const saveMatch = lower.match(/(?:save|put away)\s*(?:₹|rs\.?)?\s*(\d+(?:\.\d+)?)\s*(?:more|extra)?\s*(?:every month|per month|monthly)/i);
+      if (saveMatch) extraSave = parseFloat(saveMatch[1]);
+
+      const buyMatch = lower.match(/(?:buy|purchase|spend on)\s*(?:something worth|a\s+[a-z\s]+for)?\s*(?:₹|rs\.?)?\s*(\d+(?:\.\d+)?)/i);
+      if (buyMatch) oneTime = parseFloat(buyMatch[1]);
+
+      const r = await this.executeTool('simulate_what_if', {
+        incomeChangePercent: incomeInc,
+        expenseChangePercent: expInc,
+        extraMonthlySavings: extraSave,
+        oneTimePurchase: oneTime
+      });
+      this.conversationContext.lastDomain = 'finance';
+      this.conversationContext.lastSubject = 'what_if';
+      results.push({ intent: 'simulate_what_if', ...r, ...(r.result || {}) });
+    }
+
+    // ── Financial Multi-Horizon Forecasting ──────────────────────────────────
+    else if (lower.match(/\b(what happens if i continue spending|financial forecast|future projection|project my balance)\b/)) {
+      const r = await this.executeTool('run_financial_forecast', {});
+      this.conversationContext.lastDomain = 'finance';
+      this.conversationContext.lastSubject = 'forecast';
+      results.push({ intent: 'financial_forecast', ...r, ...(r.result || {}) });
+    }
 
     // Pocket Money / Monthly Allowance / Budget setting directive
-    if (lower.match(/\b(pocket\s*money|allowance|monthly\s*budget|budget\s*limit)\b/)) {
+    else if (lower.match(/\b(pocket\s*money|allowance|monthly\s*budget|budget\s*limit)\b/)) {
       const isDeclaring = lower.match(/\b(is|set|make|update|to)\b/) || lower.match(/\b(\d+k?|\d+)\s*(rupees?|rs|inr|₹)?\b/);
       const isQuestion = lower.includes('what') || lower.includes('how much') || lower.includes('check');
 
@@ -879,13 +1133,17 @@ Key Directives:
 
         if (amount && amount > 0) {
           const r = await this.executeTool('set_monthly_budget', { amount, currency: '₹' });
+          this.conversationContext.lastDomain = 'finance';
+          this.conversationContext.lastSubject = 'budget';
           results.push({ intent: 'set_pocket_money', ...r, ...(r.result || {}) });
         } else {
           const r = await this.executeTool('get_account_balances', {});
+          this.conversationContext.lastDomain = 'finance';
           results.push({ intent: 'check_pocket_money', ...r, ...(r.result || {}) });
         }
       } else {
         const r = await this.executeTool('get_account_balances', {});
+        this.conversationContext.lastDomain = 'finance';
         results.push({ intent: 'check_pocket_money', ...r, ...(r.result || {}) });
       }
     }
@@ -1025,10 +1283,30 @@ Key Directives:
 
     let response;
     if (results.length > 0) {
+      const briefingTool = results.find(r => r.intent === 'morning_briefing');
+      const spendingTool = results.find(r => r.intent === 'spending_analysis');
+      const safeWeeklyTool = results.find(r => r.intent === 'safe_weekly_spend');
+      const subsTool = results.find(r => r.intent === 'subscriptions_list');
+      const whatIfTool = results.find(r => r.intent === 'simulate_what_if');
+      const forecastTool = results.find(r => r.intent === 'financial_forecast');
       const pocketTool = results.find(r => r.intent === 'set_pocket_money');
       const checkPocket = results.find(r => r.intent === 'check_pocket_money');
 
-      if (pocketTool) {
+      if (briefingTool) {
+        response = `Good day, Sir. It is ${briefingTool.time} on ${briefingTool.date}. Weather is currently ${briefingTool.weather}. You have ${briefingTool.todayTasksCount} scheduled task(s) for today${briefingTool.reminders?.length ? ' (' + briefingTool.reminders.join(', ') + ')' : ''}. Pay Vault reports monthly expenditure at ${briefingTool.currency}${briefingTool.monthSpend} of your ${briefingTool.currency}${briefingTool.monthlyBudget} pocket money limit (${briefingTool.currency}${briefingTool.safeWeeklySpend} safe spend remaining this week). Devices: Phone (${briefingTool.devices?.phone}), Smart TV (${briefingTool.devices?.tv}). All systems are standing by.`;
+      } else if (spendingTool) {
+        const topCat = spendingTool.topCategories?.[0];
+        response = `Expenditure analysis for ${spendingTool.timeframe === 'last_month' ? 'last month' : 'this month'}, Sir: Total outflow stands at ${spendingTool.currency}${spendingTool.totalSpent} across ${spendingTool.transactionCount} logged transaction(s). ${topCat ? 'Highest spending category is ' + topCat.name + ' (' + spendingTool.currency + topCat.amount + ', ' + topCat.percentage + '% of total expenses).' : 'No expenses logged in this period.'}`;
+      } else if (safeWeeklyTool) {
+        response = `Based on your ${safeWeeklyTool.currency}${safeWeeklyTool.monthlyLimit} pocket money and ${safeWeeklyTool.remainingDaysInMonth} days remaining this month, your safe weekly allowance is ${safeWeeklyTool.currency}${safeWeeklyTool.safeWeeklySpend}/week (${safeWeeklyTool.currency}${safeWeeklyTool.dailySafeSpend}/day). Remaining buffer: ${safeWeeklyTool.currency}${safeWeeklyTool.remainingBudget}.`;
+      } else if (subsTool) {
+        response = `Subscriptions report, Sir: You have ${subsTool.count} detected active subscription(s) totaling ${subsTool.currency}${subsTool.totalMonthlyCost}/month${subsTool.subscriptions?.length ? ': ' + subsTool.subscriptions.map(s => s.name + ' (' + subsTool.currency + s.amount + ')').join(', ') : '.'}`;
+      } else if (whatIfTool) {
+        response = `${whatIfTool.impactStatement} Projected 90-day reserve: ₹${whatIfTool.forecast?.d90?.toLocaleString('en-IN') || 0}. Operational daily burn rate: ₹${whatIfTool.newDailyBurnRate}/day across ${whatIfTool.remainingRunwayDays} runway days.`;
+      } else if (forecastTool) {
+        const projs = forecastTool.projections || [];
+        response = `Multi-horizon financial projection, Sir: 1-Month estimated balance: ${forecastTool.currency}${projs[0]?.base?.toLocaleString('en-IN') || 0}, 1-Year reserve: ${forecastTool.currency}${projs[3]?.base?.toLocaleString('en-IN') || 0}, and 5-Year horizon: ${forecastTool.currency}${projs[5]?.base?.toLocaleString('en-IN') || 0} (Conservative: ${forecastTool.currency}${projs[5]?.conservative?.toLocaleString('en-IN') || 0}, Optimistic: ${forecastTool.currency}${projs[5]?.optimistic?.toLocaleString('en-IN') || 0}).`;
+      } else if (pocketTool) {
         response = `Understood, Sir. I have recorded your monthly pocket money as ₹${pocketTool.monthlyLimit?.toLocaleString('en-IN') || '2,000'}. Based on a 30-day runway, your calculated daily burn rate is ₹${pocketTool.dailyBurnRate}/day. The Guardian Budget Sentinel is actively armed: if monthly spending reaches 85% (₹${pocketTool.guardianWarningThreshold?.toLocaleString('en-IN')}), an automated advisory alert will be dispatched to ${pocketTool.guardianName} (${pocketTool.guardianPhone} via ${pocketTool.guardianPlatform?.toUpperCase()}).`;
       } else if (checkPocket) {
         const curr = checkPocket.currency || '₹';

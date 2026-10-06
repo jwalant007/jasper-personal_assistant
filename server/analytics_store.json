@@ -1,8 +1,8 @@
 {
-  "conversations": 42,
-  "voiceCommands": 128,
-  "imagesGenerated": 15,
-  "automationRuns": 24,
-  "connectedDevices": 3,
+  "conversations": 0,
+  "voiceCommands": 0,
+  "imagesGenerated": 0,
+  "automationRuns": 0,
+  "connectedDevices": 0,
   "startTime": 1785650061434
 }

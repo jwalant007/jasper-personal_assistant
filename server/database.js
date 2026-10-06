@@ -26,30 +26,14 @@ const DEFAULT_SCHEMA = {
     { id: 2, text: 'Default smart home TV is Samsung Frame in Living Room', category: 'device', date: new Date().toISOString() }
   ],
   analytics: {
-    conversations: 42,
-    voiceCommands: 128,
-    imagesGenerated: 15,
-    automationRuns: 24,
-    connectedDevices: 3,
+    conversations: 0,
+    voiceCommands: 0,
+    imagesGenerated: 0,
+    automationRuns: 0,
+    connectedDevices: 0,
     startTime: Date.now()
   },
-  reservations: [
-    {
-      id: 'RES-DEMO-01',
-      venueName: 'Trattoria Bella Vista',
-      cuisine: 'Italian Fine Dining',
-      partySize: 4,
-      date: 'Tomorrow',
-      time: '8:30 PM',
-      confirmationCode: 'JSP-8821',
-      contactName: 'Jwalant',
-      phone: '+1 (555) 382-9901',
-      address: '450 Grand Avenue, Suite 12',
-      specialRequests: 'Quiet garden booth',
-      createdAt: new Date().toISOString(),
-      status: 'Confirmed'
-    }
-  ],
+  reservations: [],
   chat_history: [
     {
       id: 1,
@@ -79,20 +63,7 @@ const DEFAULT_SCHEMA = {
       createdAt: new Date().toISOString()
     }
   ],
-  health_vitals: [
-    {
-      id: Date.now(),
-      bpm: 74,
-      spO2: 98,
-      steps: 6480,
-      calories: 320,
-      stress: 22,
-      hrv: 65,
-      device: 'Virtual Fitband Pro',
-      status: 'Normal',
-      timestamp: new Date().toLocaleTimeString()
-    }
-  ],
+  health_vitals: [],
   social_accounts: {
     instagram: {
       username: '@jwalant',
@@ -191,11 +162,7 @@ const DEFAULT_SCHEMA = {
         }
       ]
     },
-    transactions: [
-      { id: 'tx_1', date: new Date(Date.now() - 86400000 * 2).toISOString(), accountId: 'acc_1', type: 'income', amount: 3200.00, category: 'Salary / Income', description: 'Monthly Direct Deposit', merchant: 'Direct Pay' },
-      { id: 'tx_2', date: new Date(Date.now() - 86400000).toISOString(), accountId: 'acc_3', type: 'expense', amount: 42.50, category: 'Food & Dining', description: 'Snacks & refreshment', merchant: 'Café Coffee Day' },
-      { id: 'tx_3', date: new Date().toISOString(), accountId: 'acc_4', type: 'expense', amount: 89.99, category: 'Software & Tech', description: 'Cloud server hosting renewal', merchant: 'Render / AWS Cloud' }
-    ],
+    transactions: [],
     settings: {
       defaultCurrency: '₹',
       privacyMask: false

@@ -1764,7 +1764,7 @@ Nearest Overhead Recon: WorldView-3 in 16m (Maxar 0.31m Sub-Meter Optical)
             </span>
           )}
           <span className="text-amber-400 font-bold hidden lg:inline">
-            • 🛰️ 19 Birds Locked
+            • 🛰️ Public Web APIs (NASA & ISS)
           </span>
         </div>
       </div>
@@ -1784,14 +1784,14 @@ Nearest Overhead Recon: WorldView-3 in 16m (Maxar 0.31m Sub-Meter Optical)
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-black font-orbitron text-cyan-300 tracking-wider">
-                      {isSyncingSatellite ? 'SYNCHRONIZING GLOBAL SATELLITE TELEMETRY...' : 'LIVE WORLD SATELLITE DOWNLINK'}
+                      {isSyncingSatellite ? 'SYNCHRONIZING PUBLIC SATELLITE FEEDS...' : 'PUBLIC SATELLITE & GEOSPATIAL API TELEMETRY'}
                     </span>
                     <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[9px] font-mono font-bold border border-emerald-500/30">
-                      {isSyncingSatellite ? 'ACQUIRING...' : 'SYNCHRONIZED'}
+                      INTERNET API
                     </span>
                   </div>
                   <div className="text-[10px] font-mono text-slate-400 mt-0.5 flex flex-wrap items-center gap-2">
-                    <span>Feeds: <strong className="text-slate-200">NASA GIBS TrueColor + RainViewer Cloud Radar + NORAD ISS</strong></span>
+                    <span>Sources: <strong className="text-slate-200">NASA GIBS + RainViewer Radar + WhereTheISS.at REST API</strong></span>
                     <span>•</span>
                     <span>Radar Pass: <strong className="text-cyan-400">{liveSatelliteTime || 'Real-Time'}</strong></span>
                     {liveIssData && (

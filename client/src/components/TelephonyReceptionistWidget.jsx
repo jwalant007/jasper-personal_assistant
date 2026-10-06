@@ -427,7 +427,20 @@ export default function TelephonyReceptionistWidget({ onClose }) {
         </div>
 
         {/* Quick Actions: Simulations & Sync */}
+        {/* Quick Actions & Authentic Connection Status */}
         <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950/80 border border-slate-800 text-[11px] font-mono">
+            <span className="text-slate-400">Twilio PSTN:</span>
+            {config.twilioAccountSid ? (
+              <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                {config.twilioPhoneNumber || 'Active'}
+              </span>
+            ) : (
+              <span className="text-amber-400 font-semibold">Setup Required</span>
+            )}
+          </div>
+
           <button
             onClick={handleSyncContacts}
             disabled={isSyncingContacts}
@@ -438,23 +451,6 @@ export default function TelephonyReceptionistWidget({ onClose }) {
             <span>{isSyncingContacts ? 'SYNCING...' : '🔄 SYNC CONTACTS'}</span>
           </button>
 
-          <button
-            onClick={handleSimulateFootballScenario}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600/30 to-cyan-600/30 hover:from-emerald-600/40 hover:to-cyan-600/40 border border-emerald-500/50 text-emerald-300 font-semibold text-xs tracking-wide shadow-md transition-all active:scale-95"
-            title="Simulate Rahul calling about tomorrow's football trial"
-          >
-            <Zap className="w-3.5 h-3.5 text-emerald-400" />
-            <span>⚽ SIMULATE FOOTBALL SCREENING</span>
-          </button>
-
-          <button
-            onClick={handleSimulateReel}
-            disabled={isSimulating}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-rose-500/20 hover:from-amber-500/30 hover:to-rose-500/30 border border-amber-500/40 text-amber-300 font-semibold text-xs tracking-wide shadow-lg shadow-amber-500/10 transition-all active:scale-95 disabled:opacity-50"
-          >
-            <Sparkles className="w-4 h-4 text-amber-400 animate-spin" style={{ animationDuration: '4s' }} />
-            {isSimulating ? 'SIMULATING REEL...' : '🎬 SIMULATE $17K REEL'}
-          </button>
           {onClose && (
             <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors">
               ✕
@@ -552,14 +548,6 @@ export default function TelephonyReceptionistWidget({ onClose }) {
                     ))}
                   </select>
                 )}
-
-                <button
-                  onClick={handleSimulateFootballScenario}
-                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-orbitron font-bold text-xs tracking-wider shadow-lg shadow-cyan-900/40 flex items-center gap-2 active:scale-95 shrink-0"
-                >
-                  <Zap className="w-4 h-4 text-emerald-300" />
-                  <span>⚽ TEST FOOTBALL SCENARIO</span>
-                </button>
               </div>
             </div>
 

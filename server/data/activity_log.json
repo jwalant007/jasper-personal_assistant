@@ -1,6 +1,142 @@
 {
   "entries": [
     {
+      "id": "al-1791314931666-1rwb",
+      "timestamp": "2026-10-06T19:28:51.666Z",
+      "type": "tool_completed",
+      "icon": "✅",
+      "tool": "get_subscriptions",
+      "result": "{\"subscriptions\":[],\"count\":0,\"totalMonthlyCost\":0,\"currency\":\"₹\"}",
+      "elapsedMs": 5
+    },
+    {
+      "id": "al-1791314931662-chos",
+      "timestamp": "2026-10-06T19:28:51.662Z",
+      "type": "tool_executing",
+      "icon": "⚙️",
+      "tool": "get_subscriptions",
+      "level": 0,
+      "args": {}
+    },
+    {
+      "id": "al-1791314931657-i4yd",
+      "timestamp": "2026-10-06T19:28:51.657Z",
+      "type": "tool_completed",
+      "icon": "✅",
+      "tool": "get_spending_analysis",
+      "result": "{\"timeframe\":\"last_month\",\"totalSpent\":0,\"totalIncome\":0,\"currency\":\"₹\",\"topCategories\":[],\"transactionCount\":0,\"anomalies\":[]}",
+      "elapsedMs": 5
+    },
+    {
+      "id": "al-1791314931653-cngb",
+      "timestamp": "2026-10-06T19:28:51.653Z",
+      "type": "tool_executing",
+      "icon": "⚙️",
+      "tool": "get_spending_analysis",
+      "level": 0,
+      "args": {
+        "timeframe": "last_month"
+      }
+    },
+    {
+      "id": "al-1791314931644-n16t",
+      "timestamp": "2026-10-06T19:28:51.644Z",
+      "type": "tool_completed",
+      "icon": "✅",
+      "tool": "get_spending_analysis",
+      "result": "{\"timeframe\":\"this_month\",\"totalSpent\":0,\"totalIncome\":4500,\"currency\":\"₹\",\"topCategories\":[],\"transactionCount\":4,\"anomalies\":[]}",
+      "elapsedMs": 5
+    },
+    {
+      "id": "al-1791314931640-rw2c",
+      "timestamp": "2026-10-06T19:28:51.640Z",
+      "type": "tool_executing",
+      "icon": "⚙️",
+      "tool": "get_spending_analysis",
+      "level": 0,
+      "args": {
+        "timeframe": "this_month"
+      }
+    },
+    {
+      "id": "al-1791311641400-689v",
+      "timestamp": "2026-10-06T18:34:01.400Z",
+      "type": "tool_completed",
+      "icon": "✅",
+      "tool": "get_account_balances",
+      "result": "{\"liquidBalance\":14220,\"creditUsed\":750,\"netWorth\":13470,\"monthSpend\":132.49,\"budgetLimit\":2000,\"budgetState\":\"safe\",\"runwayDays\":751,\"dailyBurnRate\":18.93,\"accounts\":[{\"name\":\"Primary Checking\",\"type",
+      "elapsedMs": 6
+    },
+    {
+      "id": "al-1791311641397-knwz",
+      "timestamp": "2026-10-06T18:34:01.397Z",
+      "type": "tool_executing",
+      "icon": "⚙️",
+      "tool": "get_account_balances",
+      "level": 0,
+      "args": {}
+    },
+    {
+      "id": "al-1791311641385-e5gj",
+      "timestamp": "2026-10-06T18:34:01.385Z",
+      "type": "tool_completed",
+      "icon": "✅",
+      "tool": "set_monthly_budget",
+      "result": "{\"success\":true,\"monthlyLimit\":2000,\"currency\":\"₹\",\"dailyBurnRate\":66.67,\"alertThresholdPercent\":85,\"guardianWarningThreshold\":1700,\"guardianName\":\"Mom\",\"guardianPhone\":\"+91 98200 12345\",\"guardianPlat",
+      "elapsedMs": 33
+    },
+    {
+      "id": "al-1791311641352-zdb8",
+      "timestamp": "2026-10-06T18:34:01.353Z",
+      "type": "tool_executing",
+      "icon": "⚙️",
+      "tool": "set_monthly_budget",
+      "level": 1,
+      "args": {
+        "amount": 2000,
+        "currency": "₹"
+      }
+    },
+    {
+      "id": "al-1791311596480-6z9f",
+      "timestamp": "2026-10-06T18:33:16.480Z",
+      "type": "tool_completed",
+      "icon": "✅",
+      "tool": "get_account_balances",
+      "result": "{\"liquidBalance\":14220,\"creditUsed\":750,\"netWorth\":13470,\"monthSpend\":132.49,\"budgetLimit\":2000,\"budgetState\":\"safe\",\"runwayDays\":751,\"dailyBurnRate\":18.93,\"accounts\":[{\"name\":\"Primary Checking\",\"type",
+      "elapsedMs": 6
+    },
+    {
+      "id": "al-1791311596473-td26",
+      "timestamp": "2026-10-06T18:33:16.473Z",
+      "type": "tool_executing",
+      "icon": "⚙️",
+      "tool": "get_account_balances",
+      "level": 0,
+      "args": {}
+    },
+    {
+      "id": "al-1791311596463-3gsq",
+      "timestamp": "2026-10-06T18:33:16.463Z",
+      "type": "tool_completed",
+      "icon": "✅",
+      "tool": "set_monthly_budget",
+      "result": "{\"success\":true,\"monthlyLimit\":2000,\"currency\":\"₹\",\"dailyBurnRate\":66.67,\"alertThresholdPercent\":85,\"guardianWarningThreshold\":1700,\"guardianName\":\"Mom\",\"guardianPhone\":\"+91 98200 12345\",\"guardianPlat",
+      "elapsedMs": 119
+    },
+    {
+      "id": "al-1791311596347-bdxd",
+      "timestamp": "2026-10-06T18:33:16.347Z",
+      "type": "tool_executing",
+      "icon": "⚙️",
+      "tool": "set_monthly_budget",
+      "level": 1,
+      "args": {
+        "amount": 2000,
+        "currency": "₹"
+      }
+    },
+    {
       "id": "al-1791307717936-8ict",
       "timestamp": "2026-10-06T17:28:37.936Z",
       "type": "tool_completed",
