@@ -2475,6 +2475,9 @@ export default function App() {
                       <AlertTriangle size={12} className="text-red-400" /> {passcodeError}
                     </div>
                   )}
+                  <div className="text-[9px] font-mono text-cyan-400/60 text-center mt-1">
+                    Passcode: <span className="text-cyan-300 font-bold">jasper</span> &bull; or Face / Voice Scan
+                  </div>
                 </form>
 
                 <div className="grid grid-cols-2 gap-2.5 mt-1">
