@@ -136,11 +136,8 @@ const DEFAULT_SCHEMA = {
   },
   finance: {
     accounts: [
-      { id: 'acc_1', name: 'Primary Checking', type: 'bank', balance: 5420.00, currency: '₹', institution: 'State Bank / Private Client', isDefault: true, color: 'from-blue-600 to-indigo-700' },
-      { id: 'acc_2', name: 'Emergency Vault', type: 'savings', balance: 8200.00, currency: '₹', institution: 'High-Yield Reserve', isDefault: false, color: 'from-emerald-600 to-teal-700' },
-      { id: 'acc_3', name: 'Apple Pay / Digital Wallet', type: 'wallet', balance: 480.00, currency: '₹', institution: 'Paytm / UPI Wallet', isDefault: false, color: 'from-purple-600 to-violet-700' },
-      { id: 'acc_4', name: 'Obsidian Credit Card', type: 'credit', balance: 750.00, limit: 3500.00, currency: '₹', institution: 'Titanium Card', isDefault: false, color: 'from-zinc-700 to-neutral-900' },
-      { id: 'acc_5', name: 'Physical Petty Cash', type: 'cash', balance: 120.00, currency: '₹', institution: 'Desk Vault', isDefault: false, color: 'from-amber-600 to-orange-700' }
+      { id: 'acc_1', name: 'Primary Bank Account', type: 'bank', balance: 36000.00, currency: '₹', institution: 'Savings Account', isDefault: true, color: 'from-blue-600 to-indigo-700' },
+      { id: 'acc_2', name: 'UPI / Digital Wallet', type: 'wallet', balance: 450.00, currency: '₹', institution: 'UPI (GPay / PhonePe / Paytm)', isDefault: false, color: 'from-purple-600 to-violet-700' }
     ],
     budget: {
       monthlyLimit: 2000.00,

@@ -22,7 +22,9 @@ export default function JasperCommandCenter({
   const [financeSummary, setFinanceSummary] = useState({
     pocketMoney: 2000,
     safeWeeklySpend: 560,
-    currentBalance: 2000,
+    currentBalance: 36450,
+    bankBalance: 36000,
+    upiBalance: 450,
     spentThisMonth: 0,
     burnRate: 0,
     guardianArmed: true,
@@ -67,10 +69,15 @@ export default function JasperCommandCenter({
 
       if (finRes.status === 'fulfilled' && finRes.value.ok) {
         const finData = await finRes.value.json();
-        const pocketMoney = finData.pocketMoney || 2000;
-        const totalBal = finData.totalBalance !== undefined ? finData.totalBalance : pocketMoney;
-        const monthlyBudget = finData.budget?.monthlyBudget || pocketMoney;
-        const totalSpent = finData.budget?.spent || 0;
+        const pocketMoney = finData.budget?.monthlyLimit || finData.pocketMoney || 2000;
+        const totalBal = finData.analytics?.liquidBalance !== undefined ? finData.analytics.liquidBalance : (finData.totalBalance || 36450);
+        const accounts = finData.accounts || [];
+        const bankAcc = accounts.find(a => a.type === 'bank' || a.id === 'acc_1');
+        const upiAcc = accounts.find(a => a.type === 'wallet' || a.id === 'acc_2');
+        const bankBal = bankAcc ? bankAcc.balance : 36000;
+        const upiBal = upiAcc ? upiAcc.balance : 450;
+        const monthlyBudget = finData.budget?.monthlyLimit || pocketMoney;
+        const totalSpent = finData.budget?.monthSpend || finData.budget?.spent || 0;
         
         let safeWeekly = 560;
         if (safeRes.status === 'fulfilled' && safeRes.value.ok) {
@@ -82,6 +89,8 @@ export default function JasperCommandCenter({
           pocketMoney,
           safeWeeklySpend: safeWeekly,
           currentBalance: totalBal,
+          bankBalance: bankBal,
+          upiBalance: upiBal,
           spentThisMonth: totalSpent,
           burnRate: totalSpent > 0 ? Math.round((totalSpent / monthlyBudget) * 100) : 0,
           guardianArmed: true,
@@ -346,7 +355,7 @@ export default function JasperCommandCenter({
             </div>
 
             {/* Financial Highlights */}
-            <div className="grid grid-cols-2 gap-2 my-3">
+            <div className="grid grid-cols-2 gap-2 my-2.5">
               <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.05]">
                 <div className="text-[9px] font-mono text-slate-400 uppercase">Monthly Allowance</div>
                 <div className="text-lg font-bold font-mono text-slate-100">₹{financeSummary.pocketMoney.toLocaleString()}</div>
@@ -357,6 +366,25 @@ export default function JasperCommandCenter({
                 <div className="text-[9px] font-mono text-emerald-400 uppercase">Safe Weekly Spend</div>
                 <div className="text-lg font-bold font-mono text-emerald-300">₹{financeSummary.safeWeeklySpend}</div>
                 <div className="text-[8.5px] font-mono text-emerald-400/70">Calculated pace</div>
+              </div>
+            </div>
+
+            {/* Real Account Breakdown: Bank & UPI */}
+            <div className="grid grid-cols-2 gap-2 mb-2.5">
+              <div className="p-2 rounded-xl bg-slate-900/60 border border-blue-500/20 flex items-center justify-between">
+                <div>
+                  <div className="text-[8px] font-mono text-slate-400 uppercase">Bank Account</div>
+                  <div className="text-xs font-bold font-mono text-blue-200">₹{financeSummary.bankBalance.toLocaleString()}</div>
+                </div>
+                <span className="text-[8px] font-mono px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/30">SAVINGS</span>
+              </div>
+
+              <div className="p-2 rounded-xl bg-slate-900/60 border border-purple-500/20 flex items-center justify-between">
+                <div>
+                  <div className="text-[8px] font-mono text-slate-400 uppercase">UPI Wallet</div>
+                  <div className="text-xs font-bold font-mono text-purple-200">₹{financeSummary.upiBalance.toLocaleString()}</div>
+                </div>
+                <span className="text-[8px] font-mono px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/30">LIQUID</span>
               </div>
             </div>
 
