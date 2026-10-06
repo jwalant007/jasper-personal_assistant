@@ -581,6 +581,26 @@ const TOOL_REGISTRY = {
       const logs = telephonyEngine.getLogs().slice(0, 5);
       return { enabled: cfg.enabled, voicePersona: cfg.persona, activeRelaysCount: activeRelays.length, activeRelays, recentLogs: logs };
     }
+  },
+
+  get_call_intelligence: {
+    name: 'get_call_intelligence',
+    description: 'Get real-time call screening briefing, active live context memory, and caller commitments',
+    permissionLevel: 0,
+    parameters: { callId: 'string (optional)' },
+    async handler({ callId } = {}) {
+      const callIntelligenceEngine = require('./callIntelligenceEngine');
+      const targetId = callId || callIntelligenceEngine.getActiveSessions()[0]?.callId;
+      if (!targetId) {
+        const recent = callIntelligenceEngine.getRecentSessions();
+        if (recent.length > 0) {
+          return { success: true, session: recent[0], contextMemory: recent[0].contextMemory };
+        }
+        return { success: false, message: 'No active or recent call intelligence session found.' };
+      }
+      const session = callIntelligenceEngine.getSession(targetId);
+      return { success: true, session, contextMemory: session?.contextMemory };
+    }
   }
 };
 
@@ -897,6 +917,12 @@ Key Directives:
         const r = await this.executeTool('call_owner_urgent', { reason: query });
         results.push({ intent: 'call_owner_urgent', ...r });
       }
+    }
+
+    // Call Screening & Live Call Intelligence
+    if (lower.match(/\b(call context|call intelligence|screening context|call screening|caller briefing|what did caller say|practice details)\b/)) {
+      const r = await this.executeTool('get_call_intelligence', {});
+      results.push({ intent: 'call_intelligence', ...r });
     }
 
     // Build AI response

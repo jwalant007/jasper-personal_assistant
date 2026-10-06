@@ -270,6 +270,18 @@ export default function App() {
             console.log('[App] 📞 AUTONOMOUS OUTBOUND CALL TO OWNER RECEIVED:', data);
             // Trigger dedicated incoming voice call screen (Audio Ringtone + Voice Dialogue)
             setIncomingJasperCall(data);
+          } else if (data.type === 'CALL_SCREENING_SUMMARY_READY' && data.session) {
+            console.log('[App] 📞 CALL SCREENING SUMMARY RECEIVED:', data.session);
+            setIncomingJasperCall({
+              isScreeningMode: true,
+              callId: data.session.callId,
+              session: data.session,
+              callerName: data.session.caller,
+              screeningSummary: data.session.screeningSummary,
+              initialReason: data.session.initialReason,
+              clientName: data.session.caller,
+              importantDetails: data.session.contextMemory?.importantDetails
+            });
           } else if (data.type === 'MEETING_PULLED_UP' && data.url) {
             console.log('[App] 🎥 MEETING PULLED UP EVENT RECEIVED:', data);
             try {

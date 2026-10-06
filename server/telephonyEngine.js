@@ -19,6 +19,7 @@ const fs = require('fs');
 const path = require('path');
 const meetingEngine = require('./meetingEngine');
 const phoneController = require('./phoneController');
+const callIntelligenceEngine = require('./callIntelligenceEngine');
 
 const CONFIG_FILE = path.join(__dirname, 'data', 'telephony_config.json');
 const LOGS_FILE = path.join(__dirname, 'data', 'telephony_logs.json');
@@ -223,6 +224,18 @@ class TelephonyEngine {
       });
     }
 
+    // Mirror call into CallIntelligenceEngine for live call intelligence screening
+    let intelligenceSession = null;
+    try {
+      intelligenceSession = await callIntelligenceEngine.startScreening({
+        callId: sid,
+        from,
+        callerName: analysis.clientName,
+        speechResult: callerSpeech,
+        isSimulation
+      });
+    } catch (_) {}
+
     // If urgent/high-value deal, initiate Multi-Line Holding & Outbound Relay to Owner
     if (analysis.isUrgent && cfg.autoRelayToOwner) {
       const relay = await this.startMultiLineRelay({
@@ -240,7 +253,8 @@ class TelephonyEngine {
         relayId: relay.relayId,
         twiml: this.generateHoldTwiML(analysis),
         analysis,
-        relay
+        relay,
+        intelligenceSession
       };
     }
 

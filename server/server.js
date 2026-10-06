@@ -22,6 +22,7 @@ const weatherSentinel = require('./weatherSentinel');
 const ollamaBridge = require('./ollamaBridge');
 const telephonyEngine = require('./telephonyEngine');
 const meetingEngine = require('./meetingEngine');
+const callIntelligenceEngine = require('./callIntelligenceEngine');
 
 // Optional WhatsApp Web Client (whatsapp-web.js) for laptop WhatsApp Web auto-send
 let Client, LocalAuth, WAStatus;
@@ -398,6 +399,48 @@ wss.on('connection', (ws, req) => {
           ws.send(JSON.stringify({ type: 'SIMULATE_REEL_RESULT', result: res }));
         });
       }
+      // Handle Call Screening: Start
+      if (msg.type === 'START_CALL_SCREENING') {
+        callIntelligenceEngine.startScreening(msg).then(session => {
+          ws.send(JSON.stringify({ type: 'CALL_SCREENING_STARTED', session }));
+        });
+      }
+      // Handle Call Screening: Continue
+      if (msg.type === 'CONTINUE_CALL_SCREENING' && msg.callId) {
+        callIntelligenceEngine.continueScreening(msg.callId, msg).then(res => {
+          ws.send(JSON.stringify({ type: 'CALL_SCREENING_CONTINUED', result: res }));
+        });
+      }
+      // Handle Call Screening: Accept Call
+      if (msg.type === 'ACCEPT_SCREENING_CALL' && msg.callId) {
+        callIntelligenceEngine.acceptCall(msg.callId).then(res => {
+          ws.send(JSON.stringify({ type: 'SCREENING_CALL_ACCEPTED', result: res }));
+        });
+      }
+      // Handle Call Screening: Reject Call
+      if (msg.type === 'REJECT_SCREENING_CALL' && msg.callId) {
+        callIntelligenceEngine.rejectCall(msg.callId, msg).then(res => {
+          ws.send(JSON.stringify({ type: 'SCREENING_CALL_REJECTED', result: res }));
+        });
+      }
+      // Handle Live Call Turn (Caller or User speaking)
+      if (msg.type === 'PROCESS_LIVE_CALL_TURN' && msg.callId) {
+        callIntelligenceEngine.processLiveTurn(msg.callId, msg).then(res => {
+          ws.send(JSON.stringify({ type: 'LIVE_CALL_TURN_PROCESSED', result: res }));
+        });
+      }
+      // Handle Explicit Assistant Activation (Spoken Directive)
+      if (msg.type === 'ACTIVATE_ASSISTANT_ALOUD' && msg.callId) {
+        callIntelligenceEngine.activateAssistantAloud(msg.callId, msg).then(res => {
+          ws.send(JSON.stringify({ type: 'ASSISTANT_ALOUD_RESULT', result: res }));
+        });
+      }
+      // Handle Conclude Live Call
+      if (msg.type === 'CONCLUDE_LIVE_CALL' && msg.callId) {
+        callIntelligenceEngine.concludeCall(msg.callId).then(res => {
+          ws.send(JSON.stringify({ type: 'LIVE_CALL_CONCLUDED', result: res }));
+        });
+      }
     } catch (_e) {}
   });
 
@@ -428,6 +471,7 @@ permissionLayer.setBroadcastFn(broadcastToClients);
 busyModeEngine.setBroadcastFn(broadcastToClients);
 telephonyEngine.setBroadcastFn(broadcastToClients);
 meetingEngine.setBroadcastFn(broadcastToClients);
+callIntelligenceEngine.setBroadcastFn(broadcastToClients);
 
 // Spawns the background listener.ps1 script
 function startBackgroundVoiceListener() {
@@ -3766,6 +3810,124 @@ app.post('/api/telephony/relay-response', async (req, res) => {
 app.post('/api/telephony/simulate-reel-scenario', async (req, res) => {
   const simResult = await runReelSimulation();
   res.json(simResult);
+});
+
+// =============================================================
+// LIVE CALL INTELLIGENCE & CALL SCREENING ROUTES (4 PILLARS)
+// =============================================================
+
+// Start Screening (Before I Accept)
+app.post('/api/telephony/screening/start', async (req, res) => {
+  try {
+    const session = await callIntelligenceEngine.startScreening(req.body || {});
+    res.json({ success: true, session });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Continue Screening (Ask J.A.S.P.E.R. to continue)
+app.post('/api/telephony/screening/continue', async (req, res) => {
+  try {
+    const { callId, followUpInstruction, customQuestion } = req.body || {};
+    const result = await callIntelligenceEngine.continueScreening(callId, { followUpInstruction, customQuestion });
+    res.json({ success: true, ...result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Accept Call (Transfers call to Jwalant & engages Live Intelligence)
+app.post('/api/telephony/screening/accept', async (req, res) => {
+  try {
+    const { callId } = req.body || {};
+    const result = await callIntelligenceEngine.acceptCall(callId);
+    res.json({ success: true, ...result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Reject Call (Politely declines & logs message)
+app.post('/api/telephony/screening/reject', async (req, res) => {
+  try {
+    const { callId, reason } = req.body || {};
+    const result = await callIntelligenceEngine.rejectCall(callId, { reason });
+    res.json({ success: true, ...result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Process Live Dialogue Turn (During active call: Caller or Jwalant)
+app.post('/api/telephony/live/turn', async (req, res) => {
+  try {
+    const { callId, speaker, text } = req.body || {};
+    const result = await callIntelligenceEngine.processLiveTurn(callId, { speaker, text });
+    res.json({ success: true, ...result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Explicit Assistant Spoken Activation
+app.post('/api/telephony/live/activate-assistant', async (req, res) => {
+  try {
+    const { callId, prompt } = req.body || {};
+    const result = await callIntelligenceEngine.activateAssistantAloud(callId, { prompt });
+    res.json({ success: true, ...result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Conclude Live Call
+app.post('/api/telephony/live/conclude', async (req, res) => {
+  try {
+    const { callId } = req.body || {};
+    const result = await callIntelligenceEngine.concludeCall(callId);
+    res.json({ success: true, ...result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Get session details
+app.get('/api/telephony/live/session/:callId', (req, res) => {
+  const session = callIntelligenceEngine.getSession(req.params.callId);
+  if (!session) return res.status(404).json({ success: false, error: 'Session not found' });
+  res.json({ success: true, session });
+});
+
+// Get all recent/active sessions
+app.get('/api/telephony/live/sessions', (req, res) => {
+  res.json({
+    success: true,
+    active: callIntelligenceEngine.getActiveSessions(),
+    recent: callIntelligenceEngine.getRecentSessions()
+  });
+});
+
+// ⚽ 1-CLICK SIMULATION: Rahul & Football Trial Scenario
+app.post('/api/telephony/live/simulate-football-scenario', async (req, res) => {
+  try {
+    const callId = `call-rahul-${Date.now()}`;
+    const session = await callIntelligenceEngine.startScreening({
+      callId,
+      from: '+91 98765 43210',
+      callerName: 'Rahul',
+      speechResult: 'Hey, I wanted to talk to Jwalant about the football trial tomorrow.',
+      isSimulation: true
+    });
+    res.json({
+      success: true,
+      callId,
+      session,
+      message: 'Football trial incoming screening simulation triggered. Waiting for Jwalant\'s decision.'
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // -------------------------------------------------------------
