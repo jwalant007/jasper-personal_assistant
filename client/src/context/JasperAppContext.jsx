@@ -27,8 +27,21 @@ export function JasperAppProvider({ children }) {
   const [voiceTranscript, setVoiceTranscript] = useState('');
   const [showAudioPage, setShowAudioPage] = useState(false);
 
-  // Security & Lock State
-  const [isLocked, setIsLocked] = useState(true);
+  // Security & Lock State (defaults to false so the user lands directly in the Command Center unless locked)
+  const [isLocked, setIsLockedState] = useState(() => {
+    try {
+      return localStorage.getItem('jasper_is_locked') === 'true';
+    } catch (_) {
+      return false;
+    }
+  });
+
+  const setIsLocked = (val) => {
+    setIsLockedState(val);
+    try {
+      localStorage.setItem('jasper_is_locked', String(val));
+    } catch (_) {}
+  };
   const [biometricMode, setBiometricMode] = useState('idle'); // idle | face_scan | voice_scan | success | failed | face_enroll
   const [lastScanMode, setLastScanMode] = useState(null);
   const [scanStatusText, setScanStatusText] = useState('');

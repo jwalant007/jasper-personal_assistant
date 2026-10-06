@@ -13,6 +13,7 @@ import { playJarvisBeep, playJarvisScan, playJarvisPowerUp, playMysticSnap } fro
 // Lightweight Core Widgets
 import DiagnosticWidget from './DiagnosticWidget';
 import PaymentBalanceWidget from './PaymentBalanceWidget';
+import JasperCommandCenter from './JasperCommandCenter';
 
 // Code-Split Dynamic Heavy Modules (Loads on demand when window opens)
 const UniversalTvRemoteWidget = React.lazy(() => import('./UniversalTvRemoteWidget'));
@@ -323,7 +324,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
   const [topZ, setTopZ] = useState(20);
   const [showStartMenu, setShowStartMenu] = useState(false);
   const [dockTwoRows, setDockTwoRows] = useState(false);
-  const [desktopLayoutMode, setDesktopLayoutMode] = useState('matrix'); // 'matrix' (All On Screen) | 'shelf' (2-Row Shelf)
+  const [desktopLayoutMode, setDesktopLayoutMode] = useState('commandCenter'); // 'commandCenter' (JARVIS HUD) | 'matrix' (All On Screen) | 'shelf' (2-Row Shelf)
   const [currentTime, setCurrentTime] = useState(new Date());
 
   // Satellite Hardware Bridge & DB Persistence
@@ -1182,21 +1183,38 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
         onScroll={handleDesktopScroll}
         className="relative w-full h-[calc(100vh-105px)] top-12 overflow-y-auto overflow-x-hidden os-screen-scrollbar scroll-smooth"
       >
-        {/* Native Desktop App Shortcuts: MULTIPLE ROWS & COLUMNS SPREAD MATRIX */}
+        {/* Native Desktop Canvas: Command Center HUD or App Matrix/Shelf */}
         <div className="relative z-0 pointer-events-auto max-w-[calc(100vw-32px)] mx-auto pt-3 px-4 pb-36">
           <div className="flex items-center justify-between mb-2 px-1">
             <div className="flex items-center gap-2">
               <span className="font-sans text-xs uppercase tracking-wider text-slate-100 font-bold flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
-                JASPER Applications
+                {desktopLayoutMode === 'commandCenter' ? 'JARVIS AI Command Center' : 'JASPER Applications'}
               </span>
               <span className="text-[10px] font-mono text-slate-400 bg-slate-900/90 px-2.5 py-0.5 rounded-full border border-white/[0.08]">
-                {desktopLayoutMode === 'matrix' ? 'All 35 Apps Matrix' : '2 Rows Shelf'} &bull; Bento Workspace
+                {desktopLayoutMode === 'commandCenter' 
+                  ? 'Central AI Core & HUD' 
+                  : desktopLayoutMode === 'matrix' 
+                  ? 'All 35 Apps Matrix' 
+                  : '2 Rows Shelf'} &bull; Bento Workspace
               </span>
             </div>
 
             {/* Layout View Switcher */}
             <div className="flex items-center gap-1 bg-slate-900/80 border border-white/[0.08] p-1 rounded-xl shadow-lg">
+              <button
+                onClick={() => setDesktopLayoutMode('commandCenter')}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-sans font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
+                  desktopLayoutMode === 'commandCenter'
+                    ? 'bg-indigo-500/25 text-white border border-indigo-400/40 shadow-sm font-semibold'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+                title="JARVIS Central AI Core & Command Center HUD"
+              >
+                <Zap className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Command Center</span>
+              </button>
+
               <button
                 onClick={() => setDesktopLayoutMode('matrix')}
                 className={`px-2.5 py-1 rounded-lg text-[10px] font-sans font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
@@ -1207,7 +1225,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
                 title="Spread apps across columns so every app is shown at once"
               >
                 <Grid className="w-3.5 h-3.5 text-indigo-400" />
-                <span>All On Screen</span>
+                <span>All 35 Apps</span>
               </button>
 
               <button
@@ -1225,7 +1243,19 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
             </div>
           </div>
 
-          {desktopLayoutMode === 'matrix' ? (
+          {desktopLayoutMode === 'commandCenter' ? (
+            /* CENTRAL JARVIS COMMAND CENTER HUD & AI CORE */
+            <JasperCommandCenter
+              onLaunchApp={launchApp}
+              onMicClick={onMicClick}
+              onLockSystem={onLockSystem}
+              onOpenSettings={onOpenSettings}
+              onViewAllApps={() => setDesktopLayoutMode('matrix')}
+              jasperState={jasperState}
+              aiStatusLabel={aiStatusLabel}
+              isAiOnline={isAiOnline}
+            />
+          ) : desktopLayoutMode === 'matrix' ? (
             /* ALL-ON-SCREEN MATRIX */
             <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-7 lg:grid-cols-7 xl:grid-cols-9 gap-2 sm:gap-2.5 p-3 rounded-2xl bg-slate-950/40 border border-white/[0.06] backdrop-blur-2xl shadow-2xl">
               {/* Quick Lock System Shortcut Icon */}
