@@ -1475,24 +1475,46 @@ app.post('/api/tv/source', async (req, res) => {
   }
 });
 
-const iconCache = {};
+const iconCache = {
+  'com.whatsapp': 'https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg',
+  'com.instagram.android': 'https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png',
+  'com.google.android.youtube': 'https://upload.wikimedia.org/wikipedia/commons/e/ef/Youtube_logo.png',
+  'com.android.chrome': 'https://upload.wikimedia.org/wikipedia/commons/e/e1/Google_Chrome_icon_%28February_2022%29.svg',
+  'com.spotify.music': 'https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg',
+  'org.telegram.messenger': 'https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg'
+};
 
 async function getAppIconUrl(packageName) {
+  // If already checked and marked as not found, avoid repeat queries
+  if (iconCache[packageName] === '__none__') return null;
+  if (iconCache[packageName]) return iconCache[packageName];
+
+  // In cloud environments or high load, avoid heavy external scraping
+  if (process.env.RENDER) {
+    iconCache[packageName] = '__none__';
+    return null;
+  }
+
   try {
     const url = `https://play.google.com/store/apps/details?id=${encodeURIComponent(packageName)}`;
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
       },
-      signal: AbortSignal.timeout(5000)
+      signal: AbortSignal.timeout(1500)
     });
-    if (!response.ok) return null;
+    if (!response.ok) {
+      iconCache[packageName] = '__none__';
+      return null;
+    }
     const html = await response.text();
     const match = html.match(/<meta[^>]+property="og:image"[^>]+content="([^"]+)"/i) ||
                   html.match(/<meta[^>]+content="([^"]+)"[^>]+property="og:image"/i);
-    return match ? match[1] : null;
+    const result = match ? match[1] : null;
+    iconCache[packageName] = result || '__none__';
+    return result;
   } catch (e) {
-    console.error(`[PhoneController] Failed to fetch icon for ${packageName}:`, e.message);
+    iconCache[packageName] = '__none__';
     return null;
   }
 }
@@ -1503,13 +1525,15 @@ async function getAppIconUrl(packageName) {
 
 app.get('/api/phone/app/icon/:packageName', async (req, res) => {
   const { packageName } = req.params;
-  if (iconCache[packageName]) {
+  if (iconCache[packageName] && iconCache[packageName] !== '__none__') {
     return res.json({ icon: iconCache[packageName] });
+  }
+  if (iconCache[packageName] === '__none__') {
+    return res.status(404).json({ error: 'Icon not found' });
   }
 
   const iconUrl = await getAppIconUrl(packageName);
   if (iconUrl) {
-    iconCache[packageName] = iconUrl;
     return res.json({ icon: iconUrl });
   }
 

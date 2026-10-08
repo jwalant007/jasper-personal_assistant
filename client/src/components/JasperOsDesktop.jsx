@@ -335,6 +335,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
 
   useEffect(() => {
     const checkSatellite = async () => {
+      if (typeof document !== 'undefined' && document.hidden) return;
       try {
         const res = await fetch('/api/satellite/status');
         if (res.ok) {
@@ -344,7 +345,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
       } catch (_) {}
     };
     checkSatellite();
-    const interval = setInterval(checkSatellite, 8000);
+    const interval = setInterval(checkSatellite, 25000);
     return () => clearInterval(interval);
   }, []);
 

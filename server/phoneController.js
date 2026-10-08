@@ -494,11 +494,18 @@ const PhoneController = {
   },
 
   listApps: async () => {
+    const now = Date.now();
+    if (PhoneController._cachedApps && (now - (PhoneController._lastAppsFetch || 0) < 30000)) {
+      return PhoneController._cachedApps;
+    }
     try {
       const stdout = await runAdb(`shell pm list packages -3`);
-      return stdout.split('\n').map(line => line.replace('package:', '').trim()).filter(Boolean);
+      const list = stdout.split('\n').map(line => line.replace('package:', '').trim()).filter(Boolean);
+      PhoneController._cachedApps = list;
+      PhoneController._lastAppsFetch = now;
+      return list;
     } catch (e) {
-      return [];
+      return PhoneController._cachedApps || [];
     }
   },
 
@@ -541,6 +548,10 @@ const PhoneController = {
     if (!isPhysicalConnected()) {
       return [];
     }
+    const now = Date.now();
+    if (PhoneController._cachedNotifications && (now - (PhoneController._lastNotificationFetch || 0) < 25000)) {
+      return PhoneController._cachedNotifications;
+    }
     try {
       const stdout = await runAdb(`shell dumpsys notification --noredact`);
       const records = stdout.split(/NotificationRecord[\{\(]/);
@@ -556,9 +567,11 @@ const PhoneController = {
           results.push({ package: pkg, title: titleMatch ? titleMatch[1] : '', text: textMatch ? textMatch[1] : '' });
         }
       }
+      PhoneController._cachedNotifications = results;
+      PhoneController._lastNotificationFetch = now;
       return results;
     } catch (e) {
-      return [];
+      return PhoneController._cachedNotifications || [];
     }
   },
 

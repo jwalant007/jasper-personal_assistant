@@ -49,21 +49,50 @@ import { API_BASE } from '../utils/apiConfig.js';
 import { getPhoneBrainMode, setPhoneBrainMode, togglePhoneBrainMode } from '../utils/mobileBrain.js';
 import SocialAutoReplyWidget from './SocialAutoReplyWidget';
 
+const clientIconCache = new Map();
+
 function AppIcon({ packageName, cleanName }) {
-  const [iconUrl, setIconUrl] = useState(null);
-  const [failed, setFailed] = useState(false);
+  const [iconUrl, setIconUrl] = useState(() => {
+    if (clientIconCache.has(packageName)) {
+      return clientIconCache.get(packageName);
+    }
+    return null;
+  });
+  const [failed, setFailed] = useState(() => {
+    return clientIconCache.has(packageName) && clientIconCache.get(packageName) === null;
+  });
 
   useEffect(() => {
+    if (clientIconCache.has(packageName)) {
+      const cached = clientIconCache.get(packageName);
+      if (cached) {
+        setIconUrl(cached);
+      } else {
+        setFailed(true);
+      }
+      return;
+    }
+
     let active = true;
     const fetchIcon = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/phone/app/icon/${packageName}`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2500);
+        const res = await fetch(`${API_BASE}/api/phone/app/icon/${packageName}`, { signal: controller.signal });
+        clearTimeout(timeoutId);
         if (!res.ok) throw new Error();
         const data = await res.json();
-        if (active && data.icon) {
-          setIconUrl(data.icon);
+        if (active) {
+          if (data.icon) {
+            clientIconCache.set(packageName, data.icon);
+            setIconUrl(data.icon);
+          } else {
+            clientIconCache.set(packageName, null);
+            setFailed(true);
+          }
         }
       } catch (e) {
+        clientIconCache.set(packageName, null);
         if (active) setFailed(true);
       }
     };
@@ -87,7 +116,10 @@ function AppIcon({ packageName, cleanName }) {
       src={iconUrl}
       alt={cleanName}
       className="w-7 h-7 rounded-lg object-cover border border-cyan-500/30 shadow-[0_0_8px_rgba(6,182,212,0.2)]"
-      onError={() => setFailed(true)}
+      onError={() => {
+        clientIconCache.set(packageName, null);
+        setFailed(true);
+      }}
     />
   );
 }
@@ -192,12 +224,15 @@ export default function PhoneControlWidget() {
            cleanName.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
+  const appsFetchedRef = useRef(false);
+  const notificationsFetchedRef = useRef(0);
+
   // Fetch status on load & start polling interval
   useEffect(() => {
     checkStatus();
     const interval = setInterval(() => {
       checkStatus();
-    }, 10000); // Poll every 10 seconds
+    }, 20000); // Relaxed poll every 20 seconds to prevent server socket saturation
     return () => clearInterval(interval);
   }, []);
 
@@ -208,7 +243,7 @@ export default function PhoneControlWidget() {
       refreshScreen();
       timer = setInterval(() => {
         refreshScreen();
-      }, 2000); // Refresh screen every 2 seconds
+      }, 3500); // Refresh screen every 3.5 seconds (balanced bandwidth & framerate)
     }
     return () => clearInterval(timer);
   }, [status.connected, isLiveMirroring]);
@@ -219,8 +254,19 @@ export default function PhoneControlWidget() {
       const data = await res.json();
       setStatus(data);
       if (data.connected) {
-        fetchNotifications();
-        fetchApps();
+        // Only fetch full app package list ONCE upon connecting
+        if (!appsFetchedRef.current) {
+          appsFetchedRef.current = true;
+          fetchApps();
+        }
+        // Throttle notifications fetch to once every 30s
+        const now = Date.now();
+        if (now - notificationsFetchedRef.current > 30000) {
+          notificationsFetchedRef.current = now;
+          fetchNotifications();
+        }
+      } else {
+        appsFetchedRef.current = false;
       }
     } catch (e) {
       console.error(e);
@@ -229,15 +275,23 @@ export default function PhoneControlWidget() {
 
   const refreshScreen = async () => {
     if (isCapturingScreen) return;
+    // Pause screen capture when browser tab is inactive/hidden to save CPU & bandwidth
+    if (typeof document !== 'undefined' && document.hidden) return;
+
     setIsCapturingScreen(true);
     try {
-      const res = await fetch(`${API_BASE}/api/phone/screenshot`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+      const res = await fetch(`${API_BASE}/api/phone/screenshot`, { signal: controller.signal });
+      clearTimeout(timeoutId);
       const data = await res.json();
       if (data.result) {
         setScreenImg(data.result);
       }
     } catch (e) {
-      console.error('Screen capture error:', e);
+      if (e.name !== 'AbortError') {
+        console.warn('Screen capture error:', e.message);
+      }
     } finally {
       setIsCapturingScreen(false);
     }
@@ -289,6 +343,7 @@ export default function PhoneControlWidget() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ip })
       });
+      appsFetchedRef.current = false;
       await checkStatus();
       refreshScreen();
     } catch (e) {
@@ -303,6 +358,7 @@ export default function PhoneControlWidget() {
       await fetch(`${API_BASE}/api/phone/disconnect`, { method: 'POST' });
       setStatus({ connected: false });
       setScreenImg(null);
+      appsFetchedRef.current = false;
     } catch (e) {
       console.error(e);
     }

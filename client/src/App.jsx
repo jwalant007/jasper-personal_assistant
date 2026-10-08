@@ -246,6 +246,7 @@ export default function App() {
     let isSubscribed = true;
 
     const checkEmergencyStatus = async () => {
+      if (typeof document !== 'undefined' && document.hidden) return;
       try {
         const res = await fetch(`${getApiBase()}/api/social/emergency-status`);
         const data = await res.json();
@@ -258,7 +259,8 @@ export default function App() {
     };
 
     checkEmergencyStatus();
-    const emergencyInterval = setInterval(checkEmergencyStatus, 4000);
+    // WebSocket pushes real-time EMERGENCY_ALERT immediately, so poll interval only needs to be a backup fallback
+    const emergencyInterval = setInterval(checkEmergencyStatus, 25000);
 
     let ws;
     try {
