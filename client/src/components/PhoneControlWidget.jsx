@@ -34,7 +34,15 @@ import {
   Share2,
   Globe,
   Film,
-  Radio
+  Radio,
+  KeyRound,
+  ShieldCheck,
+  AlertCircle,
+  CheckCircle2,
+  QrCode,
+  HelpCircle,
+  ExternalLink,
+  X
 } from 'lucide-react';
 import { API_BASE } from '../utils/apiConfig.js';
 import { getPhoneBrainMode, setPhoneBrainMode, togglePhoneBrainMode } from '../utils/mobileBrain.js';
@@ -155,6 +163,14 @@ export default function PhoneControlWidget() {
   const [isLiveMirroring, setIsLiveMirroring] = useState(true);
   const [isCapturingScreen, setIsCapturingScreen] = useState(false);
   const [showSocialModal, setShowSocialModal] = useState(false);
+
+  // Wireless ADB Pairing Code State (Android 11+)
+  const [connectionMode, setConnectionMode] = useState('pair'); // 'pair' | 'connect'
+  const [pairingIp, setPairingIp] = useState('192.168.29.159:38421');
+  const [pairingCode, setPairingCode] = useState('');
+  const [isPairing, setIsPairing] = useState(false);
+  const [pairStatus, setPairStatus] = useState(null);
+  const [showPairModal, setShowPairModal] = useState(false);
 
   // Group apps by category
   const categorizedApps = {
@@ -292,6 +308,47 @@ export default function PhoneControlWidget() {
     setLoading(false);
   };
 
+  const handlePairPhone = async (e) => {
+    if (e) e.preventDefault();
+    if (!pairingIp || !pairingCode) {
+      setPairStatus({ type: 'error', text: 'Please enter both Pairing IP:Port and 6-digit Pairing Code.' });
+      return;
+    }
+
+    setIsPairing(true);
+    setPairStatus({ type: 'info', text: `Initiating Wireless ADB Pair with ${pairingIp} (Code: ${pairingCode})...` });
+
+    try {
+      const res = await fetch(`${API_BASE}/api/phone/pair`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          ip: pairingIp.trim(), 
+          code: pairingCode.trim(),
+          connectIp: ip.trim() 
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && (data.success || data.result?.success)) {
+        const msg = data.message || data.result?.message || 'Paired successfully!';
+        setPairStatus({ type: 'success', text: `✓ ${msg}` });
+        setPairingCode('');
+        setTimeout(async () => {
+          await checkStatus();
+          refreshScreen();
+        }, 1200);
+      } else {
+        const errMsg = data.error || data.result?.error || 'Pairing failed. Ensure the pairing popup remains open on your phone.';
+        setPairStatus({ type: 'error', text: `✗ ${errMsg}` });
+      }
+    } catch (err) {
+      setPairStatus({ type: 'error', text: `✗ Connection Error: ${err.message}` });
+    } finally {
+      setIsPairing(false);
+    }
+  };
+
   const [showAdbGuide, setShowAdbGuide] = useState(false);
 
   const fetchNotifications = async () => {
@@ -339,7 +396,8 @@ export default function PhoneControlWidget() {
   if (!status.connected) {
     return (
       <div className="phone-panel select-none">
-        <div className="p-4 flex flex-col gap-3">
+        <div className="p-4 flex flex-col gap-3.5">
+          {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-cyan-400 font-orbitron font-bold">
               <Smartphone size={16} />
@@ -351,42 +409,174 @@ export default function PhoneControlWidget() {
           </div>
 
           <div className="text-xs font-mono text-cyan-100/70">
-            Connect your physical Android smartphone via Wireless ADB (IP:Port) or USB cable.
+            Connect your physical Android smartphone via <strong>Wireless ADB Pairing Code (Android 11+)</strong> or standard IP:Port.
           </div>
 
-          <input 
-            type="text" 
-            value={ip} 
-            onChange={(e) => setIp(e.target.value)}
-            className="remote-input p-2 w-full rounded font-mono text-xs bg-slate-900 border border-cyan-500/30 text-white"
-            placeholder="IP Address & Port (e.g. 192.168.29.159:42931)"
-          />
-
-          <div className="flex flex-col gap-2">
-            <button 
-              onClick={connectPhone}
-              disabled={loading}
-              className="btn-control p-2.5 text-xs font-bold text-cyan-400 border-cyan-500/40 bg-cyan-950/40 hover:bg-cyan-900/40 rounded transition-colors"
+          {/* Connection Mode Tabs */}
+          <div className="grid grid-cols-2 gap-2 bg-slate-950/60 p-1 rounded-xl border border-cyan-500/20">
+            <button
+              onClick={() => setConnectionMode('pair')}
+              className={`py-1.5 px-2 rounded-lg text-xs font-bold font-orbitron transition-all flex items-center justify-center gap-1.5 ${
+                connectionMode === 'pair'
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/50 shadow-[0_0_10px_rgba(6,182,212,0.2)]'
+                  : 'text-slate-400 hover:text-cyan-200'
+              }`}
             >
-              {loading ? 'CONNECTING VIA ADB...' : 'CONNECT PHYSICAL MOBILE'}
+              <KeyRound size={13} className="text-cyan-400" />
+              <span>PAIR WITH CODE</span>
             </button>
+            <button
+              onClick={() => setConnectionMode('connect')}
+              className={`py-1.5 px-2 rounded-lg text-xs font-bold font-orbitron transition-all flex items-center justify-center gap-1.5 ${
+                connectionMode === 'connect'
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/50 shadow-[0_0_10px_rgba(6,182,212,0.2)]'
+                  : 'text-slate-400 hover:text-cyan-200'
+              }`}
+            >
+              <Wifi size={13} className="text-cyan-400" />
+              <span>DIRECT IP CONNECT</span>
+            </button>
+          </div>
 
+          {/* TAB 1: WIRELESS PAIRING WITH CODE (Android 11+) */}
+          {connectionMode === 'pair' && (
+            <form onSubmit={handlePairPhone} className="flex flex-col gap-3 p-3.5 rounded-xl bg-slate-950/90 border border-cyan-500/30 shadow-lg">
+              <div className="flex items-center justify-between border-b border-cyan-500/20 pb-2">
+                <span className="text-[11px] font-bold text-cyan-300 flex items-center gap-1.5">
+                  <KeyRound size={14} className="text-amber-400" />
+                  WIRELESS ADB PAIRING CODE
+                </span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-500/30">
+                  Android 11+
+                </span>
+              </div>
+
+              {/* Step Info Box */}
+              <div className="p-2.5 rounded-lg bg-cyan-950/30 border border-cyan-500/20 text-[10px] text-cyan-200/90 space-y-1">
+                <div className="font-semibold text-cyan-300 flex items-center gap-1">
+                  📱 On your phone:
+                </div>
+                <div>1. Go to <strong>Settings → Developer Options → Wireless Debugging</strong> (turn ON).</div>
+                <div>2. Tap <strong>"Pair device with pairing code"</strong>.</div>
+                <div>3. Enter the <strong>6-digit code</strong> and <strong>Pairing IP:Port</strong> below:</div>
+              </div>
+
+              {/* 6-Digit Pairing Code Input */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold text-amber-300 uppercase tracking-wider flex items-center justify-between">
+                  <span>6-Digit Wi-Fi Pairing Code</span>
+                  <span className="text-[9px] text-slate-400 font-normal">Shown on phone dialog</span>
+                </label>
+                <input 
+                  type="text" 
+                  value={pairingCode} 
+                  onChange={(e) => setPairingCode(e.target.value.replace(/\s+/g, ''))}
+                  placeholder="e.g. 243245"
+                  maxLength={8}
+                  className="p-2.5 w-full rounded-lg font-mono text-base font-extrabold tracking-widest text-center bg-black/80 border-2 border-cyan-400/60 text-cyan-300 placeholder-cyan-700/50 outline-none focus:border-cyan-300 focus:shadow-[0_0_15px_rgba(6,182,212,0.4)] transition-all"
+                />
+              </div>
+
+              {/* Pairing IP & Port Input */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold text-sky-400 uppercase tracking-wider flex items-center justify-between">
+                  <span>Pairing Address (IP:Port)</span>
+                  <span className="text-[9px] text-slate-400 font-normal">Popup IP:Port</span>
+                </label>
+                <input 
+                  type="text" 
+                  value={pairingIp} 
+                  onChange={(e) => setPairingIp(e.target.value)}
+                  placeholder="e.g. 192.168.29.159:38421"
+                  className="remote-input p-2 w-full rounded font-mono text-xs bg-black/60 border border-cyan-500/40 text-cyan-200 outline-none focus:border-cyan-400"
+                />
+              </div>
+
+              {/* Auto-Connect Port Input (Optional) */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                  <span>Main Connect Address (Optional)</span>
+                  <span className="text-[9px] text-slate-500 font-normal">Main Wireless Port</span>
+                </label>
+                <input 
+                  type="text" 
+                  value={ip} 
+                  onChange={(e) => setIp(e.target.value)}
+                  placeholder="e.g. 192.168.29.159:42931"
+                  className="remote-input p-1.5 w-full rounded font-mono text-xs bg-black/40 border border-cyan-500/20 text-slate-300 outline-none focus:border-cyan-400"
+                />
+              </div>
+
+              {/* Status Banner */}
+              {pairStatus && (
+                <div className={`p-2.5 rounded-lg text-xs font-mono border flex items-center gap-2 animate-in fade-in ${
+                  pairStatus.type === 'success' 
+                    ? 'bg-emerald-950/60 border-emerald-500 text-emerald-300' 
+                    : pairStatus.type === 'info'
+                    ? 'bg-sky-950/60 border-sky-500 text-sky-300'
+                    : 'bg-rose-950/60 border-rose-500 text-rose-300'
+                }`}>
+                  {pairStatus.type === 'success' && <CheckCircle2 size={14} className="shrink-0 text-emerald-400" />}
+                  {pairStatus.type === 'info' && <RefreshCw size={14} className="shrink-0 text-sky-400 animate-spin" />}
+                  {pairStatus.type === 'error' && <AlertCircle size={14} className="shrink-0 text-rose-400" />}
+                  <span className="leading-tight text-[11px]">{pairStatus.text}</span>
+                </div>
+              )}
+
+              {/* Submit Button */}
+              <button 
+                type="submit"
+                disabled={isPairing}
+                className="p-2.5 text-xs font-orbitron font-bold uppercase tracking-wider text-cyan-300 border border-cyan-400/60 bg-cyan-950/80 hover:bg-cyan-900 hover:border-cyan-300 rounded-xl transition-all shadow-[0_0_15px_rgba(6,182,212,0.25)] flex items-center justify-center gap-2"
+              >
+                {isPairing ? <RefreshCw size={14} className="animate-spin text-cyan-400" /> : <KeyRound size={14} className="text-amber-400" />}
+                <span>{isPairing ? 'PAIRING WITH ANDROID...' : '⚡ PAIR & LINK MOBILE'}</span>
+              </button>
+            </form>
+          )}
+
+          {/* TAB 2: DIRECT IP CONNECT */}
+          {connectionMode === 'connect' && (
+            <div className="flex flex-col gap-2 p-3.5 rounded-xl bg-slate-950/90 border border-cyan-500/30">
+              <label className="text-[10px] font-bold text-sky-400 uppercase tracking-wider">
+                Direct Wireless Debugging IP & Port
+              </label>
+              <input 
+                type="text" 
+                value={ip} 
+                onChange={(e) => setIp(e.target.value)}
+                className="remote-input p-2 w-full rounded font-mono text-xs bg-black/60 border border-cyan-500/40 text-cyan-200 outline-none focus:border-cyan-400"
+                placeholder="IP Address & Port (e.g. 192.168.29.159:42931)"
+              />
+
+              <button 
+                onClick={connectPhone}
+                disabled={loading}
+                className="btn-control p-2.5 text-xs font-bold text-cyan-400 border-cyan-500/40 bg-cyan-950/40 hover:bg-cyan-900/40 rounded-xl transition-colors mt-1"
+              >
+                {loading ? 'CONNECTING VIA ADB...' : 'CONNECT PHYSICAL MOBILE'}
+              </button>
+            </div>
+          )}
+
+          {/* Guide Dropdown */}
+          <div className="flex flex-col gap-2">
             <button 
               onClick={() => setShowAdbGuide(!showAdbGuide)}
               className="p-2 text-[11px] font-mono text-cyan-300/80 hover:text-cyan-200 border border-cyan-500/20 rounded bg-slate-900/60 transition-colors flex items-center justify-between"
             >
-              <span>WIRELESS ADB PAIRING GUIDE</span>
+              <span className="flex items-center gap-1.5"><HelpCircle size={13} /> WIRELESS ADB SETUP GUIDE</span>
               <span>{showAdbGuide ? '▲' : '▼'}</span>
             </button>
 
             {showAdbGuide && (
               <div className="p-3 rounded-lg bg-slate-950/80 border border-cyan-500/30 text-[11px] text-slate-300 space-y-1.5 animate-in fade-in">
-                <div className="font-bold text-cyan-300">How to Pair Android:</div>
+                <div className="font-bold text-cyan-300">How to Pair & Connect Android:</div>
                 <div>1. Go to <strong>Settings → About Phone</strong> and tap <strong>Build Number</strong> 7 times to enable Developer Options.</div>
                 <div>2. Open <strong>Developer Options → Wireless Debugging</strong> and toggle it <strong>ON</strong>.</div>
-                <div>3. Check the displayed <strong>IP Address & Port</strong> (e.g., <code className="text-cyan-400">192.168.1.50:42931</code>).</div>
-                <div>4. Enter the IP:Port above and click <strong>Connect Physical Mobile</strong>.</div>
-                <div>5. Or plug phone via <strong>USB cable</strong> with <strong>USB Debugging enabled</strong>.</div>
+                <div>3. Tap <strong>"Pair device with pairing code"</strong> to see the 6-digit code and pairing IP:Port.</div>
+                <div>4. Switch to the <strong>PAIR WITH CODE</strong> tab above, enter the 6 digits and click <strong>PAIR & LINK MOBILE</strong>.</div>
+                <div>5. Or plug your phone directly via <strong>USB cable</strong> with <strong>USB Debugging enabled</strong>.</div>
               </div>
             )}
           </div>
@@ -414,6 +604,13 @@ export default function PhoneControlWidget() {
         </div>
         <div className="flex gap-1.5">
           <button 
+            onClick={() => setShowPairModal(!showPairModal)}
+            className="text-[9px] text-amber-400 hover:text-amber-300 font-mono border border-amber-500/30 px-2 py-1 rounded flex items-center gap-1"
+            title="Pair with Wireless Code"
+          >
+            <KeyRound size={10} /> {showPairModal ? 'CLOSE PAIR' : 'PAIR CODE'}
+          </button>
+          <button 
             onClick={() => { checkStatus(); refreshScreen(); }}
             className="text-[9px] text-cyan-400 hover:text-cyan-300 font-mono border border-cyan-500/30 px-2 py-1 rounded flex items-center gap-1"
           >
@@ -427,6 +624,54 @@ export default function PhoneControlWidget() {
           </button>
         </div>
       </div>
+
+      {/* IN-APP PAIRING CODE CARD (TOGGLEABLE WHEN CONNECTED) */}
+      {showPairModal && (
+        <form onSubmit={handlePairPhone} className="p-3 rounded-xl bg-slate-950 border border-amber-500/40 shadow-xl flex flex-col gap-2.5 animate-in fade-in">
+          <div className="flex items-center justify-between text-xs font-bold text-amber-300 font-orbitron">
+            <span className="flex items-center gap-1.5"><KeyRound size={14} /> WIRELESS ADB RE-PAIR (PAIRING CODE)</span>
+            <button type="button" onClick={() => setShowPairModal(false)} className="text-slate-400 hover:text-white">
+              <X size={14} />
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-[9px] text-slate-400">Pairing IP:Port</label>
+              <input 
+                type="text" 
+                value={pairingIp} 
+                onChange={(e) => setPairingIp(e.target.value)} 
+                placeholder="192.168.1.5:38421"
+                className="w-full p-1.5 rounded bg-black/60 border border-amber-500/30 text-amber-200 text-xs font-mono"
+              />
+            </div>
+            <div>
+              <label className="text-[9px] text-slate-400">6-Digit Code</label>
+              <input 
+                type="text" 
+                value={pairingCode} 
+                onChange={(e) => setPairingCode(e.target.value)} 
+                placeholder="123456"
+                maxLength={8}
+                className="w-full p-1.5 rounded bg-black/60 border border-amber-500/30 text-amber-300 text-xs font-mono font-bold tracking-widest text-center"
+              />
+            </div>
+          </div>
+          {pairStatus && (
+            <div className={`text-[10px] p-1.5 rounded font-mono ${pairStatus.type === 'success' ? 'bg-emerald-950 text-emerald-300' : pairStatus.type === 'info' ? 'bg-sky-950 text-sky-300' : 'bg-rose-950 text-rose-300'}`}>
+              {pairStatus.text}
+            </div>
+          )}
+          <button 
+            type="submit" 
+            disabled={isPairing}
+            className="w-full py-1.5 rounded-lg bg-amber-500/20 border border-amber-500/40 hover:bg-amber-500/30 text-amber-300 font-orbitron font-bold text-xs flex items-center justify-center gap-1.5"
+          >
+            {isPairing ? <RefreshCw size={12} className="animate-spin" /> : <KeyRound size={12} />}
+            <span>{isPairing ? 'PAIRING...' : 'CONFIRM PAIRING CODE'}</span>
+          </button>
+        </form>
+      )}
 
       {/* MOBILE MASTER BRAIN BANNER */}
       <div className={`p-2.5 rounded-xl border flex items-center justify-between transition-all ${

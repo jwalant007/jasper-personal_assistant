@@ -63,9 +63,41 @@ docker run -d -p 80:3001 --restart always --name jasper jasper-assistant
 
 ---
 
+## 🌐 Multi-Platform Cloud File System & Binary Distribution (Shifted to Render)
+
+JASPER now hosts its entire binary distribution and file system directly on Render Cloud (`https://jasper-personal-assistant.onrender.com`):
+
+### 📥 Cloud Binary Download Endpoints:
+1. **Android APK**: `https://jasper-personal-assistant.onrender.com/api/apk/download`
+   - Download directly onto any Android phone or tablet over 4G/5G.
+   - Built with native Capacitor architecture, auto-connecting to the Render cloud backend.
+2. **Windows Desktop Setup (.exe)**: `https://jasper-personal-assistant.onrender.com/api/exe/download`
+   - Standalone desktop installer (.exe) for Windows 10 & 11.
+   - Configured with global hotkey (`Ctrl+Alt+J`), background system tray daemon, and direct Render cloud uplink.
+3. **Jasper OS Standalone Kit (.zip)**: `https://jasper-personal-assistant.onrender.com/api/os/download`
+   - Full distribution kit containing `jasper-os`, fullscreen kiosk scripts, 5-second dual-boot UEFI selector, and Debian Live ISO compilation suite.
+4. **Live Binary Telemetry Manifest**: `https://jasper-personal-assistant.onrender.com/api/downloads/manifest`
+   - Returns real-time JSON metadata for all three platforms, including file sizes, SHA verification, timestamps, and active connection status.
+
+---
+
+## 💻 Shifted Client Environments:
+
+| Component | Previous Localhost Target | Shifted Render Cloud Target |
+| :--- | :--- | :--- |
+| **Android APK** | `http://localhost:3001` | `https://jasper-personal-assistant.onrender.com` |
+| **Windows Desktop (.exe)** | Local spawn `node server.js` | `https://jasper-personal-assistant.onrender.com` |
+| **Standalone OS Kiosk** | `http://localhost:3001` | `https://jasper-personal-assistant.onrender.com` |
+| **Dual-Boot Chooser** | `http://localhost:3001` | `https://jasper-personal-assistant.onrender.com` |
+| **Linux Node Kiosk** | `http://localhost:3001` | `https://jasper-personal-assistant.onrender.com` |
+| **Satellite Hardware Bridge** | `http://localhost:3001` | `wss://jasper-personal-assistant.onrender.com` |
+
+---
+
 ## 📱 How to Add to Your Mobile Phone as a Native App
 Once your permanent URL is live:
-1. Open the URL in Google Chrome (Android) or Safari (iPhone).
+1. Open the URL in Google Chrome (Android) or Safari (iPhone): **`https://jasper-personal-assistant.onrender.com`**
 2. Tap the browser menu (**⋮** or **Share** icon).
-3. Tap **Add to Home screen** / **Install App**.
-4. You now have a full-screen, dedicated JASPER icon on your phone that launches your cloud assistant anytime!
+3. Tap **Add to Home screen** / **Install App** — or tap the **📦 Cloud Downloads** button in the top bar to install the native `JASPER_Assistant.apk`.
+4. You now have a full-screen, dedicated JASPER assistant on your phone that stays online 24/7!
+

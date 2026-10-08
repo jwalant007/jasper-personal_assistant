@@ -181,6 +181,62 @@ const PhoneController = {
     };
   },
 
+  pair: async (ip, code, connectIp = null) => {
+    try {
+      PhoneController.manualDisconnected = false;
+      if (!ip) throw new Error('Pairing IP address & port required (e.g. 192.168.1.50:40677)');
+      if (!code) throw new Error('6-digit pairing code required');
+
+      const target = ip.includes(':') ? ip.trim() : `${ip.trim()}:5555`;
+      const cleanCode = code.toString().trim();
+
+      console.log(`[PhoneController] Executing adb pair ${target} ${cleanCode}...`);
+
+      const pairOutput = await new Promise((resolve, reject) => {
+        const child = exec(`${adbBin} pair ${target} ${cleanCode}`, { timeout: 15000 }, (error, stdout, stderr) => {
+          const out = (stdout || '') + (stderr || '');
+          if (error && !out.toLowerCase().includes('successfully paired')) {
+            return reject(new Error(out || error.message));
+          }
+          resolve(out);
+        });
+
+        if (child.stdin) {
+          try {
+            child.stdin.write(`${cleanCode}\n`);
+            child.stdin.end();
+          } catch (e) {}
+        }
+      });
+
+      console.log(`[PhoneController] Pair result:\n`, pairOutput);
+      const isSuccess = pairOutput.toLowerCase().includes('successfully paired') || 
+                        pairOutput.toLowerCase().includes('success');
+
+      let connectResult = null;
+      const targetConnect = (connectIp && connectIp.trim()) ? connectIp.trim() : null;
+      if (targetConnect) {
+        try {
+          console.log(`[PhoneController] Automatically connecting to ${targetConnect}...`);
+          connectResult = await PhoneController.connect(targetConnect);
+        } catch (connErr) {
+          console.warn('[PhoneController] Auto-connect error after pairing:', connErr.message);
+        }
+      }
+
+      await PhoneController.status();
+
+      return {
+        success: isSuccess || !pairOutput.toLowerCase().includes('failed'),
+        message: pairOutput.trim() || 'Pairing completed successfully.',
+        connectResult
+      };
+    } catch (e) {
+      console.error(`[PhoneController] Pairing error:`, e.message);
+      return { success: false, error: e.message || 'Pairing failed. Check IP and Pairing Code.' };
+    }
+  },
+
   connect: async (ip) => {
     try {
       PhoneController.manualDisconnected = false;

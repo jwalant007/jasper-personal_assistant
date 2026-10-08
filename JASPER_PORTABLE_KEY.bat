@@ -12,18 +12,9 @@ set PORTABLE_DIR=%~dp0
 cd /d "%PORTABLE_DIR%"
 
 :: Check if Node.js is installed locally on this machine
-where node >nul 2>nul
-if %errorlevel% equ 0 (
-    echo [SYSTEM INFO] Starting Local Node.js Server...
-    start /b node server/server.js 2>nul
-    timeout /t 3 /nobreak >nul
-    echo [SUCCESS] Opening JASPER OS Local Server...
-    start "" "http://localhost:3001"
-) else (
-    echo [SYSTEM INFO] Node.js not installed on this PC. Connecting to Laptop 1 Master Server...
-    echo [SUCCESS] Opening JASPER OS from Master Node (192.168.29.132)...
-    start "" "http://192.168.29.132:3001"
-)
+set CLOUD_URL=https://jasper-personal-assistant.onrender.com
+echo [SUCCESS] Authenticated! Connecting to 24/7 JASPER Cloud OS (%CLOUD_URL%)...
+start "" "%CLOUD_URL%"
 
 cls
 echo ===============================================================================

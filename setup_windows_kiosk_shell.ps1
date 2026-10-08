@@ -29,9 +29,10 @@ start /b node server/index.js
 
 timeout /t 3 /nobreak >nul
 
-:: Launch Full-Screen Kiosk Mode in Chrome/Edge
-echo Opening JASPER OS Kiosk Shell...
-start chrome.exe --kiosk --app=http://localhost:3001 || start msedge.exe --kiosk --app=http://localhost:3001 --edge-kiosk-type=fullscreen
+:: Launch Full-Screen Kiosk Mode in Chrome/Edge connected 24/7 to Render Cloud
+echo Opening JASPER OS Cloud Kiosk Shell...
+set CLOUD_URL=https://jasper-personal-assistant.onrender.com
+start chrome.exe --kiosk --app=%CLOUD_URL% || start msedge.exe --kiosk --app=%CLOUD_URL% --edge-kiosk-type=fullscreen || start "" "%CLOUD_URL%"
 
 exit
 "@

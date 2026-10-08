@@ -16,15 +16,14 @@ if %errorlevel% neq 0 (
     exit /b
 )
 
-echo [1/2] Initializing JASPER Telephony & Meeting Services...
-start /b node server/server.js 2>nul
-timeout /t 3 /nobreak >nul
+echo [1/2] Connecting to 24/7 JASPER Cloud Hub (https://jasper-personal-assistant.onrender.com)...
+set CLOUD_URL=https://jasper-personal-assistant.onrender.com
 
 echo [2/2] Opening Telephony Core & Switchboard on Workstation...
-start "" "http://localhost:3001"
+start "" "%CLOUD_URL%"
 
 echo.
 echo =================================================================
-echo   JASPER Telephony Core is now running on http://localhost:3001
+echo   JASPER Telephony Core is live on %CLOUD_URL%
 echo =================================================================
 exit

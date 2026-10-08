@@ -277,7 +277,18 @@ export default function LaptopConnectModal({ onClose, onLog }) {
           {/* Preset Buttons */}
           <div className="flex items-center gap-1.5 flex-wrap mt-1">
             <span className="text-[9px] text-slate-400">Quick Presets:</span>
-            {['localhost', '192.168.29.159', '192.168.1.100'].map(preset => (
+            <button
+              onClick={() => {
+                const cloudHost = 'jasper-personal-assistant.onrender.com';
+                setIpInput(cloudHost);
+                setServerIp(cloudHost);
+                testConnection();
+              }}
+              className="text-[9px] px-2.5 py-0.5 rounded-md bg-purple-950/70 border border-purple-500/40 text-purple-300 hover:text-purple-100 hover:border-purple-400 transition-all font-semibold shadow-sm flex items-center gap-1"
+            >
+              ☁️ Render Cloud (24/7)
+            </button>
+            {['localhost', '192.168.29.159'].map(preset => (
               <button
                 key={preset}
                 onClick={() => {
@@ -287,7 +298,7 @@ export default function LaptopConnectModal({ onClose, onLog }) {
                 }}
                 className="text-[9px] px-2 py-0.5 rounded-md bg-slate-900 border border-cyan-500/20 text-sky-400 hover:text-cyan-300 hover:border-cyan-500/50 transition-colors"
               >
-                {preset}
+                {preset === 'localhost' ? '💻 localhost' : `📶 LAN (${preset})`}
               </button>
             ))}
           </div>

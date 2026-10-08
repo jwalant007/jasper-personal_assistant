@@ -33,7 +33,7 @@ systemctl start jasper-os
 echo "[4/4] Setting up Fullscreen Kiosk Auto-Start..."
 mkdir -p ~/.config/openbox
 cat << 'EOF' > ~/.config/openbox/autostart
-chromium-browser --kiosk --app=http://localhost:3001 --noerrdialogs --disable-infobars &
+chromium-browser --kiosk --app=https://jasper-personal-assistant.onrender.com --noerrdialogs --disable-infobars &
 EOF
 
 echo ""

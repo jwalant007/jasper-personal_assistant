@@ -2,6 +2,9 @@ const { app, BrowserWindow, Tray, Menu, globalShortcut, nativeImage, ipcMain } =
 const path = require('path');
 const { spawn } = require('child_process');
 
+const CLOUD_URL = process.env.JASPER_SERVER_URL || 'https://jasper-personal-assistant.onrender.com';
+const USE_LOCAL_SERVER = process.env.JASPER_LOCAL_SERVER === 'true';
+
 let mainWindow = null;
 let tray = null;
 let serverProcess = null;
@@ -103,7 +106,8 @@ function createTray() {
       click: () => {
         try {
           const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-          fetch('http://localhost:3001/api/system/wake', { method: 'POST' }).catch(() => {});
+          const wakeTarget = USE_LOCAL_SERVER ? 'http://localhost:3001/api/system/wake' : `${CLOUD_URL}/api/system/wake`;
+          fetch(wakeTarget, { method: 'POST' }).catch(() => {});
         } catch (e) {}
       }
     },
@@ -197,7 +201,11 @@ function registerGlobalHotkeys() {
 }
 
 app.whenReady().then(() => {
-  startBackendServer();
+  if (USE_LOCAL_SERVER) {
+    startBackendServer();
+  } else {
+    console.log('[Electron] Running in 24/7 Render Cloud mode connecting to:', CLOUD_URL);
+  }
   createTray();
   registerGlobalHotkeys();
   setTimeout(createWindow, 1000);

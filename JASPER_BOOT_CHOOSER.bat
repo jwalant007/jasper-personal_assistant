@@ -21,11 +21,10 @@ if errorlevel 1 goto JASPER_OS
 :JASPER_OS
 cls
 echo.
-echo [SYSTEM] Booting JASPER OS Environment...
+echo [SYSTEM] Booting JASPER OS 24/7 Cloud Environment...
 cd /d "%~dp0"
-start /b node server/server.js 2>nul
-timeout /t 3 /nobreak >nul
-start chrome.exe --kiosk --app=http://localhost:3001 || start msedge.exe --kiosk --app=http://localhost:3001 || start "" "http://localhost:3001"
+set CLOUD_URL=https://jasper-personal-assistant.onrender.com
+start chrome.exe --kiosk --app=%CLOUD_URL% || start msedge.exe --kiosk --app=%CLOUD_URL% --edge-kiosk-type=fullscreen || start "" "%CLOUD_URL%"
 exit
 
 :WINDOWS_DESKTOP

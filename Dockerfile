@@ -20,7 +20,7 @@ RUN cd server && npm install --omit=dev --no-audit --no-fund
 
 # Copy server code
 COPY server/ ./server/
-COPY package*.json ./
+COPY package*.json JASPER_Assistant.apk* ./
 
 # Copy compiled client build from stage 1 into client/dist
 COPY --from=client-builder /app/client/dist ./client/dist

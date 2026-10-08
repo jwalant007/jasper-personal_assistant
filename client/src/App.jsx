@@ -49,9 +49,11 @@ const PhoneSentinelWidget = React.lazy(() => import('./components/PhoneSentinelW
 const JasperVideoStudioApp = React.lazy(() => import('./components/JasperVideoStudioApp'));
 const PaymentBalanceWidget = React.lazy(() => import('./components/PaymentBalanceWidget'));
 const TelephonyReceptionistWidget = React.lazy(() => import('./components/TelephonyReceptionistWidget'));
+const PlatformDownloadsModal = React.lazy(() => import('./components/PlatformDownloadsModal'));
 import geminiClient from './utils/geminiClient';
 import { getServerIp, setServerIp, getApiBase, getWsBase } from './utils/apiConfig.js';
 import { getPhoneBrainMode, setPhoneBrainMode, togglePhoneBrainMode } from './utils/mobileBrain.js';
+import { sendCloudPushAlert, getDefaultSentinelConfig } from './utils/mobileSentinel.js';
 
 import { 
   extractFaceVector, 
@@ -63,7 +65,7 @@ import {
   captureWebcamFrameAsBase64,
   syncOwnerProfileFromServer
 } from './utils/faceBiometrics.js';
-import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, PhoneForwarded, BookOpen, Activity, Heart, Laptop, Languages, Box, MessageSquare, KeyRound, ShieldAlert, Video } from 'lucide-react';
+import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, PhoneForwarded, BookOpen, Activity, Heart, Laptop, Languages, Box, MessageSquare, KeyRound, ShieldAlert, Video, Download } from 'lucide-react';
 
 import { useJasperApp, useJasperModals, useJasperChat } from './context/index.jsx';
 
@@ -237,6 +239,7 @@ export default function App() {
   const [apkDownloadUrl, setApkDownloadUrl] = useState('');
   const [activeEmergency, setActiveEmergency] = useState(null);
   const [incomingJasperCall, setIncomingJasperCall] = useState(null);
+  const [showDownloadsModal, setShowDownloadsModal] = useState(false);
 
   // High-Priority Emergency Toast & Alert Poller + WebSocket Listener
   useEffect(() => {
@@ -387,6 +390,9 @@ export default function App() {
     return localStorage.getItem('jasper_system_passcode') || 'jasper';
   });
   const [passcodeSavedBadge, setPasscodeSavedBadge] = useState(false);
+  const [failedAuthAttempts, setFailedAuthAttempts] = useState(0);
+  const [intrusionAlertDispatched, setIntrusionAlertDispatched] = useState(false);
+  const failedAttemptsRef = useRef(0);
   const showImageGenerator = isModalOpen('imageGenerator');
   const setShowImageGenerator = (v) => v ? openModal('imageGenerator') : closeModal('imageGenerator');
   const showPhoneControl = isModalOpen('phoneControl');
@@ -542,9 +548,66 @@ export default function App() {
     }
   };
 
+  const triggerSecurityIntrusionAlert = async (reason = 'unauthorized_attempts', count = 3) => {
+    setIntrusionAlertDispatched(true);
+    const sentinelCfg = getDefaultSentinelConfig();
+    const topic = sentinelCfg.channelTopic || 'jasper-jwalant-alerts';
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const reasonText = reason === 'wrong_password' ? 'Consecutive Incorrect Passcode Entries' :
+                       reason === 'unauthorized_face' ? 'Unrecognized / Unauthorized Face Detected' :
+                       'Multiple Failed Biometric & Passcode Overrides';
+
+    console.warn(`[Security Alert] Intrusion detected (${count} attempts: ${reasonText}). Sending ntfy push to ${topic}...`);
+
+    // 1. Instant client-side cloud push via ntfy.sh relay
+    try {
+      await sendCloudPushAlert({
+        topic: topic,
+        title: `🚨 SECURITY BREACH ALERT: ${count} Failed Attempts!`,
+        message: `JASPER Shield Alert: ${reasonText} (${count} attempts) at ${timeStr}. Workstation is LOCKED.`,
+        priority: 'urgent',
+        tags: ['rotating_light', 'skull', 'warning', 'lock']
+      });
+      console.log(`[Security Alert] ntfy push successfully sent to https://ntfy.sh/${topic}`);
+    } catch (err) {
+      console.warn('[Security Alert] Client ntfy push error:', err);
+    }
+
+    // 2. Server-side dispatch & emergency broadcast
+    try {
+      await fetch(`${getApiBase()}/api/security/intrusion-alert`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reason,
+          attempts: count,
+          timestamp: new Date().toISOString(),
+          channelTopic: topic
+        })
+      });
+    } catch (err) {
+      console.warn('[Security Alert] Backend alert dispatch error:', err);
+    }
+  };
+
+  const handleFailedAuthAttempt = (reason = 'wrong_password') => {
+    const newCount = failedAttemptsRef.current + 1;
+    failedAttemptsRef.current = newCount;
+    setFailedAuthAttempts(newCount);
+
+    if (newCount >= 3) {
+      triggerSecurityIntrusionAlert(reason, newCount);
+    }
+  };
+
   const handleUnlockSuccess = () => {
     if (unlockingRef.current) return;
     unlockingRef.current = true;
+
+    // Reset intrusion counters on successful authentication
+    failedAttemptsRef.current = 0;
+    setFailedAuthAttempts(0);
+    setIntrusionAlertDispatched(false);
 
     setBiometricMode('success');
     setScanStatusText('IDENTITY CONFIRMED. ACCESS GRANTED!');
@@ -567,7 +630,8 @@ export default function App() {
       setPasscode('');
       handleUnlockSuccess();
     } else {
-      setPasscodeError('ACCESS DENIED: INCORRECT PASSCODE');
+      handleFailedAuthAttempt('wrong_password');
+      setPasscodeError(`ACCESS DENIED: INCORRECT PASSCODE (${failedAttemptsRef.current}/3)`);
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = audioCtx.createOscillator();
@@ -593,7 +657,8 @@ export default function App() {
       if (clean === currentPass || clean.toLowerCase() === 'jasper' || clean.toLowerCase() === 'jwalant' || clean === '1234') {
         handleUnlockSuccess();
       } else {
-        alert("Invalid Master Override Passcode. Access Denied.");
+        handleFailedAuthAttempt('wrong_password');
+        alert(`Invalid Master Override Passcode. Access Denied. (${failedAttemptsRef.current}/3 attempts)`);
       }
     }
   };
@@ -690,6 +755,7 @@ export default function App() {
         setScanStatusText('ACCESS DENIED: UNAUTHORIZED FACE DETECTED');
         setLastScanMode('face_scan');
         setBiometricMode('failed');
+        handleFailedAuthAttempt('unauthorized_face');
       }
     }, 200);
 
@@ -791,6 +857,7 @@ export default function App() {
           setScanStatusText('AUTH FAILED: INCORRECT VOICEPRINT KEY');
           setLastScanMode('voice_scan');
           setBiometricMode('failed');
+          handleFailedAuthAttempt('wrong_password');
         }
       };
 
@@ -1907,14 +1974,24 @@ export default function App() {
 
               {/* Actions list */}
               <div className={`flex items-center gap-1.5 ${isMobileLayout ? 'justify-start max-w-[calc(100vw-120px)] overflow-x-auto touch-pan-x overscroll-x-contain scroll-smooth no-scrollbar flex-nowrap py-0.5 shrink-0' : 'gap-2'}`}>
+                {/* 24/7 Render Cloud Binaries Hub (APK / EXE / OS) */}
+                <button
+                  onClick={() => setShowDownloadsModal(true)}
+                  className="bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-400/40 px-2.5 py-1 rounded-xl text-[11px] font-sans font-medium flex items-center gap-1.5 transition-all shadow-sm shrink-0 cursor-pointer"
+                  title="Download Android APK, Windows Desktop EXE, or Jasper OS Live Boot Kit directly from Render Cloud"
+                >
+                  <Download size={12} className="text-cyan-400" />
+                  {isMobileLayout ? 'Downloads' : '📦 Cloud Downloads'}
+                </button>
+
                 {updateAvailable && (
                   <a
                     href={apkDownloadUrl || '/api/apk/download'}
                     download="JASPER_Assistant.apk"
-                    className="bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 px-2.5 py-1 rounded-xl text-[11px] font-sans font-medium flex items-center gap-1 hover:bg-emerald-500/30 transition-all shadow-sm"
+                    className="bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 px-2.5 py-1 rounded-xl text-[11px] font-sans font-medium flex items-center gap-1 hover:bg-emerald-500/30 transition-all shadow-sm shrink-0"
                     title="New APK build compiled! Tap to download & update your phone."
                   >
-                    🚀 {isMobileLayout ? 'APK' : 'APK Update Ready'}
+                    🚀 {isMobileLayout ? 'APK' : 'APK Update'}
                   </a>
                 )}
                 {/* Active AI Engine Provider Badge */}
@@ -2447,6 +2524,30 @@ export default function App() {
                   Strict security protocol active. Enter passcode or use biometric recognition to unlock system core.
                 </p>
 
+                {failedAuthAttempts > 0 && (
+                  <div className={`p-2.5 rounded border text-center transition-all ${
+                    failedAuthAttempts >= 3 
+                      ? 'bg-red-950/80 border-red-500 text-red-300 shadow-[0_0_20px_rgba(239,68,68,0.6)] animate-pulse' 
+                      : 'bg-amber-950/60 border-amber-500/50 text-amber-300'
+                  }`}>
+                    <div className="flex items-center justify-center gap-1.5 text-[11px] font-mono font-bold">
+                      <ShieldAlert size={15} className={failedAuthAttempts >= 3 ? 'text-red-400' : 'text-amber-400'} />
+                      <span>
+                        FAILED ATTEMPTS: {failedAuthAttempts}/3
+                      </span>
+                    </div>
+                    {failedAuthAttempts >= 3 ? (
+                      <div className="text-[9px] font-mono text-red-400 tracking-wider mt-1 uppercase font-semibold">
+                        🚨 SECURITY BREACH DISPATCHED TO NTFY CHANNEL (PHONE ALERTED)
+                      </div>
+                    ) : (
+                      <div className="text-[8px] font-mono text-amber-400/80 tracking-wider mt-0.5">
+                        Warning: 3 failed attempts will trigger instant ntfy intruder alert to phone
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Passcode Login Form */}
                 <form 
                   onSubmit={handlePasscodeSubmit}
@@ -2613,6 +2714,17 @@ export default function App() {
                 <div className="flex flex-col gap-2 text-center w-full">
                   <h3 className="font-orbitron font-extrabold text-sm text-red-500 tracking-wider uppercase">OVERRIDE REJECTED</h3>
                   <p className="text-[9px] text-slate-400 leading-relaxed px-4">{scanStatusText}</p>
+                  {failedAuthAttempts > 0 && (
+                    <div className={`text-[9px] font-mono px-3 py-1.5 rounded mx-4 ${
+                      failedAuthAttempts >= 3
+                        ? 'bg-red-950/80 border border-red-500 text-red-300 font-bold animate-pulse'
+                        : 'bg-amber-950/50 border border-amber-500/40 text-amber-300'
+                    }`}>
+                      {failedAuthAttempts >= 3
+                        ? '🚨 3 FAILED ATTEMPTS: Intrusion notification dispatched to ntfy channel!'
+                        : `Security Alert: ${failedAuthAttempts}/3 failed attempts. (Alert at 3)`}
+                    </div>
+                  )}
                 </div>
                 <div className="flex gap-4 mt-2">
                   <button 
@@ -2630,10 +2742,10 @@ export default function App() {
                     Try Again
                   </button>
                   <button 
-                    onClick={handleUnlockSuccess}
+                    onClick={handleMasterOverridePrompt}
                     className="text-[9px] text-red-400 hover:text-red-300 font-bold tracking-widest uppercase font-mono border border-red-500/30 px-3 py-1.5 rounded transition-colors"
                   >
-                    Bypass Core
+                    Master Override
                   </button>
                 </div>
               </div>
@@ -3163,6 +3275,11 @@ export default function App() {
         <DraggableModalWrapper isOpen={showTelephony} onClose={() => setShowTelephony(false)} title="JASPER Telephony Core & Multi-Line Receptionist" maxWidth="max-w-5xl">
           <TelephonyReceptionistWidget onClose={() => setShowTelephony(false)} />
         </DraggableModalWrapper>
+      )}
+
+      {/* 23c. Multi-Platform Cloud Downloads Modal (APK / EXE / OS) */}
+      {showDownloadsModal && (
+        <PlatformDownloadsModal onClose={() => setShowDownloadsModal(false)} />
       )}
 
       {/* 24. 3D Hologram & Blender Studio Modal */}

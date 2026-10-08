@@ -31,7 +31,10 @@ yarn-error.log*
 client/vite.config.js.timestamp-*.mjs
 
 # Compiled binary packages & executables
-*.apk
+*.exe
+!server/downloads/*.zip
+!server/downloads/*.apk
+
 
 # OS metadata
 .DS_Store

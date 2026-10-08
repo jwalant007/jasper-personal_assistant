@@ -42,34 +42,100 @@ try {
   console.log('[WhatsApp Web] whatsapp-web.js not installed — phone ADB mode only. Run: npm install whatsapp-web.js');
 }
 
-function initWhatsAppWebClient() {
-  if (!Client) return;
-  if (waClient) return; // Already initialized
-  
-  console.log('[WhatsApp Web] Initializing WhatsApp Web client...');
+// Cross-Platform Browser Binary Finder (Windows, Linux, macOS, Docker, Cloud)
+function findBrowserExecutable() {
+  // 1. Explicit environment variable overrides
+  if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+    try {
+      if (fs.existsSync(process.env.PUPPETEER_EXECUTABLE_PATH)) {
+        return process.env.PUPPETEER_EXECUTABLE_PATH;
+      }
+    } catch(e) {}
+  }
+  if (process.env.CHROME_BIN) {
+    try {
+      if (fs.existsSync(process.env.CHROME_BIN)) {
+        return process.env.CHROME_BIN;
+      }
+    } catch(e) {}
+  }
+
+  // 2. Linux / Cloud / Docker / VPS paths
+  const linuxPaths = [
+    '/usr/bin/google-chrome-stable',
+    '/usr/bin/google-chrome',
+    '/usr/bin/chromium',
+    '/usr/bin/chromium-browser',
+    '/snap/bin/chromium',
+    '/usr/bin/microsoft-edge-stable'
+  ];
+  for (const p of linuxPaths) {
+    try {
+      if (fs.existsSync(p)) return p;
+    } catch(e) {}
+  }
+
+  // 3. Windows paths
+  const winPaths = [
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+    'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+    'C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe',
+    process.env.LOCALAPPDATA ? path.join(process.env.LOCALAPPDATA, 'Google', 'Chrome', 'Application', 'chrome.exe') : null
+  ].filter(Boolean);
+
+  for (const p of winPaths) {
+    try {
+      if (fs.existsSync(p)) return p;
+    } catch(e) {}
+  }
+
+  return null;
+}
+
+function initWhatsAppWebClient(isManual = false) {
+  if (!Client) return { success: false, reason: 'LIBRARY_NOT_INSTALLED' };
+  if (waClient) return { success: true, reason: 'ALREADY_RUNNING' };
+
+  const executablePath = findBrowserExecutable();
+
+  // If no Chrome/Chromium browser binary exists on the host (e.g. headless Render Cloud)
+  if (!executablePath) {
+    waClientStatus = 'no_browser_available';
+    if (isManual) {
+      console.warn('[WhatsApp Web] Manual connection requested, but no Chrome/Chromium browser was found on this host.');
+    } else {
+      console.log('[WhatsApp Web] Headless cloud environment without Chrome detected (e.g. Render). WhatsApp Web auto-launch skipped.');
+      console.log('[WhatsApp Web] Mobile messaging via Android ADB Link, Satellite Relay, and Mobile Sentinel push remain fully operational.');
+    }
+    return {
+      success: false,
+      reason: 'NO_BROWSER',
+      message: 'No Chrome/Chromium browser found on this host. WhatsApp messaging operates via Phone Link / ADB mode.'
+    };
+  }
+
+  console.log(`[WhatsApp Web] Initializing WhatsApp Web client with browser: ${executablePath}`);
   waClientStatus = 'initializing';
 
-  // Locate installed Chrome or Edge executable on Windows
-  const chromePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
-  const chromePathX86 = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe';
-  const edgePath = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
-  let executablePath = undefined;
   try {
-    if (fs.existsSync(chromePath)) executablePath = chromePath;
-    else if (fs.existsSync(chromePathX86)) executablePath = chromePathX86;
-    else if (fs.existsSync(edgePath)) executablePath = edgePath;
-  } catch(e) {}
-
-  console.log(`[WhatsApp Web] Using browser binary: ${executablePath || 'bundled puppeteer chromium'}`);
-
-  waClient = new Client({
-    authStrategy: new LocalAuth({ clientId: 'jasper-assistant' }),
-    puppeteer: {
-      headless: true,
-      executablePath,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu', '--disable-dev-shm-usage']
-    }
-  });
+    waClient = new Client({
+      authStrategy: new LocalAuth({ clientId: 'jasper-assistant' }),
+      puppeteer: {
+        headless: true,
+        executablePath,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-gpu',
+          '--disable-dev-shm-usage',
+          '--no-first-run',
+          '--no-zygote',
+          '--single-process'
+        ]
+      }
+    });
 
   waClient.on('qr', (qr) => {
     waQrCode = qr;
@@ -191,10 +257,17 @@ function initWhatsAppWebClient() {
     waClient = null;
   });
 
-  waClient.initialize().catch(e => {
+    waClient.initialize().catch(e => {
+      waClientStatus = 'error';
+      console.log('[WhatsApp Web] Browser launch notice:', e.message);
+    });
+
+    return { success: true };
+  } catch(e) {
     waClientStatus = 'error';
     console.log('[WhatsApp Web] Init error:', e.message);
-  });
+    return { success: false, error: e.message };
+  }
 }
 
 // Auto-start WhatsApp Web client when server launches (if library exists)
@@ -1487,6 +1560,18 @@ app.post('/api/phone/connect', async (req, res) => {
   }
 });
 
+app.post('/api/phone/pair', async (req, res) => {
+  try {
+    const { ip, code, connectIp } = req.body;
+    if (!ip) return res.status(400).json({ success: false, error: 'Pairing IP address and port required' });
+    if (!code) return res.status(400).json({ success: false, error: '6-digit pairing code required' });
+    const result = await phoneController.pair(ip, code, connectIp);
+    res.json({ result, success: result.success, message: result.message, error: result.error });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.post('/api/phone/disconnect', async (req, res) => {
   try {
     const result = await phoneController.disconnect();
@@ -2002,7 +2087,14 @@ app.post('/api/social/wa-connect', (req, res) => {
     }
     waClient = null;
     waClientStatus = 'not_initialized';
-    initWhatsAppWebClient();
+    const initRes = initWhatsAppWebClient(true);
+    if (!initRes.success && initRes.reason === 'NO_BROWSER') {
+      return res.json({ 
+        success: false, 
+        status: 'no_browser', 
+        error: 'No Chrome/Chromium browser found on this host. WhatsApp Web requires a local browser. Use Phone Link (ADB) mode for mobile WhatsApp messaging.' 
+      });
+    }
     res.json({ success: true, status: waClientStatus, message: 'WhatsApp Web initializing — scan QR code in the app' });
   } catch(e) {
     res.status(500).json({ error: e.message });
@@ -3010,28 +3102,277 @@ app.post('/api/face-profile', (req, res) => {
   res.json({ success: true, profile });
 });
 
+// -------------------------------------------------------------
+// INTRUSION DETECTION & NTFY SECURITY ALERTS (3 FAILED ATTEMPTS)
+// -------------------------------------------------------------
+app.post('/api/security/intrusion-alert', async (req, res) => {
+  try {
+    const { 
+      reason = 'unauthorized_attempts', 
+      attempts = 3, 
+      timestamp = new Date().toISOString(),
+      channelTopic = 'jasper-jwalant-alerts'
+    } = req.body;
+
+    const formattedTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const reasonText = reason === 'wrong_password' ? 'Consecutive Incorrect Passcode Entries' :
+                       reason === 'unauthorized_face' ? 'Unrecognized / Unauthorized Face Detected' :
+                       'Multiple Failed Biometric & Passcode Overrides';
+
+    console.log(`\n=================================================================`);
+    console.log(`🚨 [SECURITY INTRUSION THREAT DETECTED]`);
+    console.log(`   Attempts:    ${attempts} Failed Consecutive Attempts`);
+    console.log(`   Reason:      ${reasonText}`);
+    console.log(`   Time:        ${formattedTime}`);
+    console.log(`   NTFY Topic:  ntfy.sh/${channelTopic}`);
+    console.log(`=================================================================\n`);
+
+    const alertTitle = `🚨 SECURITY BREACH: ${attempts} Failed Attempts!`;
+    const alertMessage = `JASPER Shield Alert: ${reasonText} (${attempts} consecutive failed attempts). Lock engaged at ${formattedTime}. Check your workstation!`;
+
+    // 1. Dispatch push notification directly to user's phone via ntfy.sh
+    let pushSent = false;
+    try {
+      pushSent = await weatherSentinel.sendPushToPhone({
+        topic: channelTopic,
+        title: alertTitle,
+        message: alertMessage,
+        priority: 'urgent',
+        tags: ['rotating_light', 'skull', 'warning', 'lock']
+      });
+    } catch (pushErr) {
+      console.warn('[Security Intrusion] ntfy push error:', pushErr.message);
+    }
+
+    // 2. Trigger high-priority emergency alert in notificationManager
+    try {
+      notificationManager.triggerEmergencyAlert({
+        source: 'security_shield',
+        sender: 'Intrusion Sentinel',
+        senderName: 'JASPER Shield Core',
+        message: `${reasonText} (${attempts} attempts) at ${formattedTime}. Workstation locked.`
+      }, broadcastToClients);
+    } catch (alertErr) {
+      console.warn('[Security Intrusion] Emergency alert error:', alertErr.message);
+    }
+
+    // 3. Log security incident in activity log if present
+    try {
+      const activityLogPath = path.join(__dirname, 'data', 'activity_log.json');
+      if (fs.existsSync(activityLogPath)) {
+        const raw = fs.readFileSync(activityLogPath, 'utf8');
+        const logs = JSON.parse(raw);
+        logs.unshift({
+          id: `sec_${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          type: 'SECURITY_INTRUSION',
+          level: 'CRITICAL',
+          reason: reasonText,
+          attempts,
+          ntfyTopic: channelTopic,
+          ntfyDelivered: pushSent
+        });
+        fs.writeFileSync(activityLogPath, JSON.stringify(logs.slice(0, 100), null, 2), 'utf8');
+      }
+    } catch (e) {}
+
+    // 4. Broadcast security intrusion event to all UI clients
+    broadcastToClients({
+      type: 'SECURITY_INTRUSION',
+      attempts,
+      reason: reasonText,
+      timestamp,
+      topic: channelTopic
+    });
+
+    res.json({ 
+      success: true, 
+      ntfySent: pushSent, 
+      topic: channelTopic, 
+      timestamp, 
+      attempts 
+    });
+  } catch (err) {
+    console.error('[Security Sentinel] Failed to handle intrusion alert:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+
 // Version & OTA Auto-Updater Endpoints
 const BUILD_VERSION = '1.0.2';
 const BUILD_TIMESTAMP = Date.now();
 
+// -------------------------------------------------------------
+// UNIFIED BINARY & FILE SYSTEM DISTRIBUTION HUB (RENDER CLOUD & LOCAL)
+// -------------------------------------------------------------
+function getBinaryFileMetadata(filename, candidatePaths) {
+  for (const p of candidatePaths) {
+    if (fs.existsSync(p)) {
+      const stats = fs.statSync(p);
+      return {
+        exists: true,
+        filePath: p,
+        sizeBytes: stats.size,
+        sizeFormatted: (stats.size / (1024 * 1024)).toFixed(2) + ' MB',
+        modifiedAt: stats.mtime.toISOString()
+      };
+    }
+  }
+  return { exists: false, filePath: null, sizeBytes: 0, sizeFormatted: '0 MB', modifiedAt: null };
+}
+
 app.get('/api/version', (req, res) => {
+  const host = `${req.protocol}://${req.get('host')}`;
   res.json({
     success: true,
     version: BUILD_VERSION,
     timestamp: BUILD_TIMESTAMP,
-    apkUrl: `${req.protocol}://${req.get('host')}/api/apk/download`
+    cloudHost: process.env.RENDER_EXTERNAL_URL || 'https://jasper-personal-assistant.onrender.com',
+    apkUrl: `${host}/api/apk/download`,
+    exeUrl: `${host}/api/exe/download`,
+    osUrl: `${host}/api/os/download`,
+    manifestUrl: `${host}/api/downloads/manifest`
   });
 });
 
-app.get('/api/apk/download', (req, res) => {
-  const apkPath = path.join(__dirname, '../JASPER_Assistant.apk');
-  if (fs.existsSync(apkPath)) {
-    res.setHeader('Content-Type', 'application/vnd.android.package-archive');
-    res.setHeader('Content-Disposition', 'attachment; filename=JASPER_Assistant.apk');
-    return res.sendFile(apkPath);
-  }
-  res.status(404).json({ error: 'APK file not found on server.' });
+// Full downloads manifest showing live status & sizes for APK, EXE, and OS
+app.get(['/api/downloads', '/api/downloads/manifest', '/api/system/binaries'], (req, res) => {
+  const host = `${req.protocol}://${req.get('host')}`;
+  
+  const apkMeta = getBinaryFileMetadata('JASPER_Assistant.apk', [
+    path.join(__dirname, 'downloads', 'JASPER_Assistant.apk'),
+    path.join(__dirname, '../JASPER_Assistant.apk'),
+    path.join(__dirname, 'JASPER_Assistant.apk')
+  ]);
+
+  const exeMeta = getBinaryFileMetadata('JASPER_Assistant_Setup.exe', [
+    path.join(__dirname, 'downloads', 'JASPER_Assistant_Setup.exe'),
+    path.join(__dirname, '../dist-electron/JASPER Assistant Setup 1.0.1.exe'),
+    path.join(__dirname, '../dist-electron/JASPER Assistant Setup 1.0.0.exe')
+  ]);
+
+  const osMeta = getBinaryFileMetadata('JASPER_OS_Kit.zip', [
+    path.join(__dirname, 'downloads', 'JASPER_OS_Kit.zip'),
+    path.join(__dirname, '../server/downloads/JASPER_OS_Kit.zip')
+  ]);
+
+  res.json({
+    success: true,
+    server: {
+      isRender: !!(process.env.RENDER || process.env.RENDER_EXTERNAL_URL),
+      cloudUrl: process.env.RENDER_EXTERNAL_URL || 'https://jasper-personal-assistant.onrender.com',
+      version: BUILD_VERSION,
+      updatedAt: new Date(BUILD_TIMESTAMP).toISOString()
+    },
+    binaries: {
+      apk: {
+        id: 'apk',
+        title: 'JASPER Mobile APK',
+        platform: 'Android (Phone / Tablet)',
+        filename: 'JASPER_Assistant.apk',
+        version: BUILD_VERSION,
+        available: apkMeta.exists,
+        sizeBytes: apkMeta.sizeBytes,
+        sizeFormatted: apkMeta.sizeFormatted,
+        downloadUrl: `${host}/api/apk/download`,
+        description: 'Native Android application with wireless ADB auto-sync, speech recognition HUD, and 4G/5G remote control'
+      },
+      exe: {
+        id: 'exe',
+        title: 'JASPER Desktop Workstation',
+        platform: 'Windows 10 / 11 (64-bit)',
+        filename: 'JASPER_Assistant_Setup.exe',
+        version: BUILD_VERSION,
+        available: exeMeta.exists,
+        sizeBytes: exeMeta.sizeBytes,
+        sizeFormatted: exeMeta.sizeFormatted,
+        downloadUrl: `${host}/api/exe/download`,
+        fallbackUrl: 'https://github.com/jwalant007/jasper-personal_assistant/releases/download/v1.0.2/JASPER_Assistant_Setup.exe',
+        description: 'Full Windows desktop client with global Ctrl+Alt+J hotkey, system tray background daemon, and hardware integration'
+      },
+      os: {
+        id: 'os',
+        title: 'JASPER Standalone OS & Kiosk Kit',
+        platform: 'Jasper OS (Linux / Dual-Boot / Kiosk)',
+        filename: 'JASPER_OS_Kit.zip',
+        version: BUILD_VERSION,
+        available: osMeta.exists,
+        sizeBytes: osMeta.sizeBytes,
+        sizeFormatted: (osMeta.sizeBytes / 1024).toFixed(1) + ' KB',
+        downloadUrl: `${host}/api/os/download`,
+        description: 'Bootable OS files, standalone kiosk launcher, dual-boot EFI selector, and Debian Live ISO compilation suite'
+      }
+    }
+  });
 });
+
+// Download Android APK
+app.get(['/api/apk/download', '/api/download/apk'], (req, res) => {
+  const candidatePaths = [
+    path.join(__dirname, 'downloads', 'JASPER_Assistant.apk'),
+    path.join(__dirname, '../JASPER_Assistant.apk'),
+    path.join(__dirname, 'JASPER_Assistant.apk')
+  ];
+  for (const p of candidatePaths) {
+    if (fs.existsSync(p)) {
+      res.setHeader('Content-Type', 'application/vnd.android.package-archive');
+      res.setHeader('Content-Disposition', 'attachment; filename=JASPER_Assistant.apk');
+      return res.sendFile(path.resolve(p));
+    }
+  }
+  // Fallback to GitHub Release if deployed in container without binary
+  const fallbackUrl = 'https://github.com/jwalant007/jasper-personal_assistant/raw/main/JASPER_Assistant.apk';
+  return res.redirect(fallbackUrl);
+});
+
+// Download Windows Desktop EXE
+app.get(['/api/exe/download', '/api/download/exe'], (req, res) => {
+  const candidatePaths = [
+    path.join(__dirname, 'downloads', 'JASPER_Assistant_Setup.exe'),
+    path.join(__dirname, '../dist-electron/JASPER Assistant Setup 1.0.1.exe'),
+    path.join(__dirname, '../dist-electron/JASPER Assistant Setup 1.0.0.exe')
+  ];
+  for (const p of candidatePaths) {
+    if (fs.existsSync(p)) {
+      res.setHeader('Content-Type', 'application/x-msdownload');
+      res.setHeader('Content-Disposition', 'attachment; filename=JASPER_Assistant_Setup.exe');
+      return res.sendFile(path.resolve(p));
+    }
+  }
+  // Fallback to GitHub release if not on filesystem
+  const fallbackUrl = 'https://github.com/jwalant007/jasper-personal_assistant/releases/download/v1.0.2/JASPER_Assistant_Setup.exe';
+  return res.redirect(fallbackUrl);
+});
+
+// Download Jasper OS Kit
+app.get(['/api/os/download', '/api/download/os'], (req, res) => {
+  const zipPath = path.join(__dirname, 'downloads', 'JASPER_OS_Kit.zip');
+  if (fs.existsSync(zipPath)) {
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', 'attachment; filename=JASPER_OS_Kit.zip');
+    return res.sendFile(path.resolve(zipPath));
+  }
+  // Fallback: GitHub zip archive
+  const fallbackUrl = 'https://github.com/jwalant007/jasper-personal_assistant/archive/refs/heads/main.zip';
+  return res.redirect(fallbackUrl);
+});
+
+// Unified polymorphic download route
+app.get('/api/download/:type', (req, res) => {
+  const type = req.params.type.toLowerCase();
+  if (type === 'apk' || type === 'android') {
+    return res.redirect('/api/apk/download');
+  }
+  if (type === 'exe' || type === 'windows' || type === 'desktop') {
+    return res.redirect('/api/exe/download');
+  }
+  if (type === 'os' || type === 'linux' || type === 'kiosk') {
+    return res.redirect('/api/os/download');
+  }
+  res.status(400).json({ error: 'Invalid download target. Choose apk, exe, or os.' });
+});
+
 
 // -------------------------------------------------------------
 // PROACTIVE MORNING BRIEFING & LOCAL OLLAMA AI FALLBACK

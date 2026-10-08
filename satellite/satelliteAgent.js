@@ -7,10 +7,26 @@
  * smart TV commands, wake-on-LAN, ADB phone controls, and PowerShell).
  */
 
-const WebSocket = require('ws');
-const { exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const { exec } = require('child_process');
+
+// Robust WebSocket loader (resolves from local, server/node_modules, or global path)
+let WebSocket;
+try {
+  WebSocket = require('ws');
+} catch (e1) {
+  try {
+    WebSocket = require(path.join(__dirname, '..', 'server', 'node_modules', 'ws'));
+  } catch (e2) {
+    try {
+      WebSocket = require('../server/node_modules/ws');
+    } catch (e3) {
+      console.error('❌ [Satellite] Could not find "ws" module.');
+      throw e1;
+    }
+  }
+}
 
 // Configuration
 const CLOUD_URL = process.env.JASPER_SERVER_URL || 'https://jasper-personal-assistant.onrender.com';
