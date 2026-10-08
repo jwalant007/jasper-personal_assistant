@@ -20,6 +20,24 @@ function getAdbPath() {
 
 const adbBin = getAdbPath();
 
+let adbAvailableCache = null;
+let lastAdbCheckTime = 0;
+
+async function checkAdbAvailable(force = false) {
+  const now = Date.now();
+  if (!force && adbAvailableCache !== null && (adbAvailableCache === true || (now - lastAdbCheckTime < 60000))) {
+    return adbAvailableCache;
+  }
+  try {
+    await execPromise(`${adbBin} version`, { timeout: 3000 });
+    adbAvailableCache = true;
+  } catch (err) {
+    adbAvailableCache = false;
+  }
+  lastAdbCheckTime = now;
+  return adbAvailableCache;
+}
+
 function isPhysicalConnected() {
   return !PhoneController.virtualMode && 
          Boolean(PhoneController.activeDeviceId) && 
@@ -30,6 +48,11 @@ function isPhysicalConnected() {
 async function runAdb(command) {
   const metaCommands = ['devices', 'connect', 'disconnect', 'start-server', 'kill-server'];
   const isMetaCommand = metaCommands.some(meta => command.startsWith(meta));
+
+  const hasAdb = await checkAdbAvailable();
+  if (!hasAdb) {
+    throw new Error('ADB is not installed on this host environment');
+  }
 
   if (!isMetaCommand && !isPhysicalConnected()) {
     throw new Error('No physical Android device connected');
@@ -44,7 +67,15 @@ async function runAdb(command) {
     const { stdout, stderr } = await execPromise(fullCommand, { timeout: 10000 });
     return stdout.trim();
   } catch (error) {
-    if (!error.message.includes('no devices/emulators found') && !error.message.includes('No physical Android device connected')) {
+    const errorMsg = (error.message || '').toLowerCase();
+    const isSuppressed = 
+      errorMsg.includes('no devices/emulators found') ||
+      errorMsg.includes('no physical android device connected') ||
+      errorMsg.includes('adb is not installed') ||
+      errorMsg.includes('not found') ||
+      errorMsg.includes('not recognized');
+
+    if (!isSuppressed) {
       console.error(`[PhoneController] ADB command error: ${error.message}`);
     }
     throw error;
@@ -98,6 +129,28 @@ const PhoneController = {
         isVirtual: false,
         deviceId: null,
         message: 'Phone manually disconnected by user.'
+      };
+    }
+
+    const hasAdb = await checkAdbAvailable();
+    if (!hasAdb) {
+      if (PhoneController.virtualMode) {
+        PhoneController.activeDeviceId = 'JASPER-VIRTUAL-ADB';
+        return {
+          connected: true,
+          isVirtual: true,
+          deviceId: 'JASPER-VIRTUAL-ADB',
+          model: 'Virtual Mobile Uplink (Preview Mode)',
+          androidVersion: 'Android 14',
+          batteryLevel: 94
+        };
+      }
+      return {
+        connected: false,
+        isVirtual: false,
+        deviceId: null,
+        adbAvailable: false,
+        message: 'ADB is not installed on this cloud server host. Run the JASPER Satellite Bridge locally on your PC to link physical Android devices.'
       };
     }
 
@@ -187,6 +240,14 @@ const PhoneController = {
       if (!ip) throw new Error('Pairing IP address & port required (e.g. 192.168.1.50:40677)');
       if (!code) throw new Error('6-digit pairing code required');
 
+      const hasAdb = await checkAdbAvailable(true);
+      if (!hasAdb) {
+        return {
+          success: false,
+          error: 'ADB is not installed on this cloud server (Render). Please pair your phone using the Satellite Bridge on your local PC where ADB is available.'
+        };
+      }
+
       const target = ip.includes(':') ? ip.trim() : `${ip.trim()}:5555`;
       const cleanCode = code.toString().trim();
 
@@ -242,6 +303,15 @@ const PhoneController = {
       PhoneController.manualDisconnected = false;
       const target = ip.includes(':') ? ip : `${ip}:5555`;
       PhoneController.lastKnownIp = target;
+
+      const hasAdb = await checkAdbAvailable(true);
+      if (!hasAdb) {
+        return {
+          success: false,
+          error: 'ADB is not installed on this cloud server (Render). Please connect via your PC Satellite Bridge.'
+        };
+      }
+
       const result = await runAdb(`connect ${target}`);
       await PhoneController.status();
       return { success: true, message: result };
