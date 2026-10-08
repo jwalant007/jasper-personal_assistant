@@ -252,7 +252,7 @@ function OsWindow({
         className="px-3.5 py-2.5 bg-slate-900/85 border-b border-white/[0.08] flex items-center justify-between cursor-grab active:cursor-grabbing select-none backdrop-blur-2xl shrink-0"
       >
         <div className="flex items-center gap-2 text-slate-100 font-sans text-xs font-semibold tracking-wide truncate max-w-[60%]">
-          <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-400 shrink-0" />
+          {Icon && <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-400 shrink-0" />}
           <span className="truncate">{title}</span>
         </div>
 

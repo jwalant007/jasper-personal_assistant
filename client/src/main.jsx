@@ -39,7 +39,15 @@ class ErrorBoundary extends React.Component {
           <button 
             onClick={() => {
               localStorage.clear();
-              window.location.reload();
+              sessionStorage.clear();
+              if ('caches' in window) {
+                try {
+                  caches.keys().then(names => {
+                    names.forEach(name => caches.delete(name));
+                  });
+                } catch (e) {}
+              }
+              window.location.href = window.location.pathname + '?t=' + Date.now();
             }} 
             style={{ padding: '12px 24px', background: 'rgba(245, 197, 66, 0.2)', border: '1px solid #ffd700', color: '#ffd700', borderRadius: '4px', cursor: 'pointer', fontFamily: 'monospace', fontSize: '12px', fontWeight: 'bold' }}
           >
