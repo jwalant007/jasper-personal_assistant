@@ -51,6 +51,17 @@ async function runAdb(command) {
 
   const hasAdb = await checkAdbAvailable();
   if (!hasAdb) {
+    if (typeof global.isSatelliteConnected === 'function' && global.isSatelliteConnected()) {
+      let targetCommand = command;
+      if (PhoneController.activeDeviceId && !PhoneController.virtualMode && !isMetaCommand) {
+        targetCommand = `-s ${PhoneController.activeDeviceId} ${command}`;
+      }
+      const satRes = await global.forwardToSatellite('adb_command', { command: targetCommand }, 20000);
+      if (satRes && satRes.success) {
+        return (satRes.output || '').trim();
+      }
+      throw new Error(satRes?.error || 'Satellite ADB command failed');
+    }
     throw new Error('ADB is not installed on this host environment');
   }
 
@@ -134,6 +145,21 @@ const PhoneController = {
 
     const hasAdb = await checkAdbAvailable();
     if (!hasAdb) {
+      if (typeof global.isSatelliteConnected === 'function' && global.isSatelliteConnected()) {
+        try {
+          const satRes = await global.forwardToSatellite('adb_status', {}, 10000);
+          if (satRes && typeof satRes.connected === 'boolean') {
+            satRes.viaSatellite = true;
+            if (satRes.connected && satRes.deviceId) {
+              PhoneController.activeDeviceId = satRes.deviceId;
+            }
+            return satRes;
+          }
+        } catch (e) {
+          console.warn('[PhoneController] Satellite status relay error:', e.message);
+        }
+      }
+
       if (PhoneController.virtualMode) {
         PhoneController.activeDeviceId = 'JASPER-VIRTUAL-ADB';
         return {
@@ -150,7 +176,8 @@ const PhoneController = {
         isVirtual: false,
         deviceId: null,
         adbAvailable: false,
-        message: 'ADB is not installed on this cloud server host. Run the JASPER Satellite Bridge locally on your PC to link physical Android devices.'
+        satelliteConnected: Boolean(global.isSatelliteConnected && global.isSatelliteConnected()),
+        message: 'ADB is not installed on Render Cloud. Run start-satellite.bat on your PC to link physical phones over home Wi-Fi.'
       };
     }
 
@@ -242,9 +269,18 @@ const PhoneController = {
 
       const hasAdb = await checkAdbAvailable(true);
       if (!hasAdb) {
+        if (typeof global.isSatelliteConnected === 'function' && global.isSatelliteConnected()) {
+          console.log(`[PhoneController] Relaying pair request to home PC Satellite Bridge for ${ip}...`);
+          const satRes = await global.forwardToSatellite('adb_pair', { ip, code, connectIp }, 25000);
+          if (satRes && satRes.connected) {
+            PhoneController.activeDeviceId = satRes.deviceId || null;
+          }
+          return satRes || { success: false, error: 'Satellite pairing failed or timed out.' };
+        }
+
         return {
           success: false,
-          error: 'ADB is not installed on this cloud server (Render). Please pair your phone using the Satellite Bridge on your local PC where ADB is available.'
+          error: 'Satellite Bridge is not connected. Launch "start-satellite.bat" on your PC to link your phone over your local Wi-Fi.'
         };
       }
 
@@ -306,9 +342,15 @@ const PhoneController = {
 
       const hasAdb = await checkAdbAvailable(true);
       if (!hasAdb) {
+        if (typeof global.isSatelliteConnected === 'function' && global.isSatelliteConnected()) {
+          console.log(`[PhoneController] Relaying connect request to home PC Satellite Bridge for ${target}...`);
+          const satRes = await global.forwardToSatellite('adb_connect', { ip: target }, 15000);
+          return satRes || { success: false, error: 'Satellite connect failed or timed out.' };
+        }
+
         return {
           success: false,
-          error: 'ADB is not installed on this cloud server (Render). Please connect via your PC Satellite Bridge.'
+          error: 'Satellite Bridge is not connected. Launch "start-satellite.bat" on your PC to link your phone.'
         };
       }
 
@@ -325,6 +367,10 @@ const PhoneController = {
     PhoneController.virtualMode = false;
     PhoneController.activeDeviceId = null;
     try {
+      const hasAdb = await checkAdbAvailable();
+      if (!hasAdb && typeof global.isSatelliteConnected === 'function' && global.isSatelliteConnected()) {
+        return await global.forwardToSatellite('adb_disconnect', {}, 8000);
+      }
       await runAdb(`disconnect`);
       return { success: true, message: 'Disconnected all ADB devices' };
     } catch (e) {

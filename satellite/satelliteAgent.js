@@ -32,6 +32,18 @@ try {
 const CLOUD_URL = process.env.JASPER_SERVER_URL || 'https://jasper-personal-assistant.onrender.com';
 const AUTH_TOKEN = process.env.JASPER_AUTH_TOKEN || 'jasper';
 
+function getAdbPath() {
+  if (process.env.LOCALAPPDATA) {
+    const localAdb = path.join(process.env.LOCALAPPDATA, 'Android', 'platform-tools', 'adb.exe');
+    if (fs.existsSync(localAdb)) {
+      return `"${localAdb}"`;
+    }
+  }
+  return 'adb';
+}
+
+const adbBin = getAdbPath();
+
 // Convert HTTP(S) URL to WS(S) URL
 function getWsUrl(url) {
   const clean = url.replace(/^http/, 'ws').replace(/\/$/, '');
@@ -161,10 +173,122 @@ async function handleToolExecution(tool, args) {
       return { success: true, message: 'Magic Packet sent across local LAN to TV MAC' };
     }
 
+    case 'adb_pair': {
+      const { ip, code, connectIp } = args;
+      console.log(`[Satellite] ADB Pairing with ${ip} using code ${code}...`);
+      return new Promise((resolve) => {
+        if (!ip || !code) return resolve({ success: false, error: 'Pairing IP and Code are required' });
+        const target = ip.includes(':') ? ip.trim() : `${ip.trim()}:5555`;
+        const cleanCode = code.toString().trim();
+        exec(`${adbBin} pair ${target} ${cleanCode}`, { timeout: 15000 }, async (err, stdout, stderr) => {
+          const out = (stdout || '') + (stderr || '');
+          const isSuccess = out.toLowerCase().includes('successfully paired') || out.toLowerCase().includes('success');
+          let connectResult = null;
+          if (connectIp && (isSuccess || !out.toLowerCase().includes('failed'))) {
+            connectResult = await new Promise(r => {
+              exec(`${adbBin} connect ${connectIp.trim()}`, { timeout: 8000 }, (cErr, cOut) => {
+                r((cOut || '').trim());
+              });
+            });
+          }
+          resolve({
+            success: isSuccess || !out.toLowerCase().includes('failed'),
+            message: out.trim() || (isSuccess ? 'Pairing successful.' : err?.message),
+            connectResult
+          });
+        });
+      });
+    }
+
+    case 'adb_connect': {
+      const { ip } = args;
+      console.log(`[Satellite] ADB Connecting to ${ip}...`);
+      return new Promise((resolve) => {
+        if (!ip) return resolve({ success: false, error: 'IP address required' });
+        exec(`${adbBin} connect ${ip.trim()}`, { timeout: 10000 }, (err, stdout, stderr) => {
+          const out = (stdout || '') + (stderr || '');
+          const success = out.toLowerCase().includes('connected');
+          resolve({ success, message: out.trim() || (err ? err.message : 'Connected') });
+        });
+      });
+    }
+
+    case 'adb_disconnect': {
+      console.log('[Satellite] ADB Disconnecting...');
+      return new Promise((resolve) => {
+        exec(`${adbBin} disconnect`, { timeout: 5000 }, (err, stdout) => {
+          resolve({ success: true, message: (stdout || '').trim() || 'Disconnected' });
+        });
+      });
+    }
+
+    case 'adb_status': {
+      return new Promise((resolve) => {
+        exec(`${adbBin} devices`, { timeout: 8000 }, async (err, stdout) => {
+          if (err) return resolve({ connected: false, message: 'ADB error: ' + err.message });
+          const lines = (stdout || '').split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('*'));
+          if (lines.length <= 1) {
+            return resolve({ connected: false, isVirtual: false, deviceId: null, message: 'No physical Android device connected on local PC.' });
+          }
+          const [deviceId, state] = lines[1].split(/\s+/);
+          if (state !== 'device') {
+            return resolve({ connected: false, isVirtual: false, deviceId, message: `Device attached but state is ${state}.` });
+          }
+
+          let batteryLevel = 'Unknown';
+          let model = 'Android Device';
+          let androidVersion = '14';
+          try {
+            await new Promise(r => {
+              exec(`${adbBin} -s ${deviceId} shell dumpsys battery`, { timeout: 4000 }, (e, bOut) => {
+                const match = (bOut || '').match(/level: (\d+)/);
+                if (match) batteryLevel = parseInt(match[1], 10);
+                r();
+              });
+            });
+            await new Promise(r => {
+              exec(`${adbBin} -s ${deviceId} shell getprop ro.product.model`, { timeout: 4000 }, (e, mOut) => {
+                if (mOut && mOut.trim()) model = mOut.trim();
+                r();
+              });
+            });
+            await new Promise(r => {
+              exec(`${adbBin} -s ${deviceId} shell getprop ro.build.version.release`, { timeout: 4000 }, (e, vOut) => {
+                if (vOut && vOut.trim()) androidVersion = vOut.trim();
+                r();
+              });
+            });
+          } catch (e) {}
+
+          resolve({
+            connected: true,
+            isVirtual: false,
+            deviceId,
+            model,
+            androidVersion,
+            batteryLevel
+          });
+        });
+      });
+    }
+
+    case 'adb_command': {
+      const { command } = args;
+      return new Promise((resolve) => {
+        exec(`${adbBin} ${command}`, { timeout: 15000 }, (err, stdout, stderr) => {
+          resolve({
+            success: !err,
+            output: (stdout || '').trim(),
+            error: err ? (stderr || err.message).trim() : null
+          });
+        });
+      });
+    }
+
     case 'open_phone_app': {
       const { packageName } = args;
       return new Promise((resolve) => {
-        exec(`adb shell monkey -p ${packageName} -c android.intent.category.LAUNCHER 1`, (err, stdout) => {
+        exec(`${adbBin} shell monkey -p ${packageName} -c android.intent.category.LAUNCHER 1`, (err, stdout) => {
           resolve({ success: !err, output: stdout ? stdout.trim() : err?.message });
         });
       });
