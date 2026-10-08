@@ -771,6 +771,12 @@ export default function PhoneControlWidget() {
                 alt="Live Mobile Screen"
                 className="w-full h-full object-contain pointer-events-auto"
               />
+            ) : !status.connected ? (
+              <div className="text-center p-4 text-xs font-mono text-slate-500 flex flex-col items-center gap-2">
+                <Smartphone className="w-8 h-8 text-slate-600 mb-1" />
+                <span className="font-semibold text-slate-400">Phone Disconnected</span>
+                <span className="text-[10px] text-slate-500 max-w-[200px]">Pair or link your device above to start live screen stream.</span>
+              </div>
             ) : (
               <div className="text-center p-4 text-xs font-mono text-cyan-400/70 flex flex-col items-center gap-2">
                 <RotateCw className="w-6 h-6 animate-spin text-cyan-400" />

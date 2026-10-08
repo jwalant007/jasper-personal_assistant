@@ -603,24 +603,49 @@ const PhoneController = {
   },
 
   screenshot: async () => {
-    try {
-      const adbPath = getAdbPath().replace(/"/g, '');
-      let deviceArgs = [];
-      if (PhoneController.activeDeviceId && PhoneController.activeDeviceId !== 'JASPER-VIRTUAL-ADB') {
-        deviceArgs = ['-s', PhoneController.activeDeviceId];
+    // 1. If local ADB is available, capture screenshot directly
+    const hasAdb = await checkAdbAvailable();
+    if (hasAdb) {
+      try {
+        const adbPath = getAdbPath().replace(/"/g, '');
+        let deviceArgs = [];
+        if (PhoneController.activeDeviceId && PhoneController.activeDeviceId !== 'JASPER-VIRTUAL-ADB') {
+          deviceArgs = ['-s', PhoneController.activeDeviceId];
+        }
+        
+        const { stdout } = await execFilePromise(
+          adbPath,
+          [...deviceArgs, 'exec-out', 'screencap', '-p'],
+          { encoding: 'buffer', maxBuffer: 15 * 1024 * 1024, timeout: 15000 }
+        );
+        
+        if (stdout && stdout.length > 0) {
+          const base64 = stdout.toString('base64');
+          return `data:image/png;base64,${base64}`;
+        }
+      } catch (err) {}
+    }
+
+    // 2. If running in cloud (Render) without local ADB, relay to host Satellite Bridge
+    if (typeof global.isSatelliteConnected === 'function' && global.isSatelliteConnected()) {
+      try {
+        const satRes = await global.forwardToSatellite(
+          'adb_screenshot',
+          { deviceId: PhoneController.activeDeviceId },
+          15000
+        );
+        if (satRes && satRes.success && satRes.base64) {
+          return satRes.base64;
+        }
+      } catch (e) {
+        console.warn('[PhoneController] Satellite screenshot relay error:', e.message);
       }
-      
-      const { stdout } = await execFilePromise(
-        adbPath,
-        [...deviceArgs, 'exec-out', 'screencap', '-p'],
-        { encoding: 'buffer', maxBuffer: 10 * 1024 * 1024, timeout: 15000 }
-      );
-      
-      if (stdout && stdout.length > 0) {
-        const base64 = stdout.toString('base64');
-        return `data:image/png;base64,${base64}`;
-      }
-    } catch (err) {}
+    }
+
+    // 3. Fallback to Virtual Phone preview if virtualMode is enabled
+    if (PhoneController.virtualMode) {
+      return generateVirtualPhoneScreenshot();
+    }
 
     // No physical device connected; return null so frontend displays authentic Setup Required state
     return null;
