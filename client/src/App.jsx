@@ -240,6 +240,27 @@ export default function App() {
   const [activeEmergency, setActiveEmergency] = useState(null);
   const [incomingJasperCall, setIncomingJasperCall] = useState(null);
   const [showDownloadsModal, setShowDownloadsModal] = useState(false);
+  const [isCloudColdStarting, setIsCloudColdStarting] = useState(false);
+
+  // Cloud Cold-Start Health Probe (detects Render 50s cold-start on wake-up)
+  useEffect(() => {
+    let active = true;
+    const probe = async () => {
+      const timer = setTimeout(() => {
+        if (active) setIsCloudColdStarting(true);
+      }, 2500);
+
+      try {
+        await fetch(`${getApiBase()}/api/satellite/status`);
+        clearTimeout(timer);
+        if (active) setIsCloudColdStarting(false);
+      } catch (e) {
+        // Will clear on next successful request
+      }
+    };
+    probe();
+    return () => { active = false; };
+  }, []);
 
   // High-Priority Emergency Toast & Alert Poller + WebSocket Listener
   useEffect(() => {
@@ -1578,6 +1599,14 @@ export default function App() {
 
   return (
     <div className={`relative flex flex-col overflow-hidden bg-black text-cyan-50 select-none ${viewMode === 'mobile' && !isMobileScreen ? 'w-[360px] h-[800px] max-w-[100vw] max-h-[100dvh] mx-auto my-auto rounded-2xl border border-cyan-500/40 shadow-[0_0_50px_rgba(0,240,255,0.25)]' : 'w-full h-screen'}`}>
+      
+      {/* Render Cloud Cold-Start Awakening Indicator */}
+      {isCloudColdStarting && (
+        <div className="fixed top-2 left-1/2 -translate-x-1/2 z-[99999] flex items-center gap-2.5 px-4 py-2 rounded-full bg-cyan-950/90 border border-cyan-400 text-cyan-200 text-xs font-orbitron shadow-[0_0_25px_rgba(6,182,212,0.6)] backdrop-blur-xl animate-pulse">
+          <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping inline-block" />
+          <span>ARC REACTOR ONLINE: WARMING CLOUD CORE...</span>
+        </div>
+      )}
       
       {/* Universal Exit Phone Mode Banner (Always visible on laptop screens) */}
       {viewMode === 'mobile' && !isMobileScreen && (

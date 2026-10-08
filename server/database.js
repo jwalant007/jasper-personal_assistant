@@ -169,7 +169,12 @@ const DEFAULT_SCHEMA = {
 
 class DatabaseManager {
   constructor() {
+    this._saveTimer = null;
+    this._pendingSave = false;
     this.data = this.init();
+
+    // Flush pending writes before Node process terminates
+    process.on('beforeExit', () => this.flushSync());
   }
 
   // Load database or initialize with migrations
@@ -189,7 +194,7 @@ class DatabaseManager {
     if (!dbData) {
       dbData = JSON.parse(JSON.stringify(DEFAULT_SCHEMA));
       this.migrateLegacyFiles(dbData);
-      this.save(dbData);
+      this.save(dbData, true);
     } else {
       // Ensure all tables exist in loaded dbData
       for (const key of Object.keys(DEFAULT_SCHEMA)) {
@@ -242,14 +247,37 @@ class DatabaseManager {
     } catch (e) {}
   }
 
-  // Save database with atomic file write (.tmp -> rename)
-  save(dataToSave = this.data) {
+  // Debounced save: updates memory immediately and batches disk writes
+  save(dataToSave = this.data, immediate = false) {
+    this.data = dataToSave;
+    this._pendingSave = true;
+
+    if (immediate) {
+      return this.flushSync();
+    }
+
+    if (!this._saveTimer) {
+      this._saveTimer = setTimeout(() => {
+        this.flushSync();
+      }, 1500); // 1.5s debounce batching saves CPU & disk I/O
+    }
+    return true;
+  }
+
+  // Synchronously flush pending updates to disk
+  flushSync() {
+    if (!this._pendingSave) return true;
+    if (this._saveTimer) {
+      clearTimeout(this._saveTimer);
+      this._saveTimer = null;
+    }
+    this._pendingSave = false;
+
     try {
-      dataToSave.lastUpdated = new Date().toISOString();
+      this.data.lastUpdated = new Date().toISOString();
       const tmpFile = `${DB_FILE}.tmp`;
-      fs.writeFileSync(tmpFile, JSON.stringify(dataToSave, null, 2), 'utf8');
+      fs.writeFileSync(tmpFile, JSON.stringify(this.data, null, 2), 'utf8');
       fs.renameSync(tmpFile, DB_FILE);
-      this.data = dataToSave;
       return true;
     } catch (e) {
       console.error('[Database Core] Atomic write error:', e.message);
