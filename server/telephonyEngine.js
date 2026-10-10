@@ -636,17 +636,20 @@ class TelephonyEngine {
    * FEATURE 1: Autonomous Inbound Telephony Receptionist
    * Receives incoming call from client, analyzes intent, and routes or places on hold
    */
-  async handleInboundCall({ callSid, from = '+13055550199', speechResult, isSimulation = false }) {
+  async handleInboundCall({ callSid, from, speechResult, isSimulation = false }) {
     const cfg = this.getConfig();
-    const sid = callSid || `sim-call-${Date.now()}`;
-    const callerSpeech = speechResult || "This is the Miami client on the line. We want to sign tonight for $17,000, but I have to leave in 20 minutes. I need Jwalant immediately.";
+    const sid = callSid || (isSimulation ? `sim-call-${Date.now()}` : `call-${Date.now()}`);
+    const callerNumber = from || (isSimulation ? '+13055550199' : 'Unknown Caller');
+    const callerSpeech = speechResult || (isSimulation 
+      ? "This is the Miami client on the line. We want to sign tonight for $17,000, but I have to leave in 20 minutes. I need Jwalant immediately."
+      : "Incoming call connected. Awaiting caller speech.");
     
-    console.log(`[TelephonyEngine] Inbound call received from ${from}: "${callerSpeech}"`);
+    console.log(`[TelephonyEngine] Inbound call received from ${callerNumber}: "${callerSpeech}"`);
 
     const analysis = this.analyzeCallerIntent(callerSpeech);
 
     // Caller ID lookup against Synced Telephony Contacts
-    const matchedContact = this.findContactByPhone(from);
+    const matchedContact = this.findContactByPhone(callerNumber);
     if (matchedContact) {
       analysis.clientName = matchedContact.name;
       analysis.contact = matchedContact;

@@ -2406,7 +2406,8 @@ async function dispatchGuardianAlertMessage(details) {
     if (guardianPlatform === 'sms' && phoneController?.sendSMS) {
       sendResult = await phoneController.sendSMS(guardianPhone, alertText);
     } else if (phoneController?.whatsappSend) {
-      sendResult = await phoneController.whatsappSend(guardianPhone, alertText, '+91 98200 12345');
+      const sender = dbManager.getSocialAutoReplyConfig()?.whatsapp?.senderNumber || '';
+      sendResult = await phoneController.whatsappSend(guardianPhone, alertText, sender);
     }
   } catch (err) {
     console.error('[Guardian Alert] Dispatch error (falling back to log):', err.message);

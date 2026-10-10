@@ -226,24 +226,29 @@ const TOOL_REGISTRY = {
     parameters: { amount: 'number', type: "'expense'|'income'", description: 'string', category: 'string (optional)', accountName: 'string (optional)' },
     async handler({ amount, type = 'expense', description = 'Expenditure', category, accountName }) {
       const summary = dbManager.getFinanceData();
-      let targetAcc = summary.accounts[0];
+      const accounts = summary.accounts || [];
+      let targetAcc = accounts[0] || null;
       if (accountName) {
-        const matched = summary.accounts.find(a => a.name.toLowerCase().includes(accountName.toLowerCase()) || a.type.toLowerCase().includes(accountName.toLowerCase()));
+        const matched = accounts.find(a => 
+          (a.name && a.name.toLowerCase().includes(accountName.toLowerCase())) || 
+          (a.type && a.type.toLowerCase().includes(accountName.toLowerCase()))
+        );
         if (matched) targetAcc = matched;
       }
+      const targetAccountId = targetAcc ? targetAcc.id : (accounts[0]?.id || 'acc_1');
       const result = dbManager.addTransaction({
-        accountId: targetAcc ? targetAcc.id : 'acc_1',
+        accountId: targetAccountId,
         amount: Math.abs(Number(amount)) || 0,
         type,
         description,
         category: category || (type === 'income' ? 'Income' : 'General')
       });
-      const updatedBalance = result.financeSummary?.accounts?.find(a => a.id === result.transaction.accountId)?.balance ?? targetAcc?.balance;
+      const resolvedAccount = result.financeSummary?.accounts?.find(a => a.id === targetAccountId);
       return {
         success: true,
         transaction: result.transaction,
-        accountName: targetAcc?.name,
-        newBalance: updatedBalance,
+        accountName: resolvedAccount?.name || targetAcc?.name || 'Primary Vault',
+        newBalance: resolvedAccount?.balance ?? (targetAcc?.balance || 0),
         budgetState: result.financeSummary?.budget?.state,
         alertTriggered: result.shouldAlertGuardian
       };
@@ -754,16 +759,16 @@ const TOOL_REGISTRY = {
     name: 'call_owner_urgent',
     description: 'Autonomously place an urgent voice telephone call to the founder/owner personal line',
     permissionLevel: 2,
-    parameters: { reason: 'string', clientName: 'string', dealValue: 'number', urgencyMinutes: 'number' },
-    async handler({ reason, clientName = 'High-Value Client', dealValue = 17000, urgencyMinutes = 20 } = {}) {
+    parameters: { reason: 'string', clientName: 'string (optional)', clientPhone: 'string (optional)', dealValue: 'number (optional)', urgencyMinutes: 'number (optional)' },
+    async handler({ reason, clientName = 'Urgent Caller', clientPhone = 'Direct Inbound Line', dealValue = 0, urgencyMinutes = 15 } = {}) {
       const relay = await telephonyEngine.startMultiLineRelay({
         clientCallSid: `manual-${Date.now()}`,
-        clientPhone: '+13055550199',
+        clientPhone,
         clientName,
-        company: 'Enterprise Client',
-        dealValue,
-        urgencyMinutes,
-        originalSpeech: reason || `Client wants to sign for $${dealValue.toLocaleString()} within ${urgencyMinutes} minutes.`
+        company: 'Client Line',
+        dealValue: Number(dealValue) || 0,
+        urgencyMinutes: Number(urgencyMinutes) || 15,
+        originalSpeech: reason || `Urgent incoming request regarding ${clientName}.`
       });
       return { success: true, relayId: relay.relayId, dealValue, message: `Urgent call dispatched to owner for ${clientName}` };
     }
