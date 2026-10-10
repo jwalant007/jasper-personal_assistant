@@ -238,11 +238,12 @@ const TOOL_REGISTRY = {
         description,
         category: category || (type === 'income' ? 'Income' : 'General')
       });
+      const updatedBalance = result.financeSummary?.accounts?.find(a => a.id === result.transaction.accountId)?.balance ?? targetAcc?.balance;
       return {
         success: true,
         transaction: result.transaction,
         accountName: targetAcc?.name,
-        newBalance: targetAcc?.balance,
+        newBalance: updatedBalance,
         budgetState: result.financeSummary?.budget?.state,
         alertTriggered: result.shouldAlertGuardian
       };
@@ -277,8 +278,8 @@ const TOOL_REGISTRY = {
         dailyBurnRate,
         alertThresholdPercent: thresholdPercent,
         guardianWarningThreshold,
-        guardianName: summary.budget?.guardianName || 'Mom',
-        guardianPhone: summary.budget?.guardianPhone || '+91 98200 12345',
+        guardianName: summary.budget?.guardianName || 'Guardian',
+        guardianPhone: summary.budget?.guardianPhone || null,
         guardianPlatform: summary.budget?.guardianPlatform || 'whatsapp'
       };
     }
@@ -297,6 +298,8 @@ const TOOL_REGISTRY = {
       const currentYear = now.getFullYear();
 
       let targetTxs = [];
+      let comparison = null;
+
       if (timeframe === 'last_month') {
         const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
         const lastYear = currentMonth === 0 ? currentYear - 1 : currentYear;
@@ -304,6 +307,31 @@ const TOOL_REGISTRY = {
           const d = new Date(t.date);
           return d.getMonth() === lastMonth && d.getFullYear() === lastYear;
         });
+      } else if (timeframe === 'overall') {
+        targetTxs = txs;
+      } else if (timeframe === 'compare') {
+        const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+        const lastYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+        const thisMonthTxs = txs.filter(t => {
+          const d = new Date(t.date);
+          return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+        });
+        const lastMonthTxs = txs.filter(t => {
+          const d = new Date(t.date);
+          return d.getMonth() === lastMonth && d.getFullYear() === lastYear;
+        });
+        const thisMonthSpent = thisMonthTxs.filter(t => t.type === 'expense').reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+        const lastMonthSpent = lastMonthTxs.filter(t => t.type === 'expense').reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+        const diff = thisMonthSpent - lastMonthSpent;
+        const percentChange = lastMonthSpent > 0 ? Math.round((diff / lastMonthSpent) * 100) : 0;
+        comparison = {
+          thisMonthSpent: Math.round(thisMonthSpent * 100) / 100,
+          lastMonthSpent: Math.round(lastMonthSpent * 100) / 100,
+          diff: Math.round(diff * 100) / 100,
+          percentChange,
+          trend: diff > 0 ? 'increased' : (diff < 0 ? 'decreased' : 'unchanged')
+        };
+        targetTxs = thisMonthTxs;
       } else {
         targetTxs = txs.filter(t => {
           const d = new Date(t.date);
@@ -333,9 +361,10 @@ const TOOL_REGISTRY = {
         timeframe,
         totalSpent: Math.round(totalSpent * 100) / 100,
         totalIncome: Math.round(totalIncome * 100) / 100,
-        currency: summary.settings.defaultCurrency || '₹',
+        currency: summary.settings?.defaultCurrency || '₹',
         topCategories,
         transactionCount: targetTxs.length,
+        comparison,
         anomalies: financialIntelligenceEngine.detectAnomalies()
       };
     }
@@ -417,7 +446,7 @@ const TOOL_REGISTRY = {
       return {
         time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         date: now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }),
-        weather: weather ? `${weather.temp || '28'}°C, ${weather.description || 'Clear skies'}` : '28°C, Clear Skies',
+        weather: weather ? `${weather.temp}°C, ${weather.description}` : 'Weather offline (OpenWeather API key required)',
         todayTasksCount: reminders.length,
         reminders: reminders.slice(0, 3).map(r => r.title),
         monthlyBudget: fin.budget.monthlyLimit,
@@ -482,18 +511,20 @@ const TOOL_REGISTRY = {
     name: 'create_reminder',
     description: 'Create a reminder for the user at a specific time',
     permissionLevel: 1,
-    parameters: { time: 'string (e.g. "8:00 PM" or "20:00")', message: 'string' },
-    async handler({ time, message }) {
+    parameters: { time: 'string (e.g. "8:00 PM" or "20:00")', message: 'string', category: 'string (optional)' },
+    async handler({ time = '12:00 PM', message, category = 'General' }) {
       try {
-        const remindersPath = path.join(__dirname, '..', 'client', 'public', 'jasper_reminders.json');
-        let reminders = [];
-        if (fs.existsSync(remindersPath)) {
-          reminders = JSON.parse(fs.readFileSync(remindersPath, 'utf8'));
-        }
-        const reminder = { id: Date.now(), time, message, created: new Date().toISOString() };
-        reminders.push(reminder);
-        fs.writeFileSync(remindersPath, JSON.stringify(reminders, null, 2));
-        return { success: true, reminder };
+        const reminderItem = {
+          id: Date.now(),
+          title: message || 'Reminder',
+          time,
+          date: 'Today',
+          category,
+          completed: false,
+          createdAt: new Date().toISOString()
+        };
+        dbManager.addReminder(reminderItem);
+        return { success: true, reminder: reminderItem };
       } catch (e) {
         return { success: false, error: e.message };
       }
