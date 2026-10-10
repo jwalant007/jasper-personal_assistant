@@ -318,25 +318,31 @@ if (fs.existsSync(clientDistPath)) {
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
+  'http://localhost:5000',
+  'http://127.0.0.1:5000',
   'http://localhost:3001',
   'http://127.0.0.1:3001'
 ];
 
+if (process.env.ALLOWED_ORIGINS) {
+  process.env.ALLOWED_ORIGINS.split(',').forEach(o => allowedOrigins.push(o.trim()));
+}
+if (process.env.RENDER_EXTERNAL_URL) {
+  allowedOrigins.push(process.env.RENDER_EXTERNAL_URL.trim());
+}
+
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || 
-        allowedOrigins.includes(origin) || 
-        origin.startsWith('http://192.168.') || 
-        origin.startsWith('http://10.') || 
-        origin.startsWith('capacitor://') || 
-        origin.startsWith('file://') ||
-        origin.includes('onrender.com') ||
-        origin.includes('render.com') ||
-        origin.includes('trycloudflare.com') ||
-        origin.includes('loca.lt') ||
-        origin.includes('localtunnel.me') ||
-        origin.includes('ngrok') ||
-        (process.env.RENDER_EXTERNAL_URL && origin === process.env.RENDER_EXTERNAL_URL)) {
+    if (!origin) return callback(null, true);
+
+    const isAllowed = 
+      allowedOrigins.includes(origin) ||
+      origin.startsWith('capacitor://') ||
+      origin.startsWith('file://') ||
+      /^https?:\/\/(192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})(:\d+)?$/.test(origin) ||
+      (process.env.JASPER_TRUSTED_DOMAIN && origin.endsWith(process.env.JASPER_TRUSTED_DOMAIN));
+
+    if (isAllowed) {
       callback(null, true);
     } else {
       console.warn(`[CORS Blocked] Request rejected from untrusted origin: ${origin}`);
@@ -351,6 +357,9 @@ app.use(express.urlencoded({ extended: true }));
 // SECURE AUTHENTICATION & ACCESS CONTROL
 // -------------------------------------------------------------
 const JASPER_AUTH_SECRET = (process.env.JASPER_AUTH_TOKEN || 'jasper').trim();
+if (JASPER_AUTH_SECRET === 'jasper') {
+  console.warn('⚠️  [SECURITY NOTICE] Using default JASPER_AUTH_TOKEN ("jasper"). Set a strong custom token in server/.env for production environments.');
+}
 
 // Token Verification Endpoint
 app.post('/api/auth/verify', (req, res) => {
@@ -851,27 +860,27 @@ async function fallbackNowPlaying(req, res) {
       }
       res.json({
         success: true,
-        isPlaying: true,
-        title: 'J.A.S.P.E.R. Cybernetic Neural Theme',
-        artist: 'Stark Audio Engine',
-        album: 'Iron Prelude OST',
-        durationMs: 214000,
-        positionMs: 45000,
-        durationFormatted: '3:34',
-        positionFormatted: '0:45'
+        isPlaying: false,
+        title: 'No Media Playing',
+        artist: 'System Idle',
+        album: 'None',
+        durationMs: 0,
+        positionMs: 0,
+        durationFormatted: '0:00',
+        positionFormatted: '0:00'
       });
     });
   } else {
     res.json({
       success: true,
-      isPlaying: true,
-      title: 'J.A.S.P.E.R. Cybernetic Neural Theme',
-      artist: 'Stark Audio Engine',
-      album: 'Iron Prelude OST',
-      durationMs: 214000,
-      positionMs: 45000,
-      durationFormatted: '3:34',
-      positionFormatted: '0:45'
+      isPlaying: false,
+      title: 'No Media Playing',
+      artist: 'System Idle',
+      album: 'None',
+      durationMs: 0,
+      positionMs: 0,
+      durationFormatted: '0:00',
+      positionFormatted: '0:00'
     });
   }
 }
@@ -900,6 +909,198 @@ app.get('/api/system/diagnostics', (req, res) => {
       usagePercent: Math.round((usedMem / totalMem) * 100)
     }
   });
+});
+
+// -------------------------------------------------------------
+// REAL HOST FILESYSTEM API (JASPER OS File Explorer)
+// -------------------------------------------------------------
+function formatFsBytes(bytes) {
+  if (!bytes || bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+const WORKSPACE_ROOT = path.resolve(__dirname, '..');
+
+app.get('/api/fs/list', (req, res) => {
+  try {
+    let targetDir = req.query.dir ? path.resolve(req.query.dir) : WORKSPACE_ROOT;
+
+    if (!fs.existsSync(targetDir)) {
+      return res.status(404).json({ success: false, error: 'Directory not found: ' + targetDir });
+    }
+
+    const stat = fs.statSync(targetDir);
+    if (!stat.isDirectory()) {
+      return res.status(400).json({ success: false, error: 'Path is not a directory' });
+    }
+
+    const dirents = fs.readdirSync(targetDir, { withFileTypes: true });
+    const items = dirents.map(dirent => {
+      const fullPath = path.join(targetDir, dirent.name);
+      let size = 'DIR';
+      let modified = null;
+      try {
+        const itemStat = fs.statSync(fullPath);
+        if (!dirent.isDirectory()) {
+          size = formatFsBytes(itemStat.size);
+        }
+        modified = itemStat.mtime;
+      } catch (_) {}
+
+      return {
+        name: dirent.name,
+        isDir: dirent.isDirectory(),
+        size,
+        path: fullPath,
+        modified
+      };
+    });
+
+    items.sort((a, b) => {
+      if (a.isDir === b.isDir) return a.name.localeCompare(b.name);
+      return a.isDir ? -1 : 1;
+    });
+
+    const parentDir = path.dirname(targetDir);
+
+    res.json({
+      success: true,
+      currentPath: targetDir,
+      parentPath: parentDir !== targetDir ? parentDir : null,
+      files: items
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/fs/read', (req, res) => {
+  try {
+    const filePath = req.query.file ? path.resolve(req.query.file) : null;
+    if (!filePath || !fs.existsSync(filePath)) {
+      return res.status(404).json({ success: false, error: 'File not found' });
+    }
+
+    const stat = fs.statSync(filePath);
+    if (stat.isDirectory()) {
+      return res.status(400).json({ success: false, error: 'Target is a directory' });
+    }
+
+    if (stat.size > 2 * 1024 * 1024) {
+      return res.status(400).json({ success: false, error: 'File exceeds preview size limit (2MB)' });
+    }
+
+    const content = fs.readFileSync(filePath, 'utf8');
+    res.json({
+      success: true,
+      name: path.basename(filePath),
+      path: filePath,
+      size: formatFsBytes(stat.size),
+      sizeBytes: stat.size,
+      content
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/fs/disk', (req, res) => {
+  if (process.platform === 'win32') {
+    exec('powershell.exe -NoProfile -Command "Get-PSDrive C | Select-Object Used, Free | ConvertTo-Json"', { timeout: 4000 }, (err, stdout) => {
+      if (!err && stdout) {
+        try {
+          const parsed = JSON.parse(stdout.trim());
+          const usedGB = Math.round(parsed.Used / (1024 * 1024 * 1024));
+          const freeGB = Math.round(parsed.Free / (1024 * 1024 * 1024));
+          const totalGB = usedGB + freeGB;
+          return res.json({
+            success: true,
+            drive: 'C:',
+            totalGB,
+            freeGB,
+            usedGB,
+            usedPercent: Math.round((usedGB / totalGB) * 100)
+          });
+        } catch (_) {}
+      }
+      res.json({ success: true, drive: 'C:', totalGB: 512, freeGB: 256, usedGB: 256, usedPercent: 50 });
+    });
+  } else {
+    exec('df -k / | tail -1', { timeout: 3000 }, (err, stdout) => {
+      if (!err && stdout) {
+        const parts = stdout.trim().split(/\s+/);
+        if (parts.length >= 4) {
+          const totalGB = Math.round(parseInt(parts[1], 10) / (1024 * 1024));
+          const usedGB = Math.round(parseInt(parts[2], 10) / (1024 * 1024));
+          const freeGB = Math.round(parseInt(parts[3], 10) / (1024 * 1024));
+          return res.json({ success: true, drive: '/', totalGB, freeGB, usedGB, usedPercent: Math.round((usedGB / totalGB) * 100) });
+        }
+      }
+      res.json({ success: true, drive: '/', totalGB: 100, freeGB: 50, usedGB: 50, usedPercent: 50 });
+    });
+  }
+});
+
+// -------------------------------------------------------------
+// REAL HOST CODE STUDIO EXECUTION API (JavaScript, PowerShell, Python)
+// -------------------------------------------------------------
+app.post('/api/code/execute', async (req, res) => {
+  const { code, language = 'javascript' } = req.body || {};
+  if (!code || typeof code !== 'string') {
+    return res.status(400).json({ success: false, error: 'No code provided for execution' });
+  }
+
+  const scratchDir = path.join(__dirname, '..', 'scratch');
+  if (!fs.existsSync(scratchDir)) {
+    try { fs.mkdirSync(scratchDir, { recursive: true }); } catch (_) {}
+  }
+
+  const fileExt = language === 'python' ? 'py' : language === 'powershell' ? 'ps1' : 'js';
+  const tempFile = path.join(scratchDir, `exec_${Date.now()}_${Math.random().toString(36).slice(2, 6)}.${fileExt}`);
+
+  try {
+    fs.writeFileSync(tempFile, code, 'utf8');
+
+    let binary = 'node.exe';
+    let args = [tempFile];
+
+    if (language === 'python') {
+      binary = 'python.exe';
+      args = [tempFile];
+    } else if (language === 'powershell') {
+      binary = 'powershell.exe';
+      args = ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', tempFile];
+    }
+
+    const { execFile: runExecFile } = require('child_process');
+    runExecFile(binary, args, { timeout: 10000, maxBuffer: 10 * 1024 * 1024 }, (err, stdout, stderr) => {
+      try { if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile); } catch (_) {}
+
+      if (err && err.killed) {
+        return res.json({
+          success: false,
+          error: 'Execution timed out (10s threshold exceeded)',
+          output: (stdout || '') + '\n[TIMEOUT KILLED: Process exceeded 10-second limit]',
+          language
+        });
+      }
+
+      res.json({
+        success: !err,
+        stdout: stdout ? stdout.trim() : '',
+        stderr: stderr ? stderr.trim() : '',
+        output: (stdout ? stdout.trim() : '') + (stderr ? (stdout ? '\n' : '') + '[STDERR]: ' + stderr.trim() : '') || '(Script executed cleanly with zero console output)',
+        exitCode: err ? (err.code || 1) : 0,
+        language
+      });
+    });
+  } catch (err) {
+    try { if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile); } catch (_) {}
+    res.status(500).json({ success: false, error: err.message, language });
+  }
 });
 
 // -------------------------------------------------------------

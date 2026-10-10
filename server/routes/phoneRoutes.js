@@ -133,15 +133,13 @@ router.post('/disconnect', async (req, res) => {
   }
 });
 
-// Toggle Virtual Mode
+// Toggle Virtual Mode (Deprecated in accordance with Zero-Fake-Features Standard)
 router.post('/toggle-virtual', (req, res) => {
-  try {
-    const enabled = req.body && typeof req.body.enabled === 'boolean' ? req.body.enabled : !phoneController.virtualMode;
-    const currentMode = phoneController.setVirtualMode(enabled);
-    res.json({ success: true, virtualMode: currentMode });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
+  res.json({
+    success: false,
+    virtualMode: false,
+    message: 'Virtual Phone Emulation has been deprecated. Connect a physical Android device via USB or Wireless ADB.'
+  });
 });
 
 // SMS

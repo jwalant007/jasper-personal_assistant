@@ -277,7 +277,18 @@ class DatabaseManager {
       this.data.lastUpdated = new Date().toISOString();
       const tmpFile = `${DB_FILE}.tmp`;
       fs.writeFileSync(tmpFile, JSON.stringify(this.data, null, 2), 'utf8');
-      fs.renameSync(tmpFile, DB_FILE);
+
+      // Windows-resilient atomic file replacement
+      try {
+        if (fs.existsSync(DB_FILE)) {
+          try { fs.unlinkSync(DB_FILE); } catch (_) {}
+        }
+        fs.renameSync(tmpFile, DB_FILE);
+      } catch (renameErr) {
+        // Fallback for Windows file lock / permission collisions
+        fs.copyFileSync(tmpFile, DB_FILE);
+        try { fs.unlinkSync(tmpFile); } catch (_) {}
+      }
       return true;
     } catch (e) {
       console.error('[Database Core] Atomic write error:', e.message);
