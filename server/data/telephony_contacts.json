@@ -4210,5 +4210,185 @@
     "notes": "Synced from Phone Address Book",
     "lastInteraction": "Phone Synced",
     "source": "database"
+  },
+  {
+    "id": "tc-aarush-601",
+    "name": "Aarush",
+    "phone": "+91 99250 44756",
+    "numbers": [
+      "+91 99250 44756"
+    ],
+    "category": "Personal",
+    "isVip": false,
+    "avatar": "👤",
+    "avatarColor": "from-blue-500 to-cyan-500",
+    "notes": "Imported from connected Android USB phonebook",
+    "lastInteraction": "Synced via USB ADB",
+    "source": "phone_adb"
+  },
+  {
+    "id": "tc-dr--jignesh-g--bhatt-444",
+    "name": "Dr. Jignesh G. Bhatt",
+    "phone": "+91 94267 03566",
+    "numbers": [
+      "+91 94267 03566"
+    ],
+    "category": "Family",
+    "isVip": true,
+    "avatar": "⭐",
+    "avatarColor": "from-purple-500 to-indigo-500",
+    "notes": "Imported from connected Android USB phonebook",
+    "lastInteraction": "Synced via USB ADB",
+    "source": "phone_adb"
+  },
+  {
+    "id": "tc-hardi-mam-internship-960",
+    "name": "Hardi Mam Internship",
+    "phone": "+919227778181",
+    "numbers": [
+      "+919227778181"
+    ],
+    "category": "Work",
+    "isVip": false,
+    "avatar": "💼",
+    "avatarColor": "from-purple-500 to-indigo-500",
+    "notes": "Imported from connected Android USB phonebook",
+    "lastInteraction": "Synced via USB ADB",
+    "source": "phone_adb"
+  },
+  {
+    "id": "tc-jayam-thakar-712",
+    "name": "Jayam Thakar",
+    "phone": "+91 76219 78905",
+    "numbers": [
+      "+91 76219 78905"
+    ],
+    "category": "Personal",
+    "isVip": false,
+    "avatar": "👤",
+    "avatarColor": "from-blue-500 to-cyan-500",
+    "notes": "Imported from connected Android USB phonebook",
+    "lastInteraction": "Synced via USB ADB",
+    "source": "phone_adb"
+  },
+  {
+    "id": "tc-kia-849",
+    "name": "Kia",
+    "phone": "+639655531404",
+    "numbers": [
+      "+639655531404"
+    ],
+    "category": "Personal",
+    "isVip": false,
+    "avatar": "👤",
+    "avatarColor": "from-blue-500 to-cyan-500",
+    "notes": "Imported from connected Android USB phonebook",
+    "lastInteraction": "Synced via USB ADB",
+    "source": "phone_adb"
+  },
+  {
+    "id": "tc-krish-bhatt-573",
+    "name": "Krish Bhatt",
+    "phone": "92658 40351",
+    "numbers": [
+      "92658 40351"
+    ],
+    "category": "Family",
+    "isVip": true,
+    "avatar": "⭐",
+    "avatarColor": "from-blue-500 to-cyan-500",
+    "notes": "Imported from connected Android USB phonebook",
+    "lastInteraction": "Synced via USB ADB",
+    "source": "phone_adb"
+  },
+  {
+    "id": "tc-pankhil-shah-lj-sports-cordina-382",
+    "name": "Pankhil Shah(LJ Sports Cordinator)",
+    "phone": "+918758150850",
+    "numbers": [
+      "+918758150850"
+    ],
+    "category": "Work",
+    "isVip": false,
+    "avatar": "💼",
+    "avatarColor": "from-amber-500 to-orange-500",
+    "notes": "Imported from connected Android USB phonebook",
+    "lastInteraction": "Synced via USB ADB",
+    "source": "phone_adb"
+  },
+  {
+    "id": "tc-prince-979",
+    "name": "Prince",
+    "phone": "+91 95585 34556",
+    "numbers": [
+      "+91 95585 34556"
+    ],
+    "category": "Personal",
+    "isVip": false,
+    "avatar": "👤",
+    "avatarColor": "from-blue-500 to-cyan-500",
+    "notes": "Imported from connected Android USB phonebook",
+    "lastInteraction": "Synced via USB ADB",
+    "source": "phone_adb"
+  },
+  {
+    "id": "tc-rudra-desai-622",
+    "name": "Rudra Desai",
+    "phone": "92658 62703",
+    "numbers": [
+      "92658 62703"
+    ],
+    "category": "Personal",
+    "isVip": false,
+    "avatar": "👤",
+    "avatarColor": "from-purple-500 to-indigo-500",
+    "notes": "Imported from connected Android USB phonebook",
+    "lastInteraction": "Synced via USB ADB",
+    "source": "phone_adb"
+  },
+  {
+    "id": "tc-tanvi-soni-711",
+    "name": "Tanvi Soni",
+    "phone": "94280 18468",
+    "numbers": [
+      "94280 18468"
+    ],
+    "category": "Personal",
+    "isVip": false,
+    "avatar": "👤",
+    "avatarColor": "from-blue-500 to-cyan-500",
+    "notes": "Imported from connected Android USB phonebook",
+    "lastInteraction": "Synced via USB ADB",
+    "source": "phone_adb"
+  },
+  {
+    "id": "tc-taral-shah-81",
+    "name": "Taral Shah",
+    "phone": "+91 98243 58366",
+    "numbers": [
+      "+91 98243 58366"
+    ],
+    "category": "Personal",
+    "isVip": false,
+    "avatar": "👤",
+    "avatarColor": "from-purple-500 to-indigo-500",
+    "notes": "Imported from connected Android USB phonebook",
+    "lastInteraction": "Synced via USB ADB",
+    "source": "phone_adb"
+  },
+  {
+    "id": "tc-zalak-bhatt-544",
+    "name": "Zalak Bhatt",
+    "phone": "+919737495827",
+    "numbers": [
+      "+919737495827"
+    ],
+    "category": "Family",
+    "isVip": true,
+    "avatar": "⭐",
+    "avatarColor": "from-amber-500 to-orange-500",
+    "notes": "Imported from connected Android USB phonebook",
+    "lastInteraction": "Synced via USB ADB",
+    "source": "phone_adb"
   }
 ]

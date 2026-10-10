@@ -596,6 +596,80 @@ const TOOL_REGISTRY = {
     }
   },
 
+  make_phone_call: {
+    name: 'make_phone_call',
+    description: 'Place an outbound cellular call on the connected Android smartphone to a contact name or phone number',
+    permissionLevel: 1,
+    parameters: { contactOrNumber: 'string (contact name or phone number)' },
+    async handler({ contactOrNumber }) {
+      const cleanTarget = (contactOrNumber || '')
+        .replace(/\b(now|right now|please|for me|immediately|right away|on phone|cellular|mobile)\b/gi, '')
+        .replace(/[^\w\s+]/g, ' ')
+        .trim();
+
+      let targetNumber = cleanTarget;
+      let contactName = cleanTarget;
+
+      // Check if target is already a valid phone number with >= 5 digits
+      const digitsOnly = cleanTarget.replace(/\D/g, '');
+      if (digitsOnly.length < 5) {
+        // Resolve contact from phonebook / telephony directory
+        let contacts = [];
+        try {
+          contacts = await phoneController.contacts();
+        } catch (_) {}
+        try {
+          const telephony = require('./telephonyEngine');
+          const telContacts = telephony.getContacts();
+          if (Array.isArray(telContacts) && telContacts.length > 0) {
+            contacts = [...contacts, ...telContacts];
+          }
+        } catch (_) {}
+
+        const lowerTarget = cleanTarget.toLowerCase();
+        const targetWords = lowerTarget.split(/\s+/).filter(w => w.length > 1);
+
+        const match = contacts.find(c => {
+          if (!c.name) return false;
+          const cName = c.name.toLowerCase();
+          if (cName === lowerTarget) return true;
+          if (cName.includes(lowerTarget) || lowerTarget.includes(cName)) return true;
+          const cWords = cName.split(/\s+/).filter(w => w.length > 1);
+          return targetWords.some(tw => cWords.some(cw => cw.includes(tw) || tw.includes(cw)));
+        });
+
+        if (match && (match.phone || (match.numbers && match.numbers[0]))) {
+          targetNumber = match.phone || match.numbers[0];
+          contactName = match.name;
+        } else {
+          return {
+            success: false,
+            error: `Could not find phone number for contact "${contactOrNumber}". Please check spelling or verify contacts sync.`
+          };
+        }
+      }
+
+      const cleanNum = targetNumber.replace(/[^0-9+]/g, '');
+      if (!cleanNum || cleanNum.replace(/\D/g, '').length < 3) {
+        return { success: false, error: `Invalid phone number format: "${targetNumber}"` };
+      }
+
+      const result = await phoneController.call(cleanNum);
+      return { success: true, contactName, phone: cleanNum, result };
+    }
+  },
+
+  send_whatsapp_message: {
+    name: 'send_whatsapp_message',
+    description: 'Send a WhatsApp message to a contact name or phone number using connected phone or WhatsApp Web',
+    permissionLevel: 1,
+    parameters: { recipient: 'string (contact name or phone number)', message: 'string' },
+    async handler({ recipient, message }) {
+      const result = await phoneController.whatsappSend(recipient, message);
+      return result;
+    }
+  },
+
   control_device: {
     name: 'control_device',
     description: 'Control a connected smart device (Universal Smart TV, JioFiber STB, phone, lights)',
@@ -1025,7 +1099,8 @@ Key Directives:
       // Check if this is a hardware/local PC command and we should route to Satellite
       const HARDWARE_TOOLS = [
         'set_pc_volume', 'open_application', 'send_tv_command', 'wake_tv',
-        'open_phone_app', 'allow_device_background_usage', 'get_phone_contacts', 'control_device', 'tune_stb_channel', 'tune_d2h_channel',
+        'open_phone_app', 'allow_device_background_usage', 'get_phone_contacts', 'make_phone_call', 'send_whatsapp_message',
+        'control_device', 'tune_stb_channel', 'tune_d2h_channel',
         'send_phone_sms', 'make_call', 'run_powershell', 'pull_up_meeting'
       ];
 
@@ -1307,6 +1382,23 @@ Key Directives:
       results.push({ intent: 'get_phone_contacts', ...r });
     }
 
+    // Phone Call Intent by Name or Number
+    const callMatch = lower.match(/\b(?:call|dial|ring|phone)\s+([a-zA-Z0-9\+\s\.\-]+)\b/);
+    if (callMatch && !lower.includes('meeting') && !lower.includes('schedule') && !lower.includes('who') && !lower.includes('what')) {
+      const target = callMatch[1].replace(/\b(now|right now|please|for me|immediately|right away)\b/gi, '').trim();
+      const r = await this.executeTool('make_phone_call', { contactOrNumber: target });
+      results.push({ intent: 'make_phone_call', ...r });
+    }
+
+    // WhatsApp Message Intent by Name or Number
+    const waMatch = lower.match(/\b(?:send\s+)?(?:whatsapp(?:\s+message)?|message\s+on\s+whatsapp)\s+(?:to\s+)?([a-zA-Z0-9\+\s\.\-]+?)\s*(?:that|saying|msg|message)?\s*[:\s]\s*(.+)$/i);
+    if (waMatch) {
+      const recipient = waMatch[1].replace(/\b(now|right now|please|for me|immediately|right away)\b/gi, '').trim();
+      const msg = waMatch[2].trim();
+      const r = await this.executeTool('send_whatsapp_message', { recipient, message: msg });
+      results.push({ intent: 'send_whatsapp_message', ...r });
+    }
+
     // Memory storage
     if (lower.match(/remember that|my name is|i prefer|i like|i hate|note that/)) {
       const r = await this.executeTool('add_memory', { text: query, category: 'user-fact' });
@@ -1386,6 +1478,22 @@ Key Directives:
       } else if (checkPocket) {
         const curr = checkPocket.currency || '₹';
         response = `Your current monthly pocket money allowance is ${curr}${checkPocket.budgetLimit?.toLocaleString('en-IN') || '2,000'}, with ${curr}${checkPocket.monthSpend || 0} spent this month. Current budget status is ${checkPocket.budgetState?.toUpperCase() || 'SAFE'}, with an estimated daily burn rate of ${curr}${checkPocket.dailyBurnRate || '66.67'}/day.`;
+      } else if (results.some(r => r.intent === 'make_phone_call')) {
+        const callTool = results.find(r => r.intent === 'make_phone_call');
+        const resObj = callTool.result || {};
+        response = callTool.success !== false && resObj.success !== false
+          ? `Initiating cellular call to ${resObj.contactName || resObj.phone || 'contact'} via your connected phone, Sir.`
+          : `Unable to place cellular call: ${callTool.error || resObj.error || 'Please verify device connection'}.`;
+      } else if (results.some(r => r.intent === 'send_whatsapp_message')) {
+        const waTool = results.find(r => r.intent === 'send_whatsapp_message');
+        const resObj = waTool.result || {};
+        response = waTool.success !== false && resObj.success !== false
+          ? `Dispatched WhatsApp message to ${resObj.recipient || 'recipient'} (${resObj.phone || ''}): "${resObj.message || ''}", Sir.`
+          : `Unable to dispatch WhatsApp message: ${waTool.error || resObj.error || 'Failed'}.`;
+      } else if (results.some(r => r.intent === 'get_phone_contacts')) {
+        const cTool = results.find(r => r.intent === 'get_phone_contacts');
+        const resObj = cTool.result || {};
+        response = `You have ${resObj.count || (resObj.contacts?.length) || 0} contacts synchronized from your Android phonebook, Sir. Ready for speed dialing and WhatsApp messaging.`;
       } else {
         const successCount = results.filter(r => r.success !== false).length;
         const toolNames = results.map(r => r.tool || r.intent).join(', ');
@@ -1424,6 +1532,7 @@ Key Directives:
     return {
       success: true,
       response,
+      text: response,
       toolsExecuted: results,
       memoriesUsed: relevantMemories,
       timestamp: new Date().toISOString()

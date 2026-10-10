@@ -954,6 +954,220 @@ class TelephonyEngine {
   getRelay(relayId) {
     return this._activeRelays.get(relayId);
   }
+
+  // --- CONTACTS & TELEPHONE HUB DIRECTORY ---
+
+  getContacts() {
+    try {
+      if (!fs.existsSync(CONTACTS_FILE)) this._initStore();
+      const raw = fs.readFileSync(CONTACTS_FILE, 'utf8');
+      return JSON.parse(raw);
+    } catch (e) {
+      console.warn('[TelephonyEngine] Error reading contacts:', e.message);
+      return DEFAULT_CONTACTS;
+    }
+  }
+
+  _saveContacts(contacts) {
+    try {
+      fs.writeFileSync(CONTACTS_FILE, JSON.stringify(contacts, null, 2));
+      if (this._broadcastFn) {
+        this._broadcastFn({ type: 'TELEPHONY_CONTACTS_UPDATED', contacts, count: contacts.length });
+      }
+      return true;
+    } catch (e) {
+      console.error('[TelephonyEngine] Error saving contacts:', e.message);
+      return false;
+    }
+  }
+
+  async syncContacts(options = {}) {
+    const current = this.getContacts();
+    const existingPhones = new Set(current.map(c => (c.phone || '').replace(/[^0-9]/g, '')));
+    let phoneContacts = [];
+
+    try {
+      phoneContacts = await phoneController.contacts();
+    } catch (err) {
+      console.warn('[TelephonyEngine] Live phone contacts query skipped:', err.message);
+    }
+
+    let addedCount = 0;
+    const colors = [
+      'from-pink-500 to-rose-500',
+      'from-blue-500 to-cyan-500',
+      'from-emerald-500 to-teal-500',
+      'from-purple-500 to-indigo-500',
+      'from-amber-500 to-orange-500'
+    ];
+
+    for (const pc of phoneContacts) {
+      const norm = (pc.phone || (pc.numbers && pc.numbers[0]) || '').replace(/[^0-9]/g, '');
+      if (!norm || existingPhones.has(norm)) continue;
+
+      const lowerName = pc.name.toLowerCase();
+      let category = 'Personal';
+      if (lowerName.includes('mom') || lowerName.includes('pappa') || lowerName.includes('mummy') || lowerName.includes('dad') || lowerName.includes('bhatt') || lowerName.includes('didi') || lowerName.includes('jiju') || lowerName.includes('aunty') || lowerName.includes('uncle')) {
+        category = 'Family';
+      } else if (lowerName.includes('lj') || lowerName.includes('sir') || lowerName.includes('mam') || lowerName.includes('internship') || lowerName.includes('work') || lowerName.includes('boss')) {
+        category = 'Work';
+      } else if (lowerName.includes('xerox') || lowerName.includes('pharmacy') || lowerName.includes('plumber') || lowerName.includes('dr.') || lowerName.includes('care') || lowerName.includes('card')) {
+        category = 'Services';
+      }
+
+      const isVip = category === 'Family' || lowerName.includes('mom') || lowerName.includes('pappa') || lowerName.includes('boss') || lowerName.includes('dr.');
+      const color = colors[Math.floor(Math.random() * colors.length)];
+
+      const newEntry = {
+        id: `tc-${pc.name.toLowerCase().replace(/[^a-z0-9]/g, '-').slice(0, 30)}-${Date.now()}-${addedCount}`,
+        name: pc.name,
+        phone: pc.phone || (pc.numbers && pc.numbers[0]),
+        numbers: pc.numbers || [pc.phone],
+        category,
+        isVip,
+        avatar: isVip ? '⭐' : (category === 'Family' ? '❤️' : (category === 'Work' ? '💼' : (category === 'Services' ? '🔧' : '👤'))),
+        avatarColor: color,
+        notes: 'Synced live from connected Android phone',
+        lastInteraction: 'Synced via USB ADB',
+        source: 'phone_adb'
+      };
+
+      current.push(newEntry);
+      existingPhones.add(norm);
+      addedCount++;
+    }
+
+    if (addedCount > 0 || options.force) {
+      this._saveContacts(current);
+    }
+
+    return {
+      success: true,
+      added: addedCount,
+      total: current.length,
+      contacts: current
+    };
+  }
+
+  addContact(data = {}) {
+    const current = this.getContacts();
+    const newContact = {
+      id: data.id || `tc-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      name: data.name || 'Unnamed Contact',
+      phone: data.phone || '',
+      category: data.category || 'Personal',
+      isVip: Boolean(data.isVip),
+      avatar: data.avatar || (data.isVip ? '⭐' : '👤'),
+      avatarColor: data.avatarColor || 'from-blue-500 to-indigo-500',
+      notes: data.notes || '',
+      lastInteraction: data.lastInteraction || 'Added to Telephony Hub',
+      source: data.source || 'user'
+    };
+    current.unshift(newContact);
+    this._saveContacts(current);
+    return newContact;
+  }
+
+  updateContact(id, updates = {}) {
+    const current = this.getContacts();
+    const idx = current.findIndex(c => c.id === id);
+    if (idx === -1) return null;
+    current[idx] = { ...current[idx], ...updates, id };
+    this._saveContacts(current);
+    return current[idx];
+  }
+
+  deleteContact(id) {
+    const current = this.getContacts();
+    const filtered = current.filter(c => c.id !== id);
+    this._saveContacts(filtered);
+    return true;
+  }
+
+  toggleVip(id) {
+    const current = this.getContacts();
+    const contact = current.find(c => c.id === id);
+    if (!contact) return null;
+    contact.isVip = !contact.isVip;
+    contact.avatar = contact.isVip ? '⭐' : (contact.category === 'Family' ? '❤️' : '👤');
+    this._saveContacts(current);
+    return contact;
+  }
+
+  async screenCallForContact(id, customSpeech) {
+    const current = this.getContacts();
+    const contact = current.find(c => c.id === id);
+    if (!contact) throw new Error('Contact not found');
+
+    const spoken = customSpeech || `Hello ${contact.name}, Jwalant is currently in a deep focus session. I am JASPER, his personal AI receptionist. Please state the nature and urgency of your call.`;
+    
+    // Auto-record in logs
+    this._addLog({
+      callSid: `SCREEN-${Date.now()}`,
+      direction: 'inbound',
+      callerName: contact.name,
+      callerPhone: contact.phone,
+      dealValue: contact.isVip ? 5000 : 0,
+      callerIntent: `Automated screening protocol executed for ${contact.name}`,
+      status: 'screened',
+      receptionistResponse: spoken
+    });
+
+    return {
+      success: true,
+      contact,
+      speech: spoken,
+      message: `Autonomous screening active for ${contact.name}`
+    };
+  }
+
+  async quickDialContact(id) {
+    const current = this.getContacts();
+    const contact = current.find(c => c.id === id);
+    if (!contact) throw new Error('Contact not found');
+
+    const cleanNum = (contact.phone || '').replace(/[^0-9+]/g, '');
+    const dialRes = await phoneController.call(cleanNum);
+
+    this._addLog({
+      callSid: `DIAL-${Date.now()}`,
+      direction: 'outbound',
+      callerName: contact.name,
+      callerPhone: contact.phone,
+      dealValue: 0,
+      callerIntent: `Direct outbound cellular call placed to ${contact.name}`,
+      status: 'dialed'
+    });
+
+    return {
+      success: true,
+      contact,
+      result: dialRes,
+      message: `Dialing ${contact.name} (${contact.phone}) via connected smartphone...`
+    };
+  }
+
+  lookupContactByPhone(number) {
+    if (!number) return null;
+    const cleanTarget = number.replace(/[^0-9]/g, '');
+    const current = this.getContacts();
+    for (const c of current) {
+      if (!c.phone) continue;
+      const cleanPhone = c.phone.replace(/[^0-9]/g, '');
+      if (cleanPhone === cleanTarget || (cleanTarget.length >= 10 && cleanPhone.endsWith(cleanTarget.slice(-10)))) {
+        return c;
+      }
+      if (Array.isArray(c.numbers)) {
+        for (const num of c.numbers) {
+          const cleanNum = num.replace(/[^0-9]/g, '');
+          if (cleanNum === cleanTarget || (cleanTarget.length >= 10 && cleanNum.endsWith(cleanTarget.slice(-10)))) {
+            return c;
+          }
+        }
+      }
+    }
+    return null;
+  }
 }
 
 module.exports = new TelephonyEngine();

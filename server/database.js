@@ -595,6 +595,60 @@ class DatabaseManager {
     return [];
   }
 
+  // --- SOCIAL CONTACTS (WhatsApp & Instagram) ---
+  getSocialContacts() {
+    if (!this.data.social_contacts || !Array.isArray(this.data.social_contacts) || this.data.social_contacts.length === 0) {
+      try {
+        const telephonyPath = path.join(__dirname, 'data', 'telephony_contacts.json');
+        if (fs.existsSync(telephonyPath)) {
+          const raw = fs.readFileSync(telephonyPath, 'utf8');
+          const tContacts = JSON.parse(raw);
+          this.data.social_contacts = tContacts.map(tc => ({
+            id: `sc-${tc.id || tc.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
+            name: tc.name,
+            phone: tc.phone,
+            numbers: tc.numbers || [tc.phone],
+            ig: `@${tc.name.toLowerCase().replace(/[^a-z0-9_]/g, '')}`,
+            platform: 'whatsapp',
+            lastMessage: 'Synced from Android USB phonebook',
+            lastTimestamp: 'Recent',
+            avatarColor: tc.avatarColor || 'from-emerald-500 to-teal-500'
+          }));
+        } else {
+          this.data.social_contacts = [];
+        }
+      } catch (e) {
+        this.data.social_contacts = [];
+      }
+      this.save();
+    }
+    return this.data.social_contacts;
+  }
+
+  saveSocialContacts(contacts) {
+    this.data.social_contacts = Array.isArray(contacts) ? contacts : [];
+    this.save();
+    return this.data.social_contacts;
+  }
+
+  addSocialContact(contact) {
+    if (!this.data.social_contacts) this.getSocialContacts();
+    const entry = {
+      id: contact.id || `sc_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+      name: contact.name || 'Unnamed',
+      phone: contact.phone || '+91 98000 00000',
+      numbers: contact.numbers || [contact.phone || '+91 98000 00000'],
+      ig: contact.ig || `@${(contact.name || 'user').toLowerCase().replace(/[^a-z0-9_]/g, '')}`,
+      platform: contact.platform || 'whatsapp',
+      lastMessage: contact.lastMessage || 'Connected to JASPER Auto-Reply',
+      lastTimestamp: contact.lastTimestamp || 'Just now',
+      avatarColor: contact.avatarColor || (contact.platform === 'instagram' ? 'from-purple-500 to-pink-500' : 'from-emerald-500 to-teal-500')
+    };
+    this.data.social_contacts.unshift(entry);
+    this.save();
+    return entry;
+  }
+
   // --- FINANCE, ACCOUNTS & GUARDIAN BUDGET CORE ---
   getFinanceData() {
     if (!this.data.finance) {

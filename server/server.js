@@ -1876,8 +1876,20 @@ app.post('/api/social/sync-contacts', async (req, res) => {
     let current = dbManager.getSocialContacts();
     if (synced && synced.length > 0) {
       for (const sc of synced) {
-        if (!current.some(c => c.phone === sc.phone || (c.ig && c.ig === sc.ig))) {
-          current.unshift(sc);
+        const cleanPhone = (sc.phone || (sc.numbers && sc.numbers[0]) || '').replace(/[^0-9]/g, '');
+        if (!current.some(c => (c.phone && c.phone.replace(/[^0-9]/g, '') === cleanPhone) || (c.name && c.name.toLowerCase() === sc.name.toLowerCase()))) {
+          current.push({
+            id: `c_adb_${sc.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${cleanPhone.slice(-4)}`,
+            name: sc.name,
+            phone: sc.phone || (sc.numbers && sc.numbers[0]) || '',
+            numbers: sc.numbers || [sc.phone],
+            ig: `@${sc.name.toLowerCase().replace(/[^a-z0-9_]/g, '')}`,
+            platform: 'whatsapp',
+            lastMessage: 'Live contact from connected Android phone',
+            lastTimestamp: 'Recent',
+            avatarColor: 'from-emerald-500 to-teal-500',
+            callAppSynced: true
+          });
         }
       }
       dbManager.saveSocialContacts(current);
@@ -1900,7 +1912,8 @@ setInterval(async () => {
       let current = dbManager.getSocialContacts();
       let updated = false;
       for (const sc of synced) {
-        const existingIdx = current.findIndex(c => c.phone === sc.phone || (c.ig && c.ig === sc.ig));
+        const cleanPhone = (sc.phone || (sc.numbers && sc.numbers[0]) || '').replace(/[^0-9]/g, '');
+        const existingIdx = current.findIndex(c => (c.phone && c.phone.replace(/[^0-9]/g, '') === cleanPhone) || (c.name && c.name.toLowerCase() === sc.name.toLowerCase()));
         if (existingIdx >= 0) {
           if (sc.lastMessage && sc.lastMessage !== current[existingIdx].lastMessage) {
             current[existingIdx].lastMessage = sc.lastMessage;
@@ -1908,7 +1921,18 @@ setInterval(async () => {
             updated = true;
           }
         } else {
-          current.unshift(sc);
+          current.push({
+            id: `c_adb_${sc.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${cleanPhone.slice(-4)}`,
+            name: sc.name,
+            phone: sc.phone || (sc.numbers && sc.numbers[0]) || '',
+            numbers: sc.numbers || [sc.phone],
+            ig: `@${sc.name.toLowerCase().replace(/[^a-z0-9_]/g, '')}`,
+            platform: 'whatsapp',
+            lastMessage: 'Live contact from connected Android phone',
+            lastTimestamp: 'Recent',
+            avatarColor: 'from-emerald-500 to-teal-500',
+            callAppSynced: true
+          });
           updated = true;
         }
       }

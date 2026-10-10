@@ -396,6 +396,28 @@ async function handleToolExecution(tool, args) {
       });
     }
 
+    case 'make_phone_call': {
+      const num = (args?.contactOrNumber || '').replace(/[^0-9+]/g, '');
+      console.log(`[Satellite] Placing cellular call to ${num}...`);
+      return new Promise((resolve) => {
+        exec(`${adbBin} shell am start -a android.intent.action.CALL -d tel:${num}`, (err) => {
+          resolve({ success: !err, phone: num, message: `Dialed ${num} via mobile cellular` });
+        });
+      });
+    }
+
+    case 'send_whatsapp_message': {
+      const { recipient, message } = args;
+      console.log(`[Satellite] Sending WhatsApp message to ${recipient}...`);
+      return new Promise((resolve) => {
+        const cleanNumber = (recipient || '').replace(/[^0-9]/g, '');
+        const encMsg = encodeURIComponent(message || '').replace(/'/g, "%27");
+        exec(`${adbBin} shell am start -a android.intent.action.VIEW -d 'https://api.whatsapp.com/send?phone=${cleanNumber}&text=${encMsg}' -p com.whatsapp`, (err) => {
+          resolve({ success: !err, recipient, message });
+        });
+      });
+    }
+
     case 'run_powershell': {
       const { command } = args;
       return new Promise((resolve) => {
