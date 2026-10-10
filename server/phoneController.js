@@ -581,11 +581,7 @@ const PhoneController = {
     }
   },
 
-  simulatedNotifications: () => [
-    { package: 'com.whatsapp', title: 'Mom (WhatsApp)', text: 'See you tomorrow at 8 PM for dinner!' },
-    { package: 'com.google.android.calendar', title: 'Google Calendar', text: 'Upcoming: AI Architecture Review at 9:00 AM' },
-    { package: 'com.spotify.music', title: 'Spotify', text: 'Now Playing: Cyberpunk 2077 OST - I Really Want to Stay at Your House' }
-  ],
+  simulatedNotifications: () => [],
 
   lock: async () => {
     try {
@@ -691,7 +687,7 @@ const PhoneController = {
   whatsappSend: async (number, message, senderNumber) => {
     const cleanNum = (number || '').replace(/[^0-9+]/g, '');
     const safeMsg = encodeURIComponent(message || '');
-    const sender = senderNumber || '+91 98200 12345';
+    const sender = senderNumber || '';
 
     // 1. If WhatsApp Web client is authenticated and ready, dispatch directly via WhatsApp Web
     if (global.jasperWAClientReady && global.jasperWAClient) {
@@ -878,7 +874,7 @@ const PhoneController = {
                 rawContacts.unshift({
                   id: `c_ig_${Date.now()}_${rawContacts.length}`,
                   name: igUser.replace(/^@/, ''),
-                  phone: '+91 98000 00000',
+                  phone: '',
                   ig: cleanIg,
                   platform: 'instagram',
                   source: 'instagram_live',
@@ -982,14 +978,7 @@ const PhoneController = {
     return PhoneController.fallbackContacts();
   },
 
-  fallbackContacts: () => [
-    { id: 101, name: 'Mom', phone: '+91 98200 12345', category: 'Family', avatar: '❤️', defaultTask: 'Inform Mom I am running 15 minutes late for dinner.' },
-    { id: 102, name: 'Dr. Mehta (Dentist)', phone: '+91 98211 23456', category: 'Health', avatar: '🩺', defaultTask: 'Schedule a dental checkup appointment for Friday at 10 AM.' },
-    { id: 103, name: 'Alex (Auto Mechanic)', phone: '+91 98222 34567', category: 'Services', avatar: '🔧', defaultTask: 'Ask if my car service is complete and what the total bill is.' },
-    { id: 104, name: 'Sarah (Office Boss)', phone: '+91 98233 45678', category: 'Work', avatar: '💼', defaultTask: 'Notify that the quarterly AI report draft has been uploaded.' },
-    { id: 105, name: 'Pizza Express', phone: '+91 98244 56789', category: 'Food', avatar: '🍕', defaultTask: 'Inquire if large Pepperoni pizza special is available for pickup.' },
-    { id: 106, name: 'Rajesh (Landlord)', phone: '+91 98255 67890', category: 'Housing', avatar: '🏠', defaultTask: 'Ask when water heater maintenance technician is scheduled.' }
-  ],
+  fallbackContacts: () => [],
 
   lastKnownPhoneLocation: null,
 

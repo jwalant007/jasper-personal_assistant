@@ -25,104 +25,7 @@ const CONFIG_FILE = path.join(__dirname, 'data', 'telephony_config.json');
 const LOGS_FILE = path.join(__dirname, 'data', 'telephony_logs.json');
 const CONTACTS_FILE = path.join(__dirname, 'data', 'telephony_contacts.json');
 
-const DEFAULT_CONTACTS = [
-  {
-    id: 'tc-mom',
-    name: 'Mom',
-    phone: '+91 98200 12345',
-    category: 'Family',
-    isVip: true,
-    avatar: '❤️',
-    avatarColor: 'from-pink-500 to-rose-500',
-    notes: 'Family Priority • Whitelisted for screening bypass',
-    lastInteraction: 'Incoming Call (Today)',
-    source: 'permanent_store'
-  },
-  {
-    id: 'tc-sarah',
-    name: 'Sarah (Office Boss)',
-    phone: '+91 98233 45678',
-    category: 'Work',
-    isVip: true,
-    avatar: '💼',
-    avatarColor: 'from-blue-500 to-cyan-500',
-    notes: 'Engineering & Product Lead • High Urgency',
-    lastInteraction: 'Project update',
-    source: 'permanent_store'
-  },
-  {
-    id: 'tc-rahul',
-    name: 'Rahul (Football Coach)',
-    phone: '+91 98765 43210',
-    category: 'Personal',
-    isVip: false,
-    avatar: '⚽',
-    avatarColor: 'from-emerald-500 to-teal-500',
-    notes: 'Football trial coordinator • Autonomous Screening',
-    lastInteraction: 'Practice scheduling',
-    source: 'permanent_store'
-  },
-  {
-    id: 'tc-miami',
-    name: 'Miami Client ($17k Deal)',
-    phone: '+1 305 555 0199',
-    category: 'Client',
-    isVip: true,
-    avatar: '💎',
-    avatarColor: 'from-amber-500 to-orange-500',
-    notes: 'Enterprise contract client • Auto-hold Line 1',
-    lastInteraction: 'Urgent contract signing',
-    source: 'permanent_store'
-  },
-  {
-    id: 'tc-mehta',
-    name: 'Dr. Mehta (Dentist)',
-    phone: '+91 98211 23456',
-    category: 'Health',
-    isVip: false,
-    avatar: '🩺',
-    avatarColor: 'from-teal-500 to-emerald-500',
-    notes: 'Dental clinic appointment desk',
-    lastInteraction: 'Appointment check',
-    source: 'permanent_store'
-  },
-  {
-    id: 'tc-alex',
-    name: 'Alex (Auto Mechanic)',
-    phone: '+91 98222 34567',
-    category: 'Services',
-    isVip: false,
-    avatar: '🔧',
-    avatarColor: 'from-amber-500 to-yellow-500',
-    notes: 'Vehicle servicing center',
-    lastInteraction: 'Car inspection',
-    source: 'permanent_store'
-  },
-  {
-    id: 'tc-fatih',
-    name: 'Fatih Makes',
-    phone: '+1 555 382 9901',
-    category: 'Work',
-    isVip: false,
-    avatar: '🛠️',
-    avatarColor: 'from-purple-500 to-indigo-500',
-    notes: 'CAD Engineering partner',
-    lastInteraction: 'Design review',
-    source: 'permanent_store'
-  },
-  {
-    id: 'tc-pizza',
-    name: 'Pizza Express',
-    phone: '+91 98244 56789',
-    category: 'Services',
-    isVip: false,
-    avatar: '🍕',
-    avatarColor: 'from-red-500 to-orange-500',
-    notes: 'Local order desk',
-    lastInteraction: 'Order',
-    source: 'permanent_store'
-  }
-];
+const DEFAULT_CONTACTS = [];
 
 class TelephonyEngine {
   constructor() {
@@ -332,32 +235,7 @@ class TelephonyEngine {
         console.log(`[TelephonyEngine] Notice: ADB phone contacts sync: ${err.message}`);
       }
 
-      // 2. Incorporate phoneController dialer fallback contacts
-      try {
-        const fallbackContacts = phoneController.fallbackContacts();
-        for (const fc of fallbackContacts) {
-          const norm = this.normalizePhone(fc.phone);
-          if (!norm) continue;
-
-          if (!contactMap.has(norm)) {
-            contactMap.set(norm, {
-              id: `tc-fb-${fc.id}`,
-              name: fc.name,
-              phone: fc.phone,
-              category: fc.category || 'Personal',
-              isVip: fc.category === 'Family' || fc.category === 'Work',
-              avatar: fc.avatar || '👤',
-              avatarColor: 'from-blue-500 to-indigo-500',
-              notes: fc.defaultTask || 'Dialer contact',
-              lastInteraction: 'Address Book',
-              source: 'phone_dialer'
-            });
-            newlyAdded++;
-          }
-        }
-      } catch (_) {}
-
-      // 3. Incorporate Database Social Contacts
+      // 2. Incorporate Database Social Contacts
       try {
         const dbManager = require('./database');
         const socialContacts = dbManager.getSocialContacts();

@@ -176,15 +176,6 @@
       }
     },
     {
-      "id": "al-1791659559833-nimk",
-      "timestamp": "2026-10-10T19:12:39.833Z",
-      "type": "tool_completed",
-      "icon": "✅",
-      "tool": "get_phone_contacts",
-      "result": "{\"success\":true,\"count\":363,\"contacts\":[{\"id\":\"tc-mom\",\"name\":\"Mom\",\"phone\":\"+91 98200 12345\",\"category\":\"Family\",\"isVip\":true,\"avatar\":\"❤️\",\"avatarColor\":\"from-pink-500 to-rose-500\",\"notes\":\"Family P",
-      "elapsedMs": 3661
-    },
-    {
       "id": "al-1791659556174-iz46",
       "timestamp": "2026-10-10T19:12:36.174Z",
       "type": "tool_executing",
@@ -192,15 +183,6 @@
       "tool": "get_phone_contacts",
       "level": 1,
       "args": {}
-    },
-    {
-      "id": "al-1791659516173-4hun",
-      "timestamp": "2026-10-10T19:11:56.173Z",
-      "type": "tool_completed",
-      "icon": "✅",
-      "tool": "get_phone_contacts",
-      "result": "{\"success\":true,\"count\":363,\"contacts\":[{\"id\":\"tc-mom\",\"name\":\"Mom\",\"phone\":\"+91 98200 12345\",\"category\":\"Family\",\"isVip\":true,\"avatar\":\"❤️\",\"avatarColor\":\"from-pink-500 to-rose-500\",\"notes\":\"Family P",
-      "elapsedMs": 3673
     },
     {
       "id": "al-1791659512501-wx1f",
@@ -306,15 +288,6 @@
       "args": {}
     },
     {
-      "id": "al-1791311641385-e5gj",
-      "timestamp": "2026-10-06T18:34:01.385Z",
-      "type": "tool_completed",
-      "icon": "✅",
-      "tool": "set_monthly_budget",
-      "result": "{\"success\":true,\"monthlyLimit\":2000,\"currency\":\"₹\",\"dailyBurnRate\":66.67,\"alertThresholdPercent\":85,\"guardianWarningThreshold\":1700,\"guardianName\":\"Mom\",\"guardianPhone\":\"+91 98200 12345\",\"guardianPlat",
-      "elapsedMs": 33
-    },
-    {
       "id": "al-1791311641352-zdb8",
       "timestamp": "2026-10-06T18:34:01.353Z",
       "type": "tool_executing",
@@ -343,15 +316,6 @@
       "tool": "get_account_balances",
       "level": 0,
       "args": {}
-    },
-    {
-      "id": "al-1791311596463-3gsq",
-      "timestamp": "2026-10-06T18:33:16.463Z",
-      "type": "tool_completed",
-      "icon": "✅",
-      "tool": "set_monthly_budget",
-      "result": "{\"success\":true,\"monthlyLimit\":2000,\"currency\":\"₹\",\"dailyBurnRate\":66.67,\"alertThresholdPercent\":85,\"guardianWarningThreshold\":1700,\"guardianName\":\"Mom\",\"guardianPhone\":\"+91 98200 12345\",\"guardianPlat",
-      "elapsedMs": 119
     },
     {
       "id": "al-1791311596347-bdxd",

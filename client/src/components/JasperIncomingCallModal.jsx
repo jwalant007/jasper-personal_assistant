@@ -97,26 +97,15 @@ export default function JasperIncomingCallModal({
   const [callSeconds, setCallSeconds] = useState(0);
 
   // Pillar 1: Screening State
-  const [callerName, setCallerName] = useState(callData?.callerName || callData?.session?.caller || 'Rahul');
-  const [callerPhone, setCallerPhone] = useState(callData?.session?.phone || '+91 98765 43210');
-  const [initialReason, setInitialReason] = useState(callData?.initialReason || callData?.session?.initialReason || 'Football practice');
+  const [callerName, setCallerName] = useState(callData?.callerName || callData?.session?.caller || 'Unknown Caller');
+  const [callerPhone, setCallerPhone] = useState(callData?.session?.phone || callData?.phone || '');
+  const [initialReason, setInitialReason] = useState(callData?.initialReason || callData?.session?.initialReason || 'Incoming call inquiry');
   const [screeningSummary, setScreeningSummary] = useState(
     callData?.screeningSummary || 
     callData?.session?.screeningSummary || 
-    'The caller wants to discuss your football trial tomorrow.'
+    'Screening in progress...'
   );
-  const [screeningHistory, setScreeningHistory] = useState(callData?.session?.screeningHistory || [
-    {
-      speaker: 'jasper',
-      text: "Good day. You have reached Jwalant's private office. I am J.A.S.P.E.R., his personal AI assistant. May I ask who is calling and the reason for your call?",
-      timestamp: 'Just now'
-    },
-    {
-      speaker: 'caller',
-      text: "Hey, I wanted to talk to Jwalant about the football trial tomorrow.",
-      timestamp: 'Just now'
-    }
-  ]);
+  const [screeningHistory, setScreeningHistory] = useState(callData?.session?.screeningHistory || []);
   const [isAskingContinue, setIsAskingContinue] = useState(false);
   const [continueQuestion, setContinueQuestion] = useState('');
   const [isContinuingLoading, setIsContinuingLoading] = useState(false);
@@ -126,11 +115,7 @@ export default function JasperIncomingCallModal({
     caller: callerName,
     initialReason: initialReason,
     currentTopic: initialReason,
-    importantDetails: callData?.session?.contextMemory?.importantDetails || [
-      'Practice tomorrow',
-      'Time: 6 PM',
-      'Location: Training ground'
-    ],
+    importantDetails: callData?.session?.contextMemory?.importantDetails || [],
     commitments: [],
     decisions: [],
     openQuestions: [],

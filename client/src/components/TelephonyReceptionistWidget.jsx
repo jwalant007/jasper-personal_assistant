@@ -637,7 +637,7 @@ export default function TelephonyReceptionistWidget({ onClose }) {
                             <div>
                               <div className="flex items-center gap-2">
                                 <span className="font-bold text-white text-sm">{sess.caller}</span>
-                                <span className="text-[10px] text-slate-400 font-mono">{sess.phone || '+91 98765 43210'}</span>
+                                {sess.phone && <span className="text-[10px] text-slate-400 font-mono">{sess.phone}</span>}
                               </div>
                               <span className="text-[10px] text-amber-300 font-mono">REASON: {sess.initialReason}</span>
                             </div>
@@ -1504,7 +1504,7 @@ export default function TelephonyReceptionistWidget({ onClose }) {
                   type="text"
                   value={config.ownerPhoneNumber}
                   onChange={(e) => setConfig({ ...config, ownerPhoneNumber: e.target.value })}
-                  placeholder="+1 (555) 0199 or +91 98765 43210"
+                  placeholder="+1 (555) 000-0000 or +91 98XXXXXXXX"
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-400 font-mono"
                 />
                 <p className="text-[11px] text-slate-500 mt-1">JASPER dials this number urgently when a high-value or time-sensitive deal is detected.</p>
@@ -1593,7 +1593,7 @@ export default function TelephonyReceptionistWidget({ onClose }) {
                   required
                   value={newContactName}
                   onChange={(e) => setNewContactName(e.target.value)}
-                  placeholder="e.g. Rahul (Football Coach)"
+                  placeholder="e.g. Contact Name"
                   className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-cyan-400"
                 />
               </div>
@@ -1605,7 +1605,7 @@ export default function TelephonyReceptionistWidget({ onClose }) {
                   required
                   value={newContactPhone}
                   onChange={(e) => setNewContactPhone(e.target.value)}
-                  placeholder="e.g. +91 98765 43210"
+                  placeholder="e.g. +91 98XXXXXXXX"
                   className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white font-mono focus:outline-none focus:border-cyan-400"
                 />
               </div>

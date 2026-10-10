@@ -370,7 +370,7 @@ export default function PaymentBalanceWidget({ onClose }) {
     state: 'normal',
     percentSpent: 0,
     guardianName: 'Guardian',
-    guardianPhone: '+91 98200 12345',
+    guardianPhone: '',
     guardianPlatform: 'whatsapp'
   };
   const analytics = financeData?.analytics || {

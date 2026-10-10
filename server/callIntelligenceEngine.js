@@ -135,7 +135,7 @@ class CallIntelligenceEngine {
   /**
    * Analyze initial caller statement to extract Caller Name, Reason, Summary, and Urgency
    */
-  async analyzeInitialScreening(callerSpeech = '', from = '+91 98765 43210') {
+  async analyzeInitialScreening(callerSpeech = '', from = '') {
     const text = callerSpeech.trim();
     const lower = text.toLowerCase();
 
@@ -236,9 +236,9 @@ Return JSON with:
    */
   async startScreening({
     callId,
-    from = '+91 98765 43210',
-    callerName = 'Rahul',
-    speechResult = 'Hey, I wanted to talk to Jwalant about the football trial tomorrow.',
+    from = '',
+    callerName = 'Unknown Caller',
+    speechResult = '',
     isSimulation = false,
     contact = null
   }) {

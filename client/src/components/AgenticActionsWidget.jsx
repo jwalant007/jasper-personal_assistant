@@ -47,20 +47,25 @@ export default function AgenticActionsWidget({ onClose, initialQuery = '' }) {
   const [copiedCode, setCopiedCode] = useState(false);
 
   // Mobile contacts state
-  const [mobileContacts, setMobileContacts] = useState([
-    { id: 1, name: 'Mom', phone: '+91 98200 12345', category: 'Family', avatar: '❤️', defaultTask: 'Inform Mom I am running 15 minutes late for dinner.' },
-    { id: 2, name: 'Dr. Mehta (Dentist)', phone: '+91 98211 23456', category: 'Health', avatar: '🩺', defaultTask: 'Schedule a dental checkup appointment for Friday at 10 AM.' },
-    { id: 3, name: 'Alex (Auto Mechanic)', phone: '+91 98222 34567', category: 'Services', avatar: '🔧', defaultTask: 'Ask if my car service is complete and what the total bill is.' },
-    { id: 4, name: 'Sarah (Office Boss)', phone: '+91 98233 45678', category: 'Work', avatar: '💼', defaultTask: 'Notify that the quarterly AI report draft has been uploaded.' },
-    { id: 5, name: 'Pizza Express', phone: '+91 98244 56789', category: 'Food', avatar: '🍕', defaultTask: 'Inquire if large Pepperoni pizza special is available for pickup.' },
-    { id: 6, name: 'Rajesh (Landlord)', phone: '+91 98255 67890', category: 'Housing', avatar: '🏠', defaultTask: 'Ask when water heater maintenance technician is scheduled.' }
-  ]);
-
-  const [selectedContact, setSelectedContact] = useState(mobileContacts[2]);
-  const [contactGoal, setContactGoal] = useState(mobileContacts[2].defaultTask);
+  const [mobileContacts, setMobileContacts] = useState([]);
+  const [selectedContact, setSelectedContact] = useState(null);
+  const [contactGoal, setContactGoal] = useState('');
   const [contactSearchQuery, setContactSearchQuery] = useState('');
   const [contactCallStatus, setContactCallStatus] = useState('idle'); // 'idle' | 'dialing' | 'talking' | 'ended'
   const [contactCallDuration, setContactCallDuration] = useState(0);
+
+  useEffect(() => {
+    fetch(`${getApiBase()}/api/telephony/contacts`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && Array.isArray(d.contacts) && d.contacts.length > 0) {
+          setMobileContacts(d.contacts);
+          setSelectedContact(d.contacts[0]);
+          setContactGoal(d.contacts[0].notes || `Call ${d.contacts[0].name}`);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const filteredMobileContacts = mobileContacts.filter(c =>
     (c.name || '').toLowerCase().includes(contactSearchQuery.toLowerCase()) ||

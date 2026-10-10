@@ -38,28 +38,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
     setTimeout(() => setStatusBanner(null), 4000);
   };
 
-  const [logs, setLogs] = useState([
-    {
-      id: 'log-1',
-      platform: 'whatsapp',
-      type: 'auto_reply',
-      recipient: '+91 98200 12345 (Mom)',
-      trigger: 'Incoming message: "Hey, are you free?"',
-      replyText: "🚗 Drive Mode: I'm currently driving. JASPER AI has recorded your message and I will reply as soon as I park.",
-      timestamp: '10:42 PM',
-      status: 'sent'
-    },
-    {
-      id: 'log-2',
-      platform: 'instagram',
-      type: 'auto_reply',
-      recipient: '@fatihmakes',
-      trigger: 'Incoming DM: "Check this cool project!"',
-      replyText: "Automated test DM sent from Jwalant's connected Instagram account!",
-      timestamp: '11:45 PM',
-      status: 'sent'
-    }
-  ]);
+  const [logs, setLogs] = useState([]);
 
   // Account Linking & Credentials State
   const [showAccountModal, setShowAccountModal] = useState(false);
@@ -253,13 +232,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
     } catch (e) {}
   };
 
-  const [contacts, setContacts] = useState([
-    { id: 'c1', name: 'Mom', phone: '+91 98200 12345', ig: '@mom_family', platform: 'whatsapp', lastMessage: '🚗 Drive Mode: I\'m currently driving...', lastTimestamp: '10:42 PM', avatarColor: 'from-pink-500 to-rose-500' },
-    { id: 'c2', name: 'Fatih Makes', phone: '+1 555 382 9901', ig: '@fatihmakes', platform: 'instagram', lastMessage: 'Automated test DM sent from Jwalant\'s connected Instagram account!', lastTimestamp: '11:45 PM', avatarColor: 'from-purple-500 to-indigo-500' },
-    { id: 'c3', name: 'Sarah (Office Boss)', phone: '+91 98233 45678', ig: '@sarah_lead', platform: 'whatsapp', lastMessage: '💼 Deep Work Mode: I am currently in a meeting.', lastTimestamp: '08:15 PM', avatarColor: 'from-blue-500 to-cyan-500' },
-    { id: 'c4', name: 'Alex (Auto Mechanic)', phone: '+91 98222 34567', ig: '@alex_mechanic', platform: 'instagram', lastMessage: 'Car inspection report ready for pickup!', lastTimestamp: 'Yesterday', avatarColor: 'from-amber-500 to-orange-500' },
-    { id: 'c5', name: 'Dr. Mehta (Dentist)', phone: '+91 98211 23456', ig: '@mehta_clinic', platform: 'whatsapp', lastMessage: 'Appointment scheduled for Tuesday at 4:00 PM', lastTimestamp: 'Aug 28', avatarColor: 'from-emerald-500 to-teal-500' }
-  ]);
+  const [contacts, setContacts] = useState([]);
 
   // Load config, accounts, contacts & logs from backend
   const fetchConfigAndLogs = async () => {
@@ -491,8 +464,9 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
 
   // Trigger simulated incoming call or message
   const handleSimulateIncoming = async (simPlatform, simAction = 'decline_and_reply') => {
-    const simCaller = simPlatform === 'instagram' ? '@alex_mechanic' : '+91 98200 12345';
-    const simName = simPlatform === 'instagram' ? 'Alex (Mechanic)' : 'Mom';
+    const topContact = contacts.find(c => c.platform === simPlatform) || contacts[0];
+    const simCaller = topContact?.phone || topContact?.ig || (simPlatform === 'instagram' ? '@caller' : '+91 99999 99999');
+    const simName = topContact?.name || 'Incoming Caller';
 
     try {
       const res = await fetch('/api/social/call-handler', {
@@ -545,8 +519,8 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           source: 'whatsapp',
-          sender: '+91 98200 12345',
-          senderName: 'Mom (Urgent Priority)',
+          sender: contacts[0]?.phone || '',
+          senderName: contacts[0]?.name || 'Priority Contact',
           message: 'URGENT: Emergency alert test from JASPER! Please pick up the phone!'
         })
       });
@@ -1475,7 +1449,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
                     type="text"
                     value={accountConfig.senderNumber}
                     onChange={(e) => setAccountConfig(prev => ({ ...prev, senderNumber: e.target.value }))}
-                    placeholder="+91 98200 12345"
+                    placeholder="+91 98XXXXXXXX"
                     className="w-full bg-slate-900 border border-emerald-500/40 rounded-lg px-2.5 py-1.5 text-xs text-emerald-200 font-mono focus:outline-none focus:border-emerald-400 mt-0.5"
                   />
                 </div>
@@ -1647,7 +1621,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
                     type="text"
                     value={newContactForm.phone}
                     onChange={(e) => setNewContactForm(prev => ({ ...prev, phone: e.target.value }))}
-                    placeholder="+91 98200 00000"
+                    placeholder="+91 98XXXXXXXX"
                     className="w-full bg-slate-900 border border-emerald-500/40 rounded-lg px-2.5 py-1.5 text-xs text-emerald-200 font-mono mt-0.5 focus:outline-none focus:border-emerald-400"
                   />
                 </div>

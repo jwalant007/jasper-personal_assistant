@@ -1810,7 +1810,7 @@ app.get('/api/social/accounts', (req, res) => {
         lastAuthenticated: accounts.instagram?.lastAuthenticated || new Date().toISOString()
       },
       whatsapp: {
-        senderNumber: accounts.whatsapp?.senderNumber || '+91 98200 12345',
+        senderNumber: accounts.whatsapp?.senderNumber || '',
         countryCode: accounts.whatsapp?.countryCode || '+91',
         status: accounts.whatsapp?.status || 'connected',
         lastLinked: accounts.whatsapp?.lastLinked || new Date().toISOString()
@@ -2101,7 +2101,7 @@ app.post('/api/social/send', async (req, res) => {
       senderId = senderOverride || accounts.instagram?.username || '@jwalant';
       result = await phoneController.instagramSend(recipient, message, senderId);
     } else {
-      senderId = senderOverride || accounts.whatsapp?.senderNumber || '+91 98200 12345';
+      senderId = senderOverride || accounts.whatsapp?.senderNumber || '';
       result = await phoneController.whatsappSend(recipient, message, senderId);
     }
 
@@ -2285,8 +2285,8 @@ app.get('/api/social/emergency-status', (req, res) => {
 app.post('/api/social/emergency-trigger', async (req, res) => {
   try {
     const { 
-      sender = '+91 98200 12345', 
-      senderName = 'Emergency Contact (Mom)', 
+      sender = '', 
+      senderName = 'Emergency Contact', 
       message = 'URGENT: Please respond immediately!' 
     } = req.body || {};
 
@@ -2582,8 +2582,8 @@ app.post('/api/finance/guardian-alert/test', async (req, res) => {
   try {
     const fin = dbManager.getFinanceData();
     const details = {
-      guardianName: fin.budget?.guardianName || 'Mom',
-      guardianPhone: fin.budget?.guardianPhone || '+91 98200 12345',
+      guardianName: fin.budget?.guardianName || 'Guardian',
+      guardianPhone: fin.budget?.guardianPhone || '',
       guardianPlatform: fin.budget?.guardianPlatform || 'whatsapp',
       limit: fin.budget?.monthlyLimit || 500,
       currentSpend: fin.budget?.monthSpend || 540,
@@ -4349,19 +4349,22 @@ app.get('/api/telephony/live/sessions', (req, res) => {
 // ⚽ 1-CLICK SIMULATION: Rahul & Football Trial Scenario
 app.post('/api/telephony/live/simulate-football-scenario', async (req, res) => {
   try {
-    const callId = `call-rahul-${Date.now()}`;
+    const callerName = req.body?.callerName || 'Incoming Screening Test';
+    const from = req.body?.from || '';
+    const speechResult = req.body?.speechResult || 'Hello, I am calling to discuss an urgent matter with Jwalant.';
+    const callId = `call-screen-${Date.now()}`;
     const session = await callIntelligenceEngine.startScreening({
       callId,
-      from: '+91 98765 43210',
-      callerName: 'Rahul',
-      speechResult: 'Hey, I wanted to talk to Jwalant about the football trial tomorrow.',
+      from,
+      callerName,
+      speechResult,
       isSimulation: true
     });
     res.json({
       success: true,
       callId,
       session,
-      message: 'Football trial incoming screening simulation triggered. Waiting for Jwalant\'s decision.'
+      message: 'Incoming screening simulation triggered.'
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

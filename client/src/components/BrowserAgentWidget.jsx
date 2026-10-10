@@ -10,10 +10,10 @@ export default function BrowserAgentWidget({ onClose }) {
   const [researchTopic, setResearchTopic] = useState('');
   const [researchData, setResearchData] = useState(null);
   const [formData, setFormData] = useState({
-    name: 'J.A.S.P.E.R. User',
-    email: 'user@jasper.ai',
-    phone: '+1 555-0199',
-    address: '100 Silicon Way, Tech City'
+    name: '',
+    email: '',
+    phone: '',
+    address: ''
   });
 
   // Open Website

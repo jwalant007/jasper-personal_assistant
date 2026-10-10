@@ -73,7 +73,7 @@ const DEFAULT_SCHEMA = {
       lastAuthenticated: new Date().toISOString()
     },
     whatsapp: {
-      senderNumber: '+91 98200 12345',
+      senderNumber: '',
       countryCode: '+91',
       status: 'connected',
       lastLinked: new Date().toISOString()
@@ -93,41 +93,10 @@ const DEFAULT_SCHEMA = {
     },
     aiSmartPrompt: "Formulate a polite, professional, and friendly 1-2 sentence automated reply on behalf of Jwalant.",
     emergencyKeyword: "URGENT",
-    whitelistContacts: ["Mom", "Sarah (Office Boss)"]
+    whitelistContacts: []
   },
-  social_contacts: [
-    { id: 'c1', name: 'Mom', phone: '+91 98200 12345', ig: '@mom_family', platform: 'whatsapp', lastMessage: '🚗 Drive Mode: I\'m currently driving...', lastTimestamp: '10:42 PM', avatarColor: 'from-pink-500 to-rose-500' },
-    { id: 'c2', name: 'Fatih Makes', phone: '+1 555 382 9901', ig: '@fatihmakes', platform: 'instagram', lastMessage: 'Automated test DM sent from Jwalant\'s connected Instagram account!', lastTimestamp: '11:45 PM', avatarColor: 'from-purple-500 to-indigo-500' },
-    { id: 'c3', name: 'Sarah (Office Boss)', phone: '+91 98233 45678', ig: '@sarah_lead', platform: 'whatsapp', lastMessage: '💼 Deep Work Mode: I am currently in a meeting.', lastTimestamp: '08:15 PM', avatarColor: 'from-blue-500 to-cyan-500' },
-    { id: 'c4', name: 'Alex (Auto Mechanic)', phone: '+91 98222 34567', ig: '@alex_mechanic', platform: 'instagram', lastMessage: 'Car inspection report ready for pickup!', lastTimestamp: 'Yesterday', avatarColor: 'from-amber-500 to-orange-500' },
-    { id: 'c5', name: 'Dr. Mehta (Dentist)', phone: '+91 98211 23456', ig: '@mehta_clinic', platform: 'whatsapp', lastMessage: 'Appointment scheduled for Tuesday at 4:00 PM', lastTimestamp: 'Aug 28', avatarColor: 'from-emerald-500 to-teal-500' }
-  ],
-  social_logs: [
-    {
-      id: "LOG-01",
-      platform: "whatsapp",
-      type: "call_auto_reply",
-      recipient: "+91 98200 12345",
-      recipientName: "Mom",
-      incomingTextOrCall: "Incoming WhatsApp Call",
-      actionTaken: "Declined Call & Sent WhatsApp Auto-Reply",
-      messageSent: "🚗 Drive Mode: I'm currently driving. JASPER AI has recorded your message and I will reply as soon as I park.",
-      status: "Delivered",
-      timestamp: "10:42 PM"
-    },
-    {
-      id: "LOG-02",
-      platform: "instagram",
-      type: "msg_auto_reply",
-      recipient: "@fatihmakes",
-      recipientName: "Fatih Makes",
-      incomingTextOrCall: "Hey! Can you send the CAD files?",
-      actionTaken: "AI Smart Agent Auto-Replied to Instagram DM",
-      messageSent: "Hey Fatih! Jwalant is in deep focus mode right now. He will send over the files as soon as he is back at the workstation!",
-      status: "Delivered",
-      timestamp: "10:35 PM"
-    }
-  ],
+  social_contacts: [],
+  social_logs: [],
   settings: {
     theme: 'obsidian-modern',
     serverIp: 'localhost',
@@ -142,22 +111,13 @@ const DEFAULT_SCHEMA = {
     budget: {
       monthlyLimit: 2000.00,
       alertThresholdPercent: 85,
-      guardianName: 'Mom',
-      guardianPhone: '+91 98200 12345',
+      guardianName: 'Guardian',
+      guardianPhone: '',
       guardianPlatform: 'whatsapp',
       guardianAlertsEnabled: true,
       lastAlertDispatchedAt: null,
       cooldownHours: 24,
-      alertsHistory: [
-        {
-          id: 'ALT-INIT',
-          date: new Date(Date.now() - 86400000 * 5).toISOString(),
-          type: 'warning',
-          message: 'Warning: 85% of monthly pocket money limit reached (₹1,700 / ₹2,000).',
-          deliveredTo: 'Mom (+91 98200 12345 via WhatsApp)',
-          status: 'Delivered'
-        }
-      ]
+      alertsHistory: []
     },
     transactions: [],
     settings: {
@@ -498,7 +458,7 @@ class DatabaseManager {
     if (!this.data.social_accounts) {
       this.data.social_accounts = {
         instagram: { username: '@jwalant', password: '', sessionCookie: '', status: 'configured', lastAuthenticated: new Date().toISOString() },
-        whatsapp: { senderNumber: '+91 98200 12345', countryCode: '+91', status: 'connected', lastLinked: new Date().toISOString() }
+        whatsapp: { senderNumber: '', countryCode: '+91', status: 'connected', lastLinked: new Date().toISOString() }
       };
       this.save();
     }

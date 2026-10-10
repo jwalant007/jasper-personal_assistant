@@ -151,10 +151,7 @@
     },
     "aiSmartPrompt": "Formulate a polite, professional, and friendly 1-2 sentence automated reply on behalf of Jwalant.",
     "emergencyKeyword": "URGENT",
-    "whitelistContacts": [
-      "Mom",
-      "Sarah (Office Boss)"
-    ]
+    "whitelistContacts": []
   },
   "social_logs": [
     {
@@ -247,32 +244,6 @@
       "status": "Delivered",
       "timestamp": "01:32 am",
       "date": "2026-09-15T20:02:13.800Z"
-    },
-    {
-      "id": "LOG-1789405787361-832",
-      "platform": "emergency_system",
-      "type": "emergency_alert",
-      "recipient": "+91 98200 12345",
-      "recipientName": "Mom (Urgent Priority)",
-      "incomingTextOrCall": "Incoming Emergency: \"URGENT: Emergency alert test from JASPER! Please pick up the phone!\"",
-      "actionTaken": "🚨 EMERGENCY ALERT: Dispatched Desktop Toast, Spoken Alarm & Priority Broadcast",
-      "messageSent": "🚨 URGENT PRIORITY ALERT: Flagged to Jwalant with high priority.",
-      "status": "Delivered",
-      "timestamp": "10:39 pm",
-      "date": "2026-09-14T17:09:47.377Z"
-    },
-    {
-      "id": "LOG-1789384274691-756",
-      "platform": "emergency_system",
-      "type": "emergency_alert",
-      "recipient": "+91 98200 12345",
-      "recipientName": "Mom",
-      "incomingTextOrCall": "Incoming Emergency: \"URGENT: Please call me back right now!\"",
-      "actionTaken": "🚨 EMERGENCY ALERT: Dispatched Desktop Toast, Spoken Alarm & Priority Broadcast",
-      "messageSent": "🚨 URGENT PRIORITY ALERT: Flagged to Jwalant with high priority.",
-      "status": "Delivered",
-      "timestamp": "04:41 pm",
-      "date": "2026-09-14T11:11:14.691Z"
     },
     {
       "id": "LOG-1789383885293-231",
@@ -616,17 +587,6 @@
     }
   },
   "social_contacts": [
-    {
-      "id": "c_wa_1788171216562_0",
-      "name": "Mom (WhatsApp)",
-      "phone": "+91 98000 00000",
-      "ig": "@momwhatsapp",
-      "platform": "whatsapp",
-      "source": "whatsapp_live",
-      "lastMessage": "💬 WA: \"See you tomorrow at 8 PM for dinner!\"",
-      "lastTimestamp": "Live WA",
-      "avatarColor": "from-emerald-500 to-teal-500"
-    },
     {
       "id": "c_call_917949210104",
       "name": "Caller +917949210104",
@@ -4469,56 +4429,6 @@
       "lastMessage": "Synced from Phone Address Book",
       "lastTimestamp": "Phone Synced",
       "avatarColor": "from-emerald-500 to-teal-500"
-    },
-    {
-      "id": "c1",
-      "name": "Mom",
-      "phone": "+91 98200 12345",
-      "ig": "@mom_family",
-      "platform": "whatsapp",
-      "lastMessage": "🚗 Drive Mode: I'm currently driving...",
-      "lastTimestamp": "10:42 PM",
-      "avatarColor": "from-pink-500 to-rose-500"
-    },
-    {
-      "id": "c2",
-      "name": "Fatih Makes",
-      "phone": "+1 555 382 9901",
-      "ig": "@fatihmakes",
-      "platform": "instagram",
-      "lastMessage": "Automated test DM sent from Jwalant's connected Instagram account!",
-      "lastTimestamp": "11:45 PM",
-      "avatarColor": "from-purple-500 to-indigo-500"
-    },
-    {
-      "id": "c3",
-      "name": "Sarah (Office Boss)",
-      "phone": "+91 98233 45678",
-      "ig": "@sarah_lead",
-      "platform": "whatsapp",
-      "lastMessage": "💼 Deep Work Mode: I am currently in a meeting.",
-      "lastTimestamp": "08:15 PM",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c4",
-      "name": "Alex (Auto Mechanic)",
-      "phone": "+91 98222 34567",
-      "ig": "@alex_mechanic",
-      "platform": "instagram",
-      "lastMessage": "Car inspection report ready for pickup!",
-      "lastTimestamp": "Yesterday",
-      "avatarColor": "from-amber-500 to-orange-500"
-    },
-    {
-      "id": "c5",
-      "name": "Dr. Mehta (Dentist)",
-      "phone": "+91 98211 23456",
-      "ig": "@mehta_clinic",
-      "platform": "whatsapp",
-      "lastMessage": "Appointment scheduled for Tuesday at 4:00 PM",
-      "lastTimestamp": "Aug 28",
-      "avatarColor": "from-emerald-500 to-teal-500"
     }
   ],
   "finance": {
@@ -4547,22 +4457,13 @@
     "budget": {
       "monthlyLimit": 2000,
       "alertThresholdPercent": 85,
-      "guardianName": "Mom",
-      "guardianPhone": "+91 98200 12345",
+      "guardianName": "",
+      "guardianPhone": "",
       "guardianPlatform": "whatsapp",
-      "guardianAlertsEnabled": true,
+      "guardianAlertsEnabled": false,
       "lastAlertDispatchedAt": null,
       "cooldownHours": 24,
-      "alertsHistory": [
-        {
-          "id": "ALT-INIT",
-          "date": "2026-10-01T18:33:14.745Z",
-          "type": "warning",
-          "message": "Warning: 85% of monthly pocket money limit reached (₹1,700 / ₹2,000).",
-          "deliveredTo": "Mom (+91 98200 12345 via WhatsApp)",
-          "status": "Delivered"
-        }
-      ]
+      "alertsHistory": []
     },
     "transactions": [
       {
