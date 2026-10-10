@@ -3150,6 +3150,7 @@ app.get(['/api/downloads', '/api/downloads/manifest', '/api/system/binaries'], (
 
   const exeMeta = getBinaryFileMetadata('JASPER_Assistant_Setup.exe', [
     path.join(__dirname, 'downloads', 'JASPER_Assistant_Setup.exe'),
+    path.join(__dirname, '../dist-electron/JASPER Assistant Setup 1.0.2.exe'),
     path.join(__dirname, '../dist-electron/JASPER Assistant Setup 1.0.1.exe'),
     path.join(__dirname, '../dist-electron/JASPER Assistant Setup 1.0.0.exe')
   ]);
@@ -3232,6 +3233,7 @@ app.get(['/api/apk/download', '/api/download/apk'], (req, res) => {
 app.get(['/api/exe/download', '/api/download/exe'], (req, res) => {
   const candidatePaths = [
     path.join(__dirname, 'downloads', 'JASPER_Assistant_Setup.exe'),
+    path.join(__dirname, '../dist-electron/JASPER Assistant Setup 1.0.2.exe'),
     path.join(__dirname, '../dist-electron/JASPER Assistant Setup 1.0.1.exe'),
     path.join(__dirname, '../dist-electron/JASPER Assistant Setup 1.0.0.exe')
   ];

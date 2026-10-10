@@ -25,15 +25,18 @@ echo Starting backend AI engine and spatial window manager...
 echo.
 
 cd /d "%~dp0"
-start /b node server/index.js
+if exist "server\server.js" (
+    start /b node server/server.js
+    timeout /t 2 /nobreak >nul
+)
 
-timeout /t 3 /nobreak >nul
+if exist "JASPER_STANDALONE_OS.bat" (
+    call JASPER_STANDALONE_OS.bat
+    exit
+)
 
-:: Launch Full-Screen Kiosk Mode in Chrome/Edge connected 24/7 to Render Cloud
-echo Opening JASPER OS Cloud Kiosk Shell...
 set CLOUD_URL=https://jasper-personal-assistant.onrender.com
-start chrome.exe --kiosk --app=%CLOUD_URL% || start msedge.exe --kiosk --app=%CLOUD_URL% --edge-kiosk-type=fullscreen || start "" "%CLOUD_URL%"
-
+start "" "%CLOUD_URL%"
 exit
 "@
 

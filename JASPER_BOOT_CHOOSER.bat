@@ -23,8 +23,12 @@ cls
 echo.
 echo [SYSTEM] Booting JASPER OS 24/7 Cloud Environment...
 cd /d "%~dp0"
+if exist "%~dp0JASPER_STANDALONE_OS.bat" (
+    call "%~dp0JASPER_STANDALONE_OS.bat"
+    exit
+)
 set CLOUD_URL=https://jasper-personal-assistant.onrender.com
-start chrome.exe --kiosk --app=%CLOUD_URL% || start msedge.exe --kiosk --app=%CLOUD_URL% --edge-kiosk-type=fullscreen || start "" "%CLOUD_URL%"
+start "" "%CLOUD_URL%"
 exit
 
 :WINDOWS_DESKTOP
