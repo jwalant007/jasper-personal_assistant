@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { 
   Box, Terminal, Tv, Cpu, Shield, Sparkles, Smartphone, Monitor, Globe, 
   Activity, X, Minus, Square, Maximize2, RefreshCw, Layout, Layers, Volume2, 
