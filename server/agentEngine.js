@@ -580,6 +580,22 @@ const TOOL_REGISTRY = {
     }
   },
 
+  get_phone_contacts: {
+    name: 'get_phone_contacts',
+    description: 'Retrieve real contact list from connected Android phone via USB/Wireless ADB',
+    permissionLevel: 1,
+    parameters: { query: 'string (optional filter name or number)' },
+    async handler({ query = '' } = {}) {
+      const contacts = await phoneController.contacts();
+      if (!query) {
+        return { success: true, count: contacts.length, contacts };
+      }
+      const q = query.toLowerCase();
+      const filtered = contacts.filter(c => c.name.toLowerCase().includes(q) || (c.phone && c.phone.includes(q)));
+      return { success: true, count: filtered.length, contacts: filtered, query };
+    }
+  },
+
   control_device: {
     name: 'control_device',
     description: 'Control a connected smart device (Universal Smart TV, JioFiber STB, phone, lights)',
@@ -1009,7 +1025,7 @@ Key Directives:
       // Check if this is a hardware/local PC command and we should route to Satellite
       const HARDWARE_TOOLS = [
         'set_pc_volume', 'open_application', 'send_tv_command', 'wake_tv',
-        'open_phone_app', 'allow_device_background_usage', 'control_device', 'tune_stb_channel', 'tune_d2h_channel',
+        'open_phone_app', 'allow_device_background_usage', 'get_phone_contacts', 'control_device', 'tune_stb_channel', 'tune_d2h_channel',
         'send_phone_sms', 'make_call', 'run_powershell', 'pull_up_meeting'
       ];
 
@@ -1283,6 +1299,12 @@ Key Directives:
     if (lower.match(/\b(background usage|allow background|background execution|battery optimiz|keep (phone|device) awake|keep (phone|device) alive|run in background)\b/)) {
       const r = await this.executeTool('allow_device_background_usage', { packageName: 'com.antigravity.jasper' });
       results.push({ intent: 'allow_device_background_usage', ...r });
+    }
+
+    // Contact list / Phonebook lookup
+    if (lower.match(/\b(contact list|phone contacts|my contacts|phonebook|address book|who is in my phone|all contacts)\b/)) {
+      const r = await this.executeTool('get_phone_contacts', {});
+      results.push({ intent: 'get_phone_contacts', ...r });
     }
 
     // Memory storage

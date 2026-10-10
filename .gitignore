@@ -23,6 +23,10 @@ build/
 .env.*.local
 *.pem
 
+# Private data exports
+contacts_export.json
+*.contacts.json
+
 # Log files and temp artifacts
 *.log
 npm-debug.log*

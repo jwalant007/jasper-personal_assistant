@@ -370,6 +370,32 @@ async function handleToolExecution(tool, args) {
       });
     }
 
+    case 'get_phone_contacts': {
+      console.log('[Satellite] Fetching live phone contacts from Android content provider...');
+      return new Promise((resolve) => {
+        exec(`${adbBin} shell content query --uri content://contacts/phones/ --projection display_name:number`, { maxBuffer: 10 * 1024 * 1024 }, (err, stdout) => {
+          if (err) return resolve({ success: false, error: err.message });
+          const map = new Map();
+          const lines = (stdout || '').split(/\r?\n/);
+          for (const line of lines) {
+            const match = line.match(/display_name=(.*?),\s*number=(.*)/);
+            if (match) {
+              const name = match[1].trim();
+              const num = match[2].trim();
+              if (name && num) {
+                if (!map.has(name)) map.set(name, new Set());
+                map.get(name).add(num);
+              }
+            }
+          }
+          const contacts = Array.from(map.entries())
+            .map(([name, nums]) => ({ name, phone: Array.from(nums)[0], numbers: Array.from(nums) }))
+            .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+          resolve({ success: true, count: contacts.length, contacts });
+        });
+      });
+    }
+
     case 'run_powershell': {
       const { command } = args;
       return new Promise((resolve) => {

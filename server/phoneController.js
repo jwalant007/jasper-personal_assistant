@@ -1098,6 +1098,43 @@ const PhoneController = {
         message: 'Failed to configure background usage on device'
       };
     }
+  },
+
+  // Fetch live contact list directly from Android device via Content Provider
+  contacts: async () => {
+    if (!isPhysicalConnected()) {
+      return [];
+    }
+    try {
+      const raw = await runAdb('shell content query --uri content://contacts/phones/ --projection display_name:number');
+      const lines = raw.split(/\r?\n/);
+      const map = new Map();
+      for (const line of lines) {
+        const match = line.match(/display_name=(.*?),\s*number=(.*)/);
+        if (match) {
+          const name = match[1].trim();
+          const number = match[2].trim();
+          if (name && number) {
+            if (!map.has(name)) map.set(name, new Set());
+            map.get(name).add(number);
+          }
+        }
+      }
+      return Array.from(map.entries())
+        .map(([name, nums]) => ({
+          name,
+          phone: Array.from(nums)[0],
+          numbers: Array.from(nums)
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+    } catch (err) {
+      console.warn('[PhoneController] Failed to query contacts via ADB:', err.message);
+      return [];
+    }
+  },
+
+  syncPhoneContacts: async () => {
+    return await PhoneController.contacts();
   }
 };
 
