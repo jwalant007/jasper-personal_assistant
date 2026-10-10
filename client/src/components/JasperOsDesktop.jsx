@@ -95,6 +95,147 @@ const JASPER_OS_APPS_REGISTRY = [
 ];
 
 /**
+ * RECOGNIZED SPATIAL HAND GESTURES & COMMANDS REGISTRY
+ */
+export const ALL_HAND_GESTURES = [
+  {
+    id: 'snap',
+    icon: '🫰',
+    title: 'Finger Snap',
+    category: 'Actions',
+    pose: 'Touch thumb to middle finger & flick apart violently',
+    action: 'Dissolves / minimizes all active application windows smoothly to the dock',
+    command: 'Close All Apps'
+  },
+  {
+    id: 'palm',
+    icon: '🖐️',
+    title: 'Open Palm (Repulsor)',
+    category: 'Window',
+    pose: 'Hold 5 fingers wide open facing the camera',
+    action: 'Desktop Quick Peek: Toggles minimize / restore all open windows',
+    command: 'Show Desktop'
+  },
+  {
+    id: 'pointer',
+    icon: '☝️',
+    title: 'Air Pointer',
+    category: 'Navigation',
+    pose: 'Index finger extended forward, other fingers curled',
+    action: 'Projects virtual air cursor reticle for hands-free tracking and pointing',
+    command: 'Air Cursor'
+  },
+  {
+    id: 'peace',
+    icon: '✌️',
+    title: 'Victory / Peace (V)',
+    category: 'Window',
+    pose: 'Extend index and middle fingers in a V-shape',
+    action: 'Toggles Maximize / Restore on the currently active application window',
+    command: 'Toggle Maximize'
+  },
+  {
+    id: 'fist',
+    icon: '✊',
+    title: 'Closed Fist',
+    category: 'Window',
+    pose: 'Curl all fingers tightly into a closed fist',
+    action: 'Minimizes the currently active foreground window',
+    command: 'Minimize Window'
+  },
+  {
+    id: 'scroll_down',
+    icon: '👇',
+    title: 'Air Scroll Down',
+    category: 'Navigation',
+    pose: 'Open hand waving downwards across the camera frame',
+    action: 'Smooth scrolls content down inside active app window or desktop',
+    command: 'Scroll Down'
+  },
+  {
+    id: 'scroll_up',
+    icon: '👆',
+    title: 'Air Scroll Up',
+    category: 'Navigation',
+    pose: 'Open hand waving upwards across the camera frame',
+    action: 'Smooth scrolls content up inside active app window or desktop',
+    command: 'Scroll Up'
+  },
+  {
+    id: 'thumbs_up',
+    icon: '👍',
+    title: 'Thumbs Up',
+    category: 'Actions',
+    pose: 'Thumb extended up, fingers curled inward',
+    action: 'Confirms primary actions, approves modals, or unmutes audio',
+    command: 'Confirm / Approve'
+  },
+  {
+    id: 'thumbs_down',
+    icon: '👎',
+    title: 'Thumbs Down',
+    category: 'Actions',
+    pose: 'Thumb pointed down, fingers curled inward',
+    action: 'Cancels actions, rejects dialogs, dismisses alerts, or mutes audio',
+    command: 'Cancel / Reject'
+  },
+  {
+    id: 'ok_sign',
+    icon: '👌',
+    title: 'OK Sign',
+    category: 'Actions',
+    pose: 'Touch index to thumb forming a ring, other 3 extended',
+    action: 'Activates speech recognition and Voice Commander microphone',
+    command: 'Voice Commander'
+  },
+  {
+    id: 'pinch_drag',
+    icon: '🤏',
+    title: 'Spatial Pinch-Drag',
+    category: 'Actions',
+    pose: 'Pinch thumb and index together and drag in air',
+    action: 'Interactively rotates 3D holographic objects and spatial models',
+    command: '3D Orbit Rotate'
+  },
+  {
+    id: 'pinch_tap',
+    icon: '✨',
+    title: 'Pinch-Tap Click',
+    category: 'Navigation',
+    pose: 'Quick tap of thumb and index tips together (<300ms)',
+    action: 'Executes a hands-free click on whichever UI element is pointed at',
+    command: 'Air Click'
+  },
+  {
+    id: 'swipe_cycle',
+    icon: '🖖',
+    title: '3-Finger App Swipe',
+    category: 'Navigation',
+    pose: '3 fingers extended, horizontal swipe left or right',
+    action: 'Cycles to next / previous open window in the application switcher',
+    command: 'Switch Window'
+  },
+  {
+    id: 'two_hand_zoom',
+    icon: '👐',
+    title: 'Two-Hand Zoom',
+    category: 'Navigation',
+    pose: 'Move both hands closer together or spread them apart',
+    action: 'Zooms in or out on maps, blueprints, diagrams, and 3D scenes',
+    command: 'Mirror Zoom'
+  },
+  {
+    id: 'double_fist',
+    icon: '👊👊',
+    title: 'Double Fist Lock',
+    category: 'Window',
+    pose: 'Hold both hands in closed fists simultaneously',
+    action: 'Force closes the currently active application window completely',
+    command: 'Close Window'
+  }
+];
+
+/**
  * DRAGGABLE & RESIZABLE GLASS OS APPLICATION WINDOW
  */
 function OsWindow({ 
@@ -428,6 +569,8 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
   const [showGestureHud, setShowGestureHud] = useState(true);
   const [isHudCollapsed, setIsHudCollapsed] = useState(false);
   const [showGestureGuide, setShowGestureGuide] = useState(false);
+  const [showHudGesturesList, setShowHudGesturesList] = useState(false);
+  const [hudGestureCategory, setHudGestureCategory] = useState('All');
   const [airCursorPos, setAirCursorPos] = useState(null);
   const [activeFocusedWinId, setActiveFocusedWinId] = useState('videoStudio');
   const [maximizedWindows, setMaximizedWindows] = useState({});
@@ -497,6 +640,135 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
     setMinimizedWindows(prev => ({ ...prev, [winId]: false }));
     setActiveFocusedWinId(winId);
   };
+
+  const closeWindow = useCallback((winId) => {
+    setOpenWindows(prev => ({ ...prev, [winId]: false }));
+  }, []);
+
+  const minimizeWindow = useCallback((winId) => {
+    setMinimizedWindows(prev => ({ ...prev, [winId]: true }));
+  }, []);
+
+  const closeAllApps = useCallback(() => {
+    setOpenWindows({});
+    setMinimizedWindows({});
+    setMaximizedWindows({});
+    setSnapShockwaveActive(true);
+    setGestureFeedback('✦ ELDRITCH SNAP: ALL OS APPS DISSOLVED ✦');
+    playMysticSnap();
+    window.dispatchEvent(new CustomEvent('jasper:os-gesture', { detail: { gesture: 'ELDRITCH_SNAP', action: 'CLOSE_ALL_APPS' } }));
+    setTimeout(() => setSnapShockwaveActive(false), 1600);
+  }, []);
+
+  const triggerGestureAction = useCallback((gestureId) => {
+    switch (gestureId) {
+      case 'snap':
+        closeAllApps();
+        break;
+      case 'palm': {
+        const curOpen = openWindowsRef.current;
+        const curMin = minimizedWindowsRef.current;
+        const openIds = Object.keys(curOpen).filter(id => curOpen[id] && !curMin[id]);
+        if (openIds.length > 0) {
+          setMinimizedWindows(prev => {
+            const updated = { ...prev };
+            openIds.forEach(id => updated[id] = true);
+            return updated;
+          });
+          setGestureFeedback('REPULSOR PALM: SHOW DESKTOP');
+        } else {
+          setMinimizedWindows({});
+          setGestureFeedback('REPULSOR PALM: RESTORE ALL');
+        }
+        playJarvisBeep('select');
+        break;
+      }
+      case 'peace': {
+        const cur = activeFocusedWinIdRef.current;
+        if (cur) {
+          setMaximizedWindows(prev => ({ ...prev, [cur]: !prev[cur] }));
+          setGestureFeedback('PEACE SIGN (V): TOGGLE MAXIMIZE');
+          playJarvisBeep('command');
+        }
+        break;
+      }
+      case 'fist': {
+        const cur = activeFocusedWinIdRef.current;
+        if (cur) {
+          minimizeWindow(cur);
+          setGestureFeedback('FIST: MINIMIZE WINDOW');
+          playJarvisBeep('select');
+        }
+        break;
+      }
+      case 'scroll_down': {
+        const cur = activeFocusedWinIdRef.current;
+        const bodyEl = windowBodyRefs.current[cur];
+        if (bodyEl) {
+          bodyEl.scrollBy({ top: 140, behavior: 'smooth' });
+        } else if (desktopScrollRef.current) {
+          desktopScrollRef.current.scrollBy({ top: 140, behavior: 'smooth' });
+        }
+        setGestureFeedback('AIR SCROLL: DOWN');
+        playJarvisBeep('click');
+        break;
+      }
+      case 'scroll_up': {
+        const cur = activeFocusedWinIdRef.current;
+        const bodyEl = windowBodyRefs.current[cur];
+        if (bodyEl) {
+          bodyEl.scrollBy({ top: -140, behavior: 'smooth' });
+        } else if (desktopScrollRef.current) {
+          desktopScrollRef.current.scrollBy({ top: -140, behavior: 'smooth' });
+        }
+        setGestureFeedback('AIR SCROLL: UP');
+        playJarvisBeep('click');
+        break;
+      }
+      case 'thumbs_up':
+        setGestureFeedback('THUMBS UP: CONFIRMED');
+        playJarvisBeep('success');
+        break;
+      case 'thumbs_down':
+        setGestureFeedback('THUMBS DOWN: CANCEL / MUTE');
+        playJarvisBeep('error');
+        break;
+      case 'ok_sign':
+        setGestureFeedback('OK SIGN: JARVIS VOICE ACTIVATED');
+        playJarvisBeep('command');
+        if (onMicClick) onMicClick();
+        break;
+      case 'swipe_cycle': {
+        const curOpen = openWindowsRef.current;
+        const openIds = Object.keys(curOpen).filter(id => curOpen[id]);
+        if (openIds.length > 1) {
+          const currIdx = Math.max(0, openIds.indexOf(activeFocusedWinIdRef.current));
+          const nextIdx = (currIdx + 1) % openIds.length;
+          bringToTop(openIds[nextIdx]);
+          setGestureFeedback(`SWITCH WINDOW: ${openIds[nextIdx]}`);
+          playJarvisBeep('click');
+        }
+        break;
+      }
+      case 'double_fist': {
+        const cur = activeFocusedWinIdRef.current;
+        if (cur) {
+          closeWindow(cur);
+          setGestureFeedback('DOUBLE FIST: CLOSED APP');
+          playJarvisBeep('select');
+        }
+        break;
+      }
+      default:
+        setGestureFeedback(`GESTURE TRIGGERED: ${gestureId.toUpperCase()}`);
+        playJarvisBeep('click');
+    }
+  }, [closeAllApps, minimizeWindow, closeWindow, bringToTop, onMicClick]);
+
+  const filteredHudGestures = useMemo(() => {
+    if (hudGestureCategory === 'All') return ALL_HAND_GESTURES;
+    return ALL_HAND_GESTURES.filter(g => g.category === hudGestureCategory);
+  }, [hudGestureCategory]);
 
   // Top Bar Touch Swipe & Drag State for Mobile & Touch Devices
   const topBarScrollRef = useRef(null);
@@ -664,15 +936,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
             }
           },
           onFingerSnap: () => {
-            // DOCTOR STRANGE / THANOS SNAP: CLOSE ALL OPEN APPS INSTANTLY!
-            setOpenWindows({});
-            setMinimizedWindows({});
-            setMaximizedWindows({});
-            setSnapShockwaveActive(true);
-            setGestureFeedback('✦ ELDRITCH SNAP: ALL OS APPS DISSOLVED ✦');
-            playMysticSnap();
-            window.dispatchEvent(new CustomEvent('jasper:os-gesture', { detail: { gesture: 'ELDRITCH_SNAP', action: 'CLOSE_ALL_APPS' } }));
-            setTimeout(() => setSnapShockwaveActive(false), 1600);
+            closeAllApps();
           },
           onStateChange: (st) => {
             setGestureStatus(st.status);
@@ -727,23 +991,6 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
     } else {
       launchApp(winId);
     }
-  };
-
-  const closeWindow = (winId) => {
-    setOpenWindows(prev => ({ ...prev, [winId]: false }));
-  };
-
-  const closeAllApps = () => {
-    setOpenWindows({});
-    setMinimizedWindows({});
-    setMaximizedWindows({});
-    setSnapShockwaveActive(true);
-    playMysticSnap();
-    setTimeout(() => setSnapShockwaveActive(false), 1600);
-  };
-
-  const minimizeWindow = (winId) => {
-    setMinimizedWindows(prev => ({ ...prev, [winId]: true }));
   };
 
   const filteredApps = JASPER_OS_APPS_REGISTRY.filter(app => {
@@ -1567,7 +1814,9 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
       {isAirGesturesOn && (
         <div className="spatial-gesture-hud fixed top-16 right-4 z-[990] flex flex-col items-end gap-2 pointer-events-auto select-none font-sans">
           {/* Main HUD Card */}
-          <div className="bg-slate-950/90 border border-white/[0.1] rounded-2xl p-3.5 shadow-2xl backdrop-blur-2xl flex flex-col gap-2.5 max-w-[290px] w-[275px] animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className={`bg-slate-950/90 border border-white/[0.1] rounded-2xl p-3.5 shadow-2xl backdrop-blur-2xl flex flex-col gap-2.5 transition-all duration-300 ${
+            showHudGesturesList ? 'w-[310px] max-w-[340px]' : 'w-[275px] max-w-[290px]'
+          } animate-in fade-in slide-in-from-top-4 duration-300`}>
             {/* Header */}
             <div className="flex items-center justify-between border-b border-white/[0.08] pb-2">
               <div className="flex items-center gap-2">
@@ -1582,21 +1831,21 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setShowGestureGuide(true)}
-                  className="p-1 rounded text-slate-400 hover:text-indigo-300 hover:bg-white/[0.06] transition-colors"
+                  className="p-1 rounded text-slate-400 hover:text-indigo-300 hover:bg-white/[0.06] transition-colors cursor-pointer"
                   title="Open Gesture Controls Cheatsheet"
                 >
                   <HelpCircle className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => setIsHudCollapsed(!isHudCollapsed)}
-                  className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-white/[0.06] transition-colors"
+                  className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-white/[0.06] transition-colors cursor-pointer"
                   title={isHudCollapsed ? "Expand Camera" : "Collapse Camera"}
                 >
                   {isHudCollapsed ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
                 </button>
                 <button
                   onClick={() => setIsAirGesturesOn(false)}
-                  className="p-1 rounded text-rose-400 hover:bg-rose-500/20 transition-colors"
+                  className="p-1 rounded text-rose-400 hover:bg-rose-500/20 transition-colors cursor-pointer"
                   title="Disable Gestures"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -1604,7 +1853,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
               </div>
             </div>
 
-            {/* Skeletal Joints Canvas Thumbnail */}
+            {/* Skeletal Joints Canvas Thumbnail (Camera Feed) */}
             <div className={`relative aspect-[4/3] w-full rounded-xl overflow-hidden bg-slate-900 border border-white/[0.08] flex items-center justify-center shadow-inner ${isHudCollapsed ? 'hidden' : ''}`}>
               <canvas
                 ref={canvasRef}
@@ -1617,6 +1866,115 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
                 Live Pose Tracker
               </div>
             </div>
+
+            {/* HAND SIGNS LIST BUTTON (BELOW CAMERA FEED) */}
+            <button
+              onClick={() => setShowHudGesturesList(prev => !prev)}
+              className={`w-full py-2 px-2.5 rounded-xl border text-[11px] font-sans font-medium flex items-center justify-between transition-all duration-200 cursor-pointer shadow-sm ${
+                showHudGesturesList
+                  ? 'bg-indigo-600/30 border-indigo-400 text-indigo-100 shadow-[0_0_15px_rgba(99,102,241,0.25)] ring-1 ring-indigo-400/50'
+                  : 'bg-slate-900/90 hover:bg-slate-850 border-white/[0.1] hover:border-indigo-400/40 text-slate-200 hover:text-white'
+              }`}
+              title="Click to view all recognized hand signs and gestures"
+            >
+              <div className="flex items-center gap-2">
+                <div className={`w-5 h-5 rounded-lg flex items-center justify-center text-xs ${showHudGesturesList ? 'bg-indigo-500 text-white shadow-sm' : 'bg-slate-800 text-indigo-300'}`}>
+                  🖐️
+                </div>
+                <div className="flex flex-col text-left">
+                  <span className="font-semibold text-xs leading-none">All Hand Signs</span>
+                  <span className="text-[9px] text-slate-400 leading-tight mt-0.5">
+                    {showHudGesturesList ? 'Click to hide signs list' : 'Click to learn all hand signs'}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-mono font-bold border border-indigo-400/30">
+                  {ALL_HAND_GESTURES.length} Signs
+                </span>
+                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${showHudGesturesList ? 'rotate-180 text-indigo-300' : ''}`} />
+              </div>
+            </button>
+
+            {/* EXPANDABLE HAND SIGNS LIST DRAWER BELOW CAMERA FEED */}
+            {showHudGesturesList && (
+              <div className="w-full rounded-2xl bg-slate-900/95 border border-indigo-500/30 p-2.5 flex flex-col gap-2 shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200">
+                {/* Category Filters & Full View Link */}
+                <div className="flex items-center justify-between gap-1 border-b border-white/[0.08] pb-1.5">
+                  <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
+                    {['All', 'Window', 'Navigation', 'Actions'].map(cat => (
+                      <button
+                        key={cat}
+                        onClick={() => setHudGestureCategory(cat)}
+                        className={`px-2 py-0.5 rounded-lg text-[9px] font-sans font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                          hudGestureCategory === cat
+                            ? 'bg-indigo-600 text-white shadow-sm'
+                            : 'bg-slate-800/80 text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => setShowGestureGuide(true)}
+                    className="text-[9px] text-indigo-400 hover:text-indigo-300 hover:underline flex items-center gap-0.5 whitespace-nowrap shrink-0 pl-1 font-medium cursor-pointer"
+                    title="Open Fullscreen Detailed Cheatsheet"
+                  >
+                    <span>Full View</span>
+                    <Maximize2 className="w-2.5 h-2.5" />
+                  </button>
+                </div>
+
+                {/* Scrollable list of Hand Signs */}
+                <div className="max-h-[230px] overflow-y-auto custom-scrollbar flex flex-col gap-1.5 pr-0.5">
+                  {filteredHudGestures.map((g) => (
+                    <div
+                      key={g.id}
+                      className="p-2 rounded-xl bg-slate-950/80 border border-white/[0.06] hover:border-indigo-400/40 flex flex-col gap-1 transition-all group shadow-sm hover:bg-slate-950"
+                    >
+                      <div className="flex items-center justify-between gap-1">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-base w-7 h-7 rounded-lg bg-slate-850 border border-white/[0.08] flex items-center justify-center shrink-0 shadow-inner">
+                            {g.icon}
+                          </span>
+                          <div className="min-w-0">
+                            <div className="text-[11px] font-bold text-slate-100 flex items-center gap-1.5 truncate">
+                              <span className="truncate">{g.title}</span>
+                              <span className="text-[8px] px-1 py-0.2 rounded bg-indigo-500/15 text-indigo-300 font-mono border border-indigo-400/20 shrink-0">
+                                {g.category}
+                              </span>
+                            </div>
+                            <div className="text-[9px] text-indigo-300/90 font-sans truncate font-medium">
+                              {g.pose}
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => triggerGestureAction(g.id)}
+                          className="text-[9px] px-2 py-0.5 rounded-md bg-indigo-500/20 hover:bg-indigo-500/35 border border-indigo-400/30 text-indigo-200 font-semibold transition-all shrink-0 active:scale-95 cursor-pointer shadow-sm"
+                          title={`Test ${g.title} action immediately`}
+                        >
+                          Test
+                        </button>
+                      </div>
+                      <div className="text-[9px] text-slate-400 pl-9 leading-tight">
+                        {g.action}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Footer status notice */}
+                <div className="pt-1.5 border-t border-white/[0.06] flex items-center justify-between text-[9px] text-slate-400 font-sans">
+                  <span className="flex items-center gap-1">
+                    <Sparkles className="w-2.5 h-2.5 text-indigo-400" />
+                    <span>Perform sign in camera frame</span>
+                  </span>
+                  <span className="text-indigo-400 font-medium">AI Active</span>
+                </div>
+              </div>
+            )}
 
             {/* Live Detected Gesture Pill */}
             <div className="p-2.5 rounded-xl bg-slate-900/70 border border-white/[0.08] flex flex-col gap-1.5">
@@ -1635,7 +1993,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
                 <span className="text-[9px] text-slate-400 truncate">Snap fingers to minimize apps</span>
                 <button
                   onClick={closeAllApps}
-                  className="text-[9px] px-2 py-0.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400/30 text-indigo-200 font-medium transition-all shadow-sm"
+                  className="text-[9px] px-2 py-0.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400/30 text-indigo-200 font-medium transition-all shadow-sm cursor-pointer"
                   title="Trigger Finger Snap: Closes all open apps"
                 >
                   🫰 Snap Now
@@ -1707,27 +2065,22 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
             </div>
 
             <div className="p-5 overflow-y-auto custom-scrollbar grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {[
-                { icon: '🫰', title: 'Finger Snap', pose: 'Touch thumb to middle & snap flick', action: 'Minimizes and disperses all active windows smoothly to the desktop dock.' },
-                { icon: '🖐️', title: 'Open Palm', pose: '5 fingers wide open facing camera', action: 'Desktop Quick Peek: Toggles minimize / restore all windows.' },
-                { icon: '☝️', title: 'Air Pointer', pose: 'Index finger pointing forward', action: 'Projects virtual air cursor reticle for tracking and hands-free clicking.' },
-                { icon: '🤏', title: 'Spatial Pinch', pose: 'Thumb + Index pinch-drag', action: 'Interactively rotates 3D objects, models, and spatial views.' },
-                { icon: '✊', title: 'Closed Fist', pose: 'All fingers curled into tight fist', action: 'Quickly minimizes the currently active foreground window.' },
-                { icon: '✌️', title: 'Victory / Peace', pose: 'Index + Middle fingers extended', action: 'Toggles Maximize / Restore on the active application window.' },
-                { icon: '👇', title: 'Air Scroll Down', pose: 'Wave open palm downwards', action: 'Smooth scrolls content down inside the currently focused app window.' },
-                { icon: '👆', title: 'Air Scroll Up', pose: 'Wave open palm upwards', action: 'Smooth scrolls content up inside the currently focused app window.' },
-                { icon: '👍', title: 'Thumbs Up', pose: 'Thumb extended up, fingers curled', action: 'Confirms primary actions, approves dialogs, or unmutes audio.' },
-                { icon: '👎', title: 'Thumbs Down', pose: 'Thumb pointed down, fingers curled', action: 'Cancels actions, dismisses toasts, or mutes audio.' },
-                { icon: '👌', title: 'OK Gesture', pose: 'Thumb + Index ring, 3 fingers up', action: 'Activates speech recognition and Voice Commander.' },
-                { icon: '👐', title: 'Two-Hand Spread', pose: 'Both hands spread apart / together', action: 'Zooms in or out on maps, blueprints, and 3D scenes.' },
-              ].map((g, idx) => (
-                <div key={idx} className="p-3.5 bg-slate-900/60 border border-white/[0.06] hover:border-indigo-400/40 rounded-xl flex flex-col justify-between gap-2.5 transition-all hover:bg-slate-900/90">
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-xl p-1.5 rounded-lg bg-slate-800/80 border border-white/[0.06]">{g.icon}</span>
-                    <div>
-                      <h4 className="font-sans text-xs font-semibold text-slate-200">{g.title}</h4>
-                      <p className="text-[10px] text-slate-400">{g.pose}</p>
+              {ALL_HAND_GESTURES.map((g, idx) => (
+                <div key={idx} className="p-3.5 bg-slate-900/60 border border-white/[0.06] hover:border-indigo-400/40 rounded-xl flex flex-col justify-between gap-2.5 transition-all hover:bg-slate-900/90 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-xl p-1.5 rounded-lg bg-slate-800/80 border border-white/[0.06]">{g.icon}</span>
+                      <div>
+                        <h4 className="font-sans text-xs font-semibold text-slate-200">{g.title}</h4>
+                        <p className="text-[10px] text-indigo-300">{g.pose}</p>
+                      </div>
                     </div>
+                    <button
+                      onClick={() => triggerGestureAction(g.id)}
+                      className="px-2 py-0.5 rounded bg-indigo-500/20 hover:bg-indigo-500/35 border border-indigo-400/30 text-indigo-200 text-[10px] font-medium transition-all cursor-pointer"
+                    >
+                      Test
+                    </button>
                   </div>
                   <p className="text-[11px] text-slate-300 font-sans leading-relaxed border-t border-white/[0.06] pt-2">
                     {g.action}
