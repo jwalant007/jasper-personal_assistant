@@ -360,6 +360,16 @@ async function handleToolExecution(tool, args) {
       });
     }
 
+    case 'allow_device_background_usage': {
+      const pkg = args?.packageName || 'com.antigravity.jasper';
+      console.log(`[Satellite] Granting unconstrained background usage for ${pkg}...`);
+      return new Promise((resolve) => {
+        exec(`${adbBin} shell dumpsys deviceidle whitelist +${pkg} && ${adbBin} shell cmd appops set ${pkg} RUN_IN_BACKGROUND allow && ${adbBin} shell settings put global wifi_sleep_policy 2`, (err, stdout) => {
+          resolve({ success: !err, message: `Background usage granted for ${pkg}`, output: stdout ? stdout.trim() : err?.message });
+        });
+      });
+    }
+
     case 'run_powershell': {
       const { command } = args;
       return new Promise((resolve) => {

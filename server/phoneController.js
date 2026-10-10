@@ -202,9 +202,14 @@ const PhoneController = {
         const deviceState = parts[1];
 
         if (deviceState === 'device') {
+          const isNewlyConnected = PhoneController.activeDeviceId !== deviceId;
           PhoneController.activeDeviceId = deviceId;
           PhoneController.virtualMode = false;
           PhoneController.manualDisconnected = false;
+
+          if (isNewlyConnected) {
+            PhoneController.enableBackgroundUsage('com.antigravity.jasper').catch(() => {});
+          }
 
           let batteryLevel = 'Unknown';
           let model = 'Android Device';
@@ -1035,6 +1040,64 @@ const PhoneController = {
       timestamp: Date.now()
     };
     return PhoneController.lastKnownPhoneLocation;
+  },
+
+  // Allow unconstrained background usage and disable battery optimization on connected device
+  enableBackgroundUsage: async (packageName = 'com.antigravity.jasper') => {
+    if (!isPhysicalConnected()) {
+      return {
+        success: false,
+        error: 'NO_PHYSICAL_DEVICE',
+        message: 'No physical Android device connected via USB or Wireless ADB.'
+      };
+    }
+
+    const results = {};
+    try {
+      // 1. Whitelist from Android Doze mode / App Standby
+      try {
+        const out1 = await runAdb(`shell dumpsys deviceidle whitelist +${packageName}`);
+        results.dozeWhitelisted = true;
+        results.dozeOutput = out1;
+      } catch (e1) {
+        results.dozeWhitelisted = false;
+        results.dozeError = e1.message;
+      }
+
+      // 2. Allow Run in Background appops
+      try {
+        await runAdb(`shell cmd appops set ${packageName} RUN_IN_BACKGROUND allow`);
+        await runAdb(`shell cmd appops set ${packageName} RUN_ANY_IN_BACKGROUND allow`);
+        results.runInBackground = true;
+      } catch (e2) {
+        results.runInBackground = false;
+      }
+
+      // 3. Prevent automatic permission revocation
+      try {
+        await runAdb(`shell cmd appops set ${packageName} AUTO_REVOKE_PERMISSIONS_IF_UNUSED ignore`);
+        results.autoRevokeIgnored = true;
+      } catch (_) {}
+
+      // 4. Ensure Wi-Fi stays awake during sleep
+      try {
+        await runAdb('shell settings put global wifi_sleep_policy 2');
+        results.wifiSleepPolicy = 'never_sleep';
+      } catch (_) {}
+
+      return {
+        success: true,
+        packageName,
+        message: `Unrestricted background execution granted for ${packageName}. Battery optimizations disabled.`,
+        details: results
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.message,
+        message: 'Failed to configure background usage on device'
+      };
+    }
   }
 };
 

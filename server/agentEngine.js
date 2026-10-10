@@ -569,6 +569,17 @@ const TOOL_REGISTRY = {
     }
   },
 
+  allow_device_background_usage: {
+    name: 'allow_device_background_usage',
+    description: 'Allow unconstrained background execution and exempt connected Android devices from battery optimization / Doze mode',
+    permissionLevel: 1,
+    parameters: { packageName: 'string (optional, default: com.antigravity.jasper)' },
+    async handler({ packageName = 'com.antigravity.jasper' } = {}) {
+      const result = await phoneController.enableBackgroundUsage(packageName);
+      return result;
+    }
+  },
+
   control_device: {
     name: 'control_device',
     description: 'Control a connected smart device (Universal Smart TV, JioFiber STB, phone, lights)',
@@ -998,7 +1009,7 @@ Key Directives:
       // Check if this is a hardware/local PC command and we should route to Satellite
       const HARDWARE_TOOLS = [
         'set_pc_volume', 'open_application', 'send_tv_command', 'wake_tv',
-        'open_phone_app', 'control_device', 'tune_stb_channel', 'tune_d2h_channel',
+        'open_phone_app', 'allow_device_background_usage', 'control_device', 'tune_stb_channel', 'tune_d2h_channel',
         'send_phone_sms', 'make_call', 'run_powershell', 'pull_up_meeting'
       ];
 
@@ -1266,6 +1277,12 @@ Key Directives:
         const r = await this.executeTool('wake_tv', {});
         results.push({ intent: 'wake_tv', ...r });
       }
+    }
+
+    // Device Background Usage / Battery Optimization Exemption
+    if (lower.match(/\b(background usage|allow background|background execution|battery optimiz|keep (phone|device) awake|keep (phone|device) alive|run in background)\b/)) {
+      const r = await this.executeTool('allow_device_background_usage', { packageName: 'com.antigravity.jasper' });
+      results.push({ intent: 'allow_device_background_usage', ...r });
     }
 
     // Memory storage

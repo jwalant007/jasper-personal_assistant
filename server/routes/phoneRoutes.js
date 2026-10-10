@@ -365,4 +365,15 @@ router.post('/speak', async (req, res) => {
   }
 });
 
+// Allow Unconstrained Background Usage on Device
+router.post('/background-usage/allow', async (req, res) => {
+  const { packageName } = req.body || {};
+  try {
+    const result = await phoneController.enableBackgroundUsage(packageName || 'com.antigravity.jasper');
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 module.exports = router;

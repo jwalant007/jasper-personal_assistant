@@ -204,6 +204,29 @@ export default function PhoneControlWidget() {
   const [isPairing, setIsPairing] = useState(false);
   const [pairStatus, setPairStatus] = useState(null);
   const [showPairModal, setShowPairModal] = useState(false);
+  const [bgStatus, setBgStatus] = useState(null);
+  const [bgLoading, setBgLoading] = useState(false);
+
+  const handleAllowBackgroundUsage = async () => {
+    setBgLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/phone/background-usage/allow`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ packageName: 'com.antigravity.jasper' })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setBgStatus('Unrestricted');
+      } else {
+        alert(data.message || data.error || 'Failed to enable background usage');
+      }
+    } catch (e) {
+      alert('Error: ' + e.message);
+    } finally {
+      setBgLoading(false);
+    }
+  };
 
   // Group apps by category
   const categorizedApps = {
@@ -660,6 +683,19 @@ export default function PhoneControlWidget() {
           </div>
         </div>
         <div className="flex gap-1.5">
+          <button 
+            onClick={handleAllowBackgroundUsage}
+            disabled={bgLoading}
+            className={`text-[9px] font-mono border px-2 py-1 rounded flex items-center gap-1 transition-all ${
+              bgStatus === 'Unrestricted'
+                ? 'border-emerald-500/60 bg-emerald-950/40 text-emerald-300'
+                : 'border-cyan-500/30 text-cyan-300 hover:bg-cyan-950/40'
+            }`}
+            title="Exempt from Android Doze Mode & Enable Unrestricted Background Execution"
+          >
+            <ShieldCheck size={10} className={bgStatus === 'Unrestricted' ? 'text-emerald-400' : ''} />
+            {bgStatus === 'Unrestricted' ? 'BG: UNRESTRICTED' : (bgLoading ? 'ENABLING...' : 'ALLOW BG')}
+          </button>
           <button 
             onClick={() => setShowPairModal(!showPairModal)}
             className="text-[9px] text-amber-400 hover:text-amber-300 font-mono border border-amber-500/30 px-2 py-1 rounded flex items-center gap-1"
