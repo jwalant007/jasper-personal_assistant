@@ -214,10 +214,10 @@ class TelephonyEngine {
               const current = contactMap.get(norm);
               current.lastInteraction = pc.lastMessage || current.lastInteraction;
               current.source = pc.source || current.source || 'phone_adb';
-            } else {
+            } else if (pc.name && !pc.name.startsWith('Caller ') && !/^\+?\d+$/.test(pc.name.replace(/\s+/g, '')) && pc.name !== pc.phone) {
               contactMap.set(norm, {
                 id: pc.id || `tc-adb-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-                name: pc.name || `Caller ${pc.phone}`,
+                name: pc.name,
                 phone: pc.phone,
                 category: pc.source === 'call_app' ? 'Recent Caller' : 'Personal',
                 isVip: false,

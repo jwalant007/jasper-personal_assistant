@@ -588,41 +588,6 @@
   },
   "social_contacts": [
     {
-      "id": "c_call_917949210104",
-      "name": "Caller +917949210104",
-      "phone": "+917949210104",
-      "ig": "@caller917949210104",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Missed Call logged from Phone Call App",
-      "lastTimestamp": "03:42 pm",
-      "avatarColor": "from-rose-500 to-amber-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_919586696009",
-      "name": "Caller +919586696009",
-      "phone": "+919586696009",
-      "ig": "@caller919586696009",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
-      "lastTimestamp": "12:51 pm",
-      "avatarColor": "from-rose-500 to-amber-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_912241497679",
-      "name": "Caller +912241497679",
-      "phone": "+912241497679",
-      "ig": "@caller912241497679",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "08:31 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
       "id": "c_call_917931167933",
       "name": "Zomato Delivery Partner",
       "phone": "+917931167933",
@@ -631,29 +596,6 @@
       "source": "call_app",
       "lastMessage": "📞 Incoming Call in Call App",
       "lastTimestamp": "04:27 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_918031015660",
-      "name": "Caller +918031015660",
-      "phone": "+918031015660",
-      "ig": "@caller918031015660",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Missed Call logged from Phone Call App",
-      "lastTimestamp": "04:26 pm",
-      "avatarColor": "from-rose-500 to-amber-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_8866415712",
-      "name": "Caller 8866415712",
-      "phone": "8866415712",
-      "ig": "@caller8866415712",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "08:36 pm",
       "avatarColor": "from-blue-500 to-cyan-500"
     },
     {
@@ -668,29 +610,6 @@
       "avatarColor": "from-blue-500 to-cyan-500"
     },
     {
-      "id": "c_call_912269123521",
-      "name": "Caller +912269123521",
-      "phone": "+912269123521",
-      "ig": "@caller912269123521",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Missed Call logged from Phone Call App",
-      "lastTimestamp": "02:30 pm",
-      "avatarColor": "from-rose-500 to-amber-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_917227979983",
-      "name": "Caller +917227979983",
-      "phone": "+917227979983",
-      "ig": "@caller917227979983",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "09:53 am",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
       "id": "c_call_918657951454",
       "name": "Burger King",
       "phone": "+918657951454",
@@ -699,28 +618,6 @@
       "source": "call_app",
       "lastMessage": "📞 Outgoing Call in Call App",
       "lastTimestamp": "10:05 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_918069455964",
-      "name": "Caller +918069455964",
-      "phone": "+918069455964",
-      "ig": "@caller918069455964",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "10:04 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_912269976406",
-      "name": "Caller +912269976406",
-      "phone": "+912269976406",
-      "ig": "@caller912269976406",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "10:04 pm",
       "avatarColor": "from-blue-500 to-cyan-500"
     },
     {
@@ -735,17 +632,6 @@
       "avatarColor": "from-blue-500 to-cyan-500"
     },
     {
-      "id": "c_call_8000083535",
-      "name": "Caller 8000083535",
-      "phone": "8000083535",
-      "ig": "@caller8000083535",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "08:33 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
       "id": "c_call_911600304197",
       "name": "State Bank of India",
       "phone": "+911600304197",
@@ -755,30 +641,6 @@
       "lastMessage": "📞 Missed Call in Call App",
       "lastTimestamp": "07:58 pm",
       "avatarColor": "from-rose-500 to-amber-500"
-    },
-    {
-      "id": "c_call_918488016624",
-      "name": "Caller +918488016624",
-      "phone": "+918488016624",
-      "ig": "@caller918488016624",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
-      "lastTimestamp": "04:42 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_918487985622",
-      "name": "Caller +918487985622",
-      "phone": "+918487985622",
-      "ig": "@caller918487985622",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
-      "lastTimestamp": "08:50 pm",
-      "avatarColor": "from-rose-500 to-amber-500",
-      "callAppSynced": true
     },
     {
       "id": "c_call_09104527509",
@@ -814,17 +676,6 @@
       "avatarColor": "from-blue-500 to-cyan-500"
     },
     {
-      "id": "c_call_917935048444",
-      "name": "Caller +917935048444",
-      "phone": "+917935048444",
-      "ig": "@caller917935048444",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "04:31 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
       "id": "c_call_911408511526",
       "name": "MEESHO",
       "phone": "+911408511526",
@@ -834,52 +685,6 @@
       "lastMessage": "📞 Incoming Call in Call App",
       "lastTimestamp": "04:08 pm",
       "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_919724178489",
-      "name": "Caller +919724178489",
-      "phone": "+919724178489",
-      "ig": "@caller919724178489",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
-      "lastTimestamp": "05:50 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_914435099112",
-      "name": "Caller +914435099112",
-      "phone": "+914435099112",
-      "ig": "@caller914435099112",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "03:18 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_918071414799",
-      "name": "Caller +918071414799",
-      "phone": "+918071414799",
-      "ig": "@caller918071414799",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Missed Call in Call App",
-      "lastTimestamp": "12:27 pm",
-      "avatarColor": "from-rose-500 to-amber-500"
-    },
-    {
-      "id": "c_call_918849257520",
-      "name": "Caller +918849257520",
-      "phone": "+918849257520",
-      "ig": "@caller918849257520",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Missed Call logged from Phone Call App",
-      "lastTimestamp": "05:14 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
     },
     {
       "id": "c_call_911414721607",
@@ -892,28 +697,6 @@
       "lastTimestamp": "07:29 am",
       "avatarColor": "from-blue-500 to-cyan-500",
       "callAppSynced": true
-    },
-    {
-      "id": "c_call_919099851322",
-      "name": "Caller +919099851322",
-      "phone": "+919099851322",
-      "ig": "@caller919099851322",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Missed Call in Call App",
-      "lastTimestamp": "08:53 pm",
-      "avatarColor": "from-rose-500 to-amber-500"
-    },
-    {
-      "id": "c_call_9099851322",
-      "name": "Caller 9099851322",
-      "phone": "9099851322",
-      "ig": "@caller9099851322",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "08:42 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
     },
     {
       "id": "c_call_919510244868",
@@ -938,28 +721,6 @@
       "avatarColor": "from-blue-500 to-cyan-500"
     },
     {
-      "id": "c_call_8849350933",
-      "name": "Caller 8849350933",
-      "phone": "8849350933",
-      "ig": "@caller8849350933",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "12:59 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_9898348143",
-      "name": "Caller 9898348143",
-      "phone": "9898348143",
-      "ig": "@caller9898348143",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "08:27 am",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
       "id": "c_call_917863832966",
       "name": "Mann Lj",
       "phone": "917863832966",
@@ -968,73 +729,6 @@
       "source": "call_app",
       "lastMessage": "📞 Outgoing Call in Call App",
       "lastTimestamp": "08:15 am",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_918035273460",
-      "name": "Caller +918035273460",
-      "phone": "+918035273460",
-      "ig": "@caller918035273460",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "03:55 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_9924783642",
-      "name": "Caller 9924783642",
-      "phone": "9924783642",
-      "ig": "@caller9924783642",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "11:27 am",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_9824518421",
-      "name": "Caller 9824518421",
-      "phone": "9824518421",
-      "ig": "@caller9824518421",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "11:27 am",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_9842162481",
-      "name": "Caller 9842162481",
-      "phone": "9842162481",
-      "ig": "@caller9842162481",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "11:26 am",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_917600460306",
-      "name": "Caller +917600460306",
-      "phone": "+917600460306",
-      "ig": "@caller917600460306",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
-      "lastTimestamp": "06:12 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_919664820231",
-      "name": "Caller +919664820231",
-      "phone": "+919664820231",
-      "ig": "@caller919664820231",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "06:54 pm",
       "avatarColor": "from-blue-500 to-cyan-500"
     },
     {
@@ -1048,151 +742,6 @@
       "lastTimestamp": "11:24 am",
       "avatarColor": "from-blue-500 to-cyan-500",
       "callAppSynced": true
-    },
-    {
-      "id": "c_call_9664820231",
-      "name": "Caller 9664820231",
-      "phone": "9664820231",
-      "ig": "@caller9664820231",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
-      "lastTimestamp": "08:44 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_8080803580",
-      "name": "Caller 8080803580",
-      "phone": "8080803580",
-      "ig": "@caller8080803580",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
-      "lastTimestamp": "11:19 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_919979965763",
-      "name": "Caller +919979965763",
-      "phone": "+919979965763",
-      "ig": "@caller919979965763",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "06:44 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_9327717268",
-      "name": "Caller 9327717268",
-      "phone": "9327717268",
-      "ig": "@caller9327717268",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "06:05 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_9327717267",
-      "name": "Caller 9327717267",
-      "phone": "9327717267",
-      "ig": "@caller9327717267",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "06:04 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_09879301004",
-      "name": "Caller 09879301004",
-      "phone": "09879301004",
-      "ig": "@caller09879301004",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "11:13 am",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_7600568394",
-      "name": "Caller 7600568394",
-      "phone": "7600568394",
-      "ig": "@caller7600568394",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "08:52 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_9825350281",
-      "name": "Caller 9825350281",
-      "phone": "9825350281",
-      "ig": "@caller9825350281",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "08:51 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_9313036021",
-      "name": "Caller 9313036021",
-      "phone": "9313036021",
-      "ig": "@caller9313036021",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "08:51 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_917935048247",
-      "name": "Caller +917935048247",
-      "phone": "+917935048247",
-      "ig": "@caller917935048247",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "10:48 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_917948220914",
-      "name": "Caller +917948220914",
-      "phone": "+917948220914",
-      "ig": "@caller917948220914",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "10:47 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_919016140326",
-      "name": "Caller +919016140326",
-      "phone": "+919016140326",
-      "ig": "@caller919016140326",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "06:22 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_9904842982",
-      "name": "Caller 9904842982",
-      "phone": "9904842982",
-      "ig": "@caller9904842982",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "02:34 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
     },
     {
       "id": "c_call_919909482222",
@@ -1252,39 +801,6 @@
       "avatarColor": "from-blue-500 to-cyan-500"
     },
     {
-      "id": "c_call_919427956415",
-      "name": "Caller +919427956415",
-      "phone": "+919427956415",
-      "ig": "@caller919427956415",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "10:35 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_919227093435",
-      "name": "Caller +919227093435",
-      "phone": "+919227093435",
-      "ig": "@caller919227093435",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "09:18 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_916353975877",
-      "name": "Caller +916353975877",
-      "phone": "+916353975877",
-      "ig": "@caller916353975877",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Missed Call in Call App",
-      "lastTimestamp": "07:32 pm",
-      "avatarColor": "from-rose-500 to-amber-500"
-    },
-    {
       "id": "c_call_7946045992",
       "name": "Datatech Computers Pvt. Ltd.",
       "phone": "7946045992",
@@ -1293,17 +809,6 @@
       "source": "call_app",
       "lastMessage": "📞 Outgoing Call in Call App",
       "lastTimestamp": "12:06 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_9825363670",
-      "name": "Caller 9825363670",
-      "phone": "9825363670",
-      "ig": "@caller9825363670",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "11:44 am",
       "avatarColor": "from-blue-500 to-cyan-500"
     },
     {
@@ -1318,17 +823,6 @@
       "avatarColor": "from-rose-500 to-amber-500"
     },
     {
-      "id": "c_call_9375092020",
-      "name": "Caller 9375092020",
-      "phone": "9375092020",
-      "ig": "@caller9375092020",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "11:44 am",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
       "id": "c_call_09737262666",
       "name": "Kantilal Manilal (GOPI SWEET)",
       "phone": "09737262666",
@@ -1341,39 +835,6 @@
       "callAppSynced": true
     },
     {
-      "id": "c_call_917935048482",
-      "name": "Caller +917935048482",
-      "phone": "+917935048482",
-      "ig": "@caller917935048482",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "09:52 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_912271897337",
-      "name": "Caller +912271897337",
-      "phone": "+912271897337",
-      "ig": "@caller912271897337",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "09:50 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_919558280307",
-      "name": "Caller +919558280307",
-      "phone": "+919558280307",
-      "ig": "@caller919558280307",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "10:53 am",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
       "id": "c_call_6352721349",
       "name": "Yash Lj",
       "phone": "6352721349",
@@ -1382,98 +843,6 @@
       "source": "call_app",
       "lastMessage": "📞 Outgoing Call logged from Phone Call App",
       "lastTimestamp": "09:24 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_8511143075",
-      "name": "Caller 8511143075",
-      "phone": "8511143075",
-      "ig": "@caller8511143075",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "07:04 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_9998822935",
-      "name": "Caller 9998822935",
-      "phone": "9998822935",
-      "ig": "@caller9998822935",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "07:04 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_919409183592",
-      "name": "Caller +919409183592",
-      "phone": "+919409183592",
-      "ig": "@caller919409183592",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call logged from Phone Call App",
-      "lastTimestamp": "02:32 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_917961732942",
-      "name": "Caller +917961732942",
-      "phone": "+917961732942",
-      "ig": "@caller917961732942",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call logged from Phone Call App",
-      "lastTimestamp": "01:36 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_919016666497",
-      "name": "Caller +919016666497",
-      "phone": "+919016666497",
-      "ig": "@caller919016666497",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "06:01 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_912250245429",
-      "name": "Caller +912250245429",
-      "phone": "+912250245429",
-      "ig": "@caller912250245429",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call logged from Phone Call App",
-      "lastTimestamp": "07:51 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_918035073606",
-      "name": "Caller +918035073606",
-      "phone": "+918035073606",
-      "ig": "@caller918035073606",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "07:27 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_919265840351",
-      "name": "Caller +919265840351",
-      "phone": "+919265840351",
-      "ig": "@caller919265840351",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call logged from Phone Call App",
-      "lastTimestamp": "07:14 pm",
       "avatarColor": "from-blue-500 to-cyan-500",
       "callAppSynced": true
     },
@@ -1490,39 +859,6 @@
       "callAppSynced": true
     },
     {
-      "id": "c_call_911408430238",
-      "name": "Caller +911408430238",
-      "phone": "+911408430238",
-      "ig": "@caller911408430238",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "08:03 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_912876233533",
-      "name": "Caller 912876233533",
-      "phone": "912876233533",
-      "ig": "@caller912876233533",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "06:35 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_918758992374",
-      "name": "Caller +918758992374",
-      "phone": "+918758992374",
-      "ig": "@caller918758992374",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Missed Call in Call App",
-      "lastTimestamp": "10:50 am",
-      "avatarColor": "from-rose-500 to-amber-500"
-    },
-    {
       "id": "c_call_916359434481",
       "name": "Sfw The Gym - Satellite",
       "phone": "+916359434481",
@@ -1533,73 +869,6 @@
       "lastTimestamp": "07:20 pm",
       "avatarColor": "from-blue-500 to-cyan-500",
       "callAppSynced": true
-    },
-    {
-      "id": "c_call_916353751606",
-      "name": "Caller +916353751606",
-      "phone": "+916353751606",
-      "ig": "@caller916353751606",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "03:47 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_918485904031",
-      "name": "Caller +918485904031",
-      "phone": "+918485904031",
-      "ig": "@caller918485904031",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "06:35 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_912231238334",
-      "name": "Caller +912231238334",
-      "phone": "+912231238334",
-      "ig": "@caller912231238334",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "01:21 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_912231238448",
-      "name": "Caller +912231238448",
-      "phone": "+912231238448",
-      "ig": "@caller912231238448",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "01:19 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_919825429085",
-      "name": "Caller +919825429085",
-      "phone": "+919825429085",
-      "ig": "@caller919825429085",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call logged from Phone Call App",
-      "lastTimestamp": "07:26 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_911408520248",
-      "name": "Caller +911408520248",
-      "phone": "+911408520248",
-      "ig": "@caller911408520248",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Missed Call in Call App",
-      "lastTimestamp": "06:16 pm",
-      "avatarColor": "from-rose-500 to-amber-500"
     },
     {
       "id": "c_call_911408402240",
@@ -1613,53 +882,6 @@
       "avatarColor": "from-rose-500 to-amber-500"
     },
     {
-      "id": "c_call_918511358489",
-      "name": "Caller +918511358489",
-      "phone": "+918511358489",
-      "ig": "@caller918511358489",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call logged from Phone Call App",
-      "lastTimestamp": "09:27 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_911408520325",
-      "name": "Caller +911408520325",
-      "phone": "+911408520325",
-      "ig": "@caller911408520325",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Missed Call in Call App",
-      "lastTimestamp": "07:25 pm",
-      "avatarColor": "from-rose-500 to-amber-500"
-    },
-    {
-      "id": "c_call_911408430235",
-      "name": "Caller +911408430235",
-      "phone": "+911408430235",
-      "ig": "@caller911408430235",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
-      "lastTimestamp": "06:56 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_919016389632",
-      "name": "Caller +919016389632",
-      "phone": "+919016389632",
-      "ig": "@caller919016389632",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call logged from Phone Call App",
-      "lastTimestamp": "08:27 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
       "id": "c_call_09426696759",
       "name": "SAHELI INN || Best Restaurants",
       "phone": "09426696759",
@@ -1668,199 +890,6 @@
       "source": "call_app",
       "lastMessage": "📞 Outgoing Call logged from Phone Call App",
       "lastTimestamp": "07:55 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_919382188939",
-      "name": "Caller +919382188939",
-      "phone": "+919382188939",
-      "ig": "@caller919382188939",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call logged from Phone Call App",
-      "lastTimestamp": "02:34 pm",
-      "avatarColor": "from-rose-500 to-amber-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_911409080056",
-      "name": "Caller +911409080056",
-      "phone": "+911409080056",
-      "ig": "@caller911409080056",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "02:24 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_911408430226",
-      "name": "Caller +911408430226",
-      "phone": "+911408430226",
-      "ig": "@caller911408430226",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "01:16 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_911408430351",
-      "name": "Caller +911408430351",
-      "phone": "+911408430351",
-      "ig": "@caller911408430351",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "01:01 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_919377777033",
-      "name": "Caller +919377777033",
-      "phone": "+919377777033",
-      "ig": "@caller919377777033",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call logged from Phone Call App",
-      "lastTimestamp": "12:01 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_919319798450",
-      "name": "Caller +919319798450",
-      "phone": "+919319798450",
-      "ig": "@caller919319798450",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "02:28 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_18289271309",
-      "name": "Caller +18289271309",
-      "phone": "+18289271309",
-      "ig": "@caller18289271309",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "12:37 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_917969791561",
-      "name": "Caller +917969791561",
-      "phone": "+917969791561",
-      "ig": "@caller917969791561",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "01:07 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_917314621074",
-      "name": "Caller +917314621074",
-      "phone": "+917314621074",
-      "ig": "@caller917314621074",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call logged from Phone Call App",
-      "lastTimestamp": "05:30 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_918800898041",
-      "name": "Caller +918800898041",
-      "phone": "+918800898041",
-      "ig": "@caller918800898041",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "04:40 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_911244861300",
-      "name": "Caller +911244861300",
-      "phone": "+911244861300",
-      "ig": "@caller911244861300",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call logged from Phone Call App",
-      "lastTimestamp": "04:24 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_917969037088",
-      "name": "Caller +917969037088",
-      "phone": "+917969037088",
-      "ig": "@caller917969037088",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "04:03 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_918045217211",
-      "name": "Caller +918045217211",
-      "phone": "+918045217211",
-      "ig": "@caller918045217211",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "05:29 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_917313576169",
-      "name": "Caller +917313576169",
-      "phone": "+917313576169",
-      "ig": "@caller917313576169",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Missed Call in Call App",
-      "lastTimestamp": "03:02 pm",
-      "avatarColor": "from-rose-500 to-amber-500"
-    },
-    {
-      "id": "c_call_911244710000",
-      "name": "Caller +911244710000",
-      "phone": "+911244710000",
-      "ig": "@caller911244710000",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "11:17 am",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_9377777033",
-      "name": "Caller 9377777033",
-      "phone": "9377777033",
-      "ig": "@caller9377777033",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
-      "lastTimestamp": "11:23 am",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_918035216690",
-      "name": "Caller +918035216690",
-      "phone": "+918035216690",
-      "ig": "@caller918035216690",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call logged from Phone Call App",
-      "lastTimestamp": "05:44 pm",
       "avatarColor": "from-blue-500 to-cyan-500",
       "callAppSynced": true
     },
@@ -1877,51 +906,6 @@
       "callAppSynced": true
     },
     {
-      "id": "c_call_917317159616",
-      "name": "Caller +917317159616",
-      "phone": "+917317159616",
-      "ig": "@caller917317159616",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Missed Call in Call App",
-      "lastTimestamp": "11:30 pm",
-      "avatarColor": "from-rose-500 to-amber-500"
-    },
-    {
-      "id": "c_call_918045243236",
-      "name": "Caller +918045243236",
-      "phone": "+918045243236",
-      "ig": "@caller918045243236",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Missed Call in Call App",
-      "lastTimestamp": "11:30 pm",
-      "avatarColor": "from-rose-500 to-amber-500"
-    },
-    {
-      "id": "c_call_917317165808",
-      "name": "Caller +917317165808",
-      "phone": "+917317165808",
-      "ig": "@caller917317165808",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Missed Call in Call App",
-      "lastTimestamp": "11:29 pm",
-      "avatarColor": "from-rose-500 to-amber-500"
-    },
-    {
-      "id": "c_call_919428596610",
-      "name": "Caller +919428596610",
-      "phone": "+919428596610",
-      "ig": "@caller919428596610",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call logged from Phone Call App",
-      "lastTimestamp": "07:36 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
       "id": "c_call_9558534556",
       "name": "Happy Store",
       "phone": "9558534556",
@@ -1932,97 +916,6 @@
       "lastTimestamp": "06:15 pm",
       "avatarColor": "from-blue-500 to-cyan-500",
       "callAppSynced": true
-    },
-    {
-      "id": "c_call_918071991292",
-      "name": "Caller +918071991292",
-      "phone": "+918071991292",
-      "ig": "@caller918071991292",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "04:24 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_914071316124",
-      "name": "Caller +914071316124",
-      "phone": "+914071316124",
-      "ig": "@caller914071316124",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "04:23 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_918071991033",
-      "name": "Caller +918071991033",
-      "phone": "+918071991033",
-      "ig": "@caller918071991033",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
-      "lastTimestamp": "03:34 pm",
-      "avatarColor": "from-rose-500 to-amber-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_17156460136",
-      "name": "Caller +17156460136",
-      "phone": "+17156460136",
-      "ig": "@caller17156460136",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
-      "lastTimestamp": "03:59 pm",
-      "avatarColor": "from-rose-500 to-amber-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_918035480593",
-      "name": "Caller +918035480593",
-      "phone": "+918035480593",
-      "ig": "@caller918035480593",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Missed Call logged from Phone Call App",
-      "lastTimestamp": "11:38 am",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_079026921736",
-      "name": "Caller 079026921736",
-      "phone": "079026921736",
-      "ig": "@caller079026921736",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "03:32 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_07926901736",
-      "name": "Caller 07926901736",
-      "phone": "07926901736",
-      "ig": "@caller07926901736",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "03:32 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_9427382430",
-      "name": "Caller 9427382430",
-      "phone": "9427382430",
-      "ig": "@caller9427382430",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "10:53 am",
-      "avatarColor": "from-blue-500 to-cyan-500"
     },
     {
       "id": "c_call_919265862703",
@@ -2037,96 +930,6 @@
       "callAppSynced": true
     },
     {
-      "id": "c_call_918401996406",
-      "name": "Caller +918401996406",
-      "phone": "+918401996406",
-      "ig": "@caller918401996406",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "08:00 am",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_916261463449",
-      "name": "Caller +916261463449",
-      "phone": "+916261463449",
-      "ig": "@caller916261463449",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "02:12 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_911409080151",
-      "name": "Caller +911409080151",
-      "phone": "+911409080151",
-      "ig": "@caller911409080151",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call logged from Phone Call App",
-      "lastTimestamp": "03:09 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_911409080001",
-      "name": "Caller +911409080001",
-      "phone": "+911409080001",
-      "ig": "@caller911409080001",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "05:27 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_911",
-      "name": "Caller 911",
-      "phone": "911",
-      "ig": "@caller911",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "07:22 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_917383475319",
-      "name": "Caller +917383475319",
-      "phone": "+917383475319",
-      "ig": "@caller917383475319",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
-      "lastTimestamp": "09:57 pm",
-      "avatarColor": "from-rose-500 to-amber-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_911409080031",
-      "name": "Caller +911409080031",
-      "phone": "+911409080031",
-      "ig": "@caller911409080031",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "09:34 am",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_912265015086",
-      "name": "Caller +912265015086",
-      "phone": "+912265015086",
-      "ig": "@caller912265015086",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "01:52 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
       "id": "c_call_9824358366",
       "name": "Moral Enterprises",
       "phone": "9824358366",
@@ -2137,187 +940,6 @@
       "lastTimestamp": "11:56 am",
       "avatarColor": "from-blue-500 to-cyan-500",
       "callAppSynced": true
-    },
-    {
-      "id": "c_call_918347769754",
-      "name": "Caller +918347769754",
-      "phone": "+918347769754",
-      "ig": "@caller918347769754",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
-      "lastTimestamp": "02:30 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_8347769754",
-      "name": "Caller 8347769754",
-      "phone": "8347769754",
-      "ig": "@caller8347769754",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "01:16 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_9925044756",
-      "name": "Caller 9925044756",
-      "phone": "9925044756",
-      "ig": "@caller9925044756",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
-      "lastTimestamp": "06:41 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_07926601338",
-      "name": "Caller 07926601338",
-      "phone": "07926601338",
-      "ig": "@caller07926601338",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "08:54 am",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_07935333462",
-      "name": "Caller 07935333462",
-      "phone": "07935333462",
-      "ig": "@caller07935333462",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "08:52 am",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_026601338",
-      "name": "Caller 026601338",
-      "phone": "026601338",
-      "ig": "@caller026601338",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "08:51 am",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_26601338",
-      "name": "Caller 26601338",
-      "phone": "26601338",
-      "ig": "@caller26601338",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
-      "lastTimestamp": "08:51 am",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_8866035228",
-      "name": "Caller 8866035228",
-      "phone": "8866035228",
-      "ig": "@caller8866035228",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "08:49 am",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_916354468987",
-      "name": "Caller +916354468987",
-      "phone": "+916354468987",
-      "ig": "@caller916354468987",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "03:55 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_07925326701",
-      "name": "Caller 07925326701",
-      "phone": "07925326701",
-      "ig": "@caller07925326701",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "12:30 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_911409081005",
-      "name": "Caller +911409081005",
-      "phone": "+911409081005",
-      "ig": "@caller911409081005",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "01:50 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_8980810000",
-      "name": "Caller 8980810000",
-      "phone": "8980810000",
-      "ig": "@caller8980810000",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "06:41 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_919426464423",
-      "name": "Caller +919426464423",
-      "phone": "+919426464423",
-      "ig": "@caller919426464423",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call logged from Phone Call App",
-      "lastTimestamp": "12:13 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_911409080181",
-      "name": "Caller +911409080181",
-      "phone": "+911409080181",
-      "ig": "@caller911409080181",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "04:26 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_911409081112",
-      "name": "Caller +911409081112",
-      "phone": "+911409081112",
-      "ig": "@caller911409081112",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call logged from Phone Call App",
-      "lastTimestamp": "06:26 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_911409080271",
-      "name": "Caller +911409080271",
-      "phone": "+911409080271",
-      "ig": "@caller911409080271",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "10:57 am",
-      "avatarColor": "from-blue-500 to-cyan-500"
     },
     {
       "id": "c_call_9825469077",
@@ -2331,133 +953,6 @@
       "avatarColor": "from-blue-500 to-cyan-500"
     },
     {
-      "id": "c_call_9824011374",
-      "name": "Caller 9824011374",
-      "phone": "9824011374",
-      "ig": "@caller9824011374",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "07:25 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_918035468940",
-      "name": "Caller +918035468940",
-      "phone": "+918035468940",
-      "ig": "@caller918035468940",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Missed Call in Call App",
-      "lastTimestamp": "06:33 pm",
-      "avatarColor": "from-rose-500 to-amber-500"
-    },
-    {
-      "id": "c_call_917935591340",
-      "name": "Caller +917935591340",
-      "phone": "+917935591340",
-      "ig": "@caller917935591340",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Missed Call in Call App",
-      "lastTimestamp": "07:57 pm",
-      "avatarColor": "from-rose-500 to-amber-500"
-    },
-    {
-      "id": "c_call_917935591010",
-      "name": "Caller +917935591010",
-      "phone": "+917935591010",
-      "ig": "@caller917935591010",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Missed Call in Call App",
-      "lastTimestamp": "07:42 pm",
-      "avatarColor": "from-rose-500 to-amber-500"
-    },
-    {
-      "id": "c_call_912269097097",
-      "name": "Caller +912269097097",
-      "phone": "+912269097097",
-      "ig": "@caller912269097097",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call logged from Phone Call App",
-      "lastTimestamp": "04:12 pm",
-      "avatarColor": "from-rose-500 to-amber-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_911409080241",
-      "name": "Caller +911409080241",
-      "phone": "+911409080241",
-      "ig": "@caller911409080241",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "12:34 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_911409081340",
-      "name": "Caller +911409081340",
-      "phone": "+911409081340",
-      "ig": "@caller911409081340",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call logged from Phone Call App",
-      "lastTimestamp": "03:15 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_911409080091",
-      "name": "Caller +911409080091",
-      "phone": "+911409080091",
-      "ig": "@caller911409080091",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call logged from Phone Call App",
-      "lastTimestamp": "08:46 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_911409080121",
-      "name": "Caller +911409080121",
-      "phone": "+911409080121",
-      "ig": "@caller911409080121",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call logged from Phone Call App",
-      "lastTimestamp": "06:13 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_911409080331",
-      "name": "Caller +911409080331",
-      "phone": "+911409080331",
-      "ig": "@caller911409080331",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call logged from Phone Call App",
-      "lastTimestamp": "07:51 pm",
-      "avatarColor": "from-rose-500 to-amber-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_918035472102",
-      "name": "Caller +918035472102",
-      "phone": "+918035472102",
-      "ig": "@caller918035472102",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call logged from Phone Call App",
-      "lastTimestamp": "03:11 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
       "id": "c_call_919428018468",
       "name": "Tanvi Crow Girl",
       "phone": "+919428018468",
@@ -2466,202 +961,6 @@
       "source": "call_app",
       "lastMessage": "📞 Incoming Call in Call App",
       "lastTimestamp": "02:28 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_911409080061",
-      "name": "Caller +911409080061",
-      "phone": "+911409080061",
-      "ig": "@caller911409080061",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call logged from Phone Call App",
-      "lastTimestamp": "06:09 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_917043651961",
-      "name": "Caller +917043651961",
-      "phone": "+917043651961",
-      "ig": "@caller917043651961",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "10:04 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_919924365516",
-      "name": "Caller +919924365516",
-      "phone": "+919924365516",
-      "ig": "@caller919924365516",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "05:43 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_9924365516",
-      "name": "Caller 9924365516",
-      "phone": "9924365516",
-      "ig": "@caller9924365516",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
-      "lastTimestamp": "02:35 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_112",
-      "name": "Caller 112",
-      "phone": "112",
-      "ig": "@caller112",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
-      "lastTimestamp": "09:41 am",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_9824323624",
-      "name": "Caller 9824323624",
-      "phone": "9824323624",
-      "ig": "@caller9824323624",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
-      "lastTimestamp": "08:43 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_911409080211",
-      "name": "Caller +911409080211",
-      "phone": "+911409080211",
-      "ig": "@caller911409080211",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call logged from Phone Call App",
-      "lastTimestamp": "07:36 pm",
-      "avatarColor": "from-rose-500 to-amber-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_911409030041",
-      "name": "Caller +911409030041",
-      "phone": "+911409030041",
-      "ig": "@caller911409030041",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call logged from Phone Call App",
-      "lastTimestamp": "02:30 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_9106963153",
-      "name": "Caller 9106963153",
-      "phone": "9106963153",
-      "ig": "@caller9106963153",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call in Call App",
-      "lastTimestamp": "02:23 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_918035242066",
-      "name": "Caller +918035242066",
-      "phone": "+918035242066",
-      "ig": "@caller918035242066",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Missed Call in Call App",
-      "lastTimestamp": "11:08 am",
-      "avatarColor": "from-rose-500 to-amber-500"
-    },
-    {
-      "id": "c_call_918401156644",
-      "name": "Caller +918401156644",
-      "phone": "+918401156644",
-      "ig": "@caller918401156644",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "07:49 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_912269097392",
-      "name": "Caller +912269097392",
-      "phone": "+912269097392",
-      "ig": "@caller912269097392",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call logged from Phone Call App",
-      "lastTimestamp": "09:08 pm",
-      "avatarColor": "from-rose-500 to-amber-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_912265015062",
-      "name": "Caller +912265015062",
-      "phone": "+912265015062",
-      "ig": "@caller912265015062",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call logged from Phone Call App",
-      "lastTimestamp": "12:48 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_918657914839",
-      "name": "Caller +918657914839",
-      "phone": "+918657914839",
-      "ig": "@caller918657914839",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Missed Call in Call App",
-      "lastTimestamp": "09:48 am",
-      "avatarColor": "from-rose-500 to-amber-500"
-    },
-    {
-      "id": "c_call_918657914846",
-      "name": "Caller +918657914846",
-      "phone": "+918657914846",
-      "ig": "@caller918657914846",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Outgoing Call logged from Phone Call App",
-      "lastTimestamp": "02:32 pm",
-      "avatarColor": "from-blue-500 to-cyan-500",
-      "callAppSynced": true
-    },
-    {
-      "id": "c_call_918657914785",
-      "name": "Caller +918657914785",
-      "phone": "+918657914785",
-      "ig": "@caller918657914785",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "08:41 am",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_911409030011",
-      "name": "Caller +911409030011",
-      "phone": "+911409030011",
-      "ig": "@caller911409030011",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "07:17 pm",
       "avatarColor": "from-blue-500 to-cyan-500"
     },
     {
@@ -2677,28 +976,6 @@
       "callAppSynced": true
     },
     {
-      "id": "c_call_917949129124",
-      "name": "Caller +917949129124",
-      "phone": "+917949129124",
-      "ig": "@caller917949129124",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "07:42 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
-      "id": "c_call_13148972614",
-      "name": "Caller +13148972614",
-      "phone": "+13148972614",
-      "ig": "@caller13148972614",
-      "platform": "whatsapp",
-      "source": "call_app",
-      "lastMessage": "📞 Incoming Call in Call App",
-      "lastTimestamp": "06:23 pm",
-      "avatarColor": "from-blue-500 to-cyan-500"
-    },
-    {
       "id": "c_call_9426703566",
       "name": "Pappa",
       "phone": "9426703566",
@@ -2709,16 +986,6 @@
       "lastTimestamp": "07:17 pm",
       "avatarColor": "from-blue-500 to-cyan-500",
       "callAppSynced": true
-    },
-    {
-      "id": "c_adb_1788118427092_276",
-      "name": "JA-JioPay-S",
-      "phone": "JA-JioPay-S",
-      "ig": "@jajiopays",
-      "platform": "whatsapp",
-      "lastMessage": "Synced from Phone Address Book",
-      "lastTimestamp": "Phone Synced",
-      "avatarColor": "from-emerald-500 to-teal-500"
     },
     {
       "id": "c_adb_1788118427092_275",

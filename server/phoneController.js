@@ -807,7 +807,7 @@ const PhoneController = {
             
             if (numMatch) {
               const phone = numMatch[1].trim();
-              const name = (nameMatch && nameMatch[1] && nameMatch[1] !== 'null') ? nameMatch[1].trim() : `Caller ${phone}`;
+              const savedName = (nameMatch && nameMatch[1] && nameMatch[1] !== 'null') ? nameMatch[1].trim() : null;
               const callType = typeMatch ? parseInt(typeMatch[1]) : 1;
               const typeStr = callType === 3 ? 'Missed Call' : callType === 2 ? 'Outgoing Call' : 'Incoming Call';
               const dateStr = dateMatch ? new Date(parseInt(dateMatch[1])).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent';
@@ -817,12 +817,12 @@ const PhoneController = {
                 rawContacts[existingIdx].lastMessage = `📞 ${typeStr} logged from Phone Call App`;
                 rawContacts[existingIdx].lastTimestamp = dateStr;
                 rawContacts[existingIdx].callAppSynced = true;
-              } else if (phone && phone !== '-1' && phone !== 'null') {
+              } else if (savedName && phone && phone !== '-1' && phone !== 'null' && !savedName.startsWith('Caller ')) {
                 rawContacts.push({
                   id: `c_call_${phone.replace(/[^0-9]/g, '')}`,
-                  name,
+                  name: savedName,
                   phone,
-                  ig: `@${name.toLowerCase().replace(/[^a-z0-9_]/g, '')}`,
+                  ig: `@${savedName.toLowerCase().replace(/[^a-z0-9_]/g, '')}`,
                   platform: 'whatsapp',
                   source: 'call_app',
                   lastMessage: `📞 ${typeStr} in Call App`,
