@@ -1765,8 +1765,30 @@ export default function App() {
         <div style={{ WebkitAppRegion: 'drag', height: '24px', width: '100%', position: 'absolute', top: 0, left: 0, zIndex: 9999, pointerEvents: 'none' }}></div>
       ) : null}
       
-      {/* Main Container */}
-      <div className="flex-1 flex overflow-hidden z-10 w-full h-full relative">
+      {/* OS Spatial Desktop Environment (Ubuntu GNOME Mode) */}
+      {isOsMode ? (
+        <div className="fixed inset-0 w-full h-full min-h-screen min-h-dvh z-30 overflow-hidden bg-[#1f0119]">
+          <JasperOsDesktop 
+            onToggleClassicMode={() => handleSetOsMode(false)} 
+            jasperState={jasperState}
+            onMicClick={() => {
+              if (voiceControllerRef.current) {
+                voiceControllerRef.current.startListening();
+              }
+            }}
+            onLockSystem={() => setIsLocked(true)}
+            onOpenSettings={() => setShowSettings(true)}
+            aiStatusLabel={
+              aiProvider === 'ollama' 
+                ? `🦙 Ollama (${ollamaModel})`
+                : (apiKey ? '☁️ Gemini Cloud' : 'Core Offline')
+            }
+            isAiOnline={Boolean(apiKey)}
+          />
+        </div>
+      ) : (
+        /* Regular Assistant Workspace */
+        <div className="flex-1 flex overflow-hidden z-10 w-full h-full relative">
         
         {/* Mobile Backdrop for Sidebar */}
         {showSidebar && isMobileLayout && (
@@ -2167,9 +2189,8 @@ export default function App() {
         {/* Right Workspace */}
         <div className="flex-1 flex flex-col h-full w-full overflow-hidden relative">
           
-          {/* Header Panel (Only shown in Assistant Workspace mode) */}
-          {!isOsMode && (
-            <header className={`flex items-center justify-between border-b border-white/[0.08] bg-[#0E121A]/90 backdrop-blur-2xl shrink-0 z-20 ${isMobileLayout ? 'h-14 px-3' : 'h-14 px-5'}`}>
+          {/* Header Panel */}
+          <header className={`flex items-center justify-between border-b border-white/[0.08] bg-[#0E121A]/90 backdrop-blur-2xl shrink-0 z-20 ${isMobileLayout ? 'h-14 px-3' : 'h-14 px-5'}`}>
               <div className="flex items-center gap-2.5">
                 <button 
                   onClick={() => setShowSidebar(prev => !prev)}
@@ -2274,36 +2295,15 @@ export default function App() {
                 )}
               </div>
             </header>
-          )}
 
-          {/* Main Workspace Area */}
-          <main 
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            className={`flex-1 overflow-hidden flex flex-col relative ${isOsMode ? 'p-0' : (isMobileLayout ? 'p-2 sm:p-3' : 'p-4')}`}
-          >
-            {isOsMode ? (
-              <JasperOsDesktop 
-                onToggleClassicMode={() => handleSetOsMode(false)} 
-                jasperState={jasperState}
-                onMicClick={() => {
-                  if (voiceControllerRef.current) {
-                    voiceControllerRef.current.startListening();
-                  }
-                }}
-                onLockSystem={() => setIsLocked(true)}
-                onOpenSettings={() => setShowSettings(true)}
-                aiStatusLabel={
-                  aiProvider === 'ollama' 
-                    ? `🦙 Ollama (${ollamaModel})`
-                    : (apiKey ? '☁️ Gemini Cloud' : 'Core Offline')
-                }
-                isAiOnline={Boolean(apiKey)}
-              />
-            ) : (
-              <>
-                {/* Drag & Drop Overlay */}
+            {/* Main Workspace Area */}
+            <main 
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`flex-1 overflow-hidden flex flex-col relative ${isMobileLayout ? 'p-2 sm:p-3' : 'p-4'}`}
+            >
+              {/* Drag & Drop Overlay */}
                 {isDraggingOver && (
                   <div className="drag-drop-overlay">
                     <div className="text-4xl animate-bounce">📥</div>
@@ -2667,11 +2667,10 @@ export default function App() {
                     <span>Top</span>
                   </button>
                 )}
-              </>
-            )}
-          </main>
+            </main>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Sliding TV Remote Control Overlay */}
       {showTvRemote && (

@@ -1039,7 +1039,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
 
   return (
     <div 
-      className="relative w-full h-full overflow-hidden text-slate-100 font-sans select-none ubuntu-wallpaper"
+      className="fixed inset-0 w-full h-full min-h-screen min-h-dvh overflow-hidden text-slate-100 font-sans select-none ubuntu-wallpaper z-30"
       style={{ filter: `brightness(${brightnessLevel}%)` }}
     >
       {/* Night Light Screen Tint Overlay */}

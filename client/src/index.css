@@ -2969,9 +2969,15 @@ input, textarea, select {
    UBUNTU LINUX GNOME ENVIRONMENT DESIGN SYSTEM (YARU THEME)
    ------------------------------------------------------------- */
 .ubuntu-wallpaper {
+  width: 100vw;
+  height: 100vh;
+  min-height: 100vh;
+  min-height: 100dvh;
+  position: absolute;
+  inset: 0;
   background: 
-    radial-gradient(circle at 80% 20%, rgba(233, 84, 32, 0.22) 0%, transparent 45%),
-    radial-gradient(circle at 20% 80%, rgba(119, 33, 111, 0.35) 0%, transparent 55%),
+    radial-gradient(circle at 80% 20%, rgba(233, 84, 32, 0.25) 0%, transparent 45%),
+    radial-gradient(circle at 20% 80%, rgba(119, 33, 111, 0.38) 0%, transparent 55%),
     radial-gradient(circle at 50% 50%, rgba(44, 0, 30, 0.85) 0%, transparent 95%),
     linear-gradient(135deg, #1f0119 0%, #2c001e 35%, #160014 70%, #0d0d0d 100%);
 }
