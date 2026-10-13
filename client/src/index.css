@@ -2807,4 +2807,41 @@ input, textarea, select {
   background-color: #0b0f19 !important;
 }
 
+/* -------------------------------------------------------------
+   UBUNTU LINUX GNOME ENVIRONMENT DESIGN SYSTEM (YARU THEME)
+   ------------------------------------------------------------- */
+.ubuntu-wallpaper {
+  background: 
+    radial-gradient(circle at 80% 20%, rgba(233, 84, 32, 0.22) 0%, transparent 45%),
+    radial-gradient(circle at 20% 80%, rgba(119, 33, 111, 0.35) 0%, transparent 55%),
+    radial-gradient(circle at 50% 50%, rgba(44, 0, 30, 0.85) 0%, transparent 95%),
+    linear-gradient(135deg, #1f0119 0%, #2c001e 35%, #160014 70%, #0d0d0d 100%);
+}
+
+.ubuntu-top-panel {
+  background: rgba(17, 17, 17, 0.97);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.7);
+  color: #dfdbd2;
+}
+
+.ubuntu-dock {
+  background: rgba(17, 17, 17, 0.94);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ubuntu-window-titlebar {
+  background: #242424;
+  border-bottom: 1px solid #333333;
+}
+
+.ubuntu-btn-close:hover {
+  background-color: #E95420 !important;
+  color: #ffffff !important;
+}
+
+
 

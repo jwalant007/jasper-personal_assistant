@@ -5,7 +5,7 @@ import {
   Zap, Radio, Settings, HelpCircle, HardDrive, Wifi, BatteryCharging, Search,
   Bot, Palette, Music, Workflow, BarChart3, Brain, Store, Trophy, MapPin, Heart, Languages, BookOpen, Laptop, Grid, AppWindow, Lock,
   Hand, Camera, CameraOff, Move, ThumbsUp, ThumbsDown, Crosshair, ChevronDown, ChevronUp, MoveVertical, Eye, EyeOff, Power, Check,
-  Database, Download, Upload
+  Database, Download, Upload, Folder, Moon, Sun, Trash2, Calendar, Bell, Sliders, VolumeX
 } from 'lucide-react';
 import { AirGestureTracker } from '../utils/gestureTracker';
 import { playJarvisBeep, playJarvisScan, playJarvisPowerUp, playMysticSnap } from '../utils/jarvisAudioSynth';
@@ -383,57 +383,58 @@ function OsWindow({
       onMouseDown={() => onFocus(id)}
       onTouchStart={() => onFocus(id)}
       style={windowStyle}
-      className={`absolute flex flex-col rounded-2xl bg-slate-950/95 border border-white/[0.1] backdrop-blur-3xl shadow-[0_20px_60px_rgba(0,0,0,0.85)] overflow-hidden transition-shadow duration-200 ${
-        isDragging ? 'ring-2 ring-indigo-400/80 shadow-[0_0_50px_rgba(99,102,241,0.35)] select-none' : 'ring-1 ring-white/[0.05]'
+      className={`absolute flex flex-col rounded-xl bg-[#1e1e1e] border border-[#383838] shadow-[0_20px_50px_rgba(0,0,0,0.85)] overflow-hidden transition-shadow duration-200 ${
+        isDragging ? 'ring-2 ring-[#E95420]/80 shadow-[0_0_40px_rgba(233,84,32,0.3)] select-none' : 'ring-1 ring-white/[0.04]'
       }`}
     >
-      {/* Window Header Bar */}
+      {/* Ubuntu Yaru Window Header Bar */}
       <div
         onMouseDown={handleHeaderMouseDown}
         onTouchStart={handleHeaderTouchStart}
-        className="px-3.5 py-2.5 bg-slate-900/85 border-b border-white/[0.08] flex items-center justify-between cursor-grab active:cursor-grabbing select-none backdrop-blur-2xl shrink-0"
+        className="px-3.5 py-2 bg-[#252525] border-b border-[#333333] flex items-center justify-between cursor-grab active:cursor-grabbing select-none shrink-0"
       >
-        <div className="flex items-center gap-2 text-slate-100 font-sans text-xs font-semibold tracking-wide truncate max-w-[60%]">
-          {Icon && <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-400 shrink-0" />}
+        <div className="flex items-center gap-2 text-[#dfdbd2] font-sans text-xs font-medium tracking-wide truncate max-w-[65%]">
+          {Icon && <Icon className="w-4 h-4 text-[#E95420] shrink-0" />}
           <span className="truncate">{title}</span>
         </div>
 
-        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
           {isGestureActive && (
             <div 
-              className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-sky-500/15 border border-sky-400/30 text-[9px] font-mono text-sky-300 mr-1 animate-pulse"
-              title="Air Gestures Connected: Wave hand to scroll, Peace sign to maximize, Fist to minimize"
+              className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#E95420]/15 border border-[#E95420]/30 text-[9px] font-mono text-[#E95420] mr-1 animate-pulse"
+              title="Air Gestures Connected"
             >
-              <Hand className="w-3 h-3 text-sky-400" />
-              <span className="hidden sm:inline">AIR GESTURE</span>
+              <Hand className="w-3 h-3 text-[#E95420]" />
+              <span className="hidden sm:inline">GESTURES</span>
             </div>
           )}
+          {/* Ubuntu Yaru Window Controls */}
           <button
             onClick={() => onMinimize(id)}
-            className="window-control-btn p-1 sm:p-1.5 rounded-lg text-slate-400 hover:bg-white/[0.08] hover:text-slate-100 transition-colors"
-            title="Minimize App"
+            className="w-6 h-6 rounded-full bg-[#353535] hover:bg-[#454545] text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+            title="Minimize"
           >
-            <Minus className="w-3.5 h-3.5" />
+            <Minus className="w-3 h-3" />
           </button>
           <button
             onClick={toggleMaximize}
-            className="window-control-btn p-1 sm:p-1.5 rounded-lg text-slate-400 hover:bg-white/[0.08] hover:text-slate-100 transition-colors"
-            title={isMaximized ? "Restore Window" : "Maximize Window"}
+            className="w-6 h-6 rounded-full bg-[#353535] hover:bg-[#454545] text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+            title={isMaximized ? "Restore Window" : "Maximize"}
           >
-            {isMaximized ? <Square className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+            {isMaximized ? <Square className="w-2.5 h-2.5" /> : <Maximize2 className="w-2.5 h-2.5" />}
           </button>
           <button
             onClick={() => onClose(id)}
-            className="window-control-btn p-1 sm:p-1.5 rounded-lg text-slate-400 hover:bg-rose-500/20 hover:text-rose-300 transition-colors"
-            title="Close App"
+            className="w-6 h-6 rounded-full bg-[#353535] hover:bg-[#E95420] text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer ubuntu-btn-close"
+            title="Close"
           >
-            <X className="w-3.5 h-3.5" />
+            <X className="w-3 h-3" />
           </button>
         </div>
       </div>
 
       {/* App Window Body */}
-      <div ref={bodyRef} className="flex-1 overflow-y-auto p-2 sm:p-3 text-slate-100 font-sans custom-scrollbar bg-slate-950/80">
+      <div ref={bodyRef} className="flex-1 overflow-y-auto p-2 sm:p-3 text-slate-100 font-sans custom-scrollbar bg-[#181818]">
         {children}
       </div>
 
@@ -442,7 +443,7 @@ function OsWindow({
         <div
           onMouseDown={handleResizeMouseDown}
           onTouchStart={handleResizeTouchStart}
-          className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize flex items-center justify-center text-slate-500 hover:text-indigo-400"
+          className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize flex items-center justify-center text-slate-500 hover:text-[#E95420]"
         >
           <svg className="w-3 h-3" viewBox="0 0 6 6" fill="currentColor">
             <path d="M6 6H4V4h2v2zM6 2H4v2h2V2zM2 6H0V4h2v2z" />
@@ -468,6 +469,17 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
   const [dockTwoRows, setDockTwoRows] = useState(false);
   const [desktopLayoutMode, setDesktopLayoutMode] = useState('commandCenter'); // 'commandCenter' (JARVIS HUD) | 'matrix' (All On Screen) | 'shelf' (2-Row Shelf)
   const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Ubuntu GNOME Shell & Yaru Desktop State
+  const [isActivitiesOpen, setIsActivitiesOpen] = useState(false);
+  const [showQuickSettings, setShowQuickSettings] = useState(false);
+  const [showCalendarTray, setShowCalendarTray] = useState(false);
+  const [volumeLevel, setVolumeLevel] = useState(80);
+  const [brightnessLevel, setBrightnessLevel] = useState(100);
+  const [nightLight, setNightLight] = useState(false);
+  const [wifiEnabled, setWifiEnabled] = useState(true);
+  const [focusedWinId, setFocusedWinId] = useState(null);
+  const [hoveredDockApp, setHoveredDockApp] = useState(null);
 
   // Satellite Hardware Bridge & DB Persistence
   const [satelliteOnline, setSatelliteOnline] = useState(false);
@@ -583,56 +595,6 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
   const gestureTrackerRef = useRef(null);
   const windowBodyRefs = useRef({});
 
-  // OS Desktop Screen Scroll State & Controls
-  const desktopScrollRef = useRef(null);
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const [canScrollDown, setCanScrollDown] = useState(false);
-  const [canScrollUp, setCanScrollUp] = useState(false);
-  const [hasOverflow, setHasOverflow] = useState(false);
-
-  const checkScroll = useCallback(() => {
-    const el = desktopScrollRef.current;
-    if (!el) return;
-    const { scrollTop, scrollHeight, clientHeight } = el;
-    const maxScroll = scrollHeight - clientHeight;
-    setHasOverflow(maxScroll > 15);
-    setCanScrollUp(scrollTop > 15);
-    setCanScrollDown(scrollTop < maxScroll - 15);
-    setScrollProgress(maxScroll > 0 ? Math.min(100, Math.max(0, (scrollTop / maxScroll) * 100)) : 0);
-  }, []);
-
-  useEffect(() => {
-    checkScroll();
-    const handleResize = () => checkScroll();
-    window.addEventListener('resize', handleResize);
-    const t = setTimeout(checkScroll, 150);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      clearTimeout(t);
-    };
-  }, [checkScroll, desktopLayoutMode, openWindows]);
-
-  const handleDesktopScroll = () => {
-    checkScroll();
-  };
-
-  const handleScrollDown = () => {
-    const el = desktopScrollRef.current;
-    if (!el) return;
-    el.scrollBy({ top: 280, behavior: 'smooth' });
-  };
-
-  const handleScrollUp = () => {
-    const el = desktopScrollRef.current;
-    if (!el) return;
-    el.scrollBy({ top: -280, behavior: 'smooth' });
-  };
-
-  const handleScrollToEdge = (direction) => {
-    const el = desktopScrollRef.current;
-    if (!el) return;
-    el.scrollTo({ top: direction === 'bottom' ? el.scrollHeight : 0, behavior: 'smooth' });
-  };
 
   const bringToTop = (winId) => {
     const nextZ = topZ + 1;
@@ -640,14 +602,17 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
     setActiveZIndex(prev => ({ ...prev, [winId]: nextZ }));
     setMinimizedWindows(prev => ({ ...prev, [winId]: false }));
     setActiveFocusedWinId(winId);
+    setFocusedWinId(winId);
   };
 
   const closeWindow = useCallback((winId) => {
     setOpenWindows(prev => ({ ...prev, [winId]: false }));
+    setFocusedWinId(prev => (prev === winId ? null : prev));
   }, []);
 
   const minimizeWindow = useCallback((winId) => {
     setMinimizedWindows(prev => ({ ...prev, [winId]: true }));
+    setFocusedWinId(prev => (prev === winId ? null : prev));
   }, []);
 
   const closeAllApps = useCallback(() => {
@@ -976,6 +941,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
     }
     bringToTop(appId);
     setShowStartMenu(false);
+    setIsActivitiesOpen(false);
   };
 
   const toggleWindow = (rawWinId) => {
@@ -1007,255 +973,464 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
     return matchesSearch && matchesCategory;
   });
 
+  // Ubuntu GNOME Dock Pinned Apps Registry
+  const UBUNTU_PINNED_APP_IDS = useMemo(() => [
+    'fileManager',
+    'jasperBrowser',
+    'codeStudio',
+    'videoStudio',
+    'notesPlanner',
+    'calculator',
+    'hologramStudio',
+    'phoneSentinel',
+    'tvRemote',
+    'skillsStore',
+    'diagnostics'
+  ], []);
+
+  // Ubuntu Dock dynamic app list: Pinned + Unpinned running applications
+  const dockApps = useMemo(() => {
+    const pinned = UBUNTU_PINNED_APP_IDS
+      .map(id => JASPER_OS_APPS_REGISTRY.find(a => a.id === id))
+      .filter(Boolean);
+    
+    const unpinnedRunning = Object.keys(openWindows)
+      .filter(id => openWindows[id] && !UBUNTU_PINNED_APP_IDS.includes(id))
+      .map(id => JASPER_OS_APPS_REGISTRY.find(a => a.id === id))
+      .filter(Boolean);
+
+    return [...pinned, ...unpinnedRunning];
+  }, [openWindows, UBUNTU_PINNED_APP_IDS]);
+
+  // Active focused app for top panel header
+  const focusedApp = useMemo(() => {
+    if (!focusedWinId) return null;
+    return JASPER_OS_APPS_REGISTRY.find(a => a.id === focusedWinId) || null;
+  }, [focusedWinId]);
+
+  // Ubuntu GNOME date formatting (e.g. "Tue Oct 13  22:14")
+  const formatUbuntuDate = useCallback((date) => {
+    try {
+      const weekday = date.toLocaleDateString('en-US', { weekday: 'short' });
+      const month = date.toLocaleDateString('en-US', { month: 'short' });
+      const day = date.getDate();
+      const time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+      return `${weekday} ${month} ${day}  ${time}`;
+    } catch (_) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+  }, []);
+
+  // Calendar info for the Ubuntu GNOME Notification & Calendar Tray
+  const calendarInfo = useMemo(() => {
+    const year = currentTime.getFullYear();
+    const month = currentTime.getMonth();
+    const today = currentTime.getDate();
+    const firstDayIndex = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const monthName = currentTime.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    const fullDateStr = currentTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+    const blanks = Array.from({ length: firstDayIndex }, (_, i) => i);
+    const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+    return { year, month, today, monthName, fullDateStr, blanks, days };
+  }, [currentTime]);
+
   return (
-    <div className="relative w-full h-full overflow-hidden bg-[#07090e] text-slate-100 font-sans selection:bg-indigo-500/30">
-      {/* Modern Obsidian Ambient Canvas */}
-      <div className="absolute inset-0 bg-[#07090e] pointer-events-none" />
-      <div className="absolute -top-32 left-1/4 w-[650px] h-[450px] bg-gradient-to-br from-indigo-600/12 via-violet-600/8 to-transparent rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-24 right-1/4 w-[550px] h-[400px] bg-gradient-to-tl from-sky-600/10 via-teal-600/6 to-transparent rounded-full blur-3xl pointer-events-none" />
+    <div 
+      className="relative w-full h-full overflow-hidden text-slate-100 font-sans select-none ubuntu-wallpaper"
+      style={{ filter: `brightness(${brightnessLevel}%)` }}
+    >
+      {/* Night Light Screen Tint Overlay */}
+      {nightLight && (
+        <div className="pointer-events-none fixed inset-0 bg-amber-500/10 mix-blend-color z-35 transition-opacity" />
+      )}
 
-      {/* TOP GLASS SYSTEM TASKBAR */}
-      <div 
-        ref={topBarScrollRef}
-        onPointerDown={handleTopBarPointerDown}
-        onPointerMove={handleTopBarPointerMove}
-        onPointerUp={handleTopBarPointerUp}
-        onPointerLeave={handleTopBarPointerUp}
-        className="absolute top-0 left-0 right-0 h-12 bg-slate-950/80 border-b border-white/[0.08] backdrop-blur-2xl z-50 overflow-x-auto touch-pan-x overscroll-x-contain scroll-smooth no-scrollbar select-none cursor-grab active:cursor-grabbing shadow-sm"
-      >
-        {/* Visual Edge Swipe Glow Hints for Mobile */}
-        {canSwipeLeft && (
-          <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent z-20 flex items-center pl-1">
-            <span className="text-xs text-sky-400 animate-pulse font-mono font-bold">‹</span>
-          </div>
-        )}
-        {canSwipeRight && (
-          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-slate-950 via-slate-950/80 to-transparent z-20 flex items-center justify-end pr-1">
-            <span className="text-xs text-sky-400 animate-pulse font-mono font-bold">›</span>
-          </div>
-        )}
+      {/* Hidden File Input for Database Restore */}
+      <input
+        type="file"
+        ref={dbFileInputRef}
+        onChange={handleImportDb}
+        accept=".json"
+        className="hidden"
+      />
 
-        <div className="flex items-center justify-between min-w-max md:min-w-full gap-2 px-3 h-full">
-        <div className="flex items-center gap-1.5 shrink-0">
+      {/* 1. UBUNTU GNOME TOP PANEL (28px Canonical Bar) */}
+      <header className="fixed top-0 left-0 right-0 h-7 bg-[#111111] border-b border-black/80 flex items-center justify-between px-2.5 z-50 text-[13px] font-sans text-[#dfdbd2] shadow-sm select-none">
+        {/* Left: Activities button + Active App Title */}
+        <div className="flex items-center gap-1.5 h-full">
           <button
-            onClick={() => setShowStartMenu(!showStartMenu)}
-            className="h-8.5 px-3 rounded-xl bg-gradient-to-r from-indigo-500/20 via-violet-500/15 to-sky-500/20 hover:from-indigo-500/30 hover:to-sky-500/30 border border-indigo-400/40 text-slate-100 flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(99,102,241,0.2)] cursor-pointer shrink-0"
-            title="JASPER OS App Center & Start Launcher"
-          >
-            <div className="w-4 h-4 rounded-full border border-indigo-300 flex items-center justify-center animate-pulse">
-              <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shadow-[0_0_6px_#38bdf8]" />
-            </div>
-            <span className="font-sans font-bold text-xs tracking-wide text-slate-100">JASPER OS</span>
-          </button>
-
-          {/* Quick Dedicated AI Video Studio Launcher Button */}
-          <button
-            onClick={() => launchApp('videoStudio')}
-            className={`h-8.5 px-3 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer shrink-0 font-sans text-xs font-medium ${
-              openWindows['videoStudio'] && !minimizedWindows['videoStudio']
-                ? 'bg-rose-500/25 border-rose-400/50 text-rose-200 shadow-[0_0_15px_rgba(244,63,94,0.3)]'
-                : 'bg-slate-900/60 hover:bg-slate-850 border-white/[0.08] text-slate-300 hover:text-white'
+            onClick={() => {
+              setIsActivitiesOpen(prev => !prev);
+              setShowQuickSettings(false);
+              setShowCalendarTray(false);
+            }}
+            className={`h-5.5 px-3 rounded-full flex items-center text-xs font-semibold tracking-tight transition-all cursor-pointer ${
+              isActivitiesOpen ? 'bg-white/20 text-white' : 'text-slate-200 hover:bg-white/10'
             }`}
-            title="Launch AI Video Creator & YouTube Studio"
+            title="Ubuntu Activities Overview"
           >
-            <Video className="w-3.5 h-3.5 text-rose-400 shrink-0" />
-            <span className="hidden md:inline">AI Video Studio</span>
-            <span className="md:hidden">Studio</span>
+            Activities
           </button>
 
-          <div className="h-4 w-px bg-white/[0.1] mx-0.5 hidden sm:block" />
-
-          {/* Quick App Categories */}
-          <div className="hidden lg:flex items-center gap-1">
-            {[
-              { id: 'all', label: 'All Apps' },
-              { id: 'ai', label: 'AI Swarm' },
-              { id: 'control', label: 'Devices' },
-              { id: 'system', label: 'Security' },
-              { id: 'tools', label: 'Tools' }
-            ].map((ws) => (
-              <button
-                key={ws.id}
-                onClick={() => {
-                  setActiveWorkspace(ws.id);
-                  setShowStartMenu(true);
-                }}
-                className={`h-8 px-2.5 rounded-xl text-xs font-sans whitespace-nowrap transition-all cursor-pointer ${
-                  activeWorkspace === ws.id
-                    ? 'bg-white/[0.1] border border-white/[0.15] text-white shadow-sm font-semibold'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] border border-transparent'
-                }`}
-              >
-                {ws.label}
-              </button>
-            ))}
-          </div>
+          {/* Active Application Name & Icon */}
+          {focusedApp && !minimizedWindows[focusedApp.id] && (
+            <button
+              onClick={() => bringToTop(focusedApp.id)}
+              className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full hover:bg-white/10 transition-colors text-xs text-white cursor-pointer"
+              title={`Active Window: ${focusedApp.title}`}
+            >
+              <focusedApp.icon className="w-3.5 h-3.5 text-[#E95420]" />
+              <span className="font-medium truncate max-w-[180px]">{focusedApp.title.replace(' App', '').replace('JASPER ', '')}</span>
+            </button>
+          )}
         </div>
 
-        {/* Center/Right: AI Avatar Voice Listener HUD, Telemetry, Gemini Cloud, Gestures, Classic, Lock, Clock */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          {/* 1. AI Voice Avatar HUD */}
+        {/* Center: Ubuntu Date & Clock */}
+        <div className="flex items-center justify-center">
+          <button
+            onClick={() => {
+              setShowCalendarTray(prev => !prev);
+              setShowQuickSettings(false);
+            }}
+            className={`h-5.5 px-3 rounded-full flex items-center text-xs font-medium tracking-tight transition-all cursor-pointer ${
+              showCalendarTray ? 'bg-white/20 text-white' : 'text-slate-200 hover:bg-white/10'
+            }`}
+            title="Calendar & Notifications"
+          >
+            {formatUbuntuDate(currentTime)}
+          </button>
+        </div>
+
+        {/* Right: AI Voice Avatar + Air Gestures + Satellite + GNOME Quick Settings Pill */}
+        <div className="flex items-center gap-1.5 h-full">
+          {/* AI Voice Avatar Status Pill */}
           <button
             onClick={onMicClick}
-            className={`h-8.5 px-3 rounded-xl border flex items-center gap-2 whitespace-nowrap shrink-0 transition-all shadow-md cursor-pointer ${
-              jasperState === 'listening'
-                ? 'bg-rose-500/25 border-rose-400/60 text-rose-100 shadow-[0_0_18px_rgba(244,63,94,0.35)] animate-pulse'
-                : jasperState === 'processing'
-                ? 'bg-indigo-500/25 border-indigo-400/60 text-indigo-100 shadow-[0_0_18px_rgba(99,102,241,0.35)]'
-                : jasperState === 'speaking'
-                ? 'bg-sky-500/25 border-sky-400/60 text-sky-100 shadow-[0_0_18px_rgba(56,189,248,0.35)]'
-                : 'bg-slate-900/80 border-white/[0.08] text-slate-300 hover:border-slate-600 hover:bg-slate-850'
-            }`}
-            title="AI Voice Avatar: Click to speak | Wake word: 'Hey Jasper'"
+            className="flex items-center gap-1.5 px-2 py-0.5 rounded-full hover:bg-white/10 transition-colors text-xs text-slate-300 hover:text-white cursor-pointer"
+            title="Jasper AI Voice Core (Click to speak)"
           >
-            <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
-              <div className={`absolute inset-0 rounded-full border ${
-                jasperState === 'listening' ? 'border-rose-400 animate-ping opacity-75' :
-                jasperState === 'processing' ? 'border-indigo-400 animate-pulse' :
-                jasperState === 'speaking' ? 'border-sky-400 animate-ping' :
-                'border-indigo-400/40'
-              }`} />
-              <div className={`w-2.5 h-2.5 rounded-full ${
-                jasperState === 'listening' ? 'bg-rose-400 shadow-[0_0_8px_#f43f5e]' :
-                jasperState === 'processing' ? 'bg-indigo-400 shadow-[0_0_8px_#6366f1]' :
-                jasperState === 'speaking' ? 'bg-sky-400 shadow-[0_0_8px_#38bdf8]' :
-                'bg-indigo-400 shadow-[0_0_6px_#818cf8]'
-              }`} />
-            </div>
-
-            <span className="font-sans font-semibold text-xs tracking-wide text-slate-200">AI AVATAR</span>
-
-            <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${
-              jasperState === 'listening' ? 'bg-rose-500 text-white animate-pulse' :
-              jasperState === 'processing' ? 'bg-indigo-500/30 text-indigo-200 animate-pulse' :
-              jasperState === 'speaking' ? 'bg-sky-500/30 text-sky-200 animate-pulse' :
-              'bg-slate-800 text-slate-400 border border-white/[0.05]'
-            }`}>
-              {jasperState === 'listening' ? 'REC' :
-               jasperState === 'processing' ? 'THINKING' :
-               jasperState === 'speaking' ? 'SPEAKING' :
-               'READY'}
+            <span className={`w-2 h-2 rounded-full ${
+              jasperState === 'listening' ? 'bg-rose-500 animate-ping' :
+              jasperState === 'processing' ? 'bg-amber-400 animate-pulse' :
+              jasperState === 'speaking' ? 'bg-[#E95420] animate-ping' :
+              'bg-emerald-400'
+            }`} />
+            <span className="text-[11px] font-mono uppercase text-slate-300">
+              {jasperState === 'idle' ? 'Jasper AI' : jasperState}
             </span>
           </button>
 
-          {/* Live System Telemetry */}
-          <div className="hidden 2xl:flex items-center gap-2 text-slate-400 bg-slate-900/80 border border-white/[0.08] px-2.5 h-8.5 rounded-xl backdrop-blur-md font-mono text-[11px] whitespace-nowrap shrink-0">
-            <span className="flex items-center gap-1 text-sky-400"><Cpu className="w-3 h-3" /> 12%</span>
-            <span className="text-slate-600">|</span>
-            <span className="flex items-center gap-1 text-indigo-400"><HardDrive className="w-3 h-3 text-indigo-400" /> 3.8GB</span>
-          </div>
-
-          {/* 2. Gemini Cloud / AI Status Tab */}
-          {onOpenSettings && (
-            <button
-              onClick={onOpenSettings}
-              className={`h-8.5 px-3 rounded-xl font-mono text-xs flex items-center gap-1.5 transition-all border whitespace-nowrap shrink-0 cursor-pointer ${
-                isAiOnline
-                  ? 'bg-emerald-500/15 hover:bg-emerald-500/25 border-emerald-500/40 text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.15)]'
-                  : 'bg-indigo-500/15 hover:bg-indigo-500/25 border-indigo-500/40 text-indigo-300 animate-pulse shadow-[0_0_10px_rgba(99,102,241,0.15)]'
-              }`}
-              title="Click to configure AI Neural Core & API Keys"
-            >
-              <Settings className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-              <span className="font-semibold">{aiStatusLabel}</span>
-            </button>
-          )}
-
-          {/* Satellite Bridge Hardware Status */}
-          <button
-            onClick={() => setShowSatelliteModal(true)}
-            className={`h-8.5 px-3 rounded-xl font-mono text-xs flex items-center gap-1.5 transition-all border whitespace-nowrap shrink-0 cursor-pointer ${
-              satelliteOnline
-                ? 'bg-emerald-500/15 hover:bg-emerald-500/25 border-emerald-500/50 text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.15)]'
-                : 'bg-neutral-900/80 hover:bg-neutral-850 border-neutral-800 text-neutral-400 hover:text-neutral-200'
-            }`}
-            title="Satellite Hardware Bridge: Connects home PC, TV & ADB to Cloud"
-          >
-            <Radio className={`w-3.5 h-3.5 shrink-0 ${satelliteOnline ? 'text-emerald-400 animate-pulse' : 'text-neutral-500'}`} />
-            <span>Satellite: {satelliteOnline ? 'PC Linked' : 'Offline'}</span>
-          </button>
-
-          {/* Database Backup & Cloud Persistence */}
-          <div className="flex items-center gap-1 bg-black/80 border border-neutral-800 rounded-xl p-0.5 h-8.5 shrink-0">
-            <button
-              onClick={handleExportDb}
-              className="h-7 px-2.5 hover:bg-neutral-800 text-neutral-300 hover:text-amber-300 rounded-lg font-mono text-[11px] flex items-center gap-1.5 transition-all cursor-pointer"
-              title="Download full JSON backup of memories, finances, notes and settings"
-            >
-              <Download className="w-3 h-3 text-amber-400 shrink-0" />
-              <span>{dbBackupStatus || 'Backup DB'}</span>
-            </button>
-            <input
-              type="file"
-              ref={dbFileInputRef}
-              onChange={handleImportDb}
-              accept=".json"
-              className="hidden"
-            />
-            <button
-              onClick={() => dbFileInputRef.current?.click()}
-              className="h-7 px-2 hover:bg-neutral-800 text-neutral-400 hover:text-white rounded-lg font-mono text-[11px] flex items-center gap-1 transition-all cursor-pointer"
-              title="Restore database from a saved JSON backup"
-            >
-              <Upload className="w-3 h-3 shrink-0" />
-              <span>Restore</span>
-            </button>
-          </div>
-
-          {/* 3. Special Gestures & Spells Tab */}
+          {/* Doctor Strange Air Gestures Pill */}
           <button
             onClick={() => {
               setIsAirGesturesOn(prev => !prev);
               if (!isAirGesturesOn) playJarvisPowerUp();
             }}
-            className={`h-8.5 px-3 rounded-xl font-sans text-xs flex items-center gap-2 transition-all border cursor-pointer whitespace-nowrap shrink-0 ${
-              isAirGesturesOn
-                ? 'bg-violet-500/20 hover:bg-violet-500/30 border-violet-400/50 text-violet-200 shadow-[0_0_15px_rgba(168,85,247,0.2)]'
-                : 'bg-slate-900/80 hover:bg-slate-850 border-white/[0.08] text-slate-300 hover:text-white'
+            className={`p-1 rounded-full hover:bg-white/10 transition-colors cursor-pointer ${
+              isAirGesturesOn ? 'text-violet-400' : 'text-slate-400'
             }`}
-            title="Toggle Air Gestures & Spatial Camera Controls"
+            title="Spatial Air Gestures"
           >
-            <Sparkles className={`w-3.5 h-3.5 shrink-0 ${isAirGesturesOn ? 'text-violet-400 animate-spin' : 'text-slate-400'}`} style={{ animationDuration: '8s' }} />
-            <span>Air Gestures</span>
-            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-              isAirGesturesOn ? 'bg-violet-400 text-slate-950 shadow-[0_0_8px_#c084fc]' : 'bg-slate-800 text-slate-400'
-            }`}>
-              {isAirGesturesOn ? 'ACTIVE' : 'OFF'}
-            </span>
+            <Sparkles className="w-3.5 h-3.5" />
           </button>
 
-          {/* Classic Mode Switch */}
+          {/* Satellite Bridge Pill */}
           <button
-            onClick={onToggleClassicMode}
-            className="h-8.5 px-2.5 bg-slate-900/80 hover:bg-slate-850 border border-white/[0.08] text-slate-300 hover:text-white rounded-xl font-medium flex items-center gap-1.5 transition-all text-xs font-sans cursor-pointer whitespace-nowrap shrink-0"
-            title="Switch to Classic Layout View"
+            onClick={() => setShowSatelliteModal(true)}
+            className={`p-1 rounded-full hover:bg-white/10 transition-colors cursor-pointer ${
+              satelliteOnline ? 'text-emerald-400' : 'text-slate-500'
+            }`}
+            title="Satellite PC Bridge"
           >
-            <Grid className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-            <span>Classic</span>
+            <Radio className="w-3.5 h-3.5" />
           </button>
 
-          {/* User Profile Switcher */}
-          <UserProfileMenu onLockSystem={onLockSystem} />
+          {/* GNOME Aggregate Quick Settings Pill */}
+          <button
+            onClick={() => {
+              setShowQuickSettings(prev => !prev);
+              setShowCalendarTray(false);
+            }}
+            className={`h-5.5 px-2.5 rounded-full flex items-center gap-2 transition-all cursor-pointer ${
+              showQuickSettings ? 'bg-white/25 text-white' : 'hover:bg-white/10 text-slate-200'
+            }`}
+            title="Ubuntu Quick Settings"
+          >
+            <Wifi className={`w-3.5 h-3.5 ${wifiEnabled ? 'text-white' : 'text-slate-500'}`} />
+            <Volume2 className="w-3.5 h-3.5" />
+            <BatteryCharging className="w-3.5 h-3.5 text-emerald-400" />
+            <ChevronDown className="w-3 h-3 text-slate-400" />
+          </button>
+        </div>
+      </header>
 
-          {/* Lock OS Button */}
-          {onLockSystem && (
+      {/* 2. UBUNTU QUICK SETTINGS POPOVER (TOP RIGHT) */}
+      {showQuickSettings && (
+        <div className="fixed top-8 right-2.5 w-80 bg-[#1e1e1e] border border-[#333333] rounded-2xl p-4 shadow-2xl z-55 text-slate-100 font-sans animate-in fade-in zoom-in-95">
+          {/* Volume Slider */}
+          <div className="mb-3">
+            <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+              <span className="flex items-center gap-1.5 text-slate-200">
+                {volumeLevel === 0 ? <VolumeX className="w-3.5 h-3.5 text-rose-400" /> : <Volume2 className="w-3.5 h-3.5 text-[#E95420]" />}
+                Volume
+              </span>
+              <span className="font-mono">{volumeLevel}%</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={volumeLevel}
+              onChange={(e) => setVolumeLevel(Number(e.target.value))}
+              className="w-full accent-[#E95420] cursor-pointer h-1.5 bg-[#333333] rounded-lg"
+            />
+          </div>
+
+          {/* Brightness Slider */}
+          <div className="mb-4">
+            <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+              <span className="flex items-center gap-1.5 text-slate-200">
+                <Sun className="w-3.5 h-3.5 text-amber-400" />
+                Brightness
+              </span>
+              <span className="font-mono">{brightnessLevel}%</span>
+            </div>
+            <input
+              type="range"
+              min="20"
+              max="100"
+              value={brightnessLevel}
+              onChange={(e) => setBrightnessLevel(Number(e.target.value))}
+              className="w-full accent-[#E95420] cursor-pointer h-1.5 bg-[#333333] rounded-lg"
+            />
+          </div>
+
+          {/* Quick Toggles Grid (2 columns) */}
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            {/* Wi-Fi Toggle */}
             <button
-              onClick={onLockSystem}
-              className="h-8.5 px-2.5 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 hover:border-rose-400 text-rose-300 hover:text-rose-100 rounded-xl font-sans text-xs font-medium flex items-center gap-1.5 transition-all shadow-[0_0_10px_rgba(244,63,94,0.15)] cursor-pointer whitespace-nowrap shrink-0"
-              title="Lock JASPER OS with Biometrics"
+              onClick={() => setWifiEnabled(prev => !prev)}
+              className={`p-2.5 rounded-xl border flex items-center gap-2.5 transition-all text-left cursor-pointer ${
+                wifiEnabled
+                  ? 'bg-[#E95420]/20 border-[#E95420]/60 text-white'
+                  : 'bg-[#252525] border-[#333333] text-slate-400 hover:text-white'
+              }`}
             >
-              <Lock className="w-3.5 h-3.5 text-rose-400 shrink-0" />
-              <span>Lock</span>
+              <Wifi className={`w-4 h-4 ${wifiEnabled ? 'text-[#E95420]' : 'text-slate-500'}`} />
+              <div className="min-w-0">
+                <div className="text-xs font-semibold">Wi-Fi</div>
+                <div className="text-[10px] text-slate-400 truncate">{wifiEnabled ? 'Connected' : 'Disabled'}</div>
+              </div>
             </button>
-          )}
 
-          {/* Digital Clock Badge */}
-          <div className="h-8.5 px-2.5 text-slate-200 font-mono font-medium text-xs bg-slate-900/90 border border-white/[0.08] rounded-xl flex items-center whitespace-nowrap shrink-0 shadow-inner">
-            {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            {/* Satellite Bridge */}
+            <button
+              onClick={() => setShowSatelliteModal(true)}
+              className={`p-2.5 rounded-xl border flex items-center gap-2.5 transition-all text-left cursor-pointer ${
+                satelliteOnline
+                  ? 'bg-emerald-500/20 border-emerald-500/50 text-white'
+                  : 'bg-[#252525] border-[#333333] text-slate-400 hover:text-white'
+              }`}
+            >
+              <Radio className={`w-4 h-4 ${satelliteOnline ? 'text-emerald-400' : 'text-slate-500'}`} />
+              <div className="min-w-0">
+                <div className="text-xs font-semibold">Satellite</div>
+                <div className="text-[10px] text-slate-400 truncate">{satelliteOnline ? 'PC Linked' : 'Offline'}</div>
+              </div>
+            </button>
+
+            {/* Night Light Toggle */}
+            <button
+              onClick={() => setNightLight(prev => !prev)}
+              className={`p-2.5 rounded-xl border flex items-center gap-2.5 transition-all text-left cursor-pointer ${
+                nightLight
+                  ? 'bg-amber-500/20 border-amber-500/50 text-amber-200'
+                  : 'bg-[#252525] border-[#333333] text-slate-400 hover:text-white'
+              }`}
+            >
+              <Moon className={`w-4 h-4 ${nightLight ? 'text-amber-400' : 'text-slate-500'}`} />
+              <div className="min-w-0">
+                <div className="text-xs font-semibold">Night Light</div>
+                <div className="text-[10px] text-slate-400 truncate">{nightLight ? 'Active' : 'Off'}</div>
+              </div>
+            </button>
+
+            {/* Air Gestures Toggle */}
+            <button
+              onClick={() => setIsAirGesturesOn(prev => !prev)}
+              className={`p-2.5 rounded-xl border flex items-center gap-2.5 transition-all text-left cursor-pointer ${
+                isAirGesturesOn
+                  ? 'bg-violet-500/20 border-violet-500/50 text-violet-200'
+                  : 'bg-[#252525] border-[#333333] text-slate-400 hover:text-white'
+              }`}
+            >
+              <Sparkles className={`w-4 h-4 ${isAirGesturesOn ? 'text-violet-400' : 'text-slate-500'}`} />
+              <div className="min-w-0">
+                <div className="text-xs font-semibold">Air Gestures</div>
+                <div className="text-[10px] text-slate-400 truncate">{isAirGesturesOn ? 'Tracking' : 'Off'}</div>
+              </div>
+            </button>
+
+            {/* Smart TV Remote Shortcut */}
+            <button
+              onClick={() => launchApp('tvRemote')}
+              className="p-2.5 rounded-xl border bg-[#252525] border-[#333333] hover:border-[#E95420]/60 text-slate-300 hover:text-white flex items-center gap-2.5 transition-all text-left cursor-pointer"
+            >
+              <Tv className="w-4 h-4 text-sky-400" />
+              <div className="min-w-0">
+                <div className="text-xs font-semibold">TV Remote</div>
+                <div className="text-[10px] text-slate-400 truncate">JioFiber CEC</div>
+              </div>
+            </button>
+
+            {/* Classic Mode Switch */}
+            <button
+              onClick={onToggleClassicMode}
+              className="p-2.5 rounded-xl border bg-[#252525] border-[#333333] hover:border-[#E95420]/60 text-slate-300 hover:text-white flex items-center gap-2.5 transition-all text-left cursor-pointer"
+            >
+              <Grid className="w-4 h-4 text-indigo-400" />
+              <div className="min-w-0">
+                <div className="text-xs font-semibold">Classic Mode</div>
+                <div className="text-[10px] text-slate-400 truncate">Switch View</div>
+              </div>
+            </button>
+          </div>
+
+          {/* Quick Settings Footer Toolbar */}
+          <div className="pt-3 border-t border-[#333333] flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              {/* User Profile */}
+              <UserProfileMenu onLockSystem={onLockSystem} />
+
+              {/* Database Backup */}
+              <button
+                onClick={handleExportDb}
+                className="p-2 rounded-xl bg-[#252525] hover:bg-[#303030] text-slate-300 hover:text-white transition-colors cursor-pointer"
+                title="Backup Database"
+              >
+                <Download className="w-4 h-4 text-amber-400" />
+              </button>
+
+              {/* Database Restore */}
+              <button
+                onClick={() => dbFileInputRef.current?.click()}
+                className="p-2 rounded-xl bg-[#252525] hover:bg-[#303030] text-slate-300 hover:text-white transition-colors cursor-pointer"
+                title="Restore Database"
+              >
+                <Upload className="w-4 h-4 text-sky-400" />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              {/* Settings */}
+              {onOpenSettings ? (
+                <button
+                  onClick={() => {
+                    setShowQuickSettings(false);
+                    onOpenSettings();
+                  }}
+                  className="p-2 rounded-xl bg-[#252525] hover:bg-[#303030] text-slate-300 hover:text-white transition-colors cursor-pointer"
+                  title="Settings"
+                >
+                  <Settings className="w-4 h-4" />
+                </button>
+              ) : (
+                <button
+                  onClick={() => launchApp('diagnostics')}
+                  className="p-2 rounded-xl bg-[#252525] hover:bg-[#303030] text-slate-300 hover:text-white transition-colors cursor-pointer"
+                  title="System Diagnostics"
+                >
+                  <Settings className="w-4 h-4" />
+                </button>
+              )}
+
+              {/* Lock System */}
+              {onLockSystem && (
+                <button
+                  onClick={() => {
+                    setShowQuickSettings(false);
+                    onLockSystem();
+                  }}
+                  className="p-2 rounded-xl bg-[#252525] hover:bg-[#303030] text-rose-400 hover:text-rose-200 transition-colors cursor-pointer"
+                  title="Lock Screen"
+                >
+                  <Lock className="w-4 h-4" />
+                </button>
+              )}
+
+              {/* Power / Switch Layout */}
+              <button
+                onClick={onToggleClassicMode}
+                className="p-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/30 text-rose-400 hover:text-rose-200 transition-colors cursor-pointer"
+                title="Log Out / Power Options"
+              >
+                <Power className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
+      )}
+
+      {/* 3. UBUNTU CALENDAR & NOTIFICATION TRAY (TOP CENTER) */}
+      {showCalendarTray && (
+        <div className="fixed top-8 left-1/2 -translate-x-1/2 w-[440px] max-w-[95vw] bg-[#1e1e1e] border border-[#333333] rounded-2xl p-4 shadow-2xl z-55 text-slate-100 font-sans animate-in fade-in zoom-in-95 flex flex-col sm:flex-row gap-4">
+          {/* Left: Notifications Summary */}
+          <div className="flex-1 border-b sm:border-b-0 sm:border-r border-[#333333] pb-3 sm:pb-0 sm:pr-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                <Bell className="w-3.5 h-3.5 text-[#E95420]" />
+                Notifications
+              </span>
+              <span className="text-[10px] text-slate-500 font-mono">Jasper OS</span>
+            </div>
+            <div className="space-y-2">
+              <div className="p-2 rounded-xl bg-[#252525] border border-[#333333] text-xs">
+                <div className="font-semibold text-slate-200">Ubuntu Yaru Environment</div>
+                <div className="text-[11px] text-slate-400">Desktop theme and GNOME top bar active.</div>
+              </div>
+              <div className="p-2 rounded-xl bg-[#252525] border border-[#333333] text-xs">
+                <div className="font-semibold text-emerald-300">Neural Core Ready</div>
+                <div className="text-[11px] text-slate-400">{aiStatusLabel} &bull; Satellite {satelliteOnline ? 'PC Linked' : 'Offline'}.</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Interactive Month Calendar Grid */}
+          <div className="w-[190px] shrink-0">
+            <div className="text-center mb-2">
+              <div className="text-xs font-bold text-white">{calendarInfo.monthName}</div>
+              <div className="text-[10px] text-slate-400 font-mono">{calendarInfo.fullDateStr}</div>
+            </div>
+            <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-mono text-slate-400 mb-1">
+              {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((d) => (
+                <span key={d} className="font-bold">{d}</span>
+              ))}
+            </div>
+            <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-sans">
+              {calendarInfo.blanks.map((b) => (
+                <span key={`blank-${b}`} className="w-6 h-6" />
+              ))}
+              {calendarInfo.days.map((day) => {
+                const isToday = day === calendarInfo.today;
+                return (
+                  <span
+                    key={`day-${day}`}
+                    className={`w-6 h-6 flex items-center justify-center rounded-full mx-auto ${
+                      isToday
+                        ? 'bg-[#E95420] text-white font-bold shadow-md shadow-[#E95420]/30'
+                        : 'text-slate-300 hover:bg-white/10'
+                    }`}
+                  >
+                    {day}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* SATELLITE BRIDGE HARDWARE CONNECTOR MODAL */}
       {showSatelliteModal && (
@@ -1313,401 +1488,284 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
         </div>
       )}
 
-      {/* OS APP CENTER & START LAUNCHER DRAWER (FULL MULTI-ROW MATRIX) */}
-      {showStartMenu && (
-        <div className="absolute top-14 left-2 right-2 sm:left-4 sm:right-auto w-auto sm:w-[860px] lg:w-[940px] max-w-[calc(100vw-24px)] bg-slate-950/95 border border-white/[0.12] rounded-2xl p-3 sm:p-4 shadow-[0_24px_70px_rgba(0,0,0,0.95)] backdrop-blur-3xl z-50 animate-in fade-in slide-in-from-top-2 max-h-[85vh] flex flex-col">
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-white/[0.08] pb-3 mb-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-indigo-500/20 border border-indigo-400/40 rounded-xl text-indigo-300">
-                <Zap className="w-5 h-5 animate-pulse" />
+      {/* 4. UBUNTU LEFT DOCK (THE DASH - 64px) */}
+      <aside className="fixed top-7 left-0 bottom-0 w-16 bg-[#111111]/95 border-r border-[#222222] z-40 flex flex-col items-center py-2 justify-between backdrop-blur-md shadow-xl select-none">
+        {/* Pinned & Dynamic Running Apps */}
+        <div className="flex-1 w-full flex flex-col items-center gap-1.5 overflow-y-auto custom-scrollbar px-1 py-1">
+          {dockApps.map((app) => {
+            const AppIcon = app.icon;
+            const isRunning = openWindows[app.id];
+            const isMinimized = minimizedWindows[app.id];
+            const isFocused = focusedWinId === app.id && !isMinimized;
+
+            return (
+              <div key={app.id} className="relative group w-full flex items-center justify-center">
+                {/* Signature Ubuntu Orange Running Indicator */}
+                {isRunning && (
+                  <span
+                    className={`absolute left-0 w-1 rounded-r bg-[#E95420] transition-all ${
+                      isFocused ? 'h-5 shadow-[0_0_8px_#E95420]' : 'h-2 opacity-80'
+                    }`}
+                  />
+                )}
+
+                <button
+                  onClick={() => toggleWindow(app.id)}
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                    isFocused
+                      ? 'bg-white/15 text-white scale-105 shadow-md'
+                      : isRunning
+                      ? 'bg-white/10 text-slate-200'
+                      : 'text-slate-400 hover:text-white hover:bg-white/10'
+                  }`}
+                  title={app.title}
+                >
+                  <AppIcon className="w-6 h-6 transition-transform group-hover:scale-110" />
+                </button>
+
+                {/* Ubuntu Hover Tooltip */}
+                <div className="absolute left-16 px-2.5 py-1 bg-[#1e1e1e] border border-[#333333] rounded-md text-xs font-medium text-white shadow-xl pointer-events-none whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50">
+                  {app.title.replace(' App', '').replace('JASPER ', '')}
+                </div>
               </div>
-              <div>
-                <h3 className="font-sans font-bold text-sm text-slate-100 uppercase tracking-wider">JASPER App Center</h3>
-                <p className="text-[10px] text-slate-400 font-mono">{filteredApps.length} Applications &bull; All-in-One Bento Workspace</p>
-              </div>
+            );
+          })}
+        </div>
+
+        {/* Bottom of Dock: Trash + Canonical 9-Dots "Show Applications" */}
+        <div className="w-full flex flex-col items-center gap-2 pt-2 border-t border-[#222222]">
+          {/* Trash Shortcut */}
+          <button
+            onClick={() => launchApp('fileManager')}
+            className="w-12 h-12 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer group relative"
+            title="Trash"
+          >
+            <Trash2 className="w-5 h-5" />
+            <div className="absolute left-16 px-2 py-1 bg-[#1e1e1e] border border-[#333333] rounded text-xs text-white shadow-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-50">
+              Trash
             </div>
-            <button
-              onClick={() => setShowStartMenu(false)}
-              className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
-            >
-              <X className="w-4 h-4" />
+          </button>
+
+          {/* Ubuntu Canonical 9-Dots "Show Applications" */}
+          <button
+            onClick={() => {
+              setIsActivitiesOpen(prev => !prev);
+              setShowQuickSettings(false);
+              setShowCalendarTray(false);
+            }}
+            className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all cursor-pointer group ${
+              isActivitiesOpen ? 'bg-[#E95420] text-white shadow-lg' : 'text-slate-300 hover:text-white hover:bg-white/10'
+            }`}
+            title="Show Applications (Activities)"
+          >
+            <div className="grid grid-cols-3 gap-1 p-1">
+              {[...Array(9)].map((_, i) => (
+                <span
+                  key={i}
+                  className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                    isActivitiesOpen ? 'bg-white' : 'bg-slate-300 group-hover:bg-white'
+                  }`}
+                />
+              ))}
+            </div>
+          </button>
+        </div>
+      </aside>
+
+      {/* 5. UBUNTU ACTIVITIES OVERVIEW / APP DRAWER (FULL SCREEN MODAL) */}
+      {isActivitiesOpen && (
+        <div className="fixed inset-0 top-7 bg-black/85 backdrop-blur-2xl z-45 flex flex-col p-6 overflow-y-auto animate-in fade-in duration-200">
+          {/* Top Search Pill */}
+          <div className="w-full max-w-lg mx-auto relative mb-6">
+            <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              autoFocus
+              placeholder="Type to search..."
+              value={appSearchQuery}
+              onChange={(e) => setAppSearchQuery(e.target.value)}
+              className="w-full bg-[#252525] border border-[#383838] focus:border-[#E95420] rounded-full py-2.5 pl-11 pr-10 text-sm text-white placeholder-slate-400 focus:outline-none shadow-xl transition-all"
+            />
+            {appSearchQuery && (
+              <button
+                onClick={() => setAppSearchQuery('')}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Workspaces Pill Bar */}
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <button className="px-4 py-1.5 rounded-full bg-white/15 border border-[#E95420] text-white text-xs font-semibold shadow-md">
+              Workspace 1 (Active)
+            </button>
+            <button className="px-4 py-1.5 rounded-full bg-[#252525] border border-[#383838] text-slate-400 hover:text-white text-xs font-medium">
+              Workspace 2
             </button>
           </div>
 
-          {/* Search bar inside drawer */}
-          <div className="relative mb-3">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search apps, modules or tools..."
-              value={appSearchQuery}
-              onChange={(e) => setAppSearchQuery(e.target.value)}
-              className="w-full bg-slate-900/80 border border-white/[0.08] focus:border-indigo-400/60 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-200 font-sans focus:outline-none placeholder:text-slate-500"
-            />
-          </div>
-
-          {/* App Category Filters */}
-          <div className="flex gap-1.5 overflow-x-auto pb-2 mb-2 custom-scrollbar text-[10px]">
+          {/* Category Filter Pills */}
+          <div className="flex justify-center flex-wrap gap-1.5 mb-6 text-xs">
             {['all', 'Creative & AI', 'AI & Intelligence', 'Productivity & Tools', 'System & Hardware', 'Hardware Control', 'Media & Life'].map((category) => (
               <button
                 key={category}
                 onClick={() => setActiveWorkspace(category)}
-                className={`px-2.5 py-1 rounded-lg font-sans whitespace-nowrap transition-all cursor-pointer ${
+                className={`px-3 py-1 rounded-full font-medium transition-all cursor-pointer ${
                   activeWorkspace === category
-                    ? 'bg-indigo-500/20 border border-indigo-400/50 text-indigo-200 font-semibold shadow-sm'
-                    : 'bg-slate-900/70 border border-white/[0.06] text-slate-400 hover:text-slate-200 hover:bg-slate-850'
+                    ? 'bg-[#E95420] text-white shadow-md'
+                    : 'bg-[#252525] text-slate-400 hover:text-white hover:bg-[#303030]'
                 }`}
               >
-                {category === 'all' ? 'All Apps' : category}
+                {category === 'all' ? 'All Applications' : category}
               </button>
             ))}
           </div>
 
-          {/* App Matrix: Multi-Column & Multi-Row Spread */}
-          <div className="overflow-y-auto max-h-[52vh] grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-2 custom-scrollbar pr-1">
+          {/* Applications Grid: Canonical Ubuntu Squircle App Tiles */}
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 max-w-5xl mx-auto py-2">
             {filteredApps.map((app) => {
               const AppIcon = app.icon;
               const isRunning = openWindows[app.id];
+
               return (
                 <button
                   key={app.id}
                   onClick={() => launchApp(app.id)}
-                  className={`flex flex-col items-center justify-center p-2.5 rounded-xl border transition-all cursor-pointer text-center group h-[74px] ${
-                    isRunning
-                      ? 'bg-indigo-500/15 border-indigo-400/50 text-indigo-200 shadow-[0_0_12px_rgba(99,102,241,0.2)]'
-                      : 'bg-slate-900/50 border-white/[0.06] hover:border-indigo-400/40 hover:bg-slate-850/80 text-slate-200 hover:text-white'
-                  }`}
+                  className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white/[0.04] hover:bg-white/[0.12] hover:scale-105 border border-transparent hover:border-white/10 transition-all cursor-pointer group text-center relative h-24"
                   title={`${app.title} (${app.category})`}
                 >
-                  <div className="p-1.5 rounded-lg bg-slate-800/80 border border-white/[0.08] text-indigo-300 group-hover:text-white group-hover:border-indigo-400/60 transition-all relative mb-1">
-                    <AppIcon className="w-4 h-4" />
+                  <div className="p-2.5 rounded-2xl bg-gradient-to-br from-[#333333] to-[#222222] text-[#E95420] group-hover:text-white shadow-md mb-1.5 transition-colors relative">
+                    <AppIcon className="w-6 h-6" />
                     {isRunning && (
-                      <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-indigo-400 border border-slate-950 shadow-[0_0_6px_#818cf8]" />
+                      <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#E95420] shadow-[0_0_6px_#E95420]" />
                     )}
                   </div>
-                  <div className="font-medium text-[10px] text-slate-200 group-hover:text-white truncate w-full px-0.5 leading-tight font-sans">
+                  <span className="text-[11px] font-medium text-slate-200 group-hover:text-white truncate w-full px-1">
                     {app.title.replace(' App', '').replace('JASPER ', '')}
-                  </div>
-                  <div className="text-[8px] text-slate-500 group-hover:text-slate-400 font-mono truncate w-full px-0.5 leading-none">
-                    {app.category.replace(' & Intelligence', '').replace(' & Tools', '').replace(' & Hardware', '').replace('Hardware ', '')}
-                  </div>
+                  </span>
                 </button>
               );
             })}
           </div>
-
-          {/* Start Menu Footer with Lock OS and System Settings */}
-          <div className="mt-3 pt-3 border-t border-white/[0.08] flex items-center justify-between gap-2">
-            {onLockSystem && (
-              <button
-                onClick={() => {
-                  setShowStartMenu(false);
-                  onLockSystem();
-                }}
-                className="flex-1 py-2 px-3 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 hover:border-rose-400 text-rose-300 hover:text-rose-100 flex items-center justify-center gap-2 font-sans text-xs font-semibold transition-all shadow-[0_0_15px_rgba(244,63,94,0.15)] cursor-pointer"
-                title="Lock JASPER OS with Biometrics"
-              >
-                <Lock className="w-4 h-4 text-rose-400" />
-                <span>Lock System</span>
-              </button>
-            )}
-            {onOpenSettings && (
-              <button
-                onClick={() => {
-                  setShowStartMenu(false);
-                  onOpenSettings();
-                }}
-                className="py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-850 border border-white/[0.08] text-slate-300 hover:text-white flex items-center gap-1.5 font-sans text-xs transition-all cursor-pointer"
-                title="System Settings"
-              >
-                <Settings className="w-4 h-4 text-slate-400" />
-                <span>Settings</span>
-              </button>
-            )}
-          </div>
         </div>
       )}
 
-      {/* DESKTOP WORKSPACE SCROLLABLE AREA (WITH OS SCREEN SCROLLBAR & CONTROLS) */}
-      <div 
-        ref={desktopScrollRef}
-        onScroll={handleDesktopScroll}
-        className="relative w-full h-[calc(100vh-105px)] top-12 overflow-y-auto overflow-x-hidden os-screen-scrollbar scroll-smooth"
-      >
-        {/* Native Desktop Canvas: Command Center HUD or App Matrix/Shelf */}
-        <div className="relative z-0 pointer-events-auto max-w-[calc(100vw-32px)] mx-auto pt-3 px-4 pb-36">
-          <div className="flex items-center justify-between mb-2 px-1">
-            <div className="flex items-center gap-2">
-              <span className="font-sans text-xs uppercase tracking-wider text-slate-100 font-bold flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
-                {desktopLayoutMode === 'commandCenter' ? 'Jasper AI Workspace' : 'Jasper Applications'}
-              </span>
-              <span className="text-[10px] font-mono text-slate-400 bg-slate-900/90 px-2.5 py-0.5 rounded-full border border-white/[0.08]">
-                {desktopLayoutMode === 'commandCenter' 
-                  ? 'AI Command Center' 
-                  : desktopLayoutMode === 'matrix' 
-                  ? 'All 35 Apps Matrix' 
-                  : '2 Rows Shelf'} &bull; Bento Workspace
-              </span>
+      {/* 6. UBUNTU DESKTOP CANVAS & SHORTCUTS (Top-7 Left-16) */}
+      <div className="fixed top-7 left-16 right-0 bottom-0 overflow-hidden pointer-events-auto z-10">
+        {/* Ubuntu Desktop Shortcuts (Top Left) */}
+        <div className="absolute top-6 left-6 flex flex-col gap-5 z-10 select-none">
+          {/* Home / Files */}
+          <button
+            onDoubleClick={() => launchApp('fileManager')}
+            onClick={() => launchApp('fileManager')}
+            className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white/10 transition-colors cursor-pointer group w-20 text-center"
+            title="Home Folder"
+          >
+            <div className="p-2.5 rounded-2xl bg-gradient-to-br from-amber-600 to-amber-700 text-white shadow-lg group-hover:scale-105 transition-transform">
+              <Folder className="w-7 h-7" />
             </div>
+            <span className="text-xs font-medium text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">Home</span>
+          </button>
 
-            {/* Layout View Switcher */}
-            <div className="flex items-center gap-1 bg-slate-900/80 border border-white/[0.08] p-1 rounded-xl shadow-lg">
-              <button
-                onClick={() => setDesktopLayoutMode('commandCenter')}
-                className={`px-2.5 py-1 rounded-lg text-[10px] font-sans font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
-                  desktopLayoutMode === 'commandCenter'
-                    ? 'bg-indigo-500/25 text-white border border-indigo-400/40 shadow-sm font-semibold'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-                title="Jasper Command Center"
-              >
-                <Zap className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Command Center</span>
-              </button>
+          {/* Terminal */}
+          <button
+            onDoubleClick={() => launchApp('codeStudio')}
+            onClick={() => launchApp('codeStudio')}
+            className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white/10 transition-colors cursor-pointer group w-20 text-center"
+            title="Terminal & Code Studio"
+          >
+            <div className="p-2.5 rounded-2xl bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-700 text-[#E95420] shadow-lg group-hover:scale-105 transition-transform">
+              <Terminal className="w-7 h-7" />
+            </div>
+            <span className="text-xs font-medium text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">Terminal</span>
+          </button>
 
-              <button
-                onClick={() => setDesktopLayoutMode('matrix')}
-                className={`px-2.5 py-1 rounded-lg text-[10px] font-sans font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
-                  desktopLayoutMode === 'matrix'
-                    ? 'bg-white/[0.1] text-white border border-white/[0.15] shadow-sm font-semibold'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-                title="Spread apps across columns so every app is shown at once"
-              >
-                <Grid className="w-3.5 h-3.5 text-indigo-400" />
-                <span>All 35 Apps</span>
-              </button>
+          {/* Jasper AI Assistant */}
+          <button
+            onDoubleClick={() => launchApp('agentHub')}
+            onClick={() => launchApp('agentHub')}
+            className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white/10 transition-colors cursor-pointer group w-20 text-center"
+            title="Jasper AI Agent Core"
+          >
+            <div className="p-2.5 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-700 text-white shadow-lg group-hover:scale-105 transition-transform">
+              <Zap className="w-7 h-7 text-amber-300" />
+            </div>
+            <span className="text-xs font-medium text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">Jasper AI</span>
+          </button>
 
-              <button
-                onClick={() => setDesktopLayoutMode('shelf')}
-                className={`px-2.5 py-1 rounded-lg text-[10px] font-sans font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
-                  desktopLayoutMode === 'shelf'
-                    ? 'bg-white/[0.1] text-white border border-white/[0.15] shadow-sm font-semibold'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-                title="Compact 2 Rows horizontal scrolling shelf"
-              >
-                <Layout className="w-3.5 h-3.5 text-sky-400" />
-                <span>2 Rows Shelf</span>
-              </button>
+          {/* Trash */}
+          <button
+            onDoubleClick={() => launchApp('fileManager')}
+            onClick={() => launchApp('fileManager')}
+            className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white/10 transition-colors cursor-pointer group w-20 text-center"
+            title="Trash"
+          >
+            <div className="p-2.5 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-800 text-slate-300 shadow-lg group-hover:scale-105 transition-transform">
+              <Trash2 className="w-7 h-7" />
+            </div>
+            <span className="text-xs font-medium text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">Trash</span>
+          </button>
+        </div>
+
+        {/* Desktop View Switcher */}
+        <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+          <div className="flex items-center gap-1 bg-[#1e1e1e]/80 border border-[#333333] p-1 rounded-xl backdrop-blur-md shadow-lg">
+            <button
+              onClick={() => setDesktopLayoutMode('commandCenter')}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-sans transition-all cursor-pointer flex items-center gap-1.5 ${
+                desktopLayoutMode === 'commandCenter'
+                  ? 'bg-[#E95420] text-white font-semibold shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+              title="Jasper AI Command Center HUD"
+            >
+              <Zap className="w-3.5 h-3.5" />
+              <span>HUD</span>
+            </button>
+            <button
+              onClick={() => setDesktopLayoutMode('clean')}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-sans transition-all cursor-pointer flex items-center gap-1.5 ${
+                desktopLayoutMode === 'clean'
+                  ? 'bg-[#E95420] text-white font-semibold shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+              title="Clean Ubuntu Linux Desktop"
+            >
+              <Layout className="w-3.5 h-3.5" />
+              <span>Desktop</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Center: Command Center HUD if selected */}
+        {desktopLayoutMode === 'commandCenter' && (
+          <div className="absolute inset-0 top-12 overflow-y-auto px-4 pb-20 custom-scrollbar">
+            <div className="max-w-6xl mx-auto pt-2">
+              <JasperCommandCenter
+                onLaunchApp={launchApp}
+                onMicClick={onMicClick}
+                onLockSystem={onLockSystem}
+                onOpenSettings={onOpenSettings}
+                onViewAllApps={() => setIsActivitiesOpen(true)}
+                jasperState={jasperState}
+                aiStatusLabel={aiStatusLabel}
+                isAiOnline={isAiOnline}
+              />
             </div>
           </div>
+        )}
 
-          {desktopLayoutMode === 'commandCenter' ? (
-            /* CENTRAL JARVIS COMMAND CENTER HUD & AI CORE */
-            <JasperCommandCenter
-              onLaunchApp={launchApp}
-              onMicClick={onMicClick}
-              onLockSystem={onLockSystem}
-              onOpenSettings={onOpenSettings}
-              onViewAllApps={() => setDesktopLayoutMode('matrix')}
-              jasperState={jasperState}
-              aiStatusLabel={aiStatusLabel}
-              isAiOnline={isAiOnline}
-            />
-          ) : desktopLayoutMode === 'matrix' ? (
-            /* ALL-ON-SCREEN MATRIX */
-            <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-7 lg:grid-cols-7 xl:grid-cols-9 gap-2 sm:gap-2.5 p-3 rounded-2xl bg-slate-950/40 border border-white/[0.06] backdrop-blur-2xl shadow-2xl">
-              {/* Quick Lock System Shortcut Icon */}
-              {onLockSystem && (
-                <button
-                  onClick={onLockSystem}
-                  className="p-2 rounded-xl bg-slate-900/50 hover:bg-rose-950/30 border border-rose-500/30 hover:border-rose-400 flex flex-col items-center justify-center gap-1 transition-all group hover:scale-105 hover:shadow-[0_0_18px_rgba(244,63,94,0.25)] cursor-pointer text-center h-[76px]"
-                  title="Lock JASPER OS (Biometric Security Shield)"
-                >
-                  <div className="p-1.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 group-hover:text-rose-200 group-hover:border-rose-400 transition-all shadow-sm">
-                    <Lock className="w-4 h-4" />
-                  </div>
-                  <div className="text-[10px] sm:text-[11px] font-sans font-medium text-rose-300 group-hover:text-rose-100 truncate w-full px-0.5 leading-tight">
-                    Lock Shield
-                  </div>
-                  <div className="text-[8px] font-mono text-rose-400/60 truncate w-full leading-none">
-                    Biometrics
-                  </div>
-                </button>
-              )}
-
-              {JASPER_OS_APPS_REGISTRY.map((app) => {
-                const AppIcon = app.icon;
-                const isRunning = openWindows[app.id];
-                return (
-                  <button
-                    key={app.id}
-                    onClick={() => launchApp(app.id)}
-                    className={`p-2 rounded-xl bg-slate-900/40 hover:bg-slate-850/80 border border-white/[0.06] hover:border-indigo-400/50 flex flex-col items-center justify-center gap-1 transition-all group hover:scale-105 hover:shadow-[0_8px_20px_rgba(0,0,0,0.5)] cursor-pointer text-center relative h-[76px] ${
-                      isRunning ? 'border-indigo-400/60 bg-indigo-500/15 shadow-[0_0_12px_rgba(99,102,241,0.2)]' : ''
-                    }`}
-                    title={`${app.title} (${app.category})`}
-                  >
-                    <div className="p-1.5 rounded-lg bg-slate-800/80 border border-white/[0.08] text-indigo-300 group-hover:text-white group-hover:border-indigo-400/60 transition-all relative flex items-center justify-center flex-shrink-0">
-                      <AppIcon className="w-4 h-4" />
-                      {isRunning && (
-                        <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-indigo-400 border border-slate-950 shadow-[0_0_6px_#818cf8] animate-pulse" />
-                      )}
-                    </div>
-                    <div className="text-[10px] sm:text-[11px] font-sans font-medium text-slate-200 group-hover:text-white truncate w-full px-0.5 leading-tight">
-                      {app.title.replace(' App', '').replace('JASPER ', '')}
-                    </div>
-                    <div className="text-[8px] font-mono text-slate-500 truncate w-full group-hover:text-slate-400 leading-none">
-                      {app.category.replace(' & Intelligence', '').replace(' & Tools', '').replace(' & Hardware', '').replace('Hardware ', '')}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          ) : (
-            /* 2 ROWS HORIZONTAL SHELF */
-            <div className="grid grid-rows-2 grid-flow-col auto-cols-[140px] sm:auto-cols-[152px] gap-2 p-2.5 rounded-2xl bg-slate-950/60 border border-white/[0.06] backdrop-blur-xl overflow-x-auto custom-scrollbar shadow-xl">
-              {onLockSystem && (
-                <button
-                  onClick={onLockSystem}
-                  className="p-2 rounded-xl bg-slate-900/60 hover:bg-rose-950/30 border border-rose-500/30 hover:border-rose-400 flex items-center gap-2.5 transition-all group hover:scale-[1.02] hover:shadow-[0_0_15px_rgba(244,63,94,0.2)] cursor-pointer text-left h-[52px] flex-shrink-0"
-                  title="Lock JASPER OS (Biometric Security Shield)"
-                >
-                  <div className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 group-hover:text-rose-200 group-hover:border-rose-400 transition-all flex-shrink-0">
-                    <Lock className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-[10.5px] font-sans font-medium text-rose-300 group-hover:text-rose-100 truncate">
-                      Lock System
-                    </div>
-                    <div className="text-[8.5px] font-mono text-rose-400/60 truncate">
-                      Biometrics
-                    </div>
-                  </div>
-                </button>
-              )}
-
-              {JASPER_OS_APPS_REGISTRY.map((app) => {
-                const AppIcon = app.icon;
-                const isRunning = openWindows[app.id];
-                return (
-                  <button
-                    key={app.id}
-                    onClick={() => launchApp(app.id)}
-                    className={`p-2 rounded-xl bg-slate-900/50 hover:bg-slate-850/80 border border-white/[0.06] hover:border-indigo-400/50 flex items-center gap-2.5 transition-all group hover:scale-[1.02] hover:shadow-lg text-left h-[52px] flex-shrink-0 cursor-pointer ${
-                      isRunning ? 'border-indigo-400/60 bg-indigo-500/15 shadow-[0_0_12px_rgba(99,102,241,0.2)]' : ''
-                    }`}
-                    title={app.title}
-                  >
-                    <div className="p-2 rounded-lg bg-slate-800/80 border border-white/[0.08] text-indigo-300 group-hover:text-white group-hover:border-indigo-400/60 transition-all relative flex-shrink-0">
-                      <AppIcon className="w-4 h-4" />
-                      {isRunning && (
-                        <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-indigo-400 border border-slate-950 shadow-[0_0_6px_#818cf8]" />
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-[10.5px] font-sans font-medium text-slate-200 group-hover:text-white truncate">
-                        {app.title.replace(' App', '').replace('JASPER ', '')}
-                      </div>
-                      <div className="text-[8.5px] font-mono text-slate-500 truncate group-hover:text-slate-400">
-                        {app.category.replace(' & ', '/')}
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+        {/* Bottom Right Ubuntu Noble Watermark */}
+        <div className="absolute bottom-3 right-4 pointer-events-none text-right z-0">
+          <div className="text-[11px] font-medium text-white/40 tracking-wider">Ubuntu 24.04 LTS (Noble Numbat)</div>
+          <div className="text-[9px] font-mono text-white/25">Jasper OS Kernel 6.8 &bull; GNOME Shell 46</div>
         </div>
       </div>
 
-      {/* FLOATING SCROLL DOWN BAR FOR OS SCREEN */}
-      {hasOverflow && (
-        <div className="absolute bottom-[72px] sm:bottom-[76px] left-1/2 -translate-x-1/2 z-40 pointer-events-auto flex items-center gap-2 bg-slate-900/90 border border-white/[0.1] hover:border-indigo-400/50 rounded-full px-3.5 py-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.8)] backdrop-blur-xl transition-all duration-300 group">
-          <button
-            onClick={() => handleScrollToEdge(canScrollDown ? 'bottom' : 'top')}
-            className="flex items-center gap-2 text-[11px] font-sans font-medium text-slate-200 group-hover:text-white transition-all cursor-pointer"
-            title={canScrollDown ? "Scroll down to reveal all applications" : "Scroll back to top"}
-          >
-            {canScrollDown ? (
-              <>
-                <ChevronDown className="w-4 h-4 text-indigo-400 animate-bounce" />
-                <span>SCROLL DOWN TO VIEW ALL APPS</span>
-              </>
-            ) : (
-              <>
-                <ChevronUp className="w-4 h-4 text-indigo-400" />
-                <span>SCROLL BACK TO TOP</span>
-              </>
-            )}
-          </button>
-
-          <div className="h-3 w-px bg-white/[0.1]" />
-
-          <div className="flex items-center gap-1">
-            <button
-              onClick={handleScrollUp}
-              disabled={!canScrollUp}
-              className={`p-1 rounded-full transition-all ${
-                canScrollUp ? 'text-slate-300 hover:bg-white/[0.08] cursor-pointer' : 'text-slate-600 opacity-40 cursor-not-allowed'
-              }`}
-              title="Scroll Up"
-            >
-              <ChevronUp className="w-3 h-3" />
-            </button>
-            <button
-              onClick={handleScrollDown}
-              disabled={!canScrollDown}
-              className={`p-1 rounded-full transition-all ${
-                canScrollDown ? 'text-slate-300 hover:bg-white/[0.08] cursor-pointer' : 'text-slate-600 opacity-40 cursor-not-allowed'
-              }`}
-              title="Scroll Down"
-            >
-              <ChevronDown className="w-3 h-3" />
-            </button>
-          </div>
-
-          <span className="text-[9px] font-mono text-slate-400 font-medium pl-0.5">
-            {Math.round(scrollProgress)}%
-          </span>
-        </div>
-      )}
-
-      {/* FLOATING RIGHT-SIDE SCROLL RAIL */}
-      {hasOverflow && (
-        <div className="absolute right-1 top-16 bottom-24 w-3.5 z-40 hidden md:flex flex-col items-center justify-between pointer-events-auto py-1">
-          <button
-            onClick={() => handleScrollToEdge('top')}
-            className="w-5 h-5 rounded-lg bg-slate-900/90 border border-white/[0.08] text-slate-400 hover:text-white flex items-center justify-center text-[10px] shadow transition-all cursor-pointer hover:border-indigo-400/50"
-            title="Scroll to Top"
-          >
-            <ChevronUp className="w-3 h-3" />
-          </button>
-          
-          {/* Visual Track & Draggable Indicator */}
-          <div 
-            onClick={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              const clickRatio = (e.clientY - rect.top) / rect.height;
-              if (desktopScrollRef.current) {
-                const target = clickRatio * (desktopScrollRef.current.scrollHeight - desktopScrollRef.current.clientHeight);
-                desktopScrollRef.current.scrollTo({ top: target, behavior: 'smooth' });
-              }
-            }}
-            className="flex-1 w-1.5 my-1.5 rounded-full bg-slate-900/80 border border-white/[0.06] relative cursor-pointer group shadow-inner"
-            title="Click to jump scroll position"
-          >
-            <div 
-              style={{ top: `${scrollProgress}%` }}
-              className="absolute -left-1 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-gradient-to-b from-indigo-400 to-sky-400 border border-indigo-200 shadow-[0_0_10px_rgba(99,102,241,0.5)] group-hover:scale-125 transition-transform"
-            />
-          </div>
-
-          <button
-            onClick={() => handleScrollToEdge('bottom')}
-            className="w-5 h-5 rounded-lg bg-slate-900/90 border border-white/[0.08] text-slate-400 hover:text-white flex items-center justify-center text-[10px] shadow transition-all cursor-pointer hover:border-indigo-400/50"
-            title="Scroll to Bottom"
-          >
-            <ChevronDown className="w-3 h-3" />
-          </button>
-        </div>
-      )}
-
-      {/* WINDOW MANAGER VIEWPORT LAYER */}
-      <div className="absolute top-12 left-0 right-0 h-[calc(100vh-105px)] pointer-events-none z-20 overflow-hidden">
+      {/* 7. WINDOW MANAGER VIEWPORT LAYER */}
+      <div className="fixed top-7 left-16 right-0 bottom-0 pointer-events-none z-20 overflow-hidden">
         {JASPER_OS_APPS_REGISTRY.map((app) => {
           if (!openWindows[app.id]) return null;
           const AppComponent = app.component;
@@ -1718,7 +1776,10 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
                 id={app.id}
                 title={app.title}
                 icon={AppIcon}
-                defaultPos={{ x: Math.max(20, Math.min((typeof window !== 'undefined' ? (window.innerWidth - (app.defaultSize?.w || 640)) / 2 : 60) + (JASPER_OS_APPS_REGISTRY.findIndex(a => a.id === app.id) % 5) * 30, (typeof window !== 'undefined' ? window.innerWidth - 300 : 800))), y: Math.max(10, Math.min((typeof window !== 'undefined' ? (window.innerHeight - (app.defaultSize?.h || 480)) / 2 : 50) + (JASPER_OS_APPS_REGISTRY.findIndex(a => a.id === app.id) % 4) * 25, (typeof window !== 'undefined' ? window.innerHeight - 300 : 400))) }}
+                defaultPos={{ 
+                  x: Math.max(20, Math.min((typeof window !== 'undefined' ? (window.innerWidth - 64 - (app.defaultSize?.w || 640)) / 2 : 60) + (JASPER_OS_APPS_REGISTRY.findIndex(a => a.id === app.id) % 5) * 30, (typeof window !== 'undefined' ? window.innerWidth - 300 : 800))), 
+                  y: Math.max(10, Math.min((typeof window !== 'undefined' ? (window.innerHeight - 28 - (app.defaultSize?.h || 480)) / 2 : 50) + (JASPER_OS_APPS_REGISTRY.findIndex(a => a.id === app.id) % 4) * 25, (typeof window !== 'undefined' ? window.innerHeight - 300 : 400))) 
+                }}
                 defaultSize={app.defaultSize}
                 zIndex={activeZIndex[app.id] || 5}
                 onFocus={bringToTop}
@@ -1732,7 +1793,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
               >
                 <React.Suspense fallback={
                   <div className="flex flex-col items-center justify-center p-12 text-slate-400 gap-3">
-                    <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                    <div className="w-6 h-6 border-2 border-[#E95420] border-t-transparent rounded-full animate-spin" />
                     <span className="text-xs font-mono">Loading module...</span>
                   </div>
                 }>
@@ -1742,67 +1803,6 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
             </div>
           );
         })}
-      </div>
-
-      {/* BOTTOM OS NATIVE APP DOCK (FROSTED GLASS DOCK) */}
-      <div className={`absolute bottom-3 left-1/2 -translate-x-1/2 ${dockTwoRows ? 'h-[108px]' : 'h-14'} bg-slate-950/80 border border-white/[0.1] rounded-2xl px-3 py-1.5 flex items-center gap-2 backdrop-blur-3xl shadow-[0_16px_45px_rgba(0,0,0,0.85)] z-50 max-w-[95vw] transition-all duration-200`}>
-        <div className={`overflow-x-auto custom-scrollbar p-0.5 ${dockTwoRows ? 'grid grid-rows-2 grid-flow-col auto-cols-max gap-1.5' : 'flex items-center gap-1.5'}`}>
-          {(dockTwoRows ? JASPER_OS_APPS_REGISTRY : JASPER_OS_APPS_REGISTRY.slice(0, 12)).map((app) => {
-            const AppIcon = app.icon;
-            const isRunning = openWindows[app.id];
-            const isMinimized = minimizedWindows[app.id];
-            return (
-              <button
-                key={app.id}
-                onClick={() => toggleWindow(app.id)}
-                className={`relative p-2 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
-                  isRunning && !isMinimized
-                    ? 'bg-indigo-500/20 border border-indigo-400/50 text-indigo-200 shadow-[0_0_18px_rgba(99,102,241,0.25)] scale-105'
-                    : isRunning && isMinimized
-                    ? 'bg-slate-900 border border-white/[0.1] text-slate-400 opacity-80'
-                    : 'text-slate-400 hover:text-white hover:bg-white/[0.08] border border-transparent'
-                }`}
-                title={app.title}
-              >
-                <AppIcon className="w-4 h-4" />
-                {isRunning && (
-                  <span className={`absolute -bottom-0.5 w-1.5 h-1.5 rounded-full ${isMinimized ? 'bg-slate-500' : 'bg-indigo-400 shadow-[0_0_6px_#818cf8]'}`} />
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="h-6 w-px bg-white/[0.1] mx-1 flex-shrink-0" />
-
-        <button
-          onClick={() => setDockTwoRows(!dockTwoRows)}
-          className="p-1.5 px-2 rounded-xl bg-slate-900 hover:bg-slate-850 border border-white/[0.08] text-slate-300 hover:text-white flex items-center gap-1 text-[10px] font-sans whitespace-nowrap cursor-pointer transition-all flex-shrink-0"
-          title={dockTwoRows ? 'Collapse dock to 1 Row' : 'Expand dock to 2 Rows'}
-        >
-          <Layout className="w-3.5 h-3.5 text-sky-400" />
-          <span className="font-medium">{dockTwoRows ? '1 Row' : '2 Rows'}</span>
-        </button>
-
-        <button
-          onClick={() => setShowStartMenu(true)}
-          className="p-2 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-400/30 text-indigo-200 flex items-center gap-1.5 text-xs font-sans font-medium cursor-pointer flex-shrink-0 transition-all"
-          title="Open JASPER OS App Center"
-        >
-          <Layers className="w-4 h-4 text-indigo-400" />
-          <span className="hidden sm:inline">App Center</span>
-        </button>
-
-        {onLockSystem && (
-          <button
-            onClick={onLockSystem}
-            className="p-2 rounded-xl text-rose-400 hover:text-rose-100 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 flex items-center gap-1.5 text-xs font-sans font-medium transition-all shadow-[0_0_12px_rgba(244,63,94,0.15)] cursor-pointer flex-shrink-0"
-            title="Lock JASPER OS (Biometric Security Shield)"
-          >
-            <Lock className="w-3.5 h-3.5 text-rose-400" />
-            <span className="hidden sm:inline">Lock</span>
-          </button>
-        )}
       </div>
 
       {/* GLOBAL WEBCAM VIDEO (MOUNTED FOR AIR GESTURE ENGINE) */}
