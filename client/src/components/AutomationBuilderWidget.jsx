@@ -70,84 +70,89 @@ export default function AutomationBuilderWidget({ onClose }) {
   };
 
   const handleRunGoodMorningJARVIS = async () => {
-    setStatusMsg('🤖 Executing "Good Morning JARVIS" Routine: Fetching Weather, News Digest & Initializing TV...');
+    setStatusMsg('Executing morning routine: Fetching weather & briefing...');
     try {
       await fetch(`${getApiBase()}/api/agent/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: 'Good Morning routine: summarize weather and top news' })
       });
-      setTimeout(() => setStatusMsg('☀️ "Good Morning JARVIS" Routine Complete! Have a productive day, Sir.'), 1500);
+      setTimeout(() => setStatusMsg('Morning routine completed.'), 1500);
     } catch (e) {
-      setStatusMsg('☀️ "Good Morning JARVIS" Routine Dispatched!');
+      setStatusMsg('Morning routine dispatched.');
     }
     setTimeout(() => setStatusMsg(''), 5000);
   };
 
-
   return (
-    <div className="bg-slate-950/90 border border-yellow-500/30 rounded-2xl p-6 text-slate-100 backdrop-blur-xl shadow-2xl max-w-4xl w-full mx-auto relative overflow-hidden">
+    <div className="bg-[#0b0d13]/95 border border-white/[0.08] rounded-2xl p-5 sm:p-6 text-slate-100 backdrop-blur-2xl shadow-2xl max-w-4xl w-full mx-auto relative overflow-hidden space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-yellow-500/20 pb-4 mb-6">
+      <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-yellow-500/10 border border-yellow-500/40 rounded-xl text-yellow-400">
-            <Workflow className="w-6 h-6 animate-pulse" />
+          <div className="p-2.5 bg-white/[0.05] border border-white/[0.08] rounded-xl text-slate-300">
+            <Workflow className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-xl font-bold tracking-wider text-yellow-300 uppercase font-orbitron">Automation Builder</h2>
-            <p className="text-xs text-slate-400 font-mono">A drag-and-drop workflow builder engine</p>
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-semibold text-slate-100 tracking-tight">Automation Engine</h2>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-500/10 border border-indigo-500/20 text-indigo-300">
+                Event Driven
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mt-0.5">Automated trigger sequences and cross-device routine coordinator</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={handleRunGoodMorningJARVIS}
-            className="px-3.5 py-2 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-400 text-yellow-200 rounded-xl text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-md"
+            className="px-3 py-1.5 bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] text-slate-200 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all shadow-sm"
           >
-            ☀️ Good Morning JARVIS Routine
+            Run Morning Briefing
           </button>
           {onClose && (
-            <button onClick={onClose} className="p-2 rounded-xl bg-slate-800/60 hover:bg-rose-500/20 hover:text-rose-400 text-slate-400 transition-all">
-              <XCircle className="w-5 h-5" />
+            <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/[0.06] transition-colors">
+              <XCircle className="w-4 h-4" />
             </button>
           )}
         </div>
       </div>
 
       {statusMsg && (
-        <div className="mb-4 p-3 bg-yellow-950/40 border border-yellow-500/40 rounded-xl text-yellow-300 text-xs flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-yellow-400" />
+        <div className="p-3 bg-white/[0.04] border border-white/[0.08] rounded-xl text-slate-200 text-xs flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           {statusMsg}
         </div>
       )}
 
-      {/* Featured Visual Canvas Block (Directly from Mockup) */}
-      <div className="p-5 bg-slate-900/90 border border-yellow-500/40 rounded-2xl mb-6 relative overflow-hidden font-mono shadow-xl">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
-          <span className="text-xs font-bold text-yellow-400 uppercase tracking-widest flex items-center gap-2">
-            <Layers className="w-4 h-4" /> Active Visual Workflow Node
+      {/* Featured Visual Canvas Block */}
+      <div className="p-5 bg-[#10131d]/60 border border-white/[0.07] rounded-xl font-sans shadow-sm">
+        <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5 mb-3.5">
+          <span className="text-xs font-semibold text-slate-300 flex items-center gap-2">
+            <Layers className="w-3.5 h-3.5 text-slate-400" /> Active Automation Canvas
           </span>
-          <Copy className="w-4 h-4 text-slate-500 hover:text-yellow-400 cursor-pointer" />
+          <Copy className="w-3.5 h-3.5 text-slate-500 hover:text-slate-300 cursor-pointer transition-colors" />
         </div>
 
-        <div className="space-y-3 text-xs">
+        <div className="space-y-3.5 text-xs">
           <div>
-            <span className="text-slate-400 font-bold block mb-1">IF</span>
-            <div className="p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-slate-200 flex items-center gap-2">
-              <BatteryCharging className="w-4 h-4 text-yellow-400" /> Phone battery &lt; 20%
+            <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider block mb-1.5">When (Trigger)</span>
+            <div className="p-2.5 bg-black/30 border border-white/[0.06] rounded-lg text-slate-200 flex items-center gap-2.5">
+              <BatteryCharging className="w-4 h-4 text-amber-400" />
+              <span>Phone battery &lt; 20%</span>
             </div>
           </div>
 
           <div>
-            <span className="text-slate-400 font-bold block mb-1">THEN</span>
-            <div className="space-y-1.5 pl-2 border-l-2 border-yellow-500/40">
-              <div className="p-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-200 flex items-center gap-2">
-                <Bell className="w-3.5 h-3.5 text-cyan-400" /> Send notification
+            <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider block mb-1.5">Then (Actions)</span>
+            <div className="space-y-2 pl-3 border-l-2 border-white/[0.1]">
+              <div className="p-2.5 bg-black/30 border border-white/[0.06] rounded-lg text-slate-300 flex items-center gap-2.5">
+                <Bell className="w-3.5 h-3.5 text-indigo-400" /> Send mobile notification
               </div>
-              <div className="p-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-200 flex items-center gap-2">
-                <Tv className="w-3.5 h-3.5 text-rose-400" /> Turn off TV
+              <div className="p-2.5 bg-black/30 border border-white/[0.06] rounded-lg text-slate-300 flex items-center gap-2.5">
+                <Tv className="w-3.5 h-3.5 text-rose-400" /> Turn off Smart TV
               </div>
-              <div className="p-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-200 flex items-center gap-2">
-                <Zap className="w-3.5 h-3.5 text-emerald-400" /> Enable power-saving mode
+              <div className="p-2.5 bg-black/30 border border-white/[0.06] rounded-lg text-slate-300 flex items-center gap-2.5">
+                <Zap className="w-3.5 h-3.5 text-emerald-400" /> Enable battery saver profile
               </div>
             </div>
           </div>
@@ -155,51 +160,51 @@ export default function AutomationBuilderWidget({ onClose }) {
       </div>
 
       {/* New Workflow Form */}
-      <form onSubmit={handleAddWorkflow} className="p-4 bg-slate-900/60 border border-slate-800 rounded-xl mb-6 space-y-3">
-        <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Add Drag-and-Drop Workflow Rule</h3>
+      <form onSubmit={handleAddWorkflow} className="p-4 bg-[#10131d]/40 border border-white/[0.06] rounded-xl space-y-3">
+        <h3 className="text-xs font-semibold text-slate-300">Create Workflow Routine</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
           <input
             type="text"
-            placeholder="Rule Name (e.g. Cinema Mode)..."
+            placeholder="Routine name (e.g. Cinema Mode)..."
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-200 focus:border-yellow-500 outline-none"
+            className="bg-black/30 border border-white/[0.08] rounded-lg p-2.5 text-slate-200 placeholder-slate-500 focus:border-white/20 outline-none"
           />
           <input
             type="text"
-            placeholder="IF trigger (e.g. Battery < 15%)..."
+            placeholder="IF condition (e.g. Battery < 15%)..."
             value={ifTrigger}
             onChange={(e) => setIfTrigger(e.target.value)}
-            className="bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-200 focus:border-yellow-500 outline-none"
+            className="bg-black/30 border border-white/[0.08] rounded-lg p-2.5 text-slate-200 placeholder-slate-500 focus:border-white/20 outline-none"
           />
           <input
             type="text"
             placeholder="THEN actions (comma separated)..."
             value={thenActionText}
             onChange={(e) => setThenActionText(e.target.value)}
-            className="bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-200 focus:border-yellow-500 outline-none"
+            className="bg-black/30 border border-white/[0.08] rounded-lg p-2.5 text-slate-200 placeholder-slate-500 focus:border-white/20 outline-none"
           />
         </div>
-        <button type="submit" className="px-4 py-2 bg-yellow-500/20 border border-yellow-500/50 text-yellow-300 hover:bg-yellow-500/30 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all">
-          <Plus className="w-4 h-4" /> Create Workflow Block
+        <button type="submit" className="px-3.5 py-1.5 bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] text-slate-200 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all">
+          <Plus className="w-3.5 h-3.5" /> Save Automation
         </button>
       </form>
 
       {/* Active Workflows List */}
-      <div className="space-y-3">
-        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Saved Workflow Automation Pipeline</h3>
+      <div className="space-y-2.5">
+        <h3 className="text-xs font-semibold text-slate-400">Configured Pipelines</h3>
         {workflows.map(wf => (
-          <div key={wf.id} className="p-4 bg-slate-900/80 border border-slate-800 rounded-xl flex items-center justify-between text-xs hover:border-yellow-500/30 transition-all">
+          <div key={wf.id} className="p-3.5 bg-[#10131d]/50 border border-white/[0.06] rounded-xl flex items-center justify-between text-xs hover:border-white/[0.12] transition-all">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400">
-                <Zap className="w-4 h-4" />
+              <div className="p-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-slate-400">
+                <Zap className="w-3.5 h-3.5" />
               </div>
               <div>
-                <p className="font-bold text-slate-200">{wf.name}</p>
-                <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] font-mono">
-                  <span className="text-yellow-400 font-semibold">IF: {wf.ifCondition}</span>
+                <p className="font-semibold text-slate-200">{wf.name}</p>
+                <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px]">
+                  <span className="text-slate-400">IF: {wf.ifCondition}</span>
                   <ArrowRight className="w-3 h-3 text-slate-600" />
-                  <span className="text-cyan-400">THEN: {Array.isArray(wf.thenActions) ? wf.thenActions.join(' + ') : wf.action}</span>
+                  <span className="text-slate-300">THEN: {Array.isArray(wf.thenActions) ? wf.thenActions.join(' + ') : wf.action}</span>
                 </div>
               </div>
             </div>
@@ -207,15 +212,15 @@ export default function AutomationBuilderWidget({ onClose }) {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => handleRunWorkflow(wf)}
-                className="px-3 py-1.5 bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 rounded-lg text-[11px] font-semibold hover:bg-yellow-500/30 flex items-center gap-1 transition-all"
+                className="px-2.5 py-1 bg-white/[0.06] hover:bg-white/[0.1] text-slate-300 border border-white/[0.08] rounded-lg text-[11px] font-medium flex items-center gap-1 transition-all"
               >
-                <Play className="w-3 h-3" /> Test Run
+                <Play className="w-3 h-3" /> Test
               </button>
               <button
                 onClick={() => setWorkflows(workflows.filter(w => w.id !== wf.id))}
-                className="p-1.5 text-slate-500 hover:text-rose-400 transition-colors"
+                className="p-1 text-slate-500 hover:text-rose-400 transition-colors"
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>

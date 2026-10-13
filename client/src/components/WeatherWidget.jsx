@@ -5,7 +5,7 @@ import { subscribeLocation } from '../utils/locationService';
 export default function WeatherWidget() {
   const [weather, setWeather] = useState(null);
   const [locationInfo, setLocationInfo] = useState(null);
-  const [status, setStatus] = useState('Acquiring Telemetry...');
+  const [status, setStatus] = useState('Locating...');
   const [isWarning, setIsWarning] = useState(false);
 
   useEffect(() => {
@@ -21,15 +21,14 @@ export default function WeatherWidget() {
 
   const fetchWeather = async (lat, lon, cityName) => {
     try {
-      setStatus('Syncing forecast...');
+      setStatus('Syncing...');
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
       const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         setWeather(data.current_weather);
-        setStatus(cityName || 'Nominal');
+        setStatus(cityName || 'Active');
         
-        // Evaluate atmospheric warning conditions (e.g. windspeed > 25km/h, storm code >= 80, or extreme temp)
         const code = data.current_weather.weathercode;
         const speed = data.current_weather.windspeed;
         const temp = data.current_weather.temperature;
@@ -40,82 +39,82 @@ export default function WeatherWidget() {
           setIsWarning(false);
         }
       } else {
-        setStatus('Fetch failed');
+        setStatus('Unavailable');
       }
     } catch (e) {
       console.error(e);
-      setStatus('Service offline');
+      setStatus('Offline');
     }
   };
 
   const getWeatherIcon = (code) => {
-    if (code === 0) return <Sun className="text-yellow-400 animate-spin" style={{ animationDuration: '20s' }} size={20} />;
-    if (code >= 1 && code <= 3) return <Cloud className="text-sky-300" size={20} />;
-    if (code >= 51 && code <= 67) return <CloudRain className="text-cyan-400 animate-bounce" size={20} />;
-    if (code >= 71 && code <= 77) return <CloudSnow className="text-blue-100" size={20} />;
-    if (code >= 80 && code <= 82) return <CloudRain className="text-cyan-500 animate-pulse" size={20} />;
-    if (code >= 95) return <CloudLightning className="text-orange-400 animate-pulse" size={20} />;
-    return <Cloud className="text-sky-400" size={20} />;
+    if (code === 0) return <Sun className="text-amber-400" size={18} />;
+    if (code >= 1 && code <= 3) return <Cloud className="text-slate-300" size={18} />;
+    if (code >= 51 && code <= 67) return <CloudRain className="text-indigo-400" size={18} />;
+    if (code >= 71 && code <= 77) return <CloudSnow className="text-blue-200" size={18} />;
+    if (code >= 80 && code <= 82) return <CloudRain className="text-indigo-400" size={18} />;
+    if (code >= 95) return <CloudLightning className="text-amber-400" size={18} />;
+    return <Cloud className="text-slate-400" size={18} />;
   };
 
   const getWeatherName = (code) => {
     if (code === 0) return 'Clear Sky';
     if (code >= 1 && code <= 3) return 'Partly Cloudy';
-    if (code >= 51 && code <= 67) return 'Drizzle/Rain';
-    if (code >= 71 && code <= 77) return 'Snow Showers';
-    if (code >= 80 && code <= 82) return 'Heavy Showers';
+    if (code >= 51 && code <= 67) return 'Rain';
+    if (code >= 71 && code <= 77) return 'Snow';
+    if (code >= 80 && code <= 82) return 'Heavy Rain';
     if (code >= 95) return 'Thunderstorm';
     return 'Cloudy';
   };
 
   return (
-    <div className={`sidebar-widget-card select-none ${isWarning ? 'weather-warning-active' : ''}`}>
+    <div className={`p-3 rounded-xl bg-[#0e111a]/60 border border-white/[0.07] shadow-sm select-none transition-all ${isWarning ? 'border-amber-500/30 bg-amber-500/5' : ''}`}>
       {/* Header */}
-      <div className="flex justify-between items-center border-b border-cyan-500/10 pb-1.5 mb-2.5">
-        <span className="font-orbitron font-extrabold text-[9px] text-cyan-400 tracking-wider flex items-center gap-1">
-          <Compass size={11} className="text-cyan-400" />
-          ATMOSPHERIC HUD
+      <div className="flex justify-between items-center border-b border-white/[0.06] pb-2 mb-2.5">
+        <span className="font-semibold text-xs text-slate-200 tracking-tight flex items-center gap-1.5">
+          <Compass size={13} className="text-slate-400" />
+          Local Weather
         </span>
-        <span className={`font-mono text-[8px] uppercase font-bold tracking-widest flex items-center gap-1 ${isWarning ? 'text-orange-500 animate-pulse' : 'text-sky-400'}`}>
-          <MapPin size={9} className="text-cyan-400" />
+        <span className={`text-[11px] font-medium flex items-center gap-1 ${isWarning ? 'text-amber-400' : 'text-slate-400'}`}>
+          <MapPin size={11} className="text-slate-500" />
           {locationInfo?.city || status}
         </span>
       </div>
 
       {weather ? (
-        <div className="flex flex-col gap-2 font-mono text-[10px]">
+        <div className="flex flex-col gap-2 text-xs">
           {/* Main Temp Row */}
           <div className="flex justify-between items-center">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               {getWeatherIcon(weather.weathercode)}
-              <span className="text-[9px] text-cyan-100 uppercase tracking-wider">{getWeatherName(weather.weathercode)}</span>
+              <span className="text-xs text-slate-200 font-medium">{getWeatherName(weather.weathercode)}</span>
             </div>
-            <div className="flex items-center gap-0.5 text-cyan-300 font-extrabold text-sm glow-cyan">
-              <Thermometer size={12} className="text-cyan-400" />
+            <div className="flex items-center gap-0.5 text-slate-100 font-semibold text-base">
+              <Thermometer size={14} className="text-slate-400" />
               {weather.temperature}°C
             </div>
           </div>
 
           {/* Wind Speed and Alerts */}
-          <div className="flex justify-between items-center text-[9px] text-sky-500">
+          <div className="flex justify-between items-center text-[11px] text-slate-400 pt-1 border-t border-white/[0.04]">
             <span className="flex items-center gap-1">
-              <Wind size={10} className="text-sky-600" />
-              WIND: <strong className="text-cyan-400">{weather.windspeed} km/h</strong>
+              <Wind size={12} className="text-slate-500" />
+              Wind: <strong className="text-slate-300 font-normal">{weather.windspeed} km/h</strong>
             </span>
             {isWarning ? (
-              <span className="flex items-center gap-0.5 text-orange-400 font-bold uppercase animate-pulse">
-                <AlertTriangle size={10} /> STORM WARNING
+              <span className="flex items-center gap-1 text-amber-400 font-medium">
+                <AlertTriangle size={11} /> Hazard Watch
               </span>
             ) : (
-              <span className="text-[8px] text-slate-400">
-                {locationInfo?.region ? `${locationInfo.region}, ${locationInfo.country}` : (locationInfo?.source || 'GPS')}
+              <span className="text-[10px] text-slate-500">
+                {locationInfo?.region ? `${locationInfo.region}` : (locationInfo?.source || 'GPS')}
               </span>
             )}
           </div>
         </div>
       ) : (
-        <div className="py-2 text-[9px] text-sky-600/70 font-mono text-center uppercase tracking-widest animate-pulse">
-          Calibrating weather telemetry...
+        <div className="py-2 text-xs text-slate-500 text-center">
+          Loading weather...
         </div>
       )}
     </div>

@@ -782,28 +782,25 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '', ini
   };
 
   return (
-    <div className="bg-neutral-950/95 border border-cyan-500/40 rounded-2xl text-neutral-100 backdrop-blur-3xl shadow-[0_0_60px_rgba(0,229,255,0.25)] max-w-7xl w-full mx-auto relative overflow-hidden font-sans flex flex-col max-h-[92vh]">
-      {/* Subtle Cyan Hologram Ambient Glows */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="bg-[#0b0d13]/95 border border-white/[0.08] rounded-2xl text-slate-100 backdrop-blur-3xl shadow-2xl max-w-7xl w-full mx-auto relative overflow-hidden font-sans flex flex-col max-h-[92vh]">
 
       {/* TOP HEADER & STATUS BAR */}
-      <div className="flex flex-wrap items-center justify-between border-b border-cyan-500/25 px-5 py-3.5 bg-slate-950/80 backdrop-blur-md gap-3 z-10">
+      <div className="flex flex-wrap items-center justify-between border-b border-white/[0.06] px-5 py-3.5 bg-[#0e111a]/70 backdrop-blur-md gap-3 z-10">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-cyan-500/15 border border-cyan-400/50 rounded-xl text-cyan-400">
-            <Box className="w-5 h-5 animate-pulse" />
+          <div className="p-2 bg-white/[0.05] border border-white/[0.08] rounded-xl text-slate-300">
+            <Box className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-extrabold tracking-wider text-cyan-300 uppercase font-orbitron">
-                J.A.S.P.E.R. 3D Hologram &amp; Blender Studio
+              <h2 className="text-base font-semibold text-slate-100 tracking-tight">
+                3D Holographic &amp; Blender Studio
               </h2>
-              <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
-                JARVIS HUD v9.4
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+                Interactive Viewport
               </span>
             </div>
-            <p className="text-[11px] text-neutral-400 font-mono flex items-center gap-2">
-              <span>Unified 3D Viewport &amp; Blender Studio</span> • <span>Air Gestures</span> • <span>AR Camera</span> • <span>Voice</span>
+            <p className="text-[11px] text-slate-400 flex items-center gap-2">
+              <span>3D Model Telemetry</span> • <span>Spatial Gestures</span> • <span>AR Camera</span> • <span>Voice Controls</span>
             </p>
           </div>
         </div>

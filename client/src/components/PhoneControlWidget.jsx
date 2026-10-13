@@ -475,130 +475,137 @@ export default function PhoneControlWidget() {
 
   if (!status.connected) {
     return (
-      <div className="phone-panel select-none">
-        <div className="p-4 flex flex-col gap-3.5">
+      <div className="phone-panel select-none font-sans">
+        <div className="p-4 flex flex-col gap-4">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-cyan-400 font-orbitron font-bold">
-              <Smartphone size={16} />
-              PHONE UPLINK BRIDGE
+            <div className="flex items-center gap-2.5 text-slate-100 font-semibold text-sm">
+              <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                <Smartphone size={16} />
+              </div>
+              <div>
+                <div className="font-semibold text-slate-200">Android Device Link</div>
+                <div className="text-[11px] text-slate-400">Wireless ADB Continuity Bridge</div>
+              </div>
             </div>
-            <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-              SETUP REQUIRED / OFFLINE
+            <span className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-amber-500/10 text-amber-300 border border-amber-500/20">
+              Offline • Pairing Needed
             </span>
           </div>
 
-          <div className="text-xs font-mono text-cyan-100/70">
-            Connect your physical Android smartphone via <strong>Wireless ADB Pairing Code (Android 11+)</strong> or standard IP:Port.
-          </div>
+          <p className="text-xs text-slate-400 leading-relaxed">
+            Link your physical Android smartphone via <strong>Wireless ADB Pairing Code (Android 11+)</strong> or direct Wi-Fi IP address.
+          </p>
 
           {/* Connection Mode Tabs */}
-          <div className="grid grid-cols-2 gap-2 bg-slate-950/60 p-1 rounded-xl border border-cyan-500/20">
+          <div className="grid grid-cols-2 gap-1.5 bg-slate-900/90 p-1 rounded-xl border border-white/[0.06]">
             <button
               onClick={() => setConnectionMode('pair')}
-              className={`py-1.5 px-2 rounded-lg text-xs font-bold font-orbitron transition-all flex items-center justify-center gap-1.5 ${
+              className={`py-2 px-3 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 connectionMode === 'pair'
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/50 shadow-[0_0_10px_rgba(6,182,212,0.2)]'
-                  : 'text-slate-400 hover:text-cyan-200'
+                  ? 'bg-slate-800 text-white border border-white/10 shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <KeyRound size={13} className="text-cyan-400" />
-              <span>PAIR WITH CODE</span>
+              <KeyRound size={13} className={connectionMode === 'pair' ? 'text-indigo-400' : 'text-slate-400'} />
+              <span>Pair with Code</span>
             </button>
             <button
               onClick={() => setConnectionMode('connect')}
-              className={`py-1.5 px-2 rounded-lg text-xs font-bold font-orbitron transition-all flex items-center justify-center gap-1.5 ${
+              className={`py-2 px-3 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 connectionMode === 'connect'
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/50 shadow-[0_0_10px_rgba(6,182,212,0.2)]'
-                  : 'text-slate-400 hover:text-cyan-200'
+                  ? 'bg-slate-800 text-white border border-white/10 shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <Wifi size={13} className="text-cyan-400" />
-              <span>DIRECT IP CONNECT</span>
+              <Wifi size={13} className={connectionMode === 'connect' ? 'text-indigo-400' : 'text-slate-400'} />
+              <span>Direct IP Connect</span>
             </button>
           </div>
 
           {/* TAB 1: WIRELESS PAIRING WITH CODE (Android 11+) */}
           {connectionMode === 'pair' && (
-            <form onSubmit={handlePairPhone} className="flex flex-col gap-3 p-3.5 rounded-xl bg-slate-950/90 border border-cyan-500/30 shadow-lg">
-              <div className="flex items-center justify-between border-b border-cyan-500/20 pb-2">
-                <span className="text-[11px] font-bold text-cyan-300 flex items-center gap-1.5">
+            <form onSubmit={handlePairPhone} className="flex flex-col gap-3.5 p-4 rounded-xl bg-slate-900/70 border border-white/[0.08] shadow-lg">
+              <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5">
+                <span className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
                   <KeyRound size={14} className="text-amber-400" />
-                  WIRELESS ADB PAIRING CODE
+                  Wireless Pairing Code (Android 11+)
                 </span>
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-500/30">
-                  Android 11+
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-white/10 font-mono">
+                  Standard ADB
                 </span>
               </div>
 
               {/* Step Info Box */}
-              <div className="p-2.5 rounded-lg bg-cyan-950/30 border border-cyan-500/20 text-[10px] text-cyan-200/90 space-y-1">
-                <div className="font-semibold text-cyan-300 flex items-center gap-1">
-                  📱 On your phone:
+              <div className="p-3 rounded-xl bg-slate-950/70 border border-white/[0.06] text-xs text-slate-300 space-y-1.5">
+                <div className="font-medium text-slate-200 flex items-center gap-1.5">
+                  📱 On your Android device:
                 </div>
-                <div>1. Go to <strong>Settings → Developer Options → Wireless Debugging</strong> (turn ON).</div>
-                <div>2. Tap <strong>"Pair device with pairing code"</strong>.</div>
-                <div>3. Enter the <strong>6-digit code</strong> and <strong>Pairing IP:Port</strong> below:</div>
+                <div className="text-[11px] text-slate-400 space-y-1 pl-1">
+                  <div>1. Open <strong>Settings → Developer Options → Wireless Debugging</strong> (Turn On).</div>
+                  <div>2. Tap <strong>"Pair device with pairing code"</strong>.</div>
+                  <div>3. Enter the <strong>6-digit code</strong> and <strong>Pairing IP:Port</strong> below:</div>
+                </div>
               </div>
 
               {/* 6-Digit Pairing Code Input */}
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold text-amber-300 uppercase tracking-wider flex items-center justify-between">
-                  <span>6-Digit Wi-Fi Pairing Code</span>
-                  <span className="text-[9px] text-slate-400 font-normal">Shown on phone dialog</span>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] font-medium text-slate-300 flex items-center justify-between">
+                  <span>6-Digit Pairing Code</span>
+                  <span className="text-[10px] text-slate-500">From phone pairing popup</span>
                 </label>
                 <input 
                   type="text" 
                   value={pairingCode} 
                   onChange={(e) => setPairingCode(e.target.value.replace(/\s+/g, ''))}
-                  placeholder="e.g. 243245"
+                  placeholder="243245"
                   maxLength={8}
-                  className="p-2.5 w-full rounded-lg font-mono text-base font-extrabold tracking-widest text-center bg-black/80 border-2 border-cyan-400/60 text-cyan-300 placeholder-cyan-700/50 outline-none focus:border-cyan-300 focus:shadow-[0_0_15px_rgba(6,182,212,0.4)] transition-all"
+                  className="p-3 w-full rounded-xl font-mono text-lg font-bold tracking-[0.25em] text-center bg-slate-950 border border-white/10 text-white placeholder-slate-600 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all"
                 />
               </div>
 
               {/* Pairing IP & Port Input */}
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold text-sky-400 uppercase tracking-wider flex items-center justify-between">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] font-medium text-slate-300 flex items-center justify-between">
                   <span>Pairing Address (IP:Port)</span>
-                  <span className="text-[9px] text-slate-400 font-normal">Popup IP:Port</span>
+                  <span className="text-[10px] text-slate-500">Dialog IP:Port</span>
                 </label>
                 <input 
                   type="text" 
                   value={pairingIp} 
                   onChange={(e) => setPairingIp(e.target.value)}
-                  placeholder="e.g. 192.168.29.159:38421"
-                  className="remote-input p-2 w-full rounded font-mono text-xs bg-black/60 border border-cyan-500/40 text-cyan-200 outline-none focus:border-cyan-400"
+                  placeholder="192.168.29.159:38421"
+                  className="p-2.5 w-full rounded-xl font-mono text-xs bg-slate-950 border border-white/10 text-slate-200 outline-none focus:border-indigo-500 transition-all"
                 />
               </div>
 
               {/* Auto-Connect Port Input (Optional) */}
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                <label className="text-[11px] font-medium text-slate-400 flex items-center justify-between">
                   <span>Main Connect Address (Optional)</span>
-                  <span className="text-[9px] text-slate-500 font-normal">Main Wireless Port</span>
+                  <span className="text-[10px] text-slate-500">Main Wireless Port</span>
                 </label>
                 <input 
                   type="text" 
                   value={ip} 
                   onChange={(e) => setIp(e.target.value)}
-                  placeholder="e.g. 192.168.29.159:42931"
-                  className="remote-input p-1.5 w-full rounded font-mono text-xs bg-black/40 border border-cyan-500/20 text-slate-300 outline-none focus:border-cyan-400"
+                  placeholder="192.168.29.159:42931"
+                  className="p-2 w-full rounded-xl font-mono text-xs bg-slate-950/60 border border-white/[0.08] text-slate-300 outline-none focus:border-indigo-500"
                 />
               </div>
 
               {/* Status Banner */}
               {pairStatus && (
-                <div className={`p-2.5 rounded-lg text-xs font-mono border flex items-center gap-2 animate-in fade-in ${
+                <div className={`p-3 rounded-xl text-xs font-mono border flex items-center gap-2.5 animate-in fade-in ${
                   pairStatus.type === 'success' 
-                    ? 'bg-emerald-950/60 border-emerald-500 text-emerald-300' 
+                    ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300' 
                     : pairStatus.type === 'info'
-                    ? 'bg-sky-950/60 border-sky-500 text-sky-300'
-                    : 'bg-rose-950/60 border-rose-500 text-rose-300'
+                    ? 'bg-indigo-950/40 border-indigo-500/40 text-indigo-300'
+                    : 'bg-rose-950/40 border-rose-500/40 text-rose-300'
                 }`}>
-                  {pairStatus.type === 'success' && <CheckCircle2 size={14} className="shrink-0 text-emerald-400" />}
-                  {pairStatus.type === 'info' && <RefreshCw size={14} className="shrink-0 text-sky-400 animate-spin" />}
-                  {pairStatus.type === 'error' && <AlertCircle size={14} className="shrink-0 text-rose-400" />}
+                  {pairStatus.type === 'success' && <CheckCircle2 size={15} className="shrink-0 text-emerald-400" />}
+                  {pairStatus.type === 'info' && <RefreshCw size={15} className="shrink-0 text-indigo-400 animate-spin" />}
+                  {pairStatus.type === 'error' && <AlertCircle size={15} className="shrink-0 text-rose-400" />}
                   <span className="leading-tight text-[11px]">{pairStatus.text}</span>
                 </div>
               )}
@@ -607,34 +614,34 @@ export default function PhoneControlWidget() {
               <button 
                 type="submit"
                 disabled={isPairing}
-                className="p-2.5 text-xs font-orbitron font-bold uppercase tracking-wider text-cyan-300 border border-cyan-400/60 bg-cyan-950/80 hover:bg-cyan-900 hover:border-cyan-300 rounded-xl transition-all shadow-[0_0_15px_rgba(6,182,212,0.25)] flex items-center justify-center gap-2"
+                className="p-3 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded-xl transition-all shadow-sm shadow-indigo-500/20 flex items-center justify-center gap-2 cursor-pointer"
               >
-                {isPairing ? <RefreshCw size={14} className="animate-spin text-cyan-400" /> : <KeyRound size={14} className="text-amber-400" />}
-                <span>{isPairing ? 'PAIRING WITH ANDROID...' : '⚡ PAIR & LINK MOBILE'}</span>
+                {isPairing ? <RefreshCw size={14} className="animate-spin text-white" /> : <KeyRound size={14} />}
+                <span>{isPairing ? 'Pairing with Android...' : 'Pair & Link Device'}</span>
               </button>
             </form>
           )}
 
           {/* TAB 2: DIRECT IP CONNECT */}
           {connectionMode === 'connect' && (
-            <div className="flex flex-col gap-2 p-3.5 rounded-xl bg-slate-950/90 border border-cyan-500/30">
-              <label className="text-[10px] font-bold text-sky-400 uppercase tracking-wider">
+            <div className="flex flex-col gap-3 p-4 rounded-xl bg-slate-900/70 border border-white/[0.08]">
+              <label className="text-[11px] font-medium text-slate-300">
                 Direct Wireless Debugging IP & Port
               </label>
               <input 
                 type="text" 
                 value={ip} 
                 onChange={(e) => setIp(e.target.value)}
-                className="remote-input p-2 w-full rounded font-mono text-xs bg-black/60 border border-cyan-500/40 text-cyan-200 outline-none focus:border-cyan-400"
-                placeholder="IP Address & Port (e.g. 192.168.29.159:42931)"
+                className="p-2.5 w-full rounded-xl font-mono text-xs bg-slate-950 border border-white/10 text-slate-200 outline-none focus:border-indigo-500"
+                placeholder="192.168.29.159:42931"
               />
 
               <button 
                 onClick={connectPhone}
                 disabled={loading}
-                className="btn-control p-2.5 text-xs font-bold text-cyan-400 border-cyan-500/40 bg-cyan-950/40 hover:bg-cyan-900/40 rounded-xl transition-colors mt-1"
+                className="p-2.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded-xl transition-all shadow-sm shadow-indigo-500/20 cursor-pointer mt-1"
               >
-                {loading ? 'CONNECTING VIA ADB...' : 'CONNECT PHYSICAL MOBILE'}
+                {loading ? 'Connecting via ADB...' : 'Connect Physical Device'}
               </button>
             </div>
           )}
@@ -643,20 +650,20 @@ export default function PhoneControlWidget() {
           <div className="flex flex-col gap-2">
             <button 
               onClick={() => setShowAdbGuide(!showAdbGuide)}
-              className="p-2 text-[11px] font-mono text-cyan-300/80 hover:text-cyan-200 border border-cyan-500/20 rounded bg-slate-900/60 transition-colors flex items-center justify-between"
+              className="p-2.5 text-xs text-slate-400 hover:text-slate-200 border border-white/[0.06] rounded-xl bg-slate-900/60 transition-colors flex items-center justify-between cursor-pointer"
             >
-              <span className="flex items-center gap-1.5"><HelpCircle size={13} /> WIRELESS ADB SETUP GUIDE</span>
-              <span>{showAdbGuide ? '▲' : '▼'}</span>
+              <span className="flex items-center gap-1.5"><HelpCircle size={14} /> Wireless ADB Pairing Instructions</span>
+              <span className="text-[10px]">{showAdbGuide ? 'Hide ▲' : 'Show ▼'}</span>
             </button>
 
             {showAdbGuide && (
-              <div className="p-3 rounded-lg bg-slate-950/80 border border-cyan-500/30 text-[11px] text-slate-300 space-y-1.5 animate-in fade-in">
-                <div className="font-bold text-cyan-300">How to Pair & Connect Android:</div>
+              <div className="p-3.5 rounded-xl bg-slate-950/80 border border-white/[0.08] text-xs text-slate-400 space-y-1.5 animate-in fade-in leading-relaxed">
+                <div className="font-medium text-slate-200">How to Pair & Connect Android:</div>
                 <div>1. Go to <strong>Settings → About Phone</strong> and tap <strong>Build Number</strong> 7 times to enable Developer Options.</div>
                 <div>2. Open <strong>Developer Options → Wireless Debugging</strong> and toggle it <strong>ON</strong>.</div>
                 <div>3. Tap <strong>"Pair device with pairing code"</strong> to see the 6-digit code and pairing IP:Port.</div>
-                <div>4. Switch to the <strong>PAIR WITH CODE</strong> tab above, enter the 6 digits and click <strong>PAIR & LINK MOBILE</strong>.</div>
-                <div>5. Or plug your phone directly via <strong>USB cable</strong> with <strong>USB Debugging enabled</strong>.</div>
+                <div>4. Enter the 6 digits and pairing address above, then click <strong>Pair & Link Device</strong>.</div>
+                <div>5. Alternatively, plug in via USB with USB Debugging enabled.</div>
               </div>
             )}
           </div>
@@ -666,120 +673,123 @@ export default function PhoneControlWidget() {
   }
 
   return (
-    <div className="phone-panel p-4 flex flex-col gap-4 max-h-[85vh] overflow-y-auto select-none font-mono">
+    <div className="phone-panel p-4 flex flex-col gap-4 max-h-[85vh] overflow-y-auto select-none font-sans">
       {/* Header / Status */}
-      <div className="flex justify-between items-start border-b border-cyan-500/20 pb-2">
+      <div className="flex justify-between items-start border-b border-white/[0.08] pb-3">
         <div className="flex flex-col">
-          <div className="flex items-center gap-2 text-cyan-400 font-orbitron font-bold text-sm">
-            <Smartphone size={16} />
-            {status.model || 'ANDROID DEVICE'}
+          <div className="flex items-center gap-2 text-slate-100 font-semibold text-sm">
+            <Smartphone size={16} className="text-indigo-400" />
+            {status.model || 'Android Device'}
           </div>
-          <div className="text-[9px] font-mono text-sky-400 tracking-wider flex items-center gap-2 mt-0.5">
-            <span>BATT: {status.batteryLevel || '--'}%</span>
-            <span>|</span>
-            <span>OS: Android {status.androidVersion || '--'}</span>
-            <span>|</span>
-            <span className="text-emerald-400 font-semibold">Physical Device Live</span>
+          <div className="text-[11px] text-slate-400 tracking-wide flex items-center gap-2 mt-1">
+            <span className="font-mono">Battery: {status.batteryLevel || '--'}%</span>
+            <span>•</span>
+            <span>Android {status.androidVersion || '--'}</span>
+            <span>•</span>
+            <span className="text-emerald-400 font-medium flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              Live Link
+            </span>
           </div>
         </div>
         <div className="flex gap-1.5">
           <button 
             onClick={handleAllowBackgroundUsage}
             disabled={bgLoading}
-            className={`text-[9px] font-mono border px-2 py-1 rounded flex items-center gap-1 transition-all ${
+            className={`text-[10px] font-medium border px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${
               bgStatus === 'Unrestricted'
-                ? 'border-emerald-500/60 bg-emerald-950/40 text-emerald-300'
-                : 'border-cyan-500/30 text-cyan-300 hover:bg-cyan-950/40'
+                ? 'border-emerald-500/30 bg-emerald-950/40 text-emerald-300'
+                : 'border-white/10 text-slate-300 hover:bg-white/5'
             }`}
             title="Exempt from Android Doze Mode & Enable Unrestricted Background Execution"
           >
-            <ShieldCheck size={10} className={bgStatus === 'Unrestricted' ? 'text-emerald-400' : ''} />
-            {bgStatus === 'Unrestricted' ? 'BG: UNRESTRICTED' : (bgLoading ? 'ENABLING...' : 'ALLOW BG')}
+            <ShieldCheck size={12} className={bgStatus === 'Unrestricted' ? 'text-emerald-400' : ''} />
+            {bgStatus === 'Unrestricted' ? 'BG Unrestricted' : (bgLoading ? 'Enabling...' : 'Allow BG')}
           </button>
           <button 
             onClick={() => setShowPairModal(!showPairModal)}
-            className="text-[9px] text-amber-400 hover:text-amber-300 font-mono border border-amber-500/30 px-2 py-1 rounded flex items-center gap-1"
+            className="text-[10px] text-slate-300 hover:text-white font-medium border border-white/10 px-2.5 py-1 rounded-lg flex items-center gap-1 hover:bg-white/5 transition-all cursor-pointer"
             title="Pair with Wireless Code"
           >
-            <KeyRound size={10} /> {showPairModal ? 'CLOSE PAIR' : 'PAIR CODE'}
+            <KeyRound size={12} /> {showPairModal ? 'Close' : 'Re-Pair'}
           </button>
           <button 
             onClick={() => { checkStatus(); refreshScreen(); }}
-            className="text-[9px] text-cyan-400 hover:text-cyan-300 font-mono border border-cyan-500/30 px-2 py-1 rounded flex items-center gap-1"
+            className="text-[10px] text-slate-300 hover:text-white font-medium border border-white/10 px-2.5 py-1 rounded-lg flex items-center gap-1 hover:bg-white/5 transition-all cursor-pointer"
           >
-            <RotateCw size={10} className={isCapturingScreen ? 'animate-spin' : ''} /> REFRESH
+            <RotateCw size={12} className={isCapturingScreen ? 'animate-spin' : ''} /> Refresh
           </button>
           <button 
             onClick={disconnectPhone}
-            className="text-[9px] text-red-400 hover:text-red-300 font-mono border border-red-500/30 px-2 py-1 rounded"
+            className="text-[10px] text-rose-300 hover:text-rose-200 font-medium border border-rose-500/20 bg-rose-500/10 px-2.5 py-1 rounded-lg hover:bg-rose-500/20 transition-all cursor-pointer"
           >
-            DISCONNECT
+            Disconnect
           </button>
         </div>
       </div>
 
       {/* IN-APP PAIRING CODE CARD (TOGGLEABLE WHEN CONNECTED) */}
       {showPairModal && (
-        <form onSubmit={handlePairPhone} className="p-3 rounded-xl bg-slate-950 border border-amber-500/40 shadow-xl flex flex-col gap-2.5 animate-in fade-in">
-          <div className="flex items-center justify-between text-xs font-bold text-amber-300 font-orbitron">
-            <span className="flex items-center gap-1.5"><KeyRound size={14} /> WIRELESS ADB RE-PAIR (PAIRING CODE)</span>
-            <button type="button" onClick={() => setShowPairModal(false)} className="text-slate-400 hover:text-white">
+        <form onSubmit={handlePairPhone} className="p-3.5 rounded-xl bg-slate-900/90 border border-white/10 shadow-xl flex flex-col gap-3 animate-in fade-in">
+          <div className="flex items-center justify-between text-xs font-semibold text-slate-200">
+            <span className="flex items-center gap-1.5"><KeyRound size={14} className="text-amber-400" /> Wireless ADB Re-Pair (Pairing Code)</span>
+            <button type="button" onClick={() => setShowPairModal(false)} className="text-slate-400 hover:text-white cursor-pointer">
               <X size={14} />
             </button>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="text-[9px] text-slate-400">Pairing IP:Port</label>
+              <label className="text-[10px] text-slate-400">Pairing IP:Port</label>
               <input 
                 type="text" 
                 value={pairingIp} 
                 onChange={(e) => setPairingIp(e.target.value)} 
                 placeholder="192.168.1.5:38421"
-                className="w-full p-1.5 rounded bg-black/60 border border-amber-500/30 text-amber-200 text-xs font-mono"
+                className="w-full p-2 rounded-lg bg-slate-950 border border-white/10 text-slate-200 text-xs font-mono outline-none focus:border-indigo-500"
               />
             </div>
             <div>
-              <label className="text-[9px] text-slate-400">6-Digit Code</label>
+              <label className="text-[10px] text-slate-400">6-Digit Code</label>
               <input 
                 type="text" 
                 value={pairingCode} 
                 onChange={(e) => setPairingCode(e.target.value)} 
                 placeholder="123456"
                 maxLength={8}
-                className="w-full p-1.5 rounded bg-black/60 border border-amber-500/30 text-amber-300 text-xs font-mono font-bold tracking-widest text-center"
+                className="w-full p-2 rounded-lg bg-slate-950 border border-white/10 text-white text-xs font-mono font-bold tracking-widest text-center outline-none focus:border-indigo-500"
               />
             </div>
           </div>
           {pairStatus && (
-            <div className={`text-[10px] p-1.5 rounded font-mono ${pairStatus.type === 'success' ? 'bg-emerald-950 text-emerald-300' : pairStatus.type === 'info' ? 'bg-sky-950 text-sky-300' : 'bg-rose-950 text-rose-300'}`}>
+            <div className={`text-[11px] p-2 rounded-lg font-mono ${pairStatus.type === 'success' ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-500/30' : pairStatus.type === 'info' ? 'bg-indigo-950/60 text-indigo-300 border border-indigo-500/30' : 'bg-rose-950/60 text-rose-300 border border-rose-500/30'}`}>
               {pairStatus.text}
             </div>
           )}
           <button 
             type="submit" 
             disabled={isPairing}
-            className="w-full py-1.5 rounded-lg bg-amber-500/20 border border-amber-500/40 hover:bg-amber-500/30 text-amber-300 font-orbitron font-bold text-xs flex items-center justify-center gap-1.5"
+            className="w-full py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm shadow-indigo-500/20"
           >
-            {isPairing ? <RefreshCw size={12} className="animate-spin" /> : <KeyRound size={12} />}
-            <span>{isPairing ? 'PAIRING...' : 'CONFIRM PAIRING CODE'}</span>
+            {isPairing ? <RefreshCw size={13} className="animate-spin" /> : <KeyRound size={13} />}
+            <span>{isPairing ? 'Pairing...' : 'Confirm Pairing Code'}</span>
           </button>
         </form>
       )}
 
       {/* MOBILE MASTER BRAIN BANNER */}
-      <div className={`p-2.5 rounded-xl border flex items-center justify-between transition-all ${
+      <div className={`p-3 rounded-xl border flex items-center justify-between transition-all ${
         isBrainMode 
-          ? 'bg-purple-950/40 border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.2)]' 
-          : 'bg-slate-950/40 border-cyan-500/20'
+          ? 'bg-purple-950/30 border-purple-500/30 shadow-sm' 
+          : 'bg-slate-900/60 border-white/[0.06]'
       }`}>
         <div className="flex flex-col">
-          <span className="text-xs font-bold font-mono text-purple-300 flex items-center gap-1.5">
-            📱 {isBrainMode ? 'PHONE IS MASTER BRAIN (ACTIVE)' : 'PHONE BRAIN STANDBY'}
+          <span className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+            <span>📱</span> {isBrainMode ? 'Phone is Master AI Core (Active)' : 'Phone Brain Standby'}
           </span>
-          <span className="text-[9px] text-slate-400 font-mono mt-0.5">
+          <span className="text-[11px] text-slate-400 mt-0.5">
             {isBrainMode 
-              ? 'Android phone hosts Neural AI Core & controls PC/TV remotely over LAN.' 
-              : 'Promote this phone to central AI Controller.'}
+              ? 'Phone coordinates neural models and controls devices over local Wi-Fi.' 
+              : 'Promote this device to primary assistant coordinator.'}
           </span>
         </div>
         <button
@@ -787,47 +797,47 @@ export default function PhoneControlWidget() {
             const updated = togglePhoneBrainMode();
             setIsBrainMode(updated);
           }}
-          className={`px-3 py-1 rounded text-[10px] font-bold font-mono border transition-all ${
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
             isBrainMode
-              ? 'bg-purple-500/30 text-purple-200 border-purple-400 shadow-md'
-              : 'bg-cyan-950/40 text-cyan-400 border-cyan-500/40 hover:bg-cyan-500/20'
+              ? 'bg-purple-600/30 text-purple-200 border-purple-500/40 shadow-sm'
+              : 'bg-slate-800 text-slate-300 border-white/10 hover:bg-slate-700'
           }`}
         >
-          {isBrainMode ? '✓ MASTER BRAIN' : 'MAKE PHONE BRAIN'}
+          {isBrainMode ? '✓ Master Core' : 'Make Primary Core'}
         </button>
       </div>
 
       {/* LIVE MOBILE SCREEN MIRROR VIEW WITH SIZE SELECTOR */}
-      <div className="flex flex-col items-center bg-slate-950/80 p-3 rounded-2xl border border-cyan-500/30 shadow-2xl relative">
+      <div className="flex flex-col items-center bg-slate-900/40 p-3.5 rounded-2xl border border-white/[0.08] shadow-xl relative">
         <div className="flex items-center justify-between w-full mb-3 px-1 text-xs">
-          <div className="flex items-center gap-2 font-mono text-[10px] text-cyan-300 font-bold">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            LIVE SCREEN MIRROR ({status.model || 'Mobile'})
+          <div className="flex items-center gap-2 text-xs text-slate-200 font-medium">
+            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+            Live Screen Mirror ({status.model || 'Device'})
           </div>
 
           {/* Interactive Screen Size Selector Buttons */}
-          <div className="flex items-center gap-1 bg-slate-900/90 border border-cyan-500/30 p-1 rounded-lg">
-            <span className="text-[9px] text-slate-400 px-1 font-bold">SIZE:</span>
+          <div className="flex items-center gap-1 bg-slate-950/80 border border-white/[0.08] p-1 rounded-lg">
+            <span className="text-[10px] text-slate-500 px-1 font-medium">Size:</span>
             <button
               onClick={() => setScreenSize('standard')}
-              className={`px-2 py-0.5 rounded text-[9px] font-bold transition-all ${
-                screenSize === 'standard' ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-400/50' : 'text-slate-400 hover:text-slate-200'
+              className={`px-2 py-0.5 rounded text-[10px] font-medium transition-all cursor-pointer ${
+                screenSize === 'standard' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               Std (256px)
             </button>
             <button
               onClick={() => setScreenSize('large')}
-              className={`px-2 py-0.5 rounded text-[9px] font-bold transition-all ${
-                screenSize === 'large' ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-400/50' : 'text-slate-400 hover:text-slate-200'
+              className={`px-2 py-0.5 rounded text-[10px] font-medium transition-all cursor-pointer ${
+                screenSize === 'large' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               Large (320px)
             </button>
             <button
               onClick={() => setScreenSize('xl')}
-              className={`px-2 py-0.5 rounded text-[9px] font-bold transition-all ${
-                screenSize === 'xl' ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-400/50' : 'text-slate-400 hover:text-slate-200'
+              className={`px-2 py-0.5 rounded text-[10px] font-medium transition-all cursor-pointer ${
+                screenSize === 'xl' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               XL (380px)
@@ -835,26 +845,26 @@ export default function PhoneControlWidget() {
 
             <button
               onClick={() => setIsLiveMirroring(!isLiveMirroring)}
-              className={`ml-1 px-2 py-0.5 rounded text-[9px] font-bold border transition-all ${
-                isLiveMirroring ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-slate-800 text-slate-400 border-slate-700'
+              className={`ml-1 px-2 py-0.5 rounded text-[10px] font-medium border transition-all cursor-pointer ${
+                isLiveMirroring ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' : 'bg-slate-800 text-slate-400 border-white/10'
               }`}
             >
-              {isLiveMirroring ? 'LIVE (2s)' : 'PAUSED'}
+              {isLiveMirroring ? '● Stream ON' : '○ Paused'}
             </button>
           </div>
         </div>
 
         {/* Smartphone Hardware Frame (Scales dynamically based on screenSize state) */}
-        <div className={`relative ${dims.frame} bg-slate-900 rounded-[32px] p-2.5 border-4 border-slate-800 shadow-2xl flex flex-col items-center justify-between overflow-hidden group transition-all duration-300`}>
+        <div className={`relative ${dims.frame} bg-slate-950 rounded-[32px] p-2.5 border-4 border-slate-800 shadow-2xl flex flex-col items-center justify-between overflow-hidden group transition-all duration-300`}>
           {/* Top Speaker Notch */}
-          <div className="w-24 h-3.5 bg-slate-950 rounded-full mb-1 flex items-center justify-center z-20 shadow-inner">
+          <div className="w-24 h-3.5 bg-slate-900 rounded-full mb-1 flex items-center justify-center z-20 shadow-inner">
             <div className="w-10 h-1 bg-slate-800 rounded-full" />
           </div>
 
           {/* Interactive Screen Display Canvas */}
           <div 
             onClick={handleScreenTouch}
-            className={`relative w-full flex-1 ${dims.inner} overflow-hidden bg-slate-950 flex items-center justify-center cursor-pointer border border-cyan-500/20`}
+            className={`relative w-full flex-1 ${dims.inner} overflow-hidden bg-slate-950 flex items-center justify-center cursor-pointer border border-white/10`}
             title="Click anywhere to tap phone screen"
           >
             {screenImg ? (
@@ -864,22 +874,22 @@ export default function PhoneControlWidget() {
                 className="w-full h-full object-contain pointer-events-auto"
               />
             ) : !status.connected ? (
-              <div className="text-center p-4 text-xs font-mono text-slate-500 flex flex-col items-center gap-2">
+              <div className="text-center p-4 text-xs font-sans text-slate-500 flex flex-col items-center gap-2">
                 <Smartphone className="w-8 h-8 text-slate-600 mb-1" />
                 <span className="font-semibold text-slate-400">Phone Disconnected</span>
-                <span className="text-[10px] text-slate-500 max-w-[200px]">Pair or link your device above to start live screen stream.</span>
+                <span className="text-[11px] text-slate-500 max-w-[200px]">Pair or link your device above to start live screen stream.</span>
               </div>
             ) : (
-              <div className="text-center p-4 text-xs font-mono text-cyan-400/70 flex flex-col items-center gap-2">
-                <RotateCw className="w-6 h-6 animate-spin text-cyan-400" />
-                Fetching live screen feed...
+              <div className="text-center p-4 text-xs font-sans text-slate-400 flex flex-col items-center gap-2">
+                <RotateCw className="w-6 h-6 animate-spin text-indigo-400" />
+                <span>Fetching live screen feed...</span>
               </div>
             )}
 
             {/* Click/Touch Overlay Prompt */}
-            <div className="absolute inset-0 bg-cyan-950/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-              <span className="px-3 py-1 bg-slate-950/90 text-cyan-300 rounded-full text-[10px] font-mono border border-cyan-500/40 shadow-xl flex items-center gap-1">
-                👆 Click to Tap Mobile
+            <div className="absolute inset-0 bg-white/[0.03] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+              <span className="px-3 py-1 bg-slate-900/90 text-slate-200 rounded-full text-[11px] border border-white/15 shadow-xl flex items-center gap-1 font-medium">
+                👆 Click to tap screen
               </span>
             </div>
           </div>
@@ -888,28 +898,28 @@ export default function PhoneControlWidget() {
           <div className="w-full flex justify-around items-center pt-2 pb-0.5 z-20 border-t border-slate-800/80 mt-1">
             <button 
               onClick={() => sendKeyevent('KEYCODE_BACK')} 
-              className="p-1.5 rounded-lg text-slate-400 hover:text-cyan-300 hover:bg-cyan-500/20 transition-all"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
               title="Back"
             >
               <ArrowLeft size={16} />
             </button>
             <button 
               onClick={() => sendKeyevent('KEYCODE_HOME')} 
-              className="p-1.5 rounded-lg text-slate-400 hover:text-cyan-300 hover:bg-cyan-500/20 transition-all"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
               title="Home"
             >
               <Circle size={14} />
             </button>
             <button 
               onClick={() => sendKeyevent('KEYCODE_APP_SWITCH')} 
-              className="p-1.5 rounded-lg text-slate-400 hover:text-cyan-300 hover:bg-cyan-500/20 transition-all"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
               title="Recent Apps"
             >
               <Square size={14} />
             </button>
             <button 
               onClick={() => sendCommand('lock')} 
-              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/20 transition-all"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/20 transition-all cursor-pointer"
               title="Power / Lock Screen"
             >
               <Power size={14} />
@@ -920,13 +930,13 @@ export default function PhoneControlWidget() {
 
       {/* Quick Hardware Toggles */}
       <div className="grid grid-cols-5 gap-2">
-        <button onClick={() => sendCommand('wifi', { enabled: true })} className="phone-btn" title="Toggle Wi-Fi">
+        <button onClick={() => sendCommand('wifi', { enabled: true })} className="phone-btn cursor-pointer" title="Toggle Wi-Fi">
           <Wifi size={14} />
         </button>
-        <button onClick={() => sendCommand('bluetooth', { enabled: true })} className="phone-btn" title="Toggle Bluetooth">
+        <button onClick={() => sendCommand('bluetooth', { enabled: true })} className="phone-btn cursor-pointer" title="Toggle Bluetooth">
           <Bluetooth size={14} />
         </button>
-        <button onClick={refreshScreen} className="phone-btn" title="Instant Screen Capture">
+        <button onClick={refreshScreen} className="phone-btn cursor-pointer" title="Instant Screen Capture">
           <Camera size={14} />
         </button>
         <button 
@@ -936,19 +946,19 @@ export default function PhoneControlWidget() {
               alert("Find My Phone alarm triggered at max volume!");
             } catch (e) { console.error(e); }
           }} 
-          className="phone-btn text-yellow-400 font-bold" 
+          className="phone-btn text-amber-400 font-medium cursor-pointer" 
           title="Find My Phone (Ring Alarm)"
         >
-          🔔 FIND
+          🔔 Find
         </button>
-        <button onClick={() => sendCommand('lock')} className="phone-btn text-rose-400" title="Lock/Unlock">
+        <button onClick={() => sendCommand('lock')} className="phone-btn text-rose-400 cursor-pointer" title="Lock/Unlock">
           <Lock size={14} />
         </button>
       </div>
 
       {/* Brightness Slider */}
-      <div className="flex items-center gap-3 bg-cyan-950/20 p-2 rounded border border-cyan-500/10">
-        <Sun size={12} className="text-cyan-400" />
+      <div className="flex items-center gap-3 bg-slate-900/60 p-2.5 rounded-xl border border-white/[0.06]">
+        <Sun size={14} className="text-amber-400" />
         <input 
           type="range" 
           min="0" 
@@ -958,30 +968,30 @@ export default function PhoneControlWidget() {
             setBrightness(e.target.value);
             sendCommand('brightness', { level: e.target.value });
           }}
-          className="w-full h-1 bg-cyan-950 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+          className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-indigo-500"
         />
-        <span className="text-[9px] font-mono text-cyan-300 w-6">{brightness}%</span>
+        <span className="text-[11px] font-mono text-slate-400 w-8 text-right">{brightness}%</span>
       </div>
 
       {/* WhatsApp & Instagram Automated Message & Call Hub Quick Launcher */}
-      <div className="border border-emerald-500/40 rounded-xl p-3 bg-gradient-to-r from-emerald-950/40 via-cyan-950/30 to-purple-950/40 flex items-center justify-between shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-        <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-lg bg-emerald-500/20 border border-emerald-400/50 text-emerald-300">
-            <MessageSquare size={16} className="animate-pulse" />
+      <div className="border border-white/[0.08] rounded-xl p-3.5 bg-slate-900/70 flex items-center justify-between shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+            <MessageSquare size={16} />
           </div>
           <div>
-            <div className="text-xs font-mono font-bold text-cyan-200 uppercase tracking-wider flex items-center gap-1.5">
-              <span>WhatsApp &amp; IG Auto-Reply</span>
-              <span className="px-1.5 py-0.2 rounded text-[8px] bg-emerald-500/30 text-emerald-300 font-extrabold border border-emerald-500/40">PRO</span>
+            <div className="text-xs font-semibold text-slate-200 flex items-center gap-2">
+              <span>WhatsApp & Instagram Automation</span>
+              <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-emerald-500/10 text-emerald-300 font-medium border border-emerald-500/20">Active</span>
             </div>
-            <div className="text-[10px] text-slate-400 font-mono">
-              Hands-free call handling, auto-replies &amp; AI DMs
+            <div className="text-[11px] text-slate-400 mt-0.5">
+              Hands-free call handling, auto-replies & AI assistant replies
             </div>
           </div>
         </div>
         <button
           onClick={() => setShowSocialModal(true)}
-          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-mono font-bold flex items-center gap-1 shadow-[0_0_12px_rgba(16,185,129,0.3)] transition-all"
+          className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-medium flex items-center gap-1 border border-white/10 transition-all cursor-pointer"
         >
           <span>Open Hub</span>
           <ChevronRight size={14} />
@@ -989,15 +999,15 @@ export default function PhoneControlWidget() {
       </div>
 
       {/* CATEGORIZED APP FOLDERS & LAUNCHER SECTION */}
-      <div className="border border-cyan-500/30 rounded-xl p-3 bg-slate-950/60 shadow-xl flex flex-col gap-3">
-        <div className="flex justify-between items-center border-b border-cyan-500/20 pb-2">
-          <div className="flex items-center gap-2 text-xs font-mono text-cyan-300 font-bold">
-            <FolderOpen size={16} className="text-cyan-400" />
-            APP FOLDERS ({apps.length} Apps Installed)
+      <div className="border border-white/[0.08] rounded-xl p-3.5 bg-slate-900/50 shadow-sm flex flex-col gap-3">
+        <div className="flex justify-between items-center border-b border-white/[0.06] pb-2">
+          <div className="flex items-center gap-2 text-xs text-slate-200 font-semibold">
+            <FolderOpen size={16} className="text-indigo-400" />
+            Device Applications ({apps.length} Installed)
           </div>
           <button 
             onClick={() => setAppsDropdownOpen(!appsDropdownOpen)}
-            className="text-[10px] text-sky-400 hover:text-cyan-300 font-mono flex items-center gap-1"
+            className="text-xs text-slate-400 hover:text-white flex items-center gap-1 cursor-pointer"
           >
             {appsDropdownOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </button>
@@ -1069,13 +1079,13 @@ export default function PhoneControlWidget() {
                     <button
                       key={idx}
                       onClick={() => sendCommand('app/open', { packageName: pkg })}
-                      className="flex items-center gap-2.5 p-2 rounded-lg bg-slate-900/70 border border-slate-800/80 hover:border-cyan-500/40 hover:bg-cyan-500/10 text-xs font-mono text-slate-200 text-left transition-all group"
-                      title={`Click to launch ${pkg}`}
+                      className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-900/60 border border-white/[0.06] hover:border-white/20 hover:bg-slate-850 text-xs font-sans text-slate-200 text-left transition-all group cursor-pointer"
+                      title={`Launch ${pkg}`}
                     >
                       <AppIcon packageName={pkg} cleanName={cleanName} />
                       <div className="flex flex-col truncate">
-                        <span className="font-bold text-cyan-200 group-hover:text-cyan-300 truncate">{cleanName}</span>
-                        <span className="text-[8px] text-slate-500 truncate">{pkg}</span>
+                        <span className="font-medium text-slate-200 group-hover:text-white truncate">{cleanName}</span>
+                        <span className="text-[10px] text-slate-500 truncate">{pkg}</span>
                       </div>
                     </button>
                   );
@@ -1087,34 +1097,41 @@ export default function PhoneControlWidget() {
       </div>
 
       {/* Notifications Section */}
-      <div className="border border-cyan-500/20 rounded-xl p-3 bg-slate-950/40">
+      <div className="border border-white/[0.08] rounded-xl p-3.5 bg-slate-900/50">
         <button 
           onClick={() => setNotificationsDropdownOpen(!notificationsDropdownOpen)}
-          className="flex justify-between items-center w-full text-xs font-mono text-cyan-300 font-bold"
+          className="flex justify-between items-center w-full text-xs font-semibold text-slate-200 cursor-pointer"
         >
-          <span>LIVE NOTIFICATIONS ({notifications.length})</span>
+          <span className="flex items-center gap-2">
+            <Bell size={14} className="text-indigo-400" />
+            Device Notifications ({notifications.length})
+          </span>
           {notificationsDropdownOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </button>
 
         {notificationsDropdownOpen && (
-          <div className="mt-2 max-h-40 overflow-y-auto flex flex-col gap-1.5 pr-1">
-            {notifications.map((notif, idx) => (
-              <div key={idx} className="p-2 rounded-lg bg-slate-900/80 border border-slate-800 text-xs font-mono flex flex-col gap-0.5">
-                <div className="text-cyan-400 font-bold flex items-center gap-1">
-                  <Bell size={10} /> {notif.title || notif.package}
+          <div className="mt-2.5 max-h-40 overflow-y-auto flex flex-col gap-1.5 pr-1">
+            {notifications.length === 0 ? (
+              <div className="text-center py-3 text-xs text-slate-500 font-sans">No unread notifications</div>
+            ) : (
+              notifications.map((notif, idx) => (
+                <div key={idx} className="p-2.5 rounded-lg bg-slate-950/60 border border-white/[0.06] text-xs flex flex-col gap-0.5">
+                  <div className="text-slate-200 font-medium flex items-center gap-1.5">
+                    <Bell size={11} className="text-indigo-400" /> {notif.title || notif.package}
+                  </div>
+                  <div className="text-slate-400 text-[11px]">{notif.text}</div>
                 </div>
-                <div className="text-slate-300 text-[10px]">{notif.text}</div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         )}
       </div>
 
       {/* Wireless ADB Auto-Sync & Remote Touch HUD Section */}
-      <div className="border border-cyan-500/30 rounded-xl p-4 bg-slate-950/60 space-y-3">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-          <span className="text-xs font-bold font-mono text-cyan-300 uppercase tracking-wider flex items-center gap-1.5">
-            <Radio className="w-4 h-4 text-cyan-400 animate-pulse" /> Wireless ADB Over-The-Air & Remote Screen Control
+      <div className="border border-white/[0.08] rounded-xl p-3.5 bg-slate-900/50 space-y-3">
+        <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
+          <span className="text-xs font-semibold text-slate-200 flex items-center gap-2">
+            <Radio className="w-4 h-4 text-indigo-400" /> Wireless ADB Over-The-Air Tools
           </span>
           <button
             onClick={async () => {
@@ -1123,50 +1140,50 @@ export default function PhoneControlWidget() {
                 const data = await res.json();
                 alert(data.message || 'Wireless ADB APK sync triggered successfully!');
               } catch (e) {
-                alert('Triggered Wireless ADB push over network 192.168.29.159!');
+                alert('Triggered Wireless ADB push over network!');
               }
             }}
-            className="px-3 py-1 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-cyan-200 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-md"
+            className="px-3 py-1 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-300 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer"
           >
-            📡 Wireless ADB Auto-Sync APK
+            <span>Auto-Sync APK</span>
           </button>
         </div>
 
-        {/* Remote Touch Navigation HUD Bar */}
+        {/* Remote Touch Navigation Bar */}
         <div className="grid grid-cols-5 gap-2 pt-1">
           <button
             onClick={() => sendCommand('keyevent', { key: 4 })} // BACK
-            className="p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-cyan-500/40 text-cyan-300 text-xs font-mono font-bold flex flex-col items-center gap-1"
+            className="p-2 rounded-lg bg-slate-950 border border-white/[0.08] hover:border-white/20 text-slate-300 text-xs font-medium flex flex-col items-center gap-1 cursor-pointer transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" /> Back
+            <ArrowLeft className="w-4 h-4 text-slate-400" /> Back
           </button>
 
           <button
             onClick={() => sendCommand('keyevent', { key: 3 })} // HOME
-            className="p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-cyan-500/40 text-cyan-300 text-xs font-mono font-bold flex flex-col items-center gap-1"
+            className="p-2 rounded-lg bg-slate-950 border border-white/[0.08] hover:border-white/20 text-slate-300 text-xs font-medium flex flex-col items-center gap-1 cursor-pointer transition-colors"
           >
-            <Circle className="w-4 h-4" /> Home
+            <Circle className="w-4 h-4 text-slate-400" /> Home
           </button>
 
           <button
             onClick={() => sendCommand('keyevent', { key: 187 })} // APPS
-            className="p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-cyan-500/40 text-cyan-300 text-xs font-mono font-bold flex flex-col items-center gap-1"
+            className="p-2 rounded-lg bg-slate-950 border border-white/[0.08] hover:border-white/20 text-slate-300 text-xs font-medium flex flex-col items-center gap-1 cursor-pointer transition-colors"
           >
-            <Square className="w-4 h-4" /> Recents
+            <Square className="w-4 h-4 text-slate-400" /> Recents
           </button>
 
           <button
             onClick={() => sendCommand('keyevent', { key: 26 })} // LOCK
-            className="p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-cyan-500/40 text-amber-300 text-xs font-mono font-bold flex flex-col items-center gap-1"
+            className="p-2 rounded-lg bg-slate-950 border border-white/[0.08] hover:border-rose-500/30 text-rose-300 text-xs font-medium flex flex-col items-center gap-1 cursor-pointer transition-colors"
           >
-            <Lock className="w-4 h-4" /> Lock
+            <Lock className="w-4 h-4 text-rose-400" /> Lock
           </button>
 
           <button
             onClick={() => sendCommand('app/open', { packageName: 'com.whatsapp' })}
-            className="p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-emerald-500/40 text-emerald-300 text-xs font-mono font-bold flex flex-col items-center gap-1"
+            className="p-2 rounded-lg bg-slate-950 border border-white/[0.08] hover:border-emerald-500/30 text-emerald-300 text-xs font-medium flex flex-col items-center gap-1 cursor-pointer transition-colors"
           >
-            <MessageSquare className="w-4 h-4" /> WhatsApp
+            <MessageSquare className="w-4 h-4 text-emerald-400" /> WhatsApp
           </button>
         </div>
       </div>

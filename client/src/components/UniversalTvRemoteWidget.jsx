@@ -452,47 +452,47 @@ export default function UniversalTvRemoteWidget({ onLog }) {
   };
 
   return (
-    <div className="bg-slate-950/95 border border-cyan-500/40 rounded-2xl p-4 sm:p-5 text-slate-100 backdrop-blur-2xl shadow-2xl max-w-2xl w-full mx-auto font-sans relative select-none">
+    <div className="bg-slate-900/90 border border-white/[0.08] rounded-2xl p-4 sm:p-5 text-slate-100 backdrop-blur-2xl shadow-2xl max-w-2xl w-full mx-auto font-sans relative select-none">
       
       {/* TOP HEADER & TITLE */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-cyan-500/20 pb-3.5 mb-3.5">
-        <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-400/50 text-cyan-300 shadow-[0_0_15px_rgba(0,229,255,0.25)]">
-            <Tv className="w-5 h-5 animate-pulse" />
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.08] pb-3.5 mb-3.5">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 shadow-sm">
+            <Tv className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-sm sm:text-base font-orbitron font-extrabold tracking-wider text-cyan-300 uppercase">
-                Universal Smart TV &amp; JioFiber STB
+              <h2 className="text-sm sm:text-base font-semibold text-slate-100 tracking-wide">
+                Universal Smart TV & STB Remote
               </h2>
-              <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-400/40">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-800 text-slate-300 border border-white/10">
                 v4.0
               </span>
             </div>
-            <p className="text-[10.5px] text-slate-400 font-mono flex items-center gap-2">
-              <span>JioFiber 4K STB</span> &bull; <span>Any Smart TV</span> &bull; <span>Wireless Cast</span>
+            <p className="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5">
+              <span>JioFiber 4K STB</span> &bull; <span>Smart TVs</span> &bull; <span>Screen Cast</span>
             </p>
           </div>
         </div>
 
         {/* Live Device Status Pill */}
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900 border border-slate-700/80 text-[10px] font-mono">
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-950 border border-white/10 text-[11px]">
             <span className={`w-2 h-2 rounded-full ${
               (activeTab === 'jio' ? jioStatus : tvStatus) === 'connected'
-                ? 'bg-emerald-400 shadow-[0_0_8px_#10b981]'
+                ? 'bg-emerald-400'
                 : (activeTab === 'jio' ? jioStatus : tvStatus) === 'connecting'
                 ? 'bg-amber-400 animate-ping'
-                : 'bg-amber-400/80'
+                : 'bg-slate-500'
             }`} />
-            <span className="text-slate-300 font-semibold">
-              {activeTab === 'jio' ? `Jio STB: ${jioStatus.toUpperCase()}` : `TV: ${tvStatus.toUpperCase()}`}
+            <span className="text-slate-300 font-medium">
+              {activeTab === 'jio' ? `Jio STB: ${jioStatus}` : `TV: ${tvStatus}`}
             </span>
           </div>
 
           <button
             onClick={fetchStatus}
-            className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-cyan-300 transition-all cursor-pointer"
+            className="p-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 border border-white/10 text-slate-400 hover:text-white transition-all cursor-pointer"
             title="Refresh Status"
           >
             <RefreshCw className="w-3.5 h-3.5" />
@@ -501,9 +501,9 @@ export default function UniversalTvRemoteWidget({ onLog }) {
       </div>
 
       {/* 4-WAY CONTROLLER MODE SELECTOR TABS */}
-      <div className="grid grid-cols-4 gap-1.5 p-1 bg-slate-900/90 border border-slate-800 rounded-xl mb-4 text-[11px] font-mono">
+      <div className="grid grid-cols-4 gap-1 p-1 bg-slate-950/80 border border-white/[0.08] rounded-xl mb-4 text-xs font-medium">
         {[
-          { id: 'jio', label: 'JioFiber STB', icon: Zap, badge: 'Android TV' },
+          { id: 'jio', label: 'Jio STB', icon: Zap, badge: 'Android TV' },
           { id: 'tv', label: 'Smart TV', icon: Tv2, badge: 'Universal' },
           { id: 'cast', label: 'Screen Cast', icon: Cast, badge: 'Wireless' },
           { id: 'link', label: 'Device Setup', icon: Settings, badge: 'LAN Scan' }
@@ -517,13 +517,13 @@ export default function UniversalTvRemoteWidget({ onLog }) {
                 setActiveTab(tab.id);
                 playJarvisBeep('click');
               }}
-              className={`py-2 px-1.5 rounded-lg flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 font-bold transition-all cursor-pointer text-center ${
+              className={`py-2 px-1.5 rounded-lg flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 font-medium transition-all cursor-pointer text-center ${
                 isSelected
-                  ? 'bg-gradient-to-r from-cyan-950/80 to-blue-950/80 border border-cyan-400 text-cyan-200 shadow-[0_0_12px_rgba(0,229,255,0.25)]'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850'
+                  ? 'bg-slate-800 text-white border border-white/10 shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
               }`}
             >
-              <TabIcon className={`w-3.5 h-3.5 ${isSelected ? 'text-cyan-300 animate-pulse' : 'text-slate-400'}`} />
+              <TabIcon className={`w-3.5 h-3.5 ${isSelected ? 'text-indigo-400' : 'text-slate-400'}`} />
               <span className="truncate">{tab.label}</span>
             </button>
           );
@@ -539,41 +539,41 @@ export default function UniversalTvRemoteWidget({ onLog }) {
           {/* Jio Voice Remote Bar */}
           <form onSubmit={handleSendVoiceQuery} className="relative flex items-center gap-2">
             <div className="relative flex-1">
-              <Mic className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400" />
+              <Mic className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 value={voiceQuery}
                 onChange={(e) => setVoiceQuery(e.target.value)}
-                placeholder="Speak or type to search Jio STB (e.g. 'Play IPL on JioCinema')..."
-                className="w-full bg-black/70 border border-cyan-500/30 focus:border-cyan-400 rounded-xl pl-9 pr-3 py-2 text-xs font-mono text-cyan-100 placeholder:text-slate-500 focus:outline-none shadow-inner"
+                placeholder="Search Jio STB (e.g. 'Play live news on JioTV')..."
+                className="w-full bg-slate-950 border border-white/10 focus:border-indigo-500 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none transition-all"
               />
             </div>
             <button
               type="submit"
               disabled={isSendingVoice || !voiceQuery.trim()}
-              className="px-3.5 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:opacity-40 rounded-xl text-xs font-mono font-bold text-white flex items-center gap-1.5 shadow-[0_0_15px_rgba(0,229,255,0.3)] transition-all cursor-pointer flex-shrink-0"
+              className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 rounded-xl text-xs font-medium text-white flex items-center gap-1.5 shadow-sm shadow-indigo-500/20 transition-all cursor-pointer flex-shrink-0"
             >
               <Send className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Send to Jio</span>
+              <span className="hidden sm:inline">Send</span>
             </button>
           </form>
 
           {/* Top Quick Actions Bar (Power, HDMI Switch, Mute, Volume) */}
-          <div className="grid grid-cols-4 gap-2 bg-black/60 p-2.5 rounded-xl border border-slate-800">
+          <div className="grid grid-cols-4 gap-2 bg-slate-950/60 p-2.5 rounded-xl border border-white/[0.08]">
             <button
               onClick={() => sendJioKey('POWER', 'Jio STB Power')}
-              className="p-2.5 rounded-lg bg-rose-950/40 hover:bg-rose-900/60 border border-rose-500/40 hover:border-rose-400 text-rose-300 font-mono text-xs font-bold flex flex-col items-center justify-center gap-1 transition-all cursor-pointer"
+              className="p-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-300 text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all cursor-pointer"
             >
               <Power className="w-4 h-4 text-rose-400" />
-              <span>POWER</span>
+              <span>Power</span>
             </button>
 
             <button
               onClick={() => handleSwitchHdmi(1)}
-              className="p-2.5 rounded-lg bg-blue-950/40 hover:bg-blue-900/60 border border-blue-500/40 hover:border-blue-400 text-blue-300 font-mono text-xs font-bold flex flex-col items-center justify-center gap-1 transition-all cursor-pointer"
+              className="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-white/10 text-slate-200 text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all cursor-pointer"
               title="Switch TV HDMI to Jio STB Input"
             >
-              <Tv className="w-4 h-4 text-blue-400" />
+              <Tv className="w-4 h-4 text-indigo-400" />
               <span>HDMI 1</span>
             </button>
 
@@ -582,70 +582,70 @@ export default function UniversalTvRemoteWidget({ onLog }) {
                 sendJioKey('MUTE', 'Mute');
                 setIsMuted(!isMuted);
               }}
-              className={`p-2.5 rounded-lg border font-mono text-xs font-bold flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
+              className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
                 isMuted
-                  ? 'bg-amber-500/25 border-amber-400 text-amber-200'
-                  : 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-300'
+                  ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+                  : 'bg-slate-900 hover:bg-slate-800 border-white/10 text-slate-300'
               }`}
             >
-              {isMuted ? <VolumeX className="w-4 h-4 text-amber-400" /> : <Volume2 className="w-4 h-4 text-cyan-400" />}
-              <span>{isMuted ? 'MUTED' : 'MUTE'}</span>
+              {isMuted ? <VolumeX className="w-4 h-4 text-amber-400" /> : <Volume2 className="w-4 h-4 text-slate-400" />}
+              <span>{isMuted ? 'Muted' : 'Mute'}</span>
             </button>
 
             <button
               onClick={() => sendJioKey('MENU', 'Jio Menu')}
-              className="p-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-mono text-xs font-bold flex flex-col items-center justify-center gap-1 transition-all cursor-pointer"
+              className="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-white/10 text-slate-300 text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all cursor-pointer"
             >
-              <Sliders className="w-4 h-4 text-cyan-400" />
-              <span>MENU</span>
+              <Sliders className="w-4 h-4 text-slate-400" />
+              <span>Menu</span>
             </button>
           </div>
 
           {/* Jio STB Physical D-Pad & Key Cluster */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
             {/* D-Pad Circular Controller */}
-            <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-black/80 border border-slate-800 relative">
-              <span className="text-[9px] font-mono text-cyan-400/80 mb-2 font-bold uppercase tracking-wider">
-                Jio Directional Pad
+            <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-950/70 border border-white/[0.08] relative">
+              <span className="text-[10px] text-slate-400 mb-2.5 font-medium tracking-wide">
+                Directional Clickpad
               </span>
 
-              <div className="relative w-44 h-44 rounded-full bg-slate-900/90 border border-cyan-500/30 shadow-[0_0_25px_rgba(0,0,0,0.8)] flex items-center justify-center">
+              <div className="relative w-44 h-44 rounded-full bg-slate-900 border border-white/10 shadow-2xl flex items-center justify-center">
                 {/* UP */}
                 <button
                   onClick={() => sendJioKey('UP', 'DPAD UP')}
-                  className="absolute top-2 left-1/2 -translate-x-1/2 p-2.5 rounded-t-full hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-200 transition-all cursor-pointer"
+                  className="absolute top-2 left-1/2 -translate-x-1/2 p-2.5 rounded-t-full hover:bg-white/10 text-slate-300 hover:text-white transition-all cursor-pointer"
                 >
-                  <ChevronUp className="w-6 h-6 text-cyan-400" />
+                  <ChevronUp className="w-6 h-6" />
                 </button>
 
                 {/* DOWN */}
                 <button
                   onClick={() => sendJioKey('DOWN', 'DPAD DOWN')}
-                  className="absolute bottom-2 left-1/2 -translate-x-1/2 p-2.5 rounded-b-full hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-200 transition-all cursor-pointer"
+                  className="absolute bottom-2 left-1/2 -translate-x-1/2 p-2.5 rounded-b-full hover:bg-white/10 text-slate-300 hover:text-white transition-all cursor-pointer"
                 >
-                  <ChevronDown className="w-6 h-6 text-cyan-400" />
+                  <ChevronDown className="w-6 h-6" />
                 </button>
 
                 {/* LEFT */}
                 <button
                   onClick={() => sendJioKey('LEFT', 'DPAD LEFT')}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 p-2.5 rounded-l-full hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-200 transition-all cursor-pointer"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 p-2.5 rounded-l-full hover:bg-white/10 text-slate-300 hover:text-white transition-all cursor-pointer"
                 >
-                  <ChevronLeft className="w-6 h-6 text-cyan-400" />
+                  <ChevronLeft className="w-6 h-6" />
                 </button>
 
                 {/* RIGHT */}
                 <button
                   onClick={() => sendJioKey('RIGHT', 'DPAD RIGHT')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 rounded-r-full hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-200 transition-all cursor-pointer"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 rounded-r-full hover:bg-white/10 text-slate-300 hover:text-white transition-all cursor-pointer"
                 >
-                  <ChevronRight className="w-6 h-6 text-cyan-400" />
+                  <ChevronRight className="w-6 h-6" />
                 </button>
 
                 {/* CENTER OK BUTTON */}
                 <button
                   onClick={() => sendJioKey('OK', 'OK / Select')}
-                  className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-600/30 via-black to-slate-900 border-2 border-cyan-400/80 hover:border-cyan-300 text-cyan-200 font-orbitron font-extrabold text-xs flex items-center justify-center shadow-[0_0_15px_rgba(0,229,255,0.3)] hover:scale-105 transition-all cursor-pointer"
+                  className="w-16 h-16 rounded-full bg-slate-800 border border-white/15 hover:border-white/30 text-white font-semibold text-xs flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all cursor-pointer"
                 >
                   OK
                 </button>
@@ -655,26 +655,26 @@ export default function UniversalTvRemoteWidget({ onLog }) {
               <div className="flex items-center gap-2 mt-3 w-full justify-center">
                 <button
                   onClick={() => sendJioKey('BACK', 'Back')}
-                  className="px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white font-mono text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-850 border border-white/10 text-slate-300 hover:text-white text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>BACK</span>
+                  <span>Back</span>
                 </button>
 
                 <button
                   onClick={() => sendJioKey('HOME', 'Jio Home')}
-                  className="px-3.5 py-1.5 rounded-lg bg-cyan-950/40 hover:bg-cyan-900/60 border border-cyan-500/40 text-cyan-300 font-mono text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-white/15 text-white text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
                 >
-                  <Home className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>HOME</span>
+                  <Home className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Home</span>
                 </button>
 
                 <button
                   onClick={() => sendJioKey('GUIDE', 'JioTV Guide')}
-                  className="px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white font-mono text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-850 border border-white/10 text-slate-300 hover:text-white text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer"
                 >
                   <Film className="w-3.5 h-3.5 text-amber-400" />
-                  <span>GUIDE</span>
+                  <span>Guide</span>
                 </button>
               </div>
             </div>
@@ -684,34 +684,34 @@ export default function UniversalTvRemoteWidget({ onLog }) {
               {/* Rocker Bars */}
               <div className="grid grid-cols-2 gap-2">
                 {/* Volume Rocker */}
-                <div className="p-2.5 rounded-xl bg-black/70 border border-slate-800 flex flex-col items-center justify-between h-32">
+                <div className="p-2.5 rounded-xl bg-slate-950/70 border border-white/[0.08] flex flex-col items-center justify-between h-32">
                   <button
                     onClick={() => sendJioKey('VOLUP', 'Vol +')}
-                    className="w-full py-2 rounded-lg bg-slate-900 hover:bg-cyan-500/20 border border-slate-700 hover:border-cyan-400/60 text-cyan-300 font-mono text-xs font-bold transition-all cursor-pointer"
+                    className="w-full py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-white/10 text-slate-200 text-xs font-medium transition-all cursor-pointer"
                   >
-                    VOL +
+                    Vol +
                   </button>
-                  <span className="text-[10px] font-mono text-slate-500 font-bold">VOLUME</span>
+                  <span className="text-[10px] text-slate-500 font-medium">Volume</span>
                   <button
                     onClick={() => sendJioKey('VOLDOWN', 'Vol -')}
-                    className="w-full py-2 rounded-lg bg-slate-900 hover:bg-cyan-500/20 border border-slate-700 hover:border-cyan-400/60 text-cyan-300 font-mono text-xs font-bold transition-all cursor-pointer"
+                    className="w-full py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-white/10 text-slate-200 text-xs font-medium transition-all cursor-pointer"
                   >
-                    VOL -
+                    Vol -
                   </button>
                 </div>
 
                 {/* Channel Rocker */}
-                <div className="p-2.5 rounded-xl bg-black/70 border border-slate-800 flex flex-col items-center justify-between h-32">
+                <div className="p-2.5 rounded-xl bg-slate-950/70 border border-white/[0.08] flex flex-col items-center justify-between h-32">
                   <button
                     onClick={() => sendJioKey('CHUP', 'CH +')}
-                    className="w-full py-2 rounded-lg bg-slate-900 hover:bg-amber-500/20 border border-slate-700 hover:border-amber-400/60 text-amber-300 font-mono text-xs font-bold transition-all cursor-pointer"
+                    className="w-full py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-white/10 text-slate-200 text-xs font-medium transition-all cursor-pointer"
                   >
                     CH +
                   </button>
-                  <span className="text-[10px] font-mono text-slate-500 font-bold">CHANNEL</span>
+                  <span className="text-[10px] text-slate-500 font-medium">Channel</span>
                   <button
                     onClick={() => sendJioKey('CHDOWN', 'CH -')}
-                    className="w-full py-2 rounded-lg bg-slate-900 hover:bg-amber-500/20 border border-slate-700 hover:border-amber-400/60 text-amber-300 font-mono text-xs font-bold transition-all cursor-pointer"
+                    className="w-full py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-white/10 text-slate-200 text-xs font-medium transition-all cursor-pointer"
                   >
                     CH -
                   </button>
@@ -719,18 +719,18 @@ export default function UniversalTvRemoteWidget({ onLog }) {
               </div>
 
               {/* Direct Channel Number Tuner */}
-              <div className="p-2.5 rounded-xl bg-black/70 border border-slate-800 flex items-center gap-2">
+              <div className="p-2.5 rounded-xl bg-slate-950/70 border border-white/[0.08] flex items-center gap-2">
                 <input
                   type="number"
                   value={channelInput}
                   onChange={(e) => setChannelInput(e.target.value)}
-                  placeholder="Channel # (e.g. 101, 202)..."
-                  className="flex-1 bg-slate-900 border border-slate-700 focus:border-amber-400 rounded-lg px-2.5 py-1.5 text-xs font-mono text-amber-200 placeholder:text-slate-500 focus:outline-none"
+                  placeholder="Channel # (e.g. 101)..."
+                  className="flex-1 bg-slate-900 border border-white/10 focus:border-indigo-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none"
                 />
                 <button
                   onClick={() => handleTuneChannel()}
                   disabled={!channelInput.trim()}
-                  className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400 text-amber-200 font-mono text-xs font-bold rounded-lg transition-all cursor-pointer disabled:opacity-40"
+                  className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-white/10 text-slate-200 text-xs font-medium rounded-lg transition-all cursor-pointer disabled:opacity-40"
                 >
                   Tune
                 </button>
@@ -806,26 +806,26 @@ export default function UniversalTvRemoteWidget({ onLog }) {
           </div>
 
           {/* TV Power & Source Strip */}
-          <div className="grid grid-cols-4 gap-2 bg-black/60 p-2.5 rounded-xl border border-slate-800">
+          <div className="grid grid-cols-4 gap-2 bg-slate-950/60 p-2.5 rounded-xl border border-white/[0.08]">
             <button
               onClick={() => sendSmartTvKey('KEY_POWER', 'TV Power')}
-              className="p-2.5 rounded-lg bg-rose-950/40 hover:bg-rose-900/60 border border-rose-500/40 text-rose-300 font-mono text-xs font-bold flex flex-col items-center justify-center gap-1 transition-all cursor-pointer"
+              className="p-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-300 text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all cursor-pointer"
             >
               <Power className="w-4 h-4 text-rose-400" />
-              <span>POWER</span>
+              <span>Power</span>
             </button>
 
             <button
               onClick={() => sendSmartTvKey('KEY_SOURCE', 'TV Input Source')}
-              className="p-2.5 rounded-lg bg-cyan-950/40 hover:bg-cyan-900/60 border border-cyan-500/40 text-cyan-300 font-mono text-xs font-bold flex flex-col items-center justify-center gap-1 transition-all cursor-pointer"
+              className="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-white/10 text-slate-200 text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all cursor-pointer"
             >
-              <Tv className="w-4 h-4 text-cyan-400" />
-              <span>SOURCE</span>
+              <Tv className="w-4 h-4 text-indigo-400" />
+              <span>Source</span>
             </button>
 
             <button
               onClick={() => handleSwitchHdmi(selectedHdmi === 1 ? 2 : 1)}
-              className="p-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-mono text-xs font-bold flex flex-col items-center justify-center gap-1 transition-all cursor-pointer"
+              className="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-white/10 text-slate-200 text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all cursor-pointer"
             >
               <Zap className="w-4 h-4 text-amber-400" />
               <span>HDMI {selectedHdmi}</span>
@@ -833,48 +833,48 @@ export default function UniversalTvRemoteWidget({ onLog }) {
 
             <button
               onClick={() => sendSmartTvKey('KEY_MENU', 'TV Settings')}
-              className="p-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-mono text-xs font-bold flex flex-col items-center justify-center gap-1 transition-all cursor-pointer"
+              className="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-white/10 text-slate-200 text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all cursor-pointer"
             >
               <Settings className="w-4 h-4 text-slate-400" />
-              <span>SETTINGS</span>
+              <span>Settings</span>
             </button>
           </div>
 
           {/* Universal TV D-Pad & Controls */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
-            <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-black/80 border border-slate-800">
-              <span className="text-[9px] font-mono text-amber-400/80 mb-2 font-bold uppercase tracking-wider">
-                {tvBrand.toUpperCase()} Navigation
+            <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-950/70 border border-white/[0.08]">
+              <span className="text-[10px] text-slate-400 mb-2.5 font-medium tracking-wide">
+                {tvBrand} Navigation
               </span>
 
-              <div className="relative w-40 h-40 rounded-full bg-slate-900/90 border border-amber-500/30 flex items-center justify-center">
+              <div className="relative w-40 h-40 rounded-full bg-slate-900 border border-white/10 shadow-2xl flex items-center justify-center">
                 <button
                   onClick={() => sendSmartTvKey('KEY_UP', 'TV Up')}
-                  className="absolute top-2 left-1/2 -translate-x-1/2 p-2 text-slate-300 hover:text-amber-300 transition-all cursor-pointer"
+                  className="absolute top-2 left-1/2 -translate-x-1/2 p-2 text-slate-300 hover:text-white transition-all cursor-pointer"
                 >
-                  <ChevronUp className="w-5 h-5 text-amber-400" />
+                  <ChevronUp className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => sendSmartTvKey('KEY_DOWN', 'TV Down')}
-                  className="absolute bottom-2 left-1/2 -translate-x-1/2 p-2 text-slate-300 hover:text-amber-300 transition-all cursor-pointer"
+                  className="absolute bottom-2 left-1/2 -translate-x-1/2 p-2 text-slate-300 hover:text-white transition-all cursor-pointer"
                 >
-                  <ChevronDown className="w-5 h-5 text-amber-400" />
+                  <ChevronDown className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => sendSmartTvKey('KEY_LEFT', 'TV Left')}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 p-2 text-slate-300 hover:text-amber-300 transition-all cursor-pointer"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 p-2 text-slate-300 hover:text-white transition-all cursor-pointer"
                 >
-                  <ChevronLeft className="w-5 h-5 text-amber-400" />
+                  <ChevronLeft className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => sendSmartTvKey('KEY_RIGHT', 'TV Right')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-slate-300 hover:text-amber-300 transition-all cursor-pointer"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-slate-300 hover:text-white transition-all cursor-pointer"
                 >
-                  <ChevronRight className="w-5 h-5 text-amber-400" />
+                  <ChevronRight className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => sendSmartTvKey('KEY_ENTER', 'TV Enter')}
-                  className="w-14 h-14 rounded-full bg-gradient-to-br from-amber-600/30 to-slate-900 border-2 border-amber-400/80 text-amber-200 font-orbitron font-bold text-xs flex items-center justify-center cursor-pointer hover:scale-105 transition-all"
+                  className="w-14 h-14 rounded-full bg-slate-800 border border-white/15 hover:border-white/30 text-white font-semibold text-xs flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95 transition-all shadow-md"
                 >
                   OK
                 </button>
@@ -883,48 +883,48 @@ export default function UniversalTvRemoteWidget({ onLog }) {
               <div className="flex items-center gap-2 mt-3">
                 <button
                   onClick={() => sendSmartTvKey('KEY_RETURN', 'TV Return')}
-                  className="px-3 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-mono"
+                  className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-white/10 text-slate-300 text-xs font-medium cursor-pointer"
                 >
-                  RETURN
+                  Return
                 </button>
                 <button
                   onClick={() => sendSmartTvKey('KEY_HOME', 'TV Smart Hub')}
-                  className="px-3 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/60 text-amber-200 text-xs font-mono font-bold"
+                  className="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-white/15 text-white text-xs font-medium cursor-pointer"
                 >
-                  HOME
+                  Home
                 </button>
               </div>
             </div>
 
             {/* Volume & Channels */}
             <div className="grid grid-cols-2 gap-2 h-48">
-              <div className="p-3 rounded-xl bg-black/70 border border-slate-800 flex flex-col items-center justify-between">
+              <div className="p-3 rounded-xl bg-slate-950/70 border border-white/[0.08] flex flex-col items-center justify-between">
                 <button
                   onClick={() => sendSmartTvKey('KEY_VOLUP', 'TV Vol +')}
-                  className="w-full py-2.5 rounded-lg bg-slate-900 hover:bg-amber-500/20 border border-slate-700 text-amber-300 font-mono text-xs font-bold"
+                  className="w-full py-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-white/10 text-slate-200 text-xs font-medium cursor-pointer"
                 >
-                  VOL +
+                  Vol +
                 </button>
-                <span className="text-[10px] font-mono text-slate-500 font-bold">VOLUME</span>
+                <span className="text-[10px] text-slate-500 font-medium">Volume</span>
                 <button
                   onClick={() => sendSmartTvKey('KEY_VOLDOWN', 'TV Vol -')}
-                  className="w-full py-2.5 rounded-lg bg-slate-900 hover:bg-amber-500/20 border border-slate-700 text-amber-300 font-mono text-xs font-bold"
+                  className="w-full py-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-white/10 text-slate-200 text-xs font-medium cursor-pointer"
                 >
-                  VOL -
+                  Vol -
                 </button>
               </div>
 
-              <div className="p-3 rounded-xl bg-black/70 border border-slate-800 flex flex-col items-center justify-between">
+              <div className="p-3 rounded-xl bg-slate-950/70 border border-white/[0.08] flex flex-col items-center justify-between">
                 <button
                   onClick={() => sendSmartTvKey('KEY_CHUP', 'TV CH +')}
-                  className="w-full py-2.5 rounded-lg bg-slate-900 hover:bg-cyan-500/20 border border-slate-700 text-cyan-300 font-mono text-xs font-bold"
+                  className="w-full py-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-white/10 text-slate-200 text-xs font-medium cursor-pointer"
                 >
                   CH +
                 </button>
-                <span className="text-[10px] font-mono text-slate-500 font-bold">CHANNEL</span>
+                <span className="text-[10px] text-slate-500 font-medium">Channel</span>
                 <button
                   onClick={() => sendSmartTvKey('KEY_CHDOWN', 'TV CH -')}
-                  className="w-full py-2.5 rounded-lg bg-slate-900 hover:bg-cyan-500/20 border border-slate-700 text-cyan-300 font-mono text-xs font-bold"
+                  className="w-full py-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-white/10 text-slate-200 text-xs font-medium cursor-pointer"
                 >
                   CH -
                 </button>
@@ -939,45 +939,45 @@ export default function UniversalTvRemoteWidget({ onLog }) {
       {/* ============================================================= */}
       {activeTab === 'cast' && (
         <div className="space-y-4 animate-in fade-in duration-200">
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-950/40 via-black to-cyan-950/40 border border-cyan-500/40 text-center space-y-3">
-            <div className="w-12 h-12 mx-auto rounded-full bg-cyan-500/20 border border-cyan-400 flex items-center justify-center text-cyan-300 shadow-[0_0_20px_rgba(0,229,255,0.3)]">
-              <Cast className="w-6 h-6 animate-pulse" />
+          <div className="p-5 rounded-2xl bg-slate-950/70 border border-white/[0.08] text-center space-y-3.5 shadow-xl">
+            <div className="w-12 h-12 mx-auto rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+              <Cast className="w-6 h-6" />
             </div>
 
             <div>
-              <h3 className="font-orbitron text-sm font-bold text-cyan-200 uppercase">
-                Wireless Screen Mirroring to Any TV Screen
+              <h3 className="text-sm font-semibold text-slate-100">
+                Wireless Screen Mirroring to Smart TV
               </h3>
-              <p className="text-xs text-slate-400 font-mono max-w-md mx-auto mt-1">
-                Beam JASPER AI Assistant, holographic answer models, video streams, or code studio directly to any Smart TV or wireless receiver in your room.
+              <p className="text-xs text-slate-400 max-w-md mx-auto mt-1 leading-relaxed">
+                Stream JASPER Assistant, video playback, code workspace, or dashboards directly to any Smart TV or wireless receiver in your room.
               </p>
             </div>
 
             <button
               onClick={handleStartWirelessCast}
-              className={`px-6 py-3 rounded-xl font-mono text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 mx-auto shadow-lg ${
+              className={`px-6 py-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer flex items-center justify-center gap-2 mx-auto shadow-sm ${
                 isCastingScreen
-                  ? 'bg-rose-500/25 border border-rose-400 text-rose-200 shadow-rose-500/20 animate-pulse'
-                  : 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-cyan-500/30'
+                  ? 'bg-rose-500/10 border border-rose-500/20 text-rose-300'
+                  : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-500/20'
               }`}
             >
               <Cast className="w-4 h-4" />
-              <span>{isCastingScreen ? 'STOP WIRELESS CAST' : 'START WIRELESS CAST TO TV'}</span>
+              <span>{isCastingScreen ? 'Stop Screen Cast' : 'Start Wireless Cast to TV'}</span>
             </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] font-mono">
-            <div className="p-3 rounded-xl bg-black/60 border border-slate-800">
-              <span className="text-cyan-300 font-bold block mb-1">1. Chromecast / Google Cast</span>
-              <span className="text-slate-400 text-[10px]">Select any Android TV or Chromecast receiver in the browser cast picker.</span>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+            <div className="p-3.5 rounded-xl bg-slate-950/60 border border-white/[0.06]">
+              <span className="text-slate-200 font-medium block mb-1">1. Google Cast</span>
+              <span className="text-slate-400 text-[11px]">Select any Android TV or Chromecast in your browser device picker.</span>
             </div>
-            <div className="p-3 rounded-xl bg-black/60 border border-slate-800">
-              <span className="text-cyan-300 font-bold block mb-1">2. AirPlay &amp; Miracast</span>
-              <span className="text-slate-400 text-[10px]">Supports Apple TV, Samsung Smart View, and LG Screen Share.</span>
+            <div className="p-3.5 rounded-xl bg-slate-950/60 border border-white/[0.06]">
+              <span className="text-slate-200 font-medium block mb-1">2. AirPlay & Miracast</span>
+              <span className="text-slate-400 text-[11px]">Supports Apple TV, Samsung Smart View, and LG Screen Share.</span>
             </div>
-            <div className="p-3 rounded-xl bg-black/60 border border-slate-800">
-              <span className="text-cyan-300 font-bold block mb-1">3. JioFiber STB Mirror</span>
-              <span className="text-slate-400 text-[10px]">Open JioPages or Cast Receiver on your Jio STB to stream instantly.</span>
+            <div className="p-3.5 rounded-xl bg-slate-950/60 border border-white/[0.06]">
+              <span className="text-slate-200 font-medium block mb-1">3. JioFiber STB Mirror</span>
+              <span className="text-slate-400 text-[11px]">Open JioPages or Cast Receiver on your Jio STB to stream instantly.</span>
             </div>
           </div>
         </div>

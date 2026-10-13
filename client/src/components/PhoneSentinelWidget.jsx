@@ -61,7 +61,7 @@ export default function PhoneSentinelWidget({ onClose }) {
       const res = await checkWeatherHazard(loc?.lat || 18.922, loc?.lon || 72.834);
       setWeatherStatus(res);
       if (res?.isSevere) {
-        showToast(`⚠️ Hazard Detected: ${res.hazardType}`);
+        showToast(`Hazard detected: ${res.hazardType}`);
       }
     } catch (e) {
       console.warn('[PhoneSentinelWidget] Weather check error:', e);
@@ -72,32 +72,29 @@ export default function PhoneSentinelWidget({ onClose }) {
 
   const handleSendTestPush = async () => {
     setIsSendingTest(true);
-    showToast('⚡ Dispatching urgent test alert to your phone...');
+    showToast('Dispatching test alert to your phone...');
     try {
-      // 1. Dispatch Cloud Push (reaches phone anywhere in the world even if laptop is OFF)
       const cloudRes = await sendCloudPushAlert({
         topic: config.channelTopic,
-        title: '⚡ JASPER Sentinel Verification',
-        message: 'This is a high-priority test alert from JASPER Assistant. Your phone is connected & protected even when laptop servers are OFF!',
+        title: 'Jasper Sentinel Verification',
+        message: 'High-priority test alert from Jasper Assistant. Your phone is connected & protected even when laptop servers are off.',
         priority: 'urgent',
         tags: ['zap', 'bell', 'shield']
       });
 
-      // 2. Dispatch Local Device Notification
       sendLocalDeviceNotification({
-        title: '⚡ JASPER Sentinel Verification',
+        title: 'Jasper Sentinel Verification',
         body: 'Local phone alert verified. Notifications and vibration are active.',
         vibrate: [300, 100, 300, 100, 500]
       });
 
-      // 3. Play audio chime & voice
       if (config.soundAlertEnabled) playAlertChime();
       if (config.voiceAlertEnabled) speakDeviceAudio('Test alert dispatched to your phone lock screen, sir.');
 
       if (cloudRes.success) {
-        showToast(`✓ Dispatched to ntfy.sh/${config.channelTopic}! Check your phone now.`);
+        showToast(`Dispatched to ntfy.sh/${config.channelTopic}! Check your phone.`);
       } else {
-        showToast(`⚠️ Cloud dispatch warning: ${cloudRes.error || 'Check network'}`);
+        showToast(`Cloud dispatch warning: ${cloudRes.error || 'Check network'}`);
       }
     } catch (e) {
       showToast(`Error: ${e.message}`);
@@ -112,13 +109,12 @@ export default function PhoneSentinelWidget({ onClose }) {
     const updated = { ...config, channelTopic: clean };
     setConfig(updated);
     saveSentinelConfig(updated);
-    // Also synchronize topic with backend server WeatherSentinel
     fetch('/api/sentinel/config', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ channelTopic: clean })
     }).catch(e => console.warn('[Sentinel] Failed to sync config to server:', e));
-    showToast(`✓ Phone alert channel updated & synced: ${clean}`);
+    showToast(`Phone alert channel updated: ${clean}`);
   };
 
   const handleToggleOption = (key) => {
@@ -138,7 +134,7 @@ export default function PhoneSentinelWidget({ onClose }) {
       setConfig(updated);
       saveSentinelConfig(updated);
       setNewKeywordInput('');
-      showToast(`✓ Added urgent keyword: "${word}"`);
+      showToast(`Added urgent keyword: "${word}"`);
     }
   };
 
@@ -154,39 +150,39 @@ export default function PhoneSentinelWidget({ onClose }) {
   const handleCopySubscribeLink = () => {
     const link = `https://ntfy.sh/${config.channelTopic}`;
     navigator.clipboard?.writeText(link);
-    showToast('✓ Link copied! Open on phone to subscribe.');
+    showToast('Link copied to clipboard.');
   };
 
   const subscribeUrl = `https://ntfy.sh/${config.channelTopic}`;
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(subscribeUrl)}&color=00f3ff&bgcolor=020617`;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(subscribeUrl)}&color=ffffff&bgcolor=090a0f`;
 
   return (
-    <div className="bg-slate-950/95 border border-cyan-500/40 rounded-2xl p-4 sm:p-6 text-slate-100 backdrop-blur-2xl shadow-2xl max-w-4xl w-full mx-auto relative overflow-hidden flex flex-col gap-4 font-sans">
+    <div className="bg-[#0b0d13]/95 border border-white/[0.08] rounded-2xl p-4 sm:p-6 text-slate-100 backdrop-blur-2xl shadow-2xl max-w-4xl w-full mx-auto relative overflow-hidden flex flex-col gap-5">
       
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-bold text-xs rounded-full shadow-lg shadow-cyan-500/40 animate-bounce flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4" /> {toastMessage}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-slate-900 border border-white/20 text-slate-100 font-medium text-xs rounded-full shadow-2xl flex items-center gap-2">
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> {toastMessage}
         </div>
       )}
 
       {/* HEADER */}
-      <div className="flex items-center justify-between border-b border-cyan-500/20 pb-4">
+      <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-rose-500/10 border border-rose-500/40 rounded-xl text-rose-400 shadow-lg shadow-rose-500/20">
-            <ShieldAlert className="w-6 h-6 animate-pulse" />
+          <div className="p-2.5 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400">
+            <ShieldAlert className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold tracking-wider text-cyan-300 uppercase font-orbitron">
-                Autonomous Phone Sentinel
+              <h2 className="text-base font-semibold text-slate-100 tracking-tight">
+                Phone Sentinel & Emergency Alerts
               </h2>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-[10px] font-mono text-emerald-300 font-bold">
-                LAPTOP-OFF ACTIVE
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-400 font-medium">
+                Active 24/7
               </span>
             </div>
-            <p className="text-xs text-slate-400 font-mono mt-0.5">
-              Rings your phone for severe weather & urgent messages even when laptop servers are off
+            <p className="text-xs text-slate-400 mt-0.5">
+              Rings your mobile device for severe weather hazards and high-priority messages even when PC is off
             </p>
           </div>
         </div>
@@ -194,26 +190,26 @@ export default function PhoneSentinelWidget({ onClose }) {
         {onClose && (
           <button 
             onClick={onClose} 
-            className="p-2 rounded-xl bg-slate-900 hover:bg-rose-500/20 hover:text-rose-400 text-slate-400 transition-all border border-slate-800"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/[0.06] transition-colors"
           >
-            <XCircle className="w-5 h-5" />
+            <XCircle className="w-4 h-4" />
           </button>
         )}
       </div>
 
-      {/* LAPTOP-OFF ARCHITECTURE BANNER */}
-      <div className="p-3.5 bg-gradient-to-r from-cyan-950/40 via-slate-900/60 to-purple-950/40 border border-cyan-500/30 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
+      {/* ARCHITECTURE BANNER */}
+      <div className="p-4 bg-[#10131d]/60 border border-white/[0.07] rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-slate-800 rounded-xl border border-slate-700 text-cyan-400">
-            <Smartphone className="w-5 h-5" />
+          <div className="p-2 bg-white/[0.04] rounded-lg border border-white/[0.08] text-slate-300">
+            <Smartphone className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-xs font-bold text-slate-100 flex items-center gap-2">
-              <span>Dual-Sentinel Active Protection</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            <div className="text-xs font-semibold text-slate-200 flex items-center gap-2">
+              <span>Cloud Sentinel Push Channel</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
             </div>
-            <div className="text-[11px] text-slate-300 font-mono mt-0.5">
-              Channel: <span className="text-cyan-400 font-bold">{config.channelTopic}</span> • Zero server dependencies
+            <div className="text-[11px] text-slate-400 mt-0.5">
+              Topic: <span className="text-slate-200 font-mono font-medium">{config.channelTopic}</span> • Zero local server dependency
             </div>
           </div>
         </div>
@@ -221,10 +217,10 @@ export default function PhoneSentinelWidget({ onClose }) {
         <button
           onClick={handleSendTestPush}
           disabled={isSendingTest}
-          className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-400 hover:to-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-lg shadow-rose-500/30 flex items-center justify-center gap-2 transition-all shrink-0 cursor-pointer"
+          className="w-full sm:w-auto px-3.5 py-1.5 bg-white/[0.08] hover:bg-white/[0.14] border border-white/[0.12] text-slate-100 font-medium text-xs rounded-lg shadow-sm flex items-center justify-center gap-2 transition-all shrink-0 cursor-pointer"
         >
-          <Zap className="w-4 h-4" />
-          <span>{isSendingTest ? 'Sending Alert...' : '⚡ Send Test Push to Phone'}</span>
+          <Zap className="w-3.5 h-3.5 text-amber-400" />
+          <span>{isSendingTest ? 'Sending Alert...' : 'Send Test Alert to Phone'}</span>
         </button>
       </div>
 
@@ -232,69 +228,69 @@ export default function PhoneSentinelWidget({ onClose }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         
         {/* CARD 1: PHONE PAIRING & QR CODE */}
-        <div className="p-4 bg-slate-900/70 border border-cyan-500/30 rounded-2xl flex flex-col justify-between shadow-xl">
+        <div className="p-5 bg-[#10131d]/50 border border-white/[0.07] rounded-xl flex flex-col justify-between shadow-sm">
           <div>
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
               <div className="flex items-center gap-2">
-                <QrCode className="w-4 h-4 text-cyan-400" />
-                <span className="text-xs font-bold text-cyan-300 font-orbitron uppercase tracking-wider">
-                  1-Step Phone Setup
+                <QrCode className="w-4 h-4 text-slate-400" />
+                <span className="text-xs font-semibold text-slate-200">
+                  Quick Device Pairing
                 </span>
               </div>
-              <span className="text-[10px] font-mono text-slate-400">Zero Signup Required</span>
+              <span className="text-[10px] text-slate-500 font-mono">No Account Required</span>
             </div>
 
-            <p className="text-xs text-slate-300 mt-2 leading-relaxed">
-              Scan this QR code with your phone camera or open the link below. Tap <strong className="text-cyan-300">"Subscribe"</strong> on your phone (in the free <code className="text-cyan-400">ntfy</code> app or Chrome browser) to receive lock-screen alerts.
+            <p className="text-xs text-slate-400 mt-3 leading-relaxed">
+              Scan this QR code with your camera or tap open below. Click <strong className="text-slate-200">Subscribe</strong> in your browser or ntfy app to receive emergency push alerts on your lock screen.
             </p>
 
             {/* QR Code Graphic */}
-            <div className="flex flex-col items-center justify-center my-3 p-3 bg-slate-950/80 rounded-xl border border-cyan-500/20">
+            <div className="flex flex-col items-center justify-center my-4 p-3 bg-black/40 rounded-xl border border-white/[0.06]">
               <img 
                 src={qrCodeUrl} 
                 alt="Phone Subscription QR Code" 
-                className="w-36 h-36 rounded-lg border border-cyan-500/40 p-1 bg-slate-950" 
+                className="w-36 h-36 rounded-lg border border-white/[0.1] p-1 bg-[#090a0f]" 
               />
-              <div className="text-[10px] font-mono text-cyan-400 mt-2 flex items-center gap-1">
-                <span>https://ntfy.sh/{config.channelTopic}</span>
+              <div className="text-[11px] font-mono text-slate-400 mt-2">
+                ntfy.sh/{config.channelTopic}
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-2">
               <button
                 onClick={handleCopySubscribeLink}
-                className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all border border-slate-700"
+                className="flex-1 py-2 bg-white/[0.05] hover:bg-white/[0.08] text-slate-300 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition-all border border-white/[0.08]"
               >
-                <Copy className="w-3.5 h-3.5 text-amber-400" />
-                <span>Copy Link for Phone</span>
+                <Copy className="w-3.5 h-3.5 text-slate-400" />
+                <span>Copy Link</span>
               </button>
               <a
                 href={subscribeUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="py-2 px-3 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 rounded-xl text-xs font-bold flex items-center gap-1 transition-all"
+                className="py-2 px-3 bg-white/[0.08] hover:bg-white/[0.12] text-slate-200 border border-white/[0.1] rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
-                <span>Open</span>
+                <span>Open Channel</span>
               </a>
             </div>
           </div>
 
           {/* Custom Channel Topic Input */}
-          <div className="mt-3 pt-3 border-t border-slate-800">
-            <div className="text-[10px] font-mono text-slate-400 mb-1">PRIVATE CHANNEL TOPIC:</div>
+          <div className="mt-4 pt-3.5 border-t border-white/[0.06]">
+            <div className="text-[10px] text-slate-400 mb-1.5 uppercase font-medium tracking-wider">Channel Identifier</div>
             <div className="flex items-center gap-2">
               <input
                 type="text"
                 value={customTopicInput}
                 onChange={(e) => setCustomTopicInput(e.target.value)}
                 placeholder="e.g. jasper-jwalant-alerts"
-                className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-cyan-300 font-mono outline-none focus:border-cyan-500"
+                className="flex-1 bg-black/30 border border-white/[0.08] rounded-lg px-3 py-1.5 text-xs text-slate-200 font-mono outline-none focus:border-white/20"
               />
               <button
                 onClick={handleSaveTopic}
-                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 transition-all"
+                className="px-3 py-1.5 bg-white/[0.06] hover:bg-white/[0.1] text-slate-200 text-xs font-medium rounded-lg border border-white/[0.08] transition-all"
               >
                 Save
               </button>
@@ -303,78 +299,78 @@ export default function PhoneSentinelWidget({ onClose }) {
         </div>
 
         {/* CARD 2: LIVE SEVERE WEATHER HAZARD RADAR */}
-        <div className="p-4 bg-slate-900/70 border border-cyan-500/30 rounded-2xl flex flex-col justify-between shadow-xl">
+        <div className="p-5 bg-[#10131d]/50 border border-white/[0.07] rounded-xl flex flex-col justify-between shadow-sm">
           <div>
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
               <div className="flex items-center gap-2">
-                <CloudRain className="w-4 h-4 text-cyan-400" />
-                <span className="text-xs font-bold text-cyan-300 font-orbitron uppercase tracking-wider">
-                  Live Weather Hazard Radar
+                <CloudRain className="w-4 h-4 text-slate-400" />
+                <span className="text-xs font-semibold text-slate-200">
+                  Atmospheric Radar & Hazard Monitor
                 </span>
               </div>
               <button
                 onClick={handleRefreshWeather}
                 disabled={isCheckingWeather}
-                className="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all"
+                className="p-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-slate-400 hover:text-slate-200 transition-all border border-white/[0.06]"
                 title="Refresh Weather Status"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${isCheckingWeather ? 'animate-spin text-cyan-400' : ''}`} />
+                <RefreshCw className={`w-3.5 h-3.5 ${isCheckingWeather ? 'animate-spin text-slate-300' : ''}`} />
               </button>
             </div>
 
             {/* Risk Assessment Banner */}
-            <div className={`my-3 p-3 rounded-xl border flex items-center justify-between ${
+            <div className={`my-3 p-3 rounded-lg border flex items-center justify-between ${
               weatherStatus?.isSevere 
-                ? 'bg-rose-950/40 border-rose-500/60 text-rose-200 shadow-lg shadow-rose-500/20' 
-                : 'bg-emerald-950/30 border-emerald-500/40 text-emerald-300'
+                ? 'bg-rose-500/10 border-rose-500/30 text-rose-200' 
+                : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
             }`}>
               <div className="flex items-center gap-2.5">
-                <AlertTriangle className={`w-5 h-5 ${weatherStatus?.isSevere ? 'text-rose-400 animate-bounce' : 'text-emerald-400'}`} />
+                <AlertTriangle className={`w-4 h-4 ${weatherStatus?.isSevere ? 'text-rose-400' : 'text-emerald-400'}`} />
                 <div>
-                  <div className="text-xs font-bold uppercase tracking-wider">
-                    {weatherStatus?.isSevere ? `HAZARD DETECTED: ${weatherStatus.hazardType}` : 'ENVIRONMENT STABLE'}
+                  <div className="text-xs font-medium">
+                    {weatherStatus?.isSevere ? `Hazard Active: ${weatherStatus.hazardType}` : 'Atmospheric Conditions Normal'}
                   </div>
-                  <div className="text-[11px] text-slate-300 mt-0.5">
-                    {weatherStatus?.description || 'Scanning atmospheric radar...'}
+                  <div className="text-[11px] text-slate-400 mt-0.5">
+                    {weatherStatus?.description || 'Scanning radar telemetry...'}
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Live Weather Metrics */}
-            <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-              <div className="p-2.5 bg-slate-950/80 rounded-xl border border-slate-800">
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="p-2.5 bg-black/25 rounded-lg border border-white/[0.05]">
                 <div className="text-[10px] text-slate-400 flex items-center gap-1">
-                  <Thermometer className="w-3.5 h-3.5 text-amber-400" /> TEMPERATURE
+                  <Thermometer className="w-3.5 h-3.5 text-amber-400" /> Temperature
                 </div>
-                <div className="text-sm font-bold text-slate-100 mt-0.5">
+                <div className="text-sm font-semibold text-slate-100 mt-0.5">
                   {weatherStatus?.temperature !== undefined ? `${weatherStatus.temperature}°C` : '--'}
                 </div>
               </div>
 
-              <div className="p-2.5 bg-slate-950/80 rounded-xl border border-slate-800">
+              <div className="p-2.5 bg-black/25 rounded-lg border border-white/[0.05]">
                 <div className="text-[10px] text-slate-400 flex items-center gap-1">
-                  <Wind className="w-3.5 h-3.5 text-cyan-400" /> SUSTAINED WIND
+                  <Wind className="w-3.5 h-3.5 text-slate-400" /> Sustained Wind
                 </div>
-                <div className="text-sm font-bold text-cyan-300 mt-0.5">
+                <div className="text-sm font-semibold text-slate-200 mt-0.5">
                   {weatherStatus?.windSpeed !== undefined ? `${weatherStatus.windSpeed} km/h` : '--'}
                 </div>
               </div>
 
-              <div className="p-2.5 bg-slate-950/80 rounded-xl border border-slate-800">
+              <div className="p-2.5 bg-black/25 rounded-lg border border-white/[0.05]">
                 <div className="text-[10px] text-slate-400 flex items-center gap-1">
-                  <Wind className="w-3.5 h-3.5 text-rose-400" /> PEAK GUSTS
+                  <Wind className="w-3.5 h-3.5 text-rose-400" /> Peak Gusts
                 </div>
-                <div className="text-sm font-bold text-rose-300 mt-0.5">
+                <div className="text-sm font-semibold text-slate-200 mt-0.5">
                   {weatherStatus?.windGusts !== undefined ? `${weatherStatus.windGusts} km/h` : '--'}
                 </div>
               </div>
 
-              <div className="p-2.5 bg-slate-950/80 rounded-xl border border-slate-800">
+              <div className="p-2.5 bg-black/25 rounded-lg border border-white/[0.05]">
                 <div className="text-[10px] text-slate-400 flex items-center gap-1">
-                  <CloudRain className="w-3.5 h-3.5 text-blue-400" /> PRECIPITATION
+                  <CloudRain className="w-3.5 h-3.5 text-indigo-400" /> Precipitation
                 </div>
-                <div className="text-sm font-bold text-blue-300 mt-0.5">
+                <div className="text-sm font-semibold text-slate-200 mt-0.5">
                   {weatherStatus?.precipitation !== undefined ? `${weatherStatus.precipitation} mm/h` : '--'}
                 </div>
               </div>
@@ -382,23 +378,23 @@ export default function PhoneSentinelWidget({ onClose }) {
           </div>
 
           {/* Autonomous Polling Settings */}
-          <div className="mt-3 pt-3 border-t border-slate-800 text-[11px] text-slate-400 flex items-center justify-between font-mono">
-            <span>POLLING INTERVAL:</span>
-            <span className="text-cyan-400 font-bold">Every 20m via Open-Meteo GPS</span>
+          <div className="mt-4 pt-3.5 border-t border-white/[0.06] text-[11px] text-slate-400 flex items-center justify-between">
+            <span>Scan Frequency</span>
+            <span className="text-slate-300 font-medium">Every 20m via Open-Meteo GPS</span>
           </div>
         </div>
       </div>
 
       {/* CARD 3: URGENT MESSAGE KEYWORDS & NOTIFICATION CHANNELS */}
-      <div className="p-4 bg-slate-900/60 border border-slate-800 rounded-2xl shadow-xl space-y-3">
-        <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+      <div className="p-5 bg-[#10131d]/40 border border-white/[0.07] rounded-xl shadow-sm space-y-3.5">
+        <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
           <div className="flex items-center gap-2">
-            <MessageSquare className="w-4 h-4 text-purple-400" />
-            <span className="text-xs font-bold text-slate-200 font-orbitron tracking-wider">
+            <MessageSquare className="w-4 h-4 text-slate-400" />
+            <span className="text-xs font-semibold text-slate-200">
               Urgent Message Trigger Keywords
             </span>
           </div>
-          <span className="text-[10px] font-mono text-purple-400">Triggers Phone Alarm on Match</span>
+          <span className="text-[10px] text-slate-500">Triggers lock-screen notification on match</span>
         </div>
 
         {/* Keyword Pills */}
@@ -406,15 +402,15 @@ export default function PhoneSentinelWidget({ onClose }) {
           {config.emergencyKeywords.map(word => (
             <span 
               key={word} 
-              className="px-2.5 py-1 rounded-lg bg-rose-500/10 border border-rose-500/40 text-rose-300 text-xs font-mono font-bold flex items-center gap-1.5 shadow-sm"
+              className="px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/[0.08] text-slate-300 text-xs font-mono font-medium flex items-center gap-1.5"
             >
               <span>{word}</span>
               <button 
                 onClick={() => handleRemoveKeyword(word)}
-                className="hover:text-white"
+                className="text-slate-500 hover:text-rose-400 transition-colors"
                 title="Remove keyword"
               >
-                <XCircle className="w-3.5 h-3.5" />
+                <XCircle className="w-3 h-3" />
               </button>
             </span>
           ))}
@@ -426,12 +422,12 @@ export default function PhoneSentinelWidget({ onClose }) {
             type="text"
             value={newKeywordInput}
             onChange={(e) => setNewKeywordInput(e.target.value)}
-            placeholder="Add custom emergency word (e.g. DOCTOR, POLICE, FAMILY)..."
-            className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-500 outline-none focus:border-cyan-500"
+            placeholder="Add emergency trigger keyword (e.g. DOCTOR, POLICE, FAMILY)..."
+            className="flex-1 bg-black/30 border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-slate-100 placeholder-slate-500 outline-none focus:border-white/20"
           />
           <button
             type="submit"
-            className="px-3.5 py-2 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-300 text-xs font-bold rounded-xl flex items-center gap-1 transition-all"
+            className="px-3.5 py-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] text-slate-200 text-xs font-medium rounded-lg flex items-center gap-1.5 transition-all"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Word</span>
@@ -439,38 +435,38 @@ export default function PhoneSentinelWidget({ onClose }) {
         </form>
 
         {/* Sentinel Notification Preferences */}
-        <div className="pt-2 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-          <label className="flex items-center gap-2 p-2 rounded-xl bg-slate-950/60 border border-slate-800 cursor-pointer hover:border-slate-700">
+        <div className="pt-2 border-t border-white/[0.06] grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+          <label className="flex items-center gap-2 p-2.5 rounded-lg bg-black/20 border border-white/[0.06] cursor-pointer hover:border-white/[0.12] transition-colors">
             <input
               type="checkbox"
               checked={config.soundAlertEnabled}
               onChange={() => handleToggleOption('soundAlertEnabled')}
-              className="rounded accent-cyan-500"
+              className="rounded accent-slate-400"
             />
-            <Volume2 className="w-3.5 h-3.5 text-cyan-400" />
-            <span className="text-slate-200">Audio Siren Chime</span>
+            <Volume2 className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-slate-300">Audible Alert Chime</span>
           </label>
 
-          <label className="flex items-center gap-2 p-2 rounded-xl bg-slate-950/60 border border-slate-800 cursor-pointer hover:border-slate-700">
+          <label className="flex items-center gap-2 p-2.5 rounded-lg bg-black/20 border border-white/[0.06] cursor-pointer hover:border-white/[0.12] transition-colors">
             <input
               type="checkbox"
               checked={config.voiceAlertEnabled}
               onChange={() => handleToggleOption('voiceAlertEnabled')}
-              className="rounded accent-cyan-500"
+              className="rounded accent-slate-400"
             />
-            <Radio className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="text-slate-200">Vocal Voice Warning</span>
+            <Radio className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-slate-300">Voice Synthesis Alert</span>
           </label>
 
-          <label className="flex items-center gap-2 p-2 rounded-xl bg-slate-950/60 border border-slate-800 cursor-pointer hover:border-slate-700">
+          <label className="flex items-center gap-2 p-2.5 rounded-lg bg-black/20 border border-white/[0.06] cursor-pointer hover:border-white/[0.12] transition-colors">
             <input
               type="checkbox"
               checked={config.vibrationEnabled}
               onChange={() => handleToggleOption('vibrationEnabled')}
-              className="rounded accent-cyan-500"
+              className="rounded accent-slate-400"
             />
-            <Vibrate className="w-3.5 h-3.5 text-amber-400" />
-            <span className="text-slate-200">Hardware Vibration</span>
+            <Vibrate className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-slate-300">Haptic Vibration</span>
           </label>
         </div>
       </div>

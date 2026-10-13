@@ -263,48 +263,48 @@ export default function UserManualWidget({ onClose, onExecuteCommand }) {
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/85 backdrop-blur-xl animate-fade-in">
-      <div className="relative w-full max-w-5xl max-h-[92vh] flex flex-col bg-slate-900/95 border border-cyan-500/30 rounded-2xl shadow-2xl shadow-cyan-950/50 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-xl animate-fade-in">
+      <div className="relative w-full max-w-5xl max-h-[92vh] flex flex-col bg-[#0b0d13]/95 border border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden">
         
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-cyan-500/20 bg-slate-950/60">
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-white/[0.06] bg-[#0e111a]/60">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400">
-              <BookOpen size={22} className="animate-pulse" />
+            <div className="p-2.5 rounded-xl bg-white/[0.05] border border-white/[0.08] text-slate-300">
+              <BookOpen size={20} />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="font-orbitron font-extrabold text-base sm:text-lg tracking-wider text-cyan-300">
-                  JASPER OS MASTER GUIDE &amp; SETUP REFERENCE
+                <h2 className="font-semibold text-base sm:text-lg tracking-tight text-slate-100">
+                  Jasper OS Documentation & Architecture Reference
                 </h2>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                  ZERO-FAKE VERIFIED
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  Verified
                 </span>
               </div>
-              <p className="text-xs font-mono text-slate-400">
-                Official architecture, voice commands, hardware bridges, and integration setup guides
+              <p className="text-xs text-slate-400 mt-0.5">
+                Core system guide, voice commands, hardware bridges, and configuration setup
               </p>
             </div>
           </div>
           <button 
             onClick={onClose}
-            className="p-1.5 rounded-lg bg-slate-800/80 hover:bg-rose-500/20 hover:text-rose-400 text-slate-400 border border-slate-700 transition-colors"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/[0.06] transition-colors"
           >
             <X size={18} />
           </button>
         </div>
 
         {/* Tab Navigation Bar */}
-        <div className="flex items-center gap-1 p-2 border-b border-cyan-500/20 bg-slate-950/40 overflow-x-auto">
+        <div className="flex items-center gap-1.5 p-2 border-b border-white/[0.06] bg-[#0c0e15]/50 overflow-x-auto">
           {[
             { id: 'voice', label: 'Voice & AI Core', icon: Mic },
-            { id: 'finance', label: 'Financial Intelligence', icon: Wallet },
+            { id: 'finance', label: 'Financial Vault', icon: Wallet },
             { id: 'phone', label: 'Android ADB Link', icon: Smartphone },
-            { id: 'telephony', label: 'Call Assistant & PSTN', icon: PhoneCall },
+            { id: 'telephony', label: 'Call Assistant', icon: PhoneCall },
             { id: 'blender', label: 'Blender 3D Studio', icon: Box },
-            { id: 'satellite', label: 'Satellite & Geospatial', icon: Globe },
+            { id: 'satellite', label: 'Geospatial Radar', icon: Globe },
             { id: 'pc', label: 'PC & Smart TV', icon: Monitor },
-            { id: 'faq', label: 'FAQ & Security', icon: HelpCircle }
+            { id: 'faq', label: 'Security & FAQ', icon: HelpCircle }
           ].map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -312,13 +312,13 @@ export default function UserManualWidget({ onClose, onExecuteCommand }) {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-xl font-mono text-xs transition-all shrink-0 ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all shrink-0 ${
                   isActive 
-                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-lg shadow-cyan-950/40 font-bold' 
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                    ? 'bg-white/[0.1] text-slate-100 shadow-sm border border-white/[0.12]' 
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
                 }`}
               >
-                <Icon size={14} className={isActive ? 'text-cyan-400' : 'text-slate-400'} />
+                <Icon size={14} className={isActive ? 'text-indigo-400' : 'text-slate-400'} />
                 {tab.label}
               </button>
             );

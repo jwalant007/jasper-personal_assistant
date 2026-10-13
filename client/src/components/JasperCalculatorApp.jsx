@@ -60,7 +60,6 @@ export default function JasperCalculatorApp() {
     } else {
       setDisplay(prev => {
         if (prev === '0' || prev === 'Error') {
-          // If typing an operator right after 0, keep 0
           if (['+', '×', '÷', '*', '/', '^', '%'].includes(val)) {
             return prev + val;
           }
@@ -76,13 +75,11 @@ export default function JasperCalculatorApp() {
     if (!query) return;
     setIsSolving(true);
 
-    // 1. Try local algebraic engine first for instant response
     const localResult = solveAlgebra(query);
     if (localResult.success) {
       setAiMathSolution(localResult.formatted);
     }
 
-    // 2. Query Jasper Neural Engine for comprehensive analysis / word problems
     try {
       const prompt = `Solve this mathematical expression, algebra equation, or word problem with complete step-by-step reasoning from first principles: "${query}". Format clearly with bold step headers and state the final numerical answer clearly at the end.`;
       const aiResponse = await geminiClient.generateContent(prompt);
@@ -124,19 +121,19 @@ export default function JasperCalculatorApp() {
   ];
 
   return (
-    <div className="flex flex-col h-full bg-black text-slate-100 font-sans p-4 rounded-xl space-y-4">
+    <div className="flex flex-col h-full bg-[#090b10] text-slate-100 font-sans p-4 rounded-xl space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between bg-black/90 border border-cyan-500/30 p-2.5 rounded-xl shadow-[0_0_15px_rgba(0,0,0,0.9)]">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-cyan-500/10 border border-cyan-400/40 rounded-lg text-cyan-400">
-            <Calculator className="w-5 h-5" />
+      <div className="flex items-center justify-between bg-[#0e111a]/60 border border-white/[0.07] p-3 rounded-xl">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 bg-white/[0.05] border border-white/[0.08] rounded-lg text-slate-300">
+            <Calculator className="w-4 h-4" />
           </div>
           <div>
-            <span className="font-orbitron font-extrabold text-xs text-cyan-200 uppercase tracking-wider block">
-              JASPER Neural Calculator & Algebra Solver
+            <span className="font-semibold text-xs text-slate-100 tracking-tight block">
+              Calculator & Algebra Engine
             </span>
-            <span className="text-[10px] text-cyan-400/70 font-mono">
-              Linear, Quadratic, Polynomial & Complex Math Engine
+            <span className="text-[11px] text-slate-400">
+              Polynomial, Linear, & Symbolic Mathematics
             </span>
           </div>
         </div>
@@ -144,24 +141,24 @@ export default function JasperCalculatorApp() {
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => setMode(m => m === 'algebra' ? 'standard' : 'algebra')}
-            className="px-2.5 py-1 text-[11px] font-mono rounded-lg border border-neutral-800 bg-black text-cyan-300 hover:bg-neutral-900 transition-all flex items-center gap-1"
+            className="px-2.5 py-1 text-xs rounded-lg border border-white/[0.08] bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 transition-all flex items-center gap-1.5"
           >
-            <Cpu className="w-3 h-3 text-cyan-400" />
+            <Cpu className="w-3.5 h-3.5 text-slate-400" />
             <span>Mode: {mode === 'algebra' ? 'Algebra' : 'Standard'}</span>
           </button>
         </div>
       </div>
 
       {/* Quick Example Equation Chips */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-mono custom-scrollbar">
-        <span className="text-[10px] text-slate-400 uppercase tracking-wider shrink-0 flex items-center gap-1 pl-1">
-          <BookOpen className="w-3 h-3 text-purple-400" /> Examples:
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs custom-scrollbar">
+        <span className="text-[11px] text-slate-400 shrink-0 flex items-center gap-1 pl-1 font-medium">
+          <BookOpen className="w-3 h-3 text-slate-500" /> Examples:
         </span>
         {exampleEquations.map((eq, i) => (
           <button
             key={i}
             onClick={() => loadExample(eq)}
-            className="shrink-0 px-2 py-0.5 bg-black hover:bg-neutral-900 border border-neutral-800 hover:border-cyan-400/50 rounded-md text-[11px] text-cyan-300 transition-all"
+            className="shrink-0 px-2.5 py-1 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/20 rounded-lg text-[11px] text-slate-300 font-mono transition-all"
           >
             {eq}
           </button>
@@ -172,7 +169,7 @@ export default function JasperCalculatorApp() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0">
         
         {/* Left Column: Calculator Keypad */}
-        <div className="bg-black border border-neutral-800 rounded-xl p-3 flex flex-col space-y-3 shadow-[0_4px_25px_rgba(0,0,0,1)]">
+        <div className="bg-[#0e111a]/40 border border-white/[0.07] rounded-xl p-3.5 flex flex-col space-y-3 shadow-sm">
           {/* Display screen (editable / typable) */}
           <div className="relative">
             <input
@@ -181,10 +178,10 @@ export default function JasperCalculatorApp() {
               onChange={(e) => setDisplay(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSolve(display)}
               placeholder="Enter equation (e.g. 3x + 5 = 20)"
-              className="w-full p-3 bg-black border border-cyan-500/50 rounded-xl text-right font-mono text-lg font-bold text-cyan-300 tracking-wider focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 shadow-[inset_0_2px_12px_rgba(0,0,0,1)]"
+              className="w-full p-3.5 bg-black/30 border border-white/[0.08] rounded-xl text-right font-mono text-xl font-medium text-slate-100 tracking-wide focus:outline-none focus:border-white/20"
             />
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-mono text-cyan-500/50 uppercase tracking-wider pointer-events-none">
-              {/[a-zA-Z=]/.test(display) ? 'ALGEBRA' : 'MATH'}
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[10px] font-mono text-slate-500 uppercase tracking-wider pointer-events-none">
+              {/[a-zA-Z=]/.test(display) ? 'Algebra' : 'Arithmetic'}
             </div>
           </div>
 
@@ -197,24 +194,24 @@ export default function JasperCalculatorApp() {
               const isSpecialOp = ['^', '√', '(', ')'].includes(btn);
               const isArithOp = ['÷', '×', '-', '+'].includes(btn);
 
-              let btnClasses = 'bg-[#080808] hover:bg-neutral-900 border border-neutral-800 text-cyan-200';
+              let btnClasses = 'bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-slate-200';
               if (isSolve) {
-                btnClasses = 'bg-cyan-500/25 hover:bg-cyan-500/40 border border-cyan-400 text-cyan-100 shadow-[0_0_15px_rgba(0,240,255,0.3)] font-black';
+                btnClasses = 'bg-indigo-600 hover:bg-indigo-500 border border-indigo-400 text-white font-semibold shadow-sm';
               } else if (isClear) {
-                btnClasses = 'bg-[#150206] hover:bg-rose-950/50 border border-rose-900/60 text-rose-300';
+                btnClasses = 'bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-300';
               } else if (isAlgebraVar) {
-                btnClasses = 'bg-[#140a00] hover:bg-amber-950/50 border border-amber-800/60 text-amber-300 font-black italic';
+                btnClasses = 'bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-300 font-semibold italic';
               } else if (isSpecialOp) {
-                btnClasses = 'bg-[#0e0017] hover:bg-purple-950/50 border border-purple-900/60 text-purple-300';
+                btnClasses = 'bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] text-slate-200';
               } else if (isArithOp) {
-                btnClasses = 'bg-[#020d14] hover:bg-cyan-950/50 border border-cyan-900/60 text-cyan-300 font-bold';
+                btnClasses = 'bg-white/[0.08] hover:bg-white/[0.12] border border-white/[0.1] text-indigo-300 font-medium';
               }
 
               return (
                 <button
                   key={idx}
                   onClick={() => handleBtnClick(btn)}
-                  className={`p-2.5 sm:p-3 rounded-xl font-mono text-sm font-bold transition-all active:scale-95 flex items-center justify-center ${btnClasses}`}
+                  className={`p-2.5 sm:p-3 rounded-lg font-mono text-sm transition-all active:scale-95 flex items-center justify-center ${btnClasses}`}
                 >
                   {btn}
                 </button>
@@ -222,24 +219,24 @@ export default function JasperCalculatorApp() {
             })}
           </div>
 
-          <div className="text-[11px] font-mono text-slate-400/80 flex items-center justify-between px-1">
-            <span>Tip: Type directly or click chips for instant solutions</span>
-            <span>Ans: {lastAns}</span>
+          <div className="text-[11px] text-slate-500 flex items-center justify-between px-1">
+            <span>Click buttons or type directly</span>
+            <span className="font-mono">Ans: {lastAns}</span>
           </div>
         </div>
 
         {/* Right Column: Step-by-Step Algebraic Working & AI Solver */}
-        <div className="bg-black border border-neutral-800 rounded-xl p-3 flex flex-col space-y-3 shadow-[0_4px_25px_rgba(0,0,0,1)]">
-          <div className="text-xs font-mono font-bold text-cyan-300 uppercase tracking-wider flex items-center justify-between border-b border-neutral-800 pb-2">
+        <div className="bg-[#0e111a]/40 border border-white/[0.07] rounded-xl p-3.5 flex flex-col space-y-3 shadow-sm">
+          <div className="text-xs font-semibold text-slate-200 flex items-center justify-between border-b border-white/[0.06] pb-2.5">
             <div className="flex items-center gap-1.5">
-              <Sparkles className={`w-4 h-4 text-purple-400 ${isSolving ? 'animate-spin' : ''}`} />
-              <span>Step-by-Step Solution & Neural Proof</span>
+              <Sparkles className={`w-3.5 h-3.5 text-indigo-400 ${isSolving ? 'animate-spin' : ''}`} />
+              <span>Step-by-Step Reasoning</span>
             </div>
 
             {aiMathSolution && (
               <button
                 onClick={copySolution}
-                className="px-2 py-0.5 bg-black hover:bg-neutral-900 border border-neutral-800 rounded text-[10px] text-cyan-300 flex items-center gap-1 transition-all"
+                className="px-2 py-0.5 bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.08] rounded text-[11px] text-slate-300 flex items-center gap-1 transition-all"
                 title="Copy Solution"
               >
                 {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
@@ -256,28 +253,28 @@ export default function JasperCalculatorApp() {
               onChange={(e) => setAiMathQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && solveMathWithAi()}
               placeholder="e.g. solve 3x + 5 = 20 or derivative of sin(x^2)"
-              className="flex-1 px-3 py-2 bg-black border border-neutral-800 focus:border-cyan-400 rounded-lg text-xs font-mono text-cyan-200 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+              className="flex-1 px-3 py-2 bg-black/30 border border-white/[0.08] focus:border-white/20 rounded-lg text-xs font-mono text-slate-200 focus:outline-none"
             />
             <button
               onClick={() => solveMathWithAi()}
               disabled={isSolving || !aiMathQuery.trim()}
-              className="px-3.5 py-2 bg-purple-950/40 hover:bg-purple-900/60 border border-purple-600/60 text-purple-200 rounded-lg font-mono text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+              className="px-3.5 py-2 bg-white/[0.08] hover:bg-white/[0.14] border border-white/[0.1] text-slate-100 rounded-lg text-xs font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
             >
               {isSolving ? 'Solving...' : 'Solve'}
             </button>
           </div>
 
           {/* Solution Pane */}
-          <div className="flex-1 min-h-[220px] bg-black border border-neutral-800 rounded-xl p-3 font-mono text-xs text-slate-200 overflow-y-auto whitespace-pre-wrap leading-relaxed custom-scrollbar selection:bg-purple-500/30">
+          <div className="flex-1 min-h-[220px] bg-black/25 border border-white/[0.06] rounded-xl p-3.5 font-mono text-xs text-slate-300 overflow-y-auto whitespace-pre-wrap leading-relaxed custom-scrollbar selection:bg-indigo-500/30">
             {aiMathSolution ? (
               <div className="space-y-1 text-slate-200">
                 {aiMathSolution}
               </div>
             ) : (
-              <div className="h-full flex flex-col items-center justify-center text-center p-4 text-slate-400 space-y-2">
-                <HelpCircle className="w-8 h-8 text-cyan-500/40 stroke-1" />
-                <p className="text-xs font-mono">
-                  Enter an algebraic equation (e.g. <span className="text-cyan-300 font-bold">3x + 5 = 20</span> or <span className="text-cyan-300 font-bold">x^2 - 5x + 6 = 0</span>) and press <span className="text-cyan-400 font-bold">SOLVE</span> to get the full step-by-step mathematical working.
+              <div className="h-full flex flex-col items-center justify-center text-center p-4 text-slate-500 space-y-2">
+                <HelpCircle className="w-6 h-6 text-slate-600 stroke-1" />
+                <p className="text-xs">
+                  Enter an algebraic equation or expression above and click <span className="text-slate-300 font-medium">Solve</span> to view step-by-step mathematical working.
                 </p>
               </div>
             )}

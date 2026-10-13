@@ -474,38 +474,33 @@ export default function JasperIncomingCallModal({
   const activeCommitment = contextMemory?.commitments?.[0] || null;
 
   return (
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/92 backdrop-blur-2xl p-2 sm:p-4 animate-in fade-in duration-300">
-      <div className="relative w-full max-w-2xl max-h-[94vh] rounded-3xl border-2 border-cyan-500/40 bg-gradient-to-b from-slate-950 via-slate-900 to-black p-5 sm:p-7 shadow-[0_0_80px_rgba(6,182,212,0.35)] flex flex-col text-slate-100 overflow-hidden font-sans">
-        
-        {/* Holographic scanner top highlight */}
-        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-pulse" />
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 backdrop-blur-2xl p-2 sm:p-4 animate-in fade-in duration-200">
+      <div className="relative w-full max-w-2xl max-h-[94vh] rounded-2xl border border-white/[0.08] bg-[#0b0d13]/95 p-5 sm:p-6 shadow-2xl flex flex-col text-slate-100 overflow-hidden font-sans">
 
-        {/* =================================================================== */}
         {/* HEADER BAR */}
-        {/* =================================================================== */}
-        <div className="flex items-center justify-between border-b border-cyan-500/20 pb-3 mb-4">
+        <div className="flex items-center justify-between border-b border-white/[0.06] pb-3.5 mb-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-cyan-950 border border-cyan-400/50 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.5)]">
-              <span className="font-orbitron font-black text-sm text-cyan-300">J</span>
+            <div className="w-8 h-8 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-slate-200">
+              <PhoneCall className="w-4 h-4 text-indigo-400" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-orbitron font-bold text-xs tracking-widest text-cyan-300 uppercase">
-                  J.A.S.P.E.R. Live Call Intelligence
+                <span className="font-semibold text-xs tracking-tight text-slate-100">
+                  Jasper Call Intelligence
                 </span>
                 {mode === 'screening' && (
-                  <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-semibold animate-pulse">
-                    CALL SCREENING
+                  <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20 text-[10px] font-medium">
+                    Screening
                   </span>
                 )}
                 {mode === 'live_call' && (
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-semibold flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                    SILENT ASSISTANT ACTIVE
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 text-[10px] font-medium flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                    Live Assistant Active
                   </span>
                 )}
               </div>
-              <p className="text-[11px] text-slate-400 font-mono">
+              <p className="text-[11px] text-slate-400">
                 {mode === 'screening' && 'Screening caller before connecting • Awaiting your decision'}
                 {mode === 'live_call' && `Active Call • ${formatTimer(callSeconds)} • Silent Intelligence Monitoring`}
                 {mode === 'concluded' && 'Call Concluded • Dossier Synthesized'}
@@ -516,7 +511,7 @@ export default function JasperIncomingCallModal({
           {/* Call Duration / Close */}
           <div className="flex items-center gap-2">
             {mode === 'live_call' && (
-              <div className="px-3 py-1 rounded-full bg-slate-900 border border-cyan-500/30 text-cyan-300 font-mono text-xs font-bold">
+              <div className="px-2.5 py-1 rounded-lg bg-white/[0.05] border border-white/[0.08] text-slate-200 font-mono text-xs font-medium">
                 {formatTimer(callSeconds)}
               </div>
             )}
@@ -525,7 +520,7 @@ export default function JasperIncomingCallModal({
                 if (ringtoneRef.current) ringtoneRef.current.stop();
                 if (onDecline) onDecline();
               }}
-              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 text-xs"
+              className="text-slate-400 hover:text-slate-200 p-1 rounded-lg hover:bg-white/[0.06] text-xs transition-colors"
             >
               ✕
             </button>
@@ -538,48 +533,48 @@ export default function JasperIncomingCallModal({
         {mode === 'screening' && (
           <div className="flex-1 overflow-y-auto space-y-4 pr-1">
             {/* Caller Identification Card */}
-            <div className="rounded-2xl bg-gradient-to-r from-cyan-950/40 via-slate-900/60 to-slate-950/80 border border-cyan-500/30 p-4 flex items-center justify-between">
+            <div className="rounded-xl bg-[#10131d]/60 border border-white/[0.07] p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-cyan-600/20 border border-cyan-400/40 flex items-center justify-center text-cyan-300">
-                  <UserCheck className="w-6 h-6" />
+                <div className="w-11 h-11 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-slate-300">
+                  <UserCheck className="w-5 h-5" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-white text-base">{callerName}</h3>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-cyan-900/50 text-cyan-300 font-mono border border-cyan-700/50">
-                      INCOMING CALL
+                    <h3 className="font-semibold text-slate-100 text-sm">{callerName}</h3>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-white/[0.05] text-slate-300 font-mono border border-white/[0.08]">
+                      Incoming
                     </span>
                   </div>
                   <p className="text-xs text-slate-400 font-mono">{callerPhone}</p>
                 </div>
               </div>
-              <div className="text-right font-mono">
-                <span className="text-[10px] text-slate-400 uppercase block">INITIAL REASON</span>
-                <span className="text-xs font-bold text-amber-300">{initialReason}</span>
+              <div className="text-right">
+                <span className="text-[10px] text-slate-500 uppercase block font-medium">Inquiry Topic</span>
+                <span className="text-xs font-semibold text-slate-200">{initialReason}</span>
               </div>
             </div>
 
-            {/* J.A.S.P.E.R. AI Screening Reason / Summary Card */}
-            <div className="rounded-2xl bg-slate-950/80 border-2 border-cyan-400/40 p-4 shadow-[0_0_30px_rgba(6,182,212,0.15)] relative overflow-hidden">
+            {/* AI Screening Reason / Summary Card */}
+            <div className="rounded-xl bg-[#10131d]/60 border border-white/[0.08] p-4 shadow-sm relative overflow-hidden">
               <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="w-4 h-4 text-cyan-400 animate-spin" style={{ animationDuration: '6s' }} />
-                <span className="text-[11px] font-orbitron font-bold tracking-wider text-cyan-300 uppercase">
-                  J.A.S.P.E.R. SCREENING BRIEFING FOR YOU:
+                <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                <span className="text-xs font-semibold text-slate-200">
+                  Executive Screening Briefing
                 </span>
               </div>
               
-              <div className="p-3.5 rounded-xl bg-cyan-950/30 border border-cyan-500/30 text-white font-sans text-sm leading-relaxed">
-                <p className="font-medium text-cyan-100">
+              <div className="p-3.5 rounded-lg bg-black/25 border border-white/[0.06] text-slate-200 font-sans text-xs leading-relaxed">
+                <p className="font-normal text-slate-300">
                   "{screeningSummary}"
                 </p>
               </div>
 
               {/* Preliminary Details */}
               {contextMemory.importantDetails?.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-slate-800 flex flex-wrap gap-2 items-center">
-                  <span className="text-[10px] font-mono text-slate-400 uppercase">Key Details:</span>
+                <div className="mt-3 pt-3 border-t border-white/[0.06] flex flex-wrap gap-2 items-center">
+                  <span className="text-[10px] text-slate-400 uppercase font-medium">Key Points:</span>
                   {contextMemory.importantDetails.map((detail, idx) => (
-                    <span key={idx} className="px-2.5 py-1 rounded-lg bg-slate-800/80 border border-cyan-500/20 text-cyan-200 text-xs font-mono">
+                    <span key={idx} className="px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/[0.06] text-slate-300 text-xs font-mono">
                       • {detail}
                     </span>
                   ))}
@@ -588,20 +583,20 @@ export default function JasperIncomingCallModal({
             </div>
 
             {/* Screening Conversation History */}
-            <div className="rounded-2xl bg-slate-950/50 border border-slate-800 p-3.5 max-h-48 overflow-y-auto space-y-2.5 font-sans">
-              <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1 flex items-center justify-between">
-                <span>Call Screening Transcript</span>
-                <span className="text-cyan-400">J.A.S.P.E.R. Autonomous Voice</span>
+            <div className="rounded-xl bg-black/25 border border-white/[0.06] p-3.5 max-h-48 overflow-y-auto space-y-2.5 font-sans">
+              <div className="text-[10px] text-slate-400 uppercase tracking-wider mb-1 flex items-center justify-between">
+                <span>Autonomous Dialogue</span>
+                <span className="text-slate-400">Jasper Voice Agent</span>
               </div>
               {screeningHistory.map((turn, i) => (
                 <div key={i} className={`flex flex-col ${turn.speaker === 'jasper' ? 'items-start' : 'items-end'}`}>
                   <span className="text-[9px] font-mono text-slate-500 uppercase">
-                    {turn.speaker === 'jasper' ? 'J.A.S.P.E.R.' : callerName}
+                    {turn.speaker === 'jasper' ? 'Jasper' : callerName}
                   </span>
                   <div className={`mt-0.5 px-3 py-2 rounded-xl text-xs max-w-[85%] ${
                     turn.speaker === 'jasper'
-                      ? 'bg-slate-900 border border-cyan-500/30 text-cyan-200'
-                      : 'bg-cyan-950/60 border border-cyan-400/40 text-white'
+                      ? 'bg-white/[0.05] border border-white/[0.08] text-slate-300'
+                      : 'bg-indigo-600/20 border border-indigo-500/30 text-indigo-100'
                   }`}>
                     {turn.text}
                   </div>
@@ -609,27 +604,27 @@ export default function JasperIncomingCallModal({
               ))}
             </div>
 
-            {/* Ask J.A.S.P.E.R. to continue Popover */}
+            {/* Ask Jasper to continue Popover */}
             {isAskingContinue && (
-              <div className="p-3.5 rounded-2xl bg-cyan-950/50 border border-cyan-400/50 animate-in fade-in space-y-2">
+              <div className="p-3.5 rounded-xl bg-[#10131d]/80 border border-white/[0.08] animate-in fade-in space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-cyan-300 font-orbitron">
-                    INSTRUCT J.A.S.P.E.R. TO PROBE FURTHER:
+                  <span className="text-xs font-semibold text-slate-200">
+                    Instruct Jasper to Probe Further:
                   </span>
-                  <button onClick={() => setIsAskingContinue(false)} className="text-slate-400 hover:text-white text-xs">✕</button>
+                  <button onClick={() => setIsAskingContinue(false)} className="text-slate-400 hover:text-slate-200 text-xs">✕</button>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <button
                     onClick={() => handleAskJasperContinue("Ask for time and training ground location")}
                     disabled={isContinuingLoading}
-                    className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-cyan-500/30 text-cyan-200 text-left transition-all"
+                    className="p-2 rounded-lg bg-black/30 hover:bg-black/50 border border-white/[0.06] text-slate-300 text-left transition-all"
                   >
                     "Ask for time & location"
                   </button>
                   <button
                     onClick={() => handleAskJasperContinue("Ask if Coach specifically requested me")}
                     disabled={isContinuingLoading}
-                    className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-cyan-500/30 text-cyan-200 text-left transition-all"
+                    className="p-2 rounded-lg bg-black/30 hover:bg-black/50 border border-white/[0.06] text-slate-300 text-left transition-all"
                   >
                     "Ask if Coach requested me"
                   </button>
@@ -639,13 +634,13 @@ export default function JasperIncomingCallModal({
                     type="text"
                     value={continueQuestion}
                     onChange={(e) => setContinueQuestion(e.target.value)}
-                    placeholder="Or type custom question for J.A.S.P.E.R. to ask caller..."
-                    className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400"
+                    placeholder="Or type custom question for Jasper to ask caller..."
+                    className="flex-1 bg-black/30 border border-white/[0.08] rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-white/20"
                   />
                   <button
                     onClick={() => handleAskJasperContinue()}
                     disabled={isContinuingLoading || !continueQuestion.trim()}
-                    className="px-3 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs disabled:opacity-40"
+                    className="px-3.5 py-1.5 rounded-lg bg-white/[0.08] hover:bg-white/[0.14] border border-white/[0.1] text-slate-100 font-medium text-xs disabled:opacity-40 transition-all"
                   >
                     {isContinuingLoading ? 'Probing...' : 'Ask'}
                   </button>
@@ -655,35 +650,35 @@ export default function JasperIncomingCallModal({
 
             {/* 3 Prominent Decision Choices (Pillar 1) */}
             <div className="pt-2">
-              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block mb-2 text-center">
-                YOUR DECISION ON THIS SCREENED CALL:
+              <span className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 text-center font-medium">
+                Decision Action
               </span>
               <div className="grid grid-cols-3 gap-3">
                 {/* 1. REJECT */}
                 <button
                   onClick={handleRejectScreening}
-                  className="py-3 px-3 rounded-2xl bg-red-950/60 hover:bg-red-900/80 border border-red-500/40 text-red-300 font-orbitron font-bold text-xs tracking-wider flex flex-col items-center justify-center gap-1.5 transition-all active:scale-95 shadow-lg shadow-red-950/40"
+                  className="py-2.5 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-300 font-medium text-xs flex flex-col items-center justify-center gap-1.5 transition-all active:scale-95 shadow-sm"
                 >
-                  <PhoneOff className="w-5 h-5 text-red-400" />
-                  <span>REJECT</span>
+                  <PhoneOff className="w-4 h-4 text-rose-400" />
+                  <span>Decline</span>
                 </button>
 
-                {/* 2. ASK J.A.S.P.E.R. TO CONTINUE */}
+                {/* 2. ASK JASPER TO CONTINUE */}
                 <button
                   onClick={() => setIsAskingContinue(prev => !prev)}
-                  className="py-3 px-3 rounded-2xl bg-cyan-950/60 hover:bg-cyan-900/80 border border-cyan-500/40 text-cyan-300 font-orbitron font-bold text-xs tracking-wider flex flex-col items-center justify-center gap-1.5 transition-all active:scale-95 shadow-lg shadow-cyan-950/40"
+                  className="py-2.5 px-3 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] text-slate-200 font-medium text-xs flex flex-col items-center justify-center gap-1.5 transition-all active:scale-95 shadow-sm"
                 >
-                  <Sparkles className="w-5 h-5 text-cyan-400" />
-                  <span>CONTINUE</span>
+                  <Sparkles className="w-4 h-4 text-indigo-400" />
+                  <span>Ask More</span>
                 </button>
 
                 {/* 3. ACCEPT */}
                 <button
                   onClick={handleAcceptScreening}
-                  className="py-3 px-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-orbitron font-bold text-xs tracking-wider flex flex-col items-center justify-center gap-1.5 transition-all active:scale-95 shadow-lg shadow-green-900/60 ring-1 ring-emerald-400"
+                  className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs flex flex-col items-center justify-center gap-1.5 transition-all active:scale-95 shadow-sm"
                 >
-                  <PhoneCall className="w-5 h-5 text-white animate-bounce" />
-                  <span>ACCEPT CALL</span>
+                  <PhoneCall className="w-4 h-4 text-white" />
+                  <span>Accept Call</span>
                 </button>
               </div>
             </div>
@@ -698,36 +693,36 @@ export default function JasperIncomingCallModal({
             {/* Silent Assistant Banner */}
             <div className="px-3.5 py-2 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-300 text-xs flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span className="font-semibold">SILENT INTELLIGENT ASSISTANT:</span>
-                <span className="text-slate-300 text-[11px]">Listening & analyzing context silently without interrupting.</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                <span className="font-semibold text-slate-200">Silent Intelligent Assistant:</span>
+                <span className="text-slate-400 text-[11px]">Listening & analyzing context silently without interrupting.</span>
               </div>
               <button
                 onClick={handleActivateAssistantAloud}
-                className="px-2.5 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/40 border border-cyan-400/50 text-cyan-200 text-[10px] font-orbitron font-bold tracking-wider"
+                className="px-2.5 py-1 rounded-lg bg-white/[0.08] hover:bg-white/[0.14] border border-white/[0.1] text-slate-200 text-[11px] font-medium transition-all"
               >
-                ACTIVATE J.A.S.P.E.R.
+                Activate Jasper
               </button>
             </div>
 
             {/* Assistant Spoken Notice (if user summons JASPER) */}
             {assistantSpokenNotice && (
-              <div className="p-3 rounded-xl bg-cyan-950/80 border border-cyan-400 text-cyan-100 text-xs flex items-center gap-2 animate-in fade-in">
-                <Volume2 className="w-4 h-4 text-cyan-300 animate-pulse" />
-                <span><b>J.A.S.P.E.R.:</b> "{assistantSpokenNotice}"</span>
+              <div className="p-3 rounded-xl bg-[#10131d]/90 border border-white/[0.08] text-slate-200 text-xs flex items-center gap-2 animate-in fade-in">
+                <Volume2 className="w-4 h-4 text-indigo-400" />
+                <span><b>Jasper:</b> "{assistantSpokenNotice}"</span>
               </div>
             )}
 
             {/* PILLAR 4: DYNAMIC CONTEXT MEMORY CARD */}
-            <div className="rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-cyan-500/40 p-4 shadow-xl">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
+            <div className="rounded-xl bg-[#10131d]/60 border border-white/[0.07] p-4 shadow-sm">
+              <div className="flex items-center justify-between border-b border-white/[0.06] pb-2 mb-3">
                 <div className="flex items-center gap-2">
-                  <BookmarkPlus className="w-4 h-4 text-cyan-400" />
-                  <h4 className="font-orbitron font-bold text-xs text-cyan-300 uppercase tracking-wider">
-                    TEMPORARY CONTEXT MEMORY (LIVE CALL)
+                  <BookmarkPlus className="w-4 h-4 text-slate-400" />
+                  <h4 className="font-semibold text-xs text-slate-200">
+                    Live Call Context Memory
                   </h4>
                 </div>
-                <span className="text-[10px] font-mono text-slate-400">SESSION STATE ID: {callId.slice(-8)}</span>
+                <span className="text-[10px] font-mono text-slate-500">Session {callId.slice(-8)}</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -947,7 +942,7 @@ export default function JasperIncomingCallModal({
 
                 <button
                   onClick={handleConcludeCall}
-                  className="px-3.5 py-2 rounded-xl bg-red-600/80 hover:bg-red-500 text-white font-orbitron font-bold text-xs flex items-center gap-1.5 shadow-md shadow-red-950"
+                  className="px-3.5 py-2 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 text-rose-300 font-medium text-xs flex items-center gap-1.5 transition-all shadow-sm"
                 >
                   <PhoneOff className="w-3.5 h-3.5" />
                   <span>End Call</span>
@@ -962,35 +957,35 @@ export default function JasperIncomingCallModal({
         {/* =================================================================== */}
         {mode === 'concluded' && (
           <div className="flex-1 overflow-y-auto space-y-4 py-3 text-center">
-            <div className="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-400/50 flex items-center justify-center mx-auto text-emerald-400">
-              <CheckCircle2 className="w-8 h-8" />
+            <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto text-emerald-400">
+              <CheckCircle2 className="w-7 h-7" />
             </div>
 
-            <h3 className="font-orbitron font-extrabold text-xl text-white">
-              Call Concluded & Context Saved
+            <h3 className="font-semibold text-lg text-slate-100 tracking-tight">
+              Call Concluded
             </h3>
-            <p className="text-xs text-slate-400 font-mono">
-              Live Call Intelligence briefing synthesized and archived.
+            <p className="text-xs text-slate-400">
+              Session intelligence dossier synthesized and recorded to memory.
             </p>
 
-            <div className="rounded-2xl bg-slate-950/80 border border-cyan-500/30 p-4 text-left font-mono text-xs space-y-2">
-              <div className="flex justify-between border-b border-slate-800 pb-1.5">
-                <span className="text-slate-400">CALLER:</span>
-                <span className="text-white font-bold">{contextMemory.caller}</span>
+            <div className="rounded-xl bg-[#10131d]/60 border border-white/[0.07] p-4 text-left text-xs space-y-2.5">
+              <div className="flex justify-between border-b border-white/[0.06] pb-2">
+                <span className="text-slate-400">Caller:</span>
+                <span className="text-slate-100 font-medium">{contextMemory.caller}</span>
               </div>
-              <div className="flex justify-between border-b border-slate-800 pb-1.5">
-                <span className="text-slate-400">INITIAL REASON:</span>
-                <span className="text-amber-300 font-bold">{contextMemory.initialReason}</span>
+              <div className="flex justify-between border-b border-white/[0.06] pb-2">
+                <span className="text-slate-400">Topic:</span>
+                <span className="text-amber-300 font-medium">{contextMemory.initialReason}</span>
               </div>
-              <div className="border-b border-slate-800 pb-1.5">
-                <span className="text-slate-400 block mb-1">IMPORTANT DETAILS:</span>
+              <div className="border-b border-white/[0.06] pb-2">
+                <span className="text-slate-400 block mb-1">Key Details:</span>
                 {contextMemory.importantDetails.map((d, i) => (
-                  <p key={i} className="text-cyan-200 pl-2">• {d}</p>
+                  <p key={i} className="text-slate-200 pl-2">• {d}</p>
                 ))}
               </div>
               {contextMemory.commitments?.length > 0 && (
-                <div className="border-b border-slate-800 pb-1.5">
-                  <span className="text-slate-400 block mb-1">FINAL COMMITMENT:</span>
+                <div className="border-b border-white/[0.06] pb-2">
+                  <span className="text-slate-400 block mb-1">Commitment:</span>
                   <p className="text-emerald-300 pl-2">
                     {contextMemory.commitments[0].note || contextMemory.commitments[0].topic}
                   </p>
@@ -1003,9 +998,9 @@ export default function JasperIncomingCallModal({
                 onClick={() => {
                   if (onDecline) onDecline();
                 }}
-                className="px-6 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold font-orbitron text-xs tracking-wider"
+                className="px-5 py-2 rounded-lg bg-white/[0.08] hover:bg-white/[0.14] border border-white/[0.1] text-slate-100 font-medium text-xs transition-all shadow-sm"
               >
-                CLOSE INTELLIGENCE MODAL
+                Close Session
               </button>
             </div>
           </div>
