@@ -106,8 +106,11 @@ const VoiceController = forwardRef(({
     rec.onerror = (e) => {
       console.error('[VoiceController] Speech error:', e);
       setIsListening(false);
-      onStateChange('idle');
+      onStateChange('error');
       playChime('sleep');
+      setTimeout(() => {
+        onStateChange(curr => curr === 'error' ? 'idle' : curr);
+      }, 3000);
     };
 
     rec.onend = () => {

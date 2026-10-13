@@ -1,8 +1,10 @@
 {
-  "ip": "192.168.29.229",
-  "port": 55000,
-  "mac": "14:49:e0:20:f0:81",
-  "name": "JASPER Assistant",
-  "token": "",
-  "protocol": "legacy-55000"
+  "tvIp": "192.168.29.229",
+  "tvPort": 55000,
+  "tvMac": "14:49:e0:20:f0:81",
+  "tvBrand": "samsung",
+  "jioStbIp": "192.168.29.230",
+  "jioStbPort": 5555,
+  "activeTarget": "jio_stb",
+  "name": "JASPER Universal TV Hub"
 }

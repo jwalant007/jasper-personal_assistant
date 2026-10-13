@@ -48,29 +48,43 @@ export default function AudioConversationPage({
       case 'listening':
         return {
           label: 'Listening',
-          subLabel: 'Say something to Jasper...',
-          colorClass: 'border-rose-500/30 bg-rose-500/10 text-rose-300',
-          dotClass: 'bg-rose-400 animate-ping'
+          subLabel: 'Capturing microphone input...',
+          colorClass: 'border-cyan-400/40 bg-cyan-500/10 text-cyan-300',
+          dotClass: 'bg-cyan-400 animate-ping'
         };
       case 'processing':
         return {
+          label: 'Processing Audio',
+          subLabel: 'Converting speech to text...',
+          colorClass: 'border-violet-400/40 bg-violet-500/10 text-violet-300',
+          dotClass: 'bg-violet-400 animate-pulse'
+        };
+      case 'thinking':
+        return {
           label: 'Thinking',
-          subLabel: 'Generating response...',
-          colorClass: 'border-indigo-500/30 bg-indigo-500/10 text-indigo-300',
+          subLabel: 'Generating intelligence directive...',
+          colorClass: 'border-indigo-400/40 bg-indigo-500/10 text-indigo-300',
           dotClass: 'bg-indigo-400 animate-pulse'
         };
       case 'speaking':
         return {
           label: 'Speaking',
-          subLabel: 'Streaming audio output...',
-          colorClass: 'border-sky-500/30 bg-sky-500/10 text-sky-300',
-          dotClass: 'bg-sky-400 animate-pulse'
+          subLabel: 'Synthesizing voice playback...',
+          colorClass: 'border-cyan-400/40 bg-cyan-500/15 text-cyan-200',
+          dotClass: 'bg-cyan-400 animate-pulse'
+        };
+      case 'error':
+        return {
+          label: 'Microphone / System Notice',
+          subLabel: 'Check permissions or retry speaking',
+          colorClass: 'border-rose-400/40 bg-rose-500/10 text-rose-300',
+          dotClass: 'bg-rose-400 animate-pulse'
         };
       default:
         return {
           label: 'Ready',
           subLabel: 'Tap microphone or central core to talk',
-          colorClass: 'border-white/[0.1] bg-slate-900 text-slate-300',
+          colorClass: 'border-white/[0.1] bg-slate-900/80 text-slate-300',
           dotClass: 'bg-emerald-400'
         };
     }
@@ -79,14 +93,16 @@ export default function AudioConversationPage({
   const status = getStatusBadge();
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[#07090e] text-slate-100 overflow-hidden select-none animate-in fade-in duration-200 font-sans">
+    <div className="fixed inset-0 z-50 flex flex-col bg-[#0B0D12] text-slate-100 overflow-hidden select-none animate-in fade-in duration-200 font-sans">
       
       {/* Ambient Radial Glow behind Core */}
       <div 
-        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-3xl pointer-events-none transition-all duration-700 ${
-          jasperState === 'listening' ? 'bg-rose-600/10' : 
-          jasperState === 'processing' ? 'bg-indigo-600/15' : 
-          jasperState === 'speaking' ? 'bg-sky-500/15' : 'bg-indigo-900/10'
+        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[540px] h-[540px] rounded-full blur-3xl pointer-events-none transition-all duration-700 ${
+          jasperState === 'listening' ? 'bg-cyan-500/10' : 
+          jasperState === 'processing' ? 'bg-violet-600/10' : 
+          jasperState === 'thinking' ? 'bg-indigo-600/10' : 
+          jasperState === 'speaking' ? 'bg-cyan-400/15' : 
+          jasperState === 'error' ? 'bg-rose-600/10' : 'bg-cyan-900/5'
         }`}
       />
 

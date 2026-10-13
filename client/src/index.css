@@ -1,23 +1,43 @@
 @import "tailwindcss";
 
 /* -------------------------------------------------------------
-   JASPER HOLOGRAPHIC DESIGN SYSTEM (JWALANT BHATT CREATION CORE UI)
+   J.A.S.P.E.R. DESIGN SYSTEM (PREMIUM SCI-FI MINIMALISM)
+   Apple Refinement + Linear Layouts + Cinematic AI Aesthetics
    ------------------------------------------------------------- */
 
 :root,
 [data-theme="obsidian-modern"] {
-  --bg-dark: #07090e;
-  --bg-hud: rgba(13, 16, 23, 0.85);
-  --neon-cyan: #38bdf8;
-  --neon-blue: #6366f1;
-  --neon-accent: #a855f7;
-  --neon-orange: #f97316;
-  --neon-green: #10b981;
-  --text-primary: #f8fafc;
-  --text-muted: #94a3b8;
+  --jasper-bg-primary: #0B0D12;
+  --jasper-bg-secondary: #111620;
+  --jasper-surface-elevated: #171D28;
+  --jasper-surface-subtle: #1C2331;
+  --jasper-text-primary: #F3F5FA;
+  --jasper-text-secondary: #A2ABBC;
+  --jasper-text-muted: #64748B;
+  --jasper-accent-cyan: #67DFFF;
+  --jasper-accent-cyan-rgb: 103, 223, 255;
+  --jasper-accent-violet: #9D8CFF;
+  --jasper-accent-violet-rgb: 157, 140, 255;
+  --jasper-border: rgba(255, 255, 255, 0.08);
+  --jasper-border-subtle: rgba(255, 255, 255, 0.05);
+  --jasper-border-accent: rgba(103, 223, 255, 0.35);
+  --jasper-status-success: #10B981;
+  --jasper-status-warning: #F59E0B;
+  --jasper-status-error: #EF4444;
+  --jasper-status-info: #38BDF8;
+
+  --bg-dark: #0B0D12;
+  --bg-hud: rgba(17, 22, 32, 0.88);
+  --neon-cyan: #67DFFF;
+  --neon-blue: #67DFFF;
+  --neon-accent: #9D8CFF;
+  --neon-orange: #F59E0B;
+  --neon-green: #10B981;
+  --text-primary: #F3F5FA;
+  --text-muted: #A2ABBC;
   --glass-border: 1px solid rgba(255, 255, 255, 0.08);
   --glass-glow: 0 12px 36px rgba(0, 0, 0, 0.45);
-  --transition-speed: 0.25s;
+  --transition-speed: 0.22s;
 }
 
 [data-theme="matte-gold"],
@@ -128,14 +148,15 @@
 }
 
 body {
-  background-color: #090a0f;
+  background-color: var(--jasper-bg-primary, #0B0D12);
   background-image: 
-    radial-gradient(circle at 50% -10%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 85% 85%, rgba(56, 189, 248, 0.04) 0%, transparent 45%),
-    radial-gradient(circle at 15% 90%, rgba(168, 85, 247, 0.04) 0%, transparent 45%);
-  color: #f8fafc;
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    radial-gradient(circle at 50% 0%, rgba(103, 223, 255, 0.04) 0%, transparent 48%),
+    radial-gradient(circle at 85% 90%, rgba(157, 140, 255, 0.03) 0%, transparent 42%);
+  color: var(--jasper-text-primary, #F3F5FA);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   height: 100vh;
+  height: 100dvh;
+  width: 100%;
   overflow: hidden;
   position: relative;
   -webkit-font-smoothing: antialiased;
@@ -200,6 +221,143 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 24px 60px -10px rgba(0, 0, 0, 0.75), inset 0 1px 1px 0 rgba(255, 255, 255, 0.15);
   border-radius: 2.25rem;
+}
+
+/* -------------------------------------------------------------
+   J.A.S.P.E.R. CORE COMPONENT SYSTEM (PREMIUM SCI-FI MINIMALISM)
+   ------------------------------------------------------------- */
+.jasper-shell {
+  background-color: var(--jasper-bg-primary, #0B0D12);
+  color: var(--jasper-text-primary, #F3F5FA);
+  min-height: 100vh;
+  min-height: 100dvh;
+  height: 100dvh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.jasper-surface {
+  background-color: var(--jasper-surface-elevated, #171D28);
+  border: 1px solid var(--jasper-border, rgba(255, 255, 255, 0.08));
+  border-radius: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.jasper-surface-subtle {
+  background-color: var(--jasper-bg-secondary, #111620);
+  border: 1px solid var(--jasper-border-subtle, rgba(255, 255, 255, 0.05));
+  border-radius: 12px;
+}
+
+.jasper-surface-elevated {
+  background-color: #1A2230;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+}
+
+.jasper-btn-primary {
+  background: linear-gradient(135deg, #67DFFF 0%, #38BDF8 100%);
+  color: #07090E !important;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 10px rgba(103, 223, 255, 0.25);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.jasper-btn-primary:hover {
+  background: linear-gradient(135deg, #88E7FF 0%, #67DFFF 100%);
+  box-shadow: 0 4px 16px rgba(103, 223, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.jasper-btn-primary:active {
+  transform: translateY(0);
+}
+
+.jasper-btn-secondary {
+  background: #171D28;
+  color: #F3F5FA;
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.jasper-btn-secondary:hover {
+  background: #1E2636;
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #FFFFFF;
+}
+
+.jasper-btn-ghost {
+  background: transparent;
+  color: #A2ABBC;
+  font-weight: 500;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.jasper-btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #F3F5FA;
+}
+
+.touch-target-44 {
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.safe-pb {
+  padding-bottom: max(12px, env(safe-area-inset-bottom, 12px));
+}
+
+.safe-pt {
+  padding-top: max(8px, env(safe-area-inset-top, 8px));
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .ambient-neural-orb {

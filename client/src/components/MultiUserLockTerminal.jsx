@@ -103,25 +103,39 @@ export default function MultiUserLockTerminal({
     }
   };
 
+  const renderAvatarContent = (avatar, name) => {
+    if (avatar && (avatar.startsWith('http') || avatar.startsWith('data:'))) {
+      return <img src={avatar} alt={name} className="w-full h-full object-cover rounded-2xl" />;
+    }
+    if (!avatar || avatar.length > 2 || avatar === 'cyan' || avatar === 'blue') {
+      return (
+        <span className="font-bold text-2xl text-cyan-300 font-sans tracking-wide">
+          {name ? name.charAt(0).toUpperCase() : 'J'}
+        </span>
+      );
+    }
+    return <span className="text-3xl">{avatar}</span>;
+  };
+
   return (
-    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-4 bg-[#07080c]/90 backdrop-blur-3xl overflow-y-auto select-none font-sans text-slate-100">
-      {/* Background Soft Lighting Aura */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[520px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none" />
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-4 bg-[#0B0D12]/95 backdrop-blur-3xl overflow-y-auto select-none font-sans text-slate-100 safe-pt safe-pb">
+      {/* Background Soft Atmospheric Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[520px] bg-cyan-500/5 rounded-full blur-[140px] pointer-events-none" />
 
       {/* Main Login Card */}
-      <div className="w-full max-w-sm rounded-3xl bg-slate-900/70 border border-white/[0.08] p-7 sm:p-8 backdrop-blur-2xl shadow-2xl relative flex flex-col gap-5 my-auto animate-in fade-in zoom-in-95 duration-200">
+      <div className="w-full max-w-sm rounded-3xl bg-[#171D28]/90 border border-white/[0.08] p-7 sm:p-8 backdrop-blur-2xl shadow-2xl relative flex flex-col gap-5 my-auto animate-in fade-in zoom-in-95 duration-200">
         
         {/* VIEW 1: SIGN IN / UNLOCK */}
         {activeTab === 'login' && (
           <div className="flex flex-col items-center text-center gap-4">
-            {/* User Avatar Circle */}
+            {/* User Avatar Box */}
             <div className="relative">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-b from-slate-800/90 to-slate-900/90 border border-white/[0.12] flex items-center justify-center text-3xl shadow-xl">
-                {selectedUserObj.avatar || '👤'}
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-b from-slate-800/90 to-[#111620] border border-cyan-400/30 flex items-center justify-center shadow-xl">
+                {renderAvatarContent(selectedUserObj.avatar, selectedUserObj.name)}
               </div>
               {selectedUserObj.hasPin && (
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-slate-950 border border-white/[0.12] flex items-center justify-center text-slate-300 shadow">
-                  <KeyRound size={12} className="text-amber-400" />
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#0B0D12] border border-cyan-400/40 flex items-center justify-center text-cyan-300 shadow">
+                  <KeyRound size={12} className="text-cyan-400" />
                 </div>
               )}
             </div>
@@ -136,7 +150,7 @@ export default function MultiUserLockTerminal({
                 {selectedUserObj.role && (
                   <>
                     <span>&bull;</span>
-                    <span className="font-sans text-[11px]">{selectedUserObj.role}</span>
+                    <span className="font-sans text-[11px] text-slate-400">{selectedUserObj.role}</span>
                   </>
                 )}
               </div>
@@ -144,7 +158,7 @@ export default function MultiUserLockTerminal({
 
             {/* Profile Switcher Pills (If multiple accounts exist) */}
             {usersList.length > 1 && (
-              <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-950/60 border border-white/[0.06] max-w-full overflow-x-auto custom-scrollbar">
+              <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-[#0B0D12]/70 border border-white/[0.06] max-w-full overflow-x-auto no-scrollbar">
                 {usersList.map((u) => {
                   const isSelected = u.userId.toLowerCase() === selectedUserId.toLowerCase();
                   return (
@@ -158,12 +172,12 @@ export default function MultiUserLockTerminal({
                       }}
                       className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
                         isSelected
-                          ? 'bg-white/[0.12] text-white shadow-sm'
+                          ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 shadow-sm'
                           : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
                       }`}
                       title={u.name}
                     >
-                      <span>{u.avatar || '👤'}</span>
+                      <span className="text-xs">{u.avatar && u.avatar.length <= 2 ? u.avatar : '👤'}</span>
                       <span className="text-[11px] truncate max-w-[80px]">{u.name}</span>
                     </button>
                   );
@@ -174,7 +188,7 @@ export default function MultiUserLockTerminal({
             {/* Camera / Biometric Scan Active Preview */}
             {(biometricMode === 'face_scan' || biometricMode === 'face_enroll') && (
               <div className="w-full flex flex-col items-center gap-2.5 py-1">
-                <div className="relative w-36 h-36 rounded-2xl overflow-hidden border border-indigo-400/50 bg-black shadow-lg">
+                <div className="relative w-36 h-36 rounded-2xl overflow-hidden border border-cyan-400/50 bg-black shadow-lg">
                   <video 
                     ref={videoRef} 
                     autoPlay 
@@ -185,12 +199,12 @@ export default function MultiUserLockTerminal({
                   <canvas ref={canvasRef} className="hidden" />
                 </div>
                 <div className="w-full text-center">
-                  <span className="text-[11px] text-indigo-300 font-medium animate-pulse">
+                  <span className="text-[11px] text-cyan-300 font-medium animate-pulse">
                     {scanStatusText || 'Verifying Face ID...'}
                   </span>
                   <div className="w-36 h-1 bg-slate-800 rounded-full mx-auto mt-1.5 overflow-hidden">
                     <div 
-                      className="h-full bg-indigo-500 transition-all duration-300" 
+                      className="h-full bg-cyan-400 transition-all duration-300" 
                       style={{ width: `${scanProgress}%` }} 
                     />
                   </div>
@@ -210,14 +224,15 @@ export default function MultiUserLockTerminal({
                   }}
                   placeholder={selectedUserObj.hasPin ? 'Enter Passcode' : 'Press Unlock (No PIN set)'}
                   autoFocus
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-white/[0.1] text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-indigo-500/80 focus:ring-1 focus:ring-indigo-500/40 transition-all pr-10"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#0B0D12]/90 border border-white/[0.1] text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 transition-all pr-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPin(!showPin)}
-                  className="absolute right-3 text-slate-500 hover:text-slate-300 cursor-pointer"
+                  className="absolute right-3 text-slate-400 hover:text-slate-200 cursor-pointer p-1"
+                  aria-label={showPin ? 'Hide passcode' : 'Show passcode'}
                 >
-                  {showPin ? <EyeOff size={14} /> : <Eye size={14} />}
+                  {showPin ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
 
@@ -244,7 +259,7 @@ export default function MultiUserLockTerminal({
                   <button
                     type="button"
                     onClick={() => onTriggerFaceScan(selectedUserObj)}
-                    className="p-2.5 rounded-xl bg-slate-950/60 hover:bg-slate-800 border border-white/[0.1] text-slate-300 hover:text-white transition-all cursor-pointer"
+                    className="p-2.5 rounded-xl bg-[#111620] hover:bg-slate-800 border border-white/[0.1] text-cyan-300 hover:text-white transition-all cursor-pointer"
                     title="Unlock using Face ID"
                   >
                     <Camera size={16} />
@@ -254,7 +269,7 @@ export default function MultiUserLockTerminal({
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs transition-all shadow-md hover:shadow-indigo-500/20 cursor-pointer disabled:opacity-50"
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-cyan-400 to-sky-400 hover:from-cyan-300 hover:to-sky-300 text-slate-950 font-semibold text-xs tracking-wide transition-all shadow-[0_2px_12px_rgba(103,223,255,0.25)] cursor-pointer disabled:opacity-50"
                 >
                   {isSubmitting ? 'Unlocking...' : 'Unlock'}
                 </button>
@@ -270,7 +285,7 @@ export default function MultiUserLockTerminal({
                   setActiveTab('register');
                   setErrorText('');
                 }}
-                className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors cursor-pointer"
+                className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors cursor-pointer"
               >
                 Create Profile &rarr;
               </button>
@@ -299,7 +314,7 @@ export default function MultiUserLockTerminal({
               {/* Avatar Selector */}
               <div>
                 <label className="text-[11px] text-slate-400 block mb-1.5 font-medium">Avatar</label>
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
                   {AVATAR_OPTIONS.map(av => (
                     <button
                       key={av}
@@ -307,8 +322,8 @@ export default function MultiUserLockTerminal({
                       onClick={() => setRegAvatar(av)}
                       className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm transition-all border cursor-pointer ${
                         regAvatar === av 
-                          ? 'bg-indigo-600 border-indigo-400 scale-105 shadow-sm text-white' 
-                          : 'bg-slate-950/80 border-white/[0.08] hover:border-white/[0.2]'
+                          ? 'bg-cyan-500/20 border-cyan-400 scale-105 shadow-sm text-cyan-200' 
+                          : 'bg-[#0B0D12]/80 border-white/[0.08] hover:border-white/[0.2]'
                       }`}
                     >
                       {av}
@@ -328,7 +343,7 @@ export default function MultiUserLockTerminal({
                   onChange={(e) => setRegUserId(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))}
                   placeholder="username"
                   required
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950/80 border border-white/[0.1] text-white text-xs placeholder:text-slate-600 focus:outline-none focus:border-indigo-500 font-mono"
+                  className="w-full px-3 py-2 rounded-xl bg-[#0B0D12]/90 border border-white/[0.1] text-white text-xs placeholder:text-slate-600 focus:outline-none focus:border-cyan-400 font-mono"
                 />
               </div>
 
@@ -341,7 +356,7 @@ export default function MultiUserLockTerminal({
                   onChange={(e) => setRegName(e.target.value)}
                   placeholder="Your Full Name"
                   required
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950/80 border border-white/[0.1] text-white text-xs placeholder:text-slate-600 focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3 py-2 rounded-xl bg-[#0B0D12]/90 border border-white/[0.1] text-white text-xs placeholder:text-slate-600 focus:outline-none focus:border-cyan-400"
                 />
               </div>
 
@@ -353,7 +368,7 @@ export default function MultiUserLockTerminal({
                   value={regRole}
                   onChange={(e) => setRegRole(e.target.value)}
                   placeholder="e.g. Personal, Work, Guest"
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950/80 border border-white/[0.1] text-white text-xs placeholder:text-slate-600 focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3 py-2 rounded-xl bg-[#0B0D12]/90 border border-white/[0.1] text-white text-xs placeholder:text-slate-600 focus:outline-none focus:border-cyan-400"
                 />
               </div>
 
@@ -367,7 +382,7 @@ export default function MultiUserLockTerminal({
                   value={regPin}
                   onChange={(e) => setRegPin(e.target.value)}
                   placeholder="Optional PIN"
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950/80 border border-white/[0.1] text-white text-xs placeholder:text-slate-600 focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3 py-2 rounded-xl bg-[#0B0D12]/90 border border-white/[0.1] text-white text-xs placeholder:text-slate-600 focus:outline-none focus:border-cyan-400"
                 />
               </div>
 
@@ -380,7 +395,7 @@ export default function MultiUserLockTerminal({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs transition-all shadow-md mt-1 cursor-pointer disabled:opacity-50"
+                className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-cyan-400 to-sky-400 hover:from-cyan-300 hover:to-sky-300 text-slate-950 font-semibold text-xs tracking-wide transition-all shadow-md mt-1 cursor-pointer disabled:opacity-50"
               >
                 {isSubmitting ? 'Creating Profile...' : 'Create Account & Unlock'}
               </button>

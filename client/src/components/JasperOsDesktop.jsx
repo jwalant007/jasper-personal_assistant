@@ -1074,6 +1074,16 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
             Activities
           </button>
 
+          {/* Quick Return to Assistant Workspace */}
+          <button
+            onClick={onToggleClassicMode}
+            className="h-5.5 px-2.5 rounded-full bg-[#E95420]/20 hover:bg-[#E95420]/35 border border-[#E95420]/40 text-white flex items-center gap-1.5 text-xs font-semibold tracking-tight transition-all cursor-pointer shadow-sm"
+            title="Switch back to J.A.S.P.E.R. Assistant Workspace"
+          >
+            <Grid className="w-3 h-3 text-[#E95420]" />
+            <span>Assistant Workspace</span>
+          </button>
+
           {/* Active Application Name & Icon */}
           {focusedApp && !minimizedWindows[focusedApp.id] && (
             <button

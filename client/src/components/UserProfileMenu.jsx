@@ -127,17 +127,33 @@ export default function UserProfileMenu({ onLockSystem }) {
     }
   };
 
+  const renderAvatarBadge = (avatar, name, sizeClass = "w-5 h-5 text-xs") => {
+    if (avatar && (avatar.startsWith('http') || avatar.startsWith('data:'))) {
+      return <img src={avatar} alt={name} className={`${sizeClass} rounded-full object-cover`} />;
+    }
+    if (!avatar || avatar.length > 2 || avatar === 'cyan' || avatar === 'blue') {
+      return (
+        <span className={`${sizeClass} rounded-full bg-cyan-500/20 text-cyan-300 font-bold flex items-center justify-center font-sans`}>
+          {name ? name.charAt(0).toUpperCase() : 'J'}
+        </span>
+      );
+    }
+    return (
+      <span className={`${sizeClass} rounded-full bg-slate-800 border border-white/[0.1] flex items-center justify-center flex-shrink-0`}>
+        {avatar}
+      </span>
+    );
+  };
+
   return (
     <div className="relative inline-block font-sans" ref={menuRef}>
       {/* Trigger Button Badge */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-slate-900/80 hover:bg-slate-800/90 border border-white/[0.08] hover:border-white/[0.16] transition-all text-xs cursor-pointer shadow-sm group backdrop-blur-md"
+        className="flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-[#171D28] hover:bg-[#1C2331] border border-white/[0.08] hover:border-cyan-400/40 transition-all text-xs cursor-pointer shadow-sm group backdrop-blur-md"
         title="Active Account & Profile Switcher"
       >
-        <span className="w-5 h-5 rounded-full bg-slate-800 border border-white/[0.1] flex items-center justify-center text-xs flex-shrink-0 group-hover:scale-105 transition-transform">
-          {currentUser?.avatar || '👤'}
-        </span>
+        {renderAvatarBadge(currentUser?.avatar, currentUser?.name, "w-5 h-5 text-[10px]")}
         <div className="flex flex-col text-left">
           <span className="font-medium text-slate-200 text-[11px] leading-tight truncate max-w-[80px] sm:max-w-[110px]">
             {currentUser?.name || 'User'}
@@ -151,11 +167,11 @@ export default function UserProfileMenu({ onLockSystem }) {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-72 rounded-2xl bg-slate-900/95 border border-white/[0.1] backdrop-blur-2xl shadow-2xl p-3 z-[9999] flex flex-col gap-2.5 animate-in fade-in zoom-in-95 duration-150 select-none">
+        <div className="absolute right-0 mt-2 w-72 rounded-2xl bg-[#171D28] border border-white/[0.1] backdrop-blur-2xl shadow-2xl p-3 z-[9999] flex flex-col gap-2.5 animate-in fade-in zoom-in-95 duration-150 select-none">
           {/* Active Profile Header Card */}
-          <div className="p-3 rounded-xl bg-slate-800/60 border border-white/[0.06] flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-slate-800 border border-white/[0.1] flex items-center justify-center text-lg shadow-sm">
-              {currentUser?.avatar || '👑'}
+          <div className="p-3 rounded-xl bg-[#111620] border border-white/[0.06] flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-slate-800/90 border border-white/[0.1] flex items-center justify-center text-lg shadow-sm">
+              {renderAvatarBadge(currentUser?.avatar, currentUser?.name, "w-10 h-10 text-base")}
             </div>
             <div className="flex-1 min-w-0">
               <div className="font-semibold text-xs text-white truncate flex items-center gap-1.5">
