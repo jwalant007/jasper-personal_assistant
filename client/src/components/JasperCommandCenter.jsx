@@ -190,143 +190,140 @@ export default function JasperCommandCenter({
   return (
     <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col gap-6 select-none animate-in fade-in duration-500">
       
-      {/* 1. TOP SYSTEM HUD TELEMETRY STRIP */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-2xl bg-slate-950/70 border border-white/[0.08] backdrop-blur-2xl shadow-xl">
+      {/* 1. TOP SYSTEM TELEMETRY STRIP */}
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-slate-900/60 border border-white/[0.08] backdrop-blur-2xl shadow-lg">
         <div className="flex items-center gap-3">
-          <div className="relative flex items-center justify-center w-7 h-7 rounded-xl bg-indigo-500/20 border border-indigo-400/40 text-indigo-400">
-            <Zap className="w-4 h-4 animate-pulse" />
-            <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#38bdf8]" />
+          <div className="relative flex items-center justify-center w-8 h-8 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400">
+            <Zap className="w-4 h-4" />
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold font-sans tracking-wider text-slate-100 uppercase">J.A.S.P.E.R. v2.4</span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-400/30 text-indigo-300">
-                PERSONAL AI OPERATING SYSTEM
+              <span className="text-sm font-semibold text-slate-100">Jasper Assistant</span>
+              <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-400/20 text-indigo-300">
+                v2.4
               </span>
             </div>
-            <p className="text-[10px] font-mono text-slate-400">Unified Neural Core &bull; Zero-Trust &bull; Zero-Fake Architecture</p>
+            <p className="text-xs text-slate-400">Local & Cloud AI Operating Environment</p>
           </div>
         </div>
 
-        {/* Live HUD Badges */}
-        <div className="flex items-center gap-2 flex-wrap text-[11px] font-mono">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-900/80 border border-white/[0.08] text-slate-300">
-            <Cpu className="w-3.5 h-3.5 text-cyan-400" />
+        {/* Live Status Badges */}
+        <div className="flex items-center gap-2 flex-wrap text-xs">
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-950/60 border border-white/[0.08] text-slate-300">
+            <Cpu className="w-3.5 h-3.5 text-indigo-400" />
             <span>AI: {aiStatusLabel}</span>
           </div>
 
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-900/80 border border-emerald-500/30 text-emerald-300">
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-950/60 border border-emerald-500/20 text-emerald-300">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>SECURITY: L0-L3 ARMED</span>
+            <span>Security: Active</span>
           </div>
 
-          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-900/80 border border-white/[0.08] text-slate-400">
-            <Activity className="w-3.5 h-3.5 text-indigo-400" />
-            <span>LATENCY: {systemTelemetry.latency}</span>
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-950/60 border border-white/[0.08] text-slate-400">
+            <Activity className="w-3.5 h-3.5 text-slate-400" />
+            <span>Latency: {systemTelemetry.latency}</span>
           </div>
 
           <button
             onClick={fetchLiveStatus}
             disabled={isRefreshing}
-            className="p-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-white/[0.08] text-slate-400 hover:text-white transition-all cursor-pointer"
+            className="p-1.5 rounded-xl bg-slate-950/60 hover:bg-slate-800 border border-white/[0.08] text-slate-400 hover:text-white transition-all cursor-pointer"
             title="Refresh All Telemetry"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-cyan-400' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-indigo-400' : ''}`} />
           </button>
         </div>
       </div>
 
-      {/* 2. CENTRAL JARVIS AI CORE HERO STAGE */}
-      <div className="relative w-full rounded-3xl bg-gradient-to-b from-slate-950/80 via-indigo-950/20 to-slate-950/80 border border-white/[0.1] backdrop-blur-3xl p-6 sm:p-8 flex flex-col items-center justify-center shadow-[0_20px_60px_rgba(0,0,0,0.8)] overflow-hidden">
-        {/* Subtle Ambient Radial Backdrops */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none" />
+      {/* 2. CENTRAL NEURAL CORE HERO STAGE */}
+      <div className="relative w-full rounded-3xl bg-gradient-to-b from-slate-900/60 via-slate-900/40 to-slate-950/80 border border-white/[0.08] backdrop-blur-3xl p-6 sm:p-8 flex flex-col items-center justify-center shadow-xl overflow-hidden">
+        {/* Subtle Ambient Radial Lighting */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-indigo-500/8 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 bg-sky-500/6 rounded-full blur-2xl pointer-events-none" />
 
-        {/* Outer Circular Sci-Fi Orbital Ring HUD */}
-        <div className="relative flex items-center justify-center my-2">
-          {/* Outer Dashed Orbit */}
-          <div className="absolute w-72 h-72 sm:w-80 sm:h-80 rounded-full border border-indigo-400/20 border-dashed animate-[spin_60s_linear_infinite] pointer-events-none" />
+        {/* Ambient Neural Core Circle */}
+        <div className="relative flex items-center justify-center my-3">
+          {/* Subtle Outer Focus Halo */}
+          <div className="absolute w-56 h-56 sm:w-64 sm:h-64 rounded-full border border-white/[0.06] pointer-events-none" />
           
-          {/* Middle Counter-Rotating Precision Orbit */}
-          <div className="absolute w-60 h-60 sm:w-68 sm:h-68 rounded-full border border-cyan-400/25 border-t-transparent border-b-transparent animate-[spin_35s_linear_infinite_reverse] pointer-events-none" />
-          
-          {/* Inner Glowing Reactor Enclosure */}
+          {/* Interactive Core */}
           <div 
             onClick={onMicClick}
-            className="relative w-48 h-48 sm:w-56 sm:h-56 rounded-full flex items-center justify-center cursor-pointer transition-transform duration-300 hover:scale-105 group"
-            title="Click JARVIS AI Core to activate voice input or wake listening"
+            className="relative w-44 h-44 sm:w-52 sm:h-52 rounded-full flex items-center justify-center cursor-pointer transition-transform duration-300 hover:scale-[1.03] group"
+            title="Click to speak or wake listening"
           >
             <ArcReactor state={jasperState} />
 
-            {/* Hover Tooltip / Click Prompt */}
-            <div className="absolute inset-0 rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-slate-950/70 backdrop-blur-sm pointer-events-none">
-              <Mic className="w-8 h-8 text-cyan-400 mb-1 animate-bounce" />
-              <span className="text-[11px] font-sans font-bold text-slate-100 tracking-wider">CLICK TO SPEAK</span>
-              <span className="text-[9px] font-mono text-cyan-300">&quot;Hey Jasper&quot;</span>
+            {/* Subtle Hover Prompt */}
+            <div className="absolute inset-0 rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-slate-950/75 backdrop-blur-sm pointer-events-none">
+              <Mic className="w-6 h-6 text-indigo-400 mb-1" />
+              <span className="text-xs font-semibold text-white">Click to Speak</span>
+              <span className="text-[10px] text-slate-400">&quot;Hey Jasper&quot;</span>
             </div>
           </div>
         </div>
 
-        {/* AI State Badge & Status */}
-        <div className="mt-3 flex flex-col items-center gap-1.5 z-10">
-          <div className={`px-4 py-1 rounded-full border text-xs font-mono font-bold tracking-widest uppercase transition-all duration-300 ${stateBadge.color}`}>
+        {/* AI State Badge */}
+        <div className="mt-2 flex flex-col items-center gap-1.5 z-10 text-center">
+          <div className={`px-3.5 py-1 rounded-full border text-xs font-medium tracking-wide transition-all duration-200 ${stateBadge.color}`}>
             {stateBadge.label}
           </div>
-          <p className="text-xs text-slate-400 text-center max-w-md font-sans">
-            Ready for voice or text directives. Real-time multi-turn context memory &amp; autonomous agent router active.
+          <p className="text-xs text-slate-400 max-w-sm">
+            Ready for voice or text directives. Real-time context memory active.
           </p>
         </div>
 
-        {/* Reactive Simulated Waveform Bar Visualizer */}
-        <div className="flex items-center gap-1.5 mt-4 h-6">
-          {[...Array(24)].map((_, i) => {
+        {/* Subtle Waveform Visualizer */}
+        <div className="flex items-center gap-1 mt-3.5 h-5">
+          {[...Array(20)].map((_, i) => {
             const isSpeaking = jasperState === 'speaking';
             const isListening = jasperState === 'listening';
             const isProcessing = jasperState === 'processing';
-            let heightClass = 'h-1.5 opacity-30';
+            let heightClass = 'h-1.5 opacity-25 bg-slate-600';
             if (isSpeaking) {
-              const heights = ['h-5', 'h-3', 'h-6', 'h-4', 'h-5', 'h-2'];
-              heightClass = `${heights[i % heights.length]} opacity-90 bg-amber-400 animate-pulse`;
+              const heights = ['h-4', 'h-2.5', 'h-5', 'h-3', 'h-4', 'h-2'];
+              heightClass = `${heights[i % heights.length]} opacity-90 bg-indigo-400`;
             } else if (isListening) {
-              const heights = ['h-4', 'h-6', 'h-3', 'h-5', 'h-2', 'h-6'];
-              heightClass = `${heights[i % heights.length]} opacity-90 bg-cyan-400 animate-pulse`;
+              const heights = ['h-3', 'h-4.5', 'h-2.5', 'h-4', 'h-2', 'h-5'];
+              heightClass = `${heights[i % heights.length]} opacity-90 bg-sky-400`;
             } else if (isProcessing) {
-              heightClass = 'h-3.5 opacity-70 bg-purple-400 animate-pulse';
+              heightClass = 'h-2.5 opacity-60 bg-violet-400 animate-pulse';
             }
             return (
               <div 
                 key={i} 
-                className={`w-1 rounded-full bg-indigo-400 transition-all duration-150 ${heightClass}`} 
+                className={`w-1 rounded-full transition-all duration-150 ${heightClass}`} 
               />
             );
           })}
         </div>
 
-        {/* Core Quick Voice / Briefing Trigger Pill */}
+        {/* Core Controls */}
         <div className="mt-5 flex items-center gap-2 flex-wrap justify-center z-10">
           <button
             onClick={onMicClick}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500/20 to-indigo-500/20 hover:from-cyan-500/30 hover:to-indigo-500/30 border border-cyan-400/40 text-cyan-200 font-sans font-semibold text-xs flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(6,182,212,0.2)] cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs flex items-center gap-2 transition-all shadow-sm cursor-pointer"
           >
-            <Mic className="w-3.5 h-3.5 text-cyan-400" />
+            <Mic className="w-3.5 h-3.5" />
             <span>Voice Command</span>
           </button>
 
           <button
             onClick={handleTriggerBriefing}
             disabled={briefingPlaying}
-            className="px-4 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-white/[0.1] text-slate-200 hover:text-white font-sans font-medium text-xs flex items-center gap-2 transition-all cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-white/[0.08] text-slate-300 hover:text-white font-medium text-xs flex items-center gap-2 transition-all cursor-pointer"
           >
-            <Volume2 className={`w-3.5 h-3.5 ${briefingPlaying ? 'text-amber-400 animate-bounce' : 'text-slate-400'}`} />
+            <Volume2 className="w-3.5 h-3.5 text-slate-400" />
             <span>{briefingPlaying ? 'Speaking Briefing...' : 'Morning Briefing'}</span>
           </button>
 
           <button
             onClick={onViewAllApps}
-            className="px-4 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-white/[0.1] text-indigo-300 hover:text-indigo-200 font-sans font-medium text-xs flex items-center gap-2 transition-all cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-white/[0.08] text-slate-300 hover:text-white font-medium text-xs flex items-center gap-2 transition-all cursor-pointer"
           >
-            <Layers className="w-3.5 h-3.5 text-indigo-400" />
-            <span>View All 35 Apps Matrix</span>
+            <Layers className="w-3.5 h-3.5 text-slate-400" />
+            <span>All Applications</span>
           </button>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ArcReactor from './ArcReactor';
-import { Mic, MicOff, Volume2, VolumeX, X, Send, Radio, Sparkles, MessageSquare, Shield, Activity } from 'lucide-react';
+import { Mic, MicOff, Volume2, VolumeX, X, Send, Radio, Sparkles, MessageSquare, Shield, Activity, ArrowLeft } from 'lucide-react';
 
 export default function AudioConversationPage({
   jasperState,
@@ -13,7 +13,7 @@ export default function AudioConversationPage({
   onClose
 }) {
   const [inputText, setInputText] = useState('');
-  const [waveBars, setWaveBars] = useState(Array(24).fill(15));
+  const [waveBars, setWaveBars] = useState(Array(24).fill(12));
   const chatScrollRef = useRef(null);
 
   // Equalizer animation when listening or speaking
@@ -21,10 +21,10 @@ export default function AudioConversationPage({
     let interval;
     if (jasperState === 'speaking' || jasperState === 'listening') {
       interval = setInterval(() => {
-        setWaveBars(prev => prev.map(() => Math.floor(Math.random() * 45) + 10));
+        setWaveBars(prev => prev.map(() => Math.floor(Math.random() * 38) + 8));
       }, 90);
     } else {
-      setWaveBars(Array(24).fill(12));
+      setWaveBars(Array(24).fill(10));
     }
     return () => clearInterval(interval);
   }, [jasperState]);
@@ -47,31 +47,31 @@ export default function AudioConversationPage({
     switch (jasperState) {
       case 'listening':
         return {
-          label: 'VOICE RECOGNITION ACTIVE',
-          subLabel: 'Speak your command or query clearly...',
-          colorClass: 'border-orange-500/50 bg-orange-950/40 text-orange-400 glow-orange',
-          dotClass: 'bg-orange-500 animate-ping'
+          label: 'Listening',
+          subLabel: 'Say something to Jasper...',
+          colorClass: 'border-rose-500/30 bg-rose-500/10 text-rose-300',
+          dotClass: 'bg-rose-400 animate-ping'
         };
       case 'processing':
         return {
-          label: 'PROCESSING NEURAL INTENT',
-          subLabel: 'Synthesizing knowledge vectors...',
-          colorClass: 'border-purple-500/50 bg-purple-950/40 text-purple-300',
-          dotClass: 'bg-purple-400 animate-bounce'
+          label: 'Thinking',
+          subLabel: 'Generating response...',
+          colorClass: 'border-indigo-500/30 bg-indigo-500/10 text-indigo-300',
+          dotClass: 'bg-indigo-400 animate-pulse'
         };
       case 'speaking':
         return {
-          label: 'JASPER VOCALIZING RESPONSE',
-          subLabel: 'Output audio transmission in progress...',
-          colorClass: 'border-cyan-500/50 bg-cyan-950/40 text-cyan-300 glow-cyan',
-          dotClass: 'bg-cyan-400 animate-pulse'
+          label: 'Speaking',
+          subLabel: 'Streaming audio output...',
+          colorClass: 'border-sky-500/30 bg-sky-500/10 text-sky-300',
+          dotClass: 'bg-sky-400 animate-pulse'
         };
       default:
         return {
-          label: 'VOICE OVERRIDE STANDBY',
-          subLabel: 'Tap microphone or central reactor to speak',
-          colorClass: 'border-sky-500/30 bg-sky-950/20 text-sky-400',
-          dotClass: 'bg-sky-500'
+          label: 'Ready',
+          subLabel: 'Tap microphone or central core to talk',
+          colorClass: 'border-white/[0.1] bg-slate-900 text-slate-300',
+          dotClass: 'bg-emerald-400'
         };
     }
   };
@@ -79,37 +79,38 @@ export default function AudioConversationPage({
   const status = getStatusBadge();
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-slate-950/95 backdrop-blur-2xl text-cyan-50 overflow-hidden select-none animate-in fade-in zoom-in-95 duration-200">
-      
-      {/* Background Holographic Grid */}
-      <div className="hologram-grid opacity-60" />
+    <div className="fixed inset-0 z-50 flex flex-col bg-[#07090e] text-slate-100 overflow-hidden select-none animate-in fade-in duration-200 font-sans">
       
       {/* Ambient Radial Glow behind Core */}
       <div 
         className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-3xl pointer-events-none transition-all duration-700 ${
-          jasperState === 'listening' ? 'bg-orange-600/15' : 
-          jasperState === 'processing' ? 'bg-purple-600/20' : 
-          jasperState === 'speaking' ? 'bg-cyan-500/20' : 'bg-cyan-900/10'
+          jasperState === 'listening' ? 'bg-rose-600/10' : 
+          jasperState === 'processing' ? 'bg-indigo-600/15' : 
+          jasperState === 'speaking' ? 'bg-sky-500/15' : 'bg-indigo-900/10'
         }`}
       />
 
       {/* Header Bar */}
-      <header className="relative z-10 flex items-center justify-between px-4 sm:px-8 py-4 border-b border-cyan-500/20 bg-black/60 backdrop-blur-md shrink-0">
+      <header className="relative z-10 flex items-center justify-between px-5 sm:px-8 py-3.5 border-b border-white/[0.08] bg-slate-950/80 backdrop-blur-xl shrink-0">
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg border border-cyan-500/30 bg-cyan-950/40 text-cyan-400 shadow-[0_0_15px_rgba(0,240,255,0.2)]">
-            <Radio className="w-5 h-5 animate-pulse" />
-          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+            title="Return to Workspace"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <h2 className="font-orbitron font-extrabold text-base sm:text-lg tracking-[0.2em] text-cyan-400 glow-cyan leading-none">
-                JASPER AUDIO CONVERSATION
+              <h2 className="font-semibold text-sm sm:text-base text-white tracking-tight">
+                Jasper Voice Conversation
               </h2>
-              <span className="px-2 py-0.5 text-[9px] font-mono border border-cyan-500/30 bg-cyan-950/40 text-cyan-300 rounded font-bold uppercase tracking-wider">
-                LIVE VOICE LINK
+              <span className="px-2 py-0.5 text-[10px] font-medium bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 rounded-full">
+                Real-time
               </span>
             </div>
-            <span className="font-mono text-[10px] text-sky-500 tracking-wider mt-1 uppercase">
-              STARK NEURAL SPEECH SYNTHESIZER & REAL-TIME SPEECH RECOGNITION
+            <span className="text-[11px] text-slate-400">
+              Low-latency neural audio synthesis & voice recognition
             </span>
           </div>
         </div>
@@ -117,68 +118,68 @@ export default function AudioConversationPage({
         {/* Exit Button */}
         <button
           onClick={onClose}
-          className="flex items-center gap-2 px-3 sm:px-4 py-2 text-xs font-mono font-bold text-cyan-300 border border-cyan-500/40 rounded bg-cyan-950/40 hover:bg-cyan-900/60 hover:border-cyan-400 hover:text-white transition-all shadow-[0_0_15px_rgba(0,240,255,0.15)] cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-300 border border-white/[0.1] rounded-xl bg-slate-900/80 hover:bg-slate-800 hover:text-white transition-all cursor-pointer"
         >
-          <X className="w-4 h-4" />
-          <span>EXIT AUDIO MODE</span>
+          <X className="w-3.5 h-3.5" />
+          <span>Close</span>
         </button>
       </header>
 
       {/* Main Conversation Canvas */}
       <main className="relative z-10 flex-1 flex flex-col lg:flex-row overflow-hidden p-4 sm:p-6 gap-6">
         
-        {/* Left / Top: Arc Reactor Visualizer & Sound Spectrum */}
-        <div className="flex-1 flex flex-col items-center justify-center relative bg-gradient-to-b from-cyan-950/20 to-black/40 border border-cyan-500/20 rounded-2xl p-6 shadow-[0_0_30px_rgba(0,240,255,0.05)] overflow-hidden">
+        {/* Left: Breathing Core Visualizer & Sound Spectrum */}
+        <div className="flex-1 flex flex-col items-center justify-center relative bg-slate-900/40 border border-white/[0.08] rounded-2xl p-6 backdrop-blur-xl shadow-2xl overflow-hidden">
           
           {/* Status Badge Tag */}
-          <div className={`flex items-center gap-2.5 px-4 py-1.5 rounded-full border text-xs font-mono font-bold tracking-wider uppercase transition-all duration-300 ${status.colorClass}`}>
+          <div className={`flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-medium tracking-wide transition-all duration-300 ${status.colorClass}`}>
             <span className={`w-2 h-2 rounded-full ${status.dotClass}`} />
             <span>{status.label}</span>
           </div>
           
-          <div className="mt-1 text-[11px] font-mono text-sky-400 tracking-wide text-center">
+          <div className="mt-1 text-xs text-slate-400 text-center">
             {status.subLabel}
           </div>
 
           {/* Central Reactor Visualizer Component */}
-          <div className="w-64 h-64 sm:w-80 sm:h-80 my-4 sm:my-6 relative cursor-pointer" onClick={onToggleListening}>
+          <div className="w-56 h-56 sm:w-72 sm:h-72 my-4 sm:my-6 relative cursor-pointer" onClick={onToggleListening}>
             <ArcReactor state={jasperState} onClick={onToggleListening} />
           </div>
 
-          {/* Dynamic Audio Equalizer Bars */}
-          <div className="flex items-end justify-center gap-1.5 h-14 w-full max-w-sm px-4 py-2 border border-cyan-500/15 rounded-xl bg-black/40">
+          {/* Audio Equalizer Bars */}
+          <div className="flex items-end justify-center gap-1.5 h-12 w-full max-w-xs px-4 py-2 border border-white/[0.06] rounded-xl bg-slate-950/60">
             {waveBars.map((height, i) => (
               <div
                 key={i}
-                className={`w-1.5 rounded-t transition-all duration-100 ${
-                  jasperState === 'listening' ? 'bg-orange-500 shadow-[0_0_8px_rgba(255,85,0,0.8)]' :
-                  jasperState === 'speaking' ? 'bg-cyan-400 shadow-[0_0_8px_rgba(0,240,255,0.8)]' :
-                  jasperState === 'processing' ? 'bg-purple-500 shadow-[0_0_8px_rgba(180,0,255,0.8)]' : 'bg-cyan-950'
+                className={`w-1 rounded-full transition-all duration-100 ${
+                  jasperState === 'listening' ? 'bg-rose-400' :
+                  jasperState === 'speaking' ? 'bg-sky-400' :
+                  jasperState === 'processing' ? 'bg-indigo-400' : 'bg-slate-700'
                 }`}
                 style={{ height: `${height}px` }}
               />
             ))}
           </div>
 
-          {/* Quick Voice Control Buttons */}
-          <div className="flex items-center justify-center gap-4 mt-6">
+          {/* Voice Controls */}
+          <div className="flex items-center justify-center gap-3 mt-6">
             <button
               onClick={onToggleListening}
-              className={`flex items-center gap-2.5 px-6 py-3 rounded-full font-orbitron font-bold text-sm tracking-wider transition-all cursor-pointer shadow-lg ${
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-medium tracking-wide transition-all cursor-pointer shadow-lg ${
                 jasperState === 'listening'
-                  ? 'bg-orange-600 border-2 border-orange-400 text-white shadow-[0_0_25px_rgba(255,85,0,0.6)] animate-pulse'
-                  : 'bg-cyan-950/80 border-2 border-cyan-500/50 text-cyan-300 hover:border-cyan-400 hover:bg-cyan-900 shadow-[0_0_20px_rgba(0,240,255,0.3)]'
+                  ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-600/30 animate-pulse'
+                  : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/25'
               }`}
             >
               {jasperState === 'listening' ? (
                 <>
-                  <MicOff className="w-5 h-5 text-white animate-spin" />
-                  <span>LISTENING... (TAP TO STOP)</span>
+                  <MicOff className="w-4 h-4" />
+                  <span>Listening... (Tap to pause)</span>
                 </>
               ) : (
                 <>
-                  <Mic className="w-5 h-5 text-cyan-400" />
-                  <span>TAP TO SPEAK</span>
+                  <Mic className="w-4 h-4" />
+                  <span>Tap to Speak</span>
                 </>
               )}
             </button>
@@ -186,69 +187,63 @@ export default function AudioConversationPage({
             {jasperState === 'speaking' && (
               <button
                 onClick={onStopSpeaking}
-                className="flex items-center gap-2 px-4 py-3 rounded-full font-mono text-xs font-bold text-red-300 border border-red-500/40 bg-red-950/50 hover:bg-red-900 transition-all cursor-pointer shadow-[0_0_15px_rgba(255,0,0,0.3)]"
-                title="Mute / Stop Vocalization"
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-medium text-rose-300 border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 transition-all cursor-pointer"
+                title="Stop speaking"
               >
-                <VolumeX className="w-4 h-4 text-red-400" />
-                <span>MUTE AUDIO</span>
+                <VolumeX className="w-4 h-4 text-rose-400" />
+                <span>Mute</span>
               </button>
             )}
           </div>
         </div>
 
-        {/* Right / Bottom: Live Audio Transcript & Spoken Response Card */}
-        <div className="flex-1 flex flex-col bg-slate-900/60 border border-cyan-500/20 rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.8)]">
+        {/* Right: Live Transcript Card */}
+        <div className="flex-1 flex flex-col bg-slate-900/40 border border-white/[0.08] rounded-2xl overflow-hidden backdrop-blur-xl shadow-2xl">
           
           {/* Audio Log Title */}
-          <div className="flex items-center justify-between px-5 py-3 border-b border-cyan-500/20 bg-black/40 font-orbitron text-xs font-bold text-cyan-400 tracking-wider">
+          <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.06] bg-slate-950/40 text-xs font-medium text-slate-300">
             <div className="flex items-center gap-2">
-              <Activity className="w-4 h-4 text-cyan-400" />
-              <span>LIVE AUDIO TRANSCRIPT</span>
+              <Activity className="w-4 h-4 text-indigo-400" />
+              <span>Live Transcript</span>
             </div>
-            <span className="font-mono text-[10px] text-sky-500 font-normal uppercase">
-              ENHANCED HIGH-READABILITY TEXT
+            <span className="text-[11px] text-slate-500">
+              Synchronized audio stream
             </span>
           </div>
 
           {/* Scrollable Conversation Content */}
-          <div ref={chatScrollRef} className="flex-1 overflow-y-auto p-5 space-y-6">
+          <div ref={chatScrollRef} className="flex-1 overflow-y-auto p-5 space-y-4 custom-scrollbar">
             
             {/* Display User Query */}
             {latestQuery ? (
-              <div className="flex flex-col gap-2 bg-cyan-950/30 border border-cyan-500/30 rounded-xl p-4 shadow-[0_0_15px_rgba(0,240,255,0.1)]">
-                <div className="flex items-center justify-between font-mono text-[10px] text-orange-400 font-bold uppercase tracking-wider">
+              <div className="flex flex-col gap-1.5 bg-slate-950/60 border border-white/[0.06] rounded-xl p-4">
+                <div className="flex items-center justify-between text-[11px] text-slate-400 font-medium">
                   <span className="flex items-center gap-1.5">
-                    <Mic className="w-3.5 h-3.5" />
-                    <span>USER VOICE INPUT</span>
+                    <Mic className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>You said</span>
                   </span>
-                  <span>CONFIRMED</span>
                 </div>
-                <p className="font-mono text-cyan-100 text-lg sm:text-xl font-medium tracking-wide">
+                <p className="text-slate-100 text-base font-normal leading-relaxed">
                   "{latestQuery}"
                 </p>
               </div>
             ) : (
-              <div className="text-center py-8 font-mono text-xs text-sky-600/70 uppercase tracking-widest border border-dashed border-cyan-500/15 rounded-xl">
-                Awaiting your spoken request, Sir...
+              <div className="text-center py-10 text-xs text-slate-500 border border-dashed border-white/[0.06] rounded-xl">
+                Ready to listen. Say "Hey Jasper" or tap the microphone.
               </div>
             )}
 
-            {/* Display JASPER Spoken Response in 32px Font Size */}
+            {/* Display JASPER Spoken Response */}
             {latestResponse && (
-              <div className="flex flex-col gap-3 bg-gradient-to-br from-cyan-950/60 to-black/80 border-2 border-cyan-500/40 rounded-xl p-6 shadow-[0_0_25px_rgba(0,240,255,0.2)]">
-                <div className="flex items-center justify-between font-orbitron text-xs text-cyan-400 font-extrabold uppercase tracking-widest border-b border-cyan-500/20 pb-2">
-                  <span className="flex items-center gap-2 glow-cyan">
-                    <Sparkles className="w-4 h-4 text-cyan-400 animate-spin" style={{ animationDuration: '8s' }} />
-                    <span>JASPER VOCAL TRANSMISSION</span>
+              <div className="flex flex-col gap-2 bg-indigo-500/[0.06] border border-indigo-500/20 rounded-xl p-5">
+                <div className="flex items-center justify-between text-xs text-indigo-300 font-medium border-b border-white/[0.06] pb-2">
+                  <span className="flex items-center gap-2">
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>Jasper Response</span>
                   </span>
-                  <span className="font-mono text-[10px] text-sky-400 font-normal">20PX TEXT</span>
                 </div>
 
-                {/* 20px Spoken Response Text Display */}
-                <div 
-                  className="whitespace-pre-wrap leading-snug font-sans text-cyan-50 glow-cyan tracking-wide font-normal"
-                  style={{ fontSize: '20px', textShadow: '0 0 10px rgba(0, 240, 255, 0.4)' }}
-                >
+                <div className="whitespace-pre-wrap leading-relaxed font-sans text-slate-100 font-normal text-base sm:text-lg">
                   {latestResponse}
                 </div>
               </div>
@@ -256,33 +251,32 @@ export default function AudioConversationPage({
           </div>
 
           {/* Quick Manual Text Fallback Bar */}
-          <form onSubmit={handleSubmit} className="p-4 border-t border-cyan-500/20 bg-black/60 flex items-center gap-3">
+          <form onSubmit={handleSubmit} className="p-3.5 border-t border-white/[0.06] bg-slate-950/60 flex items-center gap-2">
             <input
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="Or type a question / command manually here..."
-              className="flex-1 bg-black/60 border border-cyan-500/30 rounded-lg px-4 py-3 text-cyan-100 placeholder-sky-700/80 font-mono text-sm sm:text-base outline-none focus:border-cyan-400 transition-all"
-              style={{ fontSize: '16px' }}
+              placeholder="Or type a question or command..."
+              className="flex-1 bg-slate-900 border border-white/[0.08] rounded-xl px-3.5 py-2 text-slate-100 placeholder-slate-500 font-sans text-xs sm:text-sm outline-none focus:border-indigo-500 transition-colors"
             />
             <button
               type="submit"
-              className="flex items-center justify-center px-5 py-3 bg-cyan-950 border border-cyan-500/40 hover:border-cyan-400 text-cyan-300 font-mono font-bold text-sm rounded-lg hover:bg-cyan-900 transition-all cursor-pointer shadow-[0_0_15px_rgba(0,240,255,0.2)]"
+              className="flex items-center justify-center px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-xl transition-colors cursor-pointer shadow-sm shadow-indigo-500/20"
             >
-              <Send className="w-4 h-4 mr-1.5" />
-              <span>SEND</span>
+              <Send className="w-3.5 h-3.5 mr-1" />
+              <span>Send</span>
             </button>
           </form>
         </div>
       </main>
 
       {/* Footer System Telemetry */}
-      <footer className="relative z-10 px-6 py-2 border-t border-cyan-500/15 bg-black/80 flex justify-between items-center text-[10px] font-mono text-sky-600/70 uppercase">
+      <footer className="relative z-10 px-6 py-2.5 border-t border-white/[0.06] bg-slate-950/90 flex justify-between items-center text-[11px] text-slate-500 font-sans">
         <span className="flex items-center gap-2">
-          <Shield className="w-3.5 h-3.5 text-cyan-500" />
-          <span>STARK HOLOGRAPHIC AUDIO INTERFACE v4.1</span>
+          <Shield className="w-3.5 h-3.5 text-indigo-400" />
+          <span>Duplex Voice Connection Active</span>
         </span>
-        <span>STATUS: BI-DIRECTIONAL AUDIO LINK ACTIVE</span>
+        <span>Secure Local Audio Stream</span>
       </footer>
     </div>
   );

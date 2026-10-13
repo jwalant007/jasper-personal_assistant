@@ -60,11 +60,12 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-// Global Automated Authentication & Passcode Header Interceptor
+// Global Automated Authentication & Multi-User Header Interceptor
 if (typeof window !== 'undefined' && window.fetch) {
   const nativeFetch = window.fetch;
   window.fetch = function(input, init) {
     const token = localStorage.getItem('jasper_auth_token') || 'jasper';
+    const currentUserId = localStorage.getItem('jasper_current_user_id') || 'jwalant';
     const isApi = (typeof input === 'string' && (input.startsWith('/api') || input.includes('/api/'))) ||
                   (input instanceof Request && input.url && input.url.includes('/api/'));
 
@@ -73,6 +74,9 @@ if (typeof window !== 'undefined' && window.fetch) {
       const customHeaders = new Headers(init.headers || {});
       if (!customHeaders.has('x-jasper-token')) {
         customHeaders.set('x-jasper-token', token);
+      }
+      if (!customHeaders.has('x-user-id')) {
+        customHeaders.set('x-user-id', currentUserId);
       }
       init.headers = customHeaders;
     }

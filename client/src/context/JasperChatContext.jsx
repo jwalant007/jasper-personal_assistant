@@ -3,9 +3,17 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 const JasperChatContext = createContext(null);
 
 export function JasperChatProvider({ children }) {
+  const [activeUserId, setActiveUserId] = useState(() => {
+    return localStorage.getItem('jasper_current_user_id') || 'jwalant';
+  });
+
+  // Helper to get storage key
+  const getStorageKey = (uid) => `jasper_past_chats_${uid || 'jwalant'}`;
+
   // Past Chat History
   const [pastChats, setPastChats] = useState(() => {
-    const saved = localStorage.getItem('jasper_past_chats');
+    const uid = localStorage.getItem('jasper_current_user_id') || 'jwalant';
+    const saved = localStorage.getItem(getStorageKey(uid)) || (uid === 'jwalant' ? localStorage.getItem('jasper_past_chats') : null);
     return saved ? JSON.parse(saved) : [
       { 
         id: 1, 
@@ -16,9 +24,46 @@ export function JasperChatProvider({ children }) {
     ];
   });
 
+  // Keep localStorage updated for active user
   useEffect(() => {
-    localStorage.setItem('jasper_past_chats', JSON.stringify(pastChats));
-  }, [pastChats]);
+    if (activeUserId) {
+      localStorage.setItem(getStorageKey(activeUserId), JSON.stringify(pastChats));
+    }
+  }, [pastChats, activeUserId]);
+
+  // Listen to user change event to swap chat sessions
+  useEffect(() => {
+    const handleUserChanged = (e) => {
+      const newUser = e.detail?.user;
+      const newId = newUser?.userId || localStorage.getItem('jasper_current_user_id') || 'jwalant';
+      setActiveUserId(newId);
+
+      const saved = localStorage.getItem(getStorageKey(newId)) || (newId === 'jwalant' ? localStorage.getItem('jasper_past_chats') : null);
+      if (saved) {
+        try {
+          setPastChats(JSON.parse(saved));
+        } catch (err) {
+          setPastChats([]);
+        }
+      } else {
+        // Fetch from server for new user if available
+        fetch('/api/db/chats', { headers: { 'x-user-id': newId } })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success && Array.isArray(data.chats) && data.chats.length > 0) {
+              setPastChats(data.chats);
+            } else {
+              setPastChats([]);
+            }
+          })
+          .catch(() => setPastChats([]));
+      }
+      setSelectedChatId(null);
+    };
+
+    window.addEventListener('jasper_user_changed', handleUserChanged);
+    return () => window.removeEventListener('jasper_user_changed', handleUserChanged);
+  }, []);
 
   const [selectedChatId, setSelectedChatId] = useState(null);
   const [manualInput, setManualInput] = useState('');
@@ -40,10 +85,12 @@ export function JasperChatProvider({ children }) {
   }, []);
 
   const clearChatHistory = useCallback(() => {
-    localStorage.removeItem('jasper_past_chats');
+    const key = getStorageKey(activeUserId);
+    localStorage.removeItem(key);
+    if (activeUserId === 'jwalant') localStorage.removeItem('jasper_past_chats');
     setPastChats([]);
     setSelectedChatId(null);
-  }, []);
+  }, [activeUserId]);
 
   const processFiles = useCallback((files) => {
     if (!files || files.length === 0) return;

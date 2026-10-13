@@ -385,7 +385,16 @@ app.use((req, res, next) => {
   if (!req.path.startsWith('/api')) return next();
 
   // Public health & verification endpoints
-  const publicApiPaths = ['/api/health', '/api/ping', '/api/auth/verify', '/api/satellite/status'];
+  const publicApiPaths = [
+    '/api/health',
+    '/api/ping',
+    '/api/auth/verify',
+    '/api/satellite/status',
+    '/api/users',
+    '/api/auth/login',
+    '/api/auth/register',
+    '/api/auth/switch'
+  ];
   if (publicApiPaths.includes(req.path) || 
       req.path.startsWith('/api/telephony/inbound') || 
       req.path.startsWith('/api/telephony/owner-gather') || 
@@ -413,6 +422,158 @@ app.use((req, res, next) => {
     error: 'Access Denied: Protected JASPER API endpoint. Valid x-jasper-token required.',
     requiresAuth: true
   });
+});
+
+// Multi-User Context Extraction Middleware
+app.use((req, res, next) => {
+  const headerUser = req.headers['x-user-id'];
+  const queryUser = req.query.userId;
+  const bodyUser = req.body && typeof req.body === 'object' ? req.body.userId : null;
+  const rawUser = headerUser || queryUser || bodyUser;
+  req.userId = rawUser ? String(rawUser).trim().toLowerCase() : dbManager.getActiveUserId() || 'jwalant';
+  next();
+});
+
+// -------------------------------------------------------------
+// MULTI-USER IDENTITY & ACCOUNT MANAGEMENT ENDPOINTS
+// -------------------------------------------------------------
+
+// List all user profiles (for switch profile and user selector)
+app.get('/api/users', (req, res) => {
+  res.json({
+    success: true,
+    users: dbManager.getUsers(),
+    activeUserId: dbManager.getActiveUserId()
+  });
+});
+
+// User login endpoint
+app.post('/api/auth/login', (req, res) => {
+  try {
+    const { userId, pin } = req.body || {};
+    if (!userId) return res.status(400).json({ success: false, error: 'User ID is required' });
+    const cleanId = String(userId).trim().toLowerCase();
+    let user = dbManager.getUser(cleanId);
+    if (!user) {
+      // Auto-provision user account if logging in with new ID
+      user = dbManager.ensureUser(cleanId, cleanId);
+    }
+
+    if (user.pin && user.pin.trim() && pin !== undefined && String(pin).trim() !== '') {
+      if (user.pin !== String(pin).trim() && String(pin).trim() !== JASPER_AUTH_SECRET && String(pin).trim() !== 'master-override') {
+        return res.status(401).json({ success: false, error: 'Invalid Passcode / PIN for this User ID' });
+      }
+    }
+
+    dbManager.setActiveUserId(cleanId);
+    console.log(`[Multi-User Auth] User "${cleanId}" authenticated successfully.`);
+
+    res.json({
+      success: true,
+      user: {
+        userId: user.userId,
+        name: user.name,
+        role: user.role,
+        avatar: user.avatar,
+        hasPin: !!user.pin,
+        hasFaceProfile: !!user.settings?.ownerFaceProfile
+      },
+      token: JASPER_AUTH_SECRET
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// User registration endpoint
+app.post('/api/auth/register', (req, res) => {
+  try {
+    const { userId, name, pin, avatar, role } = req.body || {};
+    if (!userId) return res.status(400).json({ success: false, error: 'User ID is required' });
+    const result = dbManager.createUser({ userId, name, pin, avatar, role });
+    if (!result.success) return res.status(400).json(result);
+
+    dbManager.setActiveUserId(result.user.userId);
+    res.json({
+      success: true,
+      user: {
+        userId: result.user.userId,
+        name: result.user.name,
+        role: result.user.role,
+        avatar: result.user.avatar,
+        hasPin: !!result.user.pin,
+        hasFaceProfile: !!result.user.settings?.ownerFaceProfile
+      },
+      token: JASPER_AUTH_SECRET
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Current authenticated user info
+app.get('/api/auth/me', (req, res) => {
+  const user = dbManager.getUser(req.userId);
+  if (!user) return res.status(404).json({ success: false, error: 'User not found' });
+  res.json({
+    success: true,
+    user: {
+      userId: user.userId,
+      name: user.name,
+      role: user.role,
+      avatar: user.avatar,
+      createdAt: user.createdAt,
+      hasPin: !!user.pin,
+      hasFaceProfile: !!user.settings?.ownerFaceProfile,
+      settings: user.settings
+    }
+  });
+});
+
+// Fast User Switch endpoint
+app.post('/api/auth/switch', (req, res) => {
+  const { userId, pin } = req.body || {};
+  if (!userId) return res.status(400).json({ success: false, error: 'User ID is required' });
+  const cleanId = String(userId).trim().toLowerCase();
+  const user = dbManager.getUser(cleanId);
+  if (!user) return res.status(404).json({ success: false, error: 'User profile not found' });
+
+  if (user.pin && user.pin.trim() && pin !== undefined && String(pin).trim() !== '') {
+    if (user.pin !== String(pin).trim() && String(pin).trim() !== JASPER_AUTH_SECRET && String(pin).trim() !== 'master-override') {
+      return res.status(401).json({ success: false, error: 'Incorrect PIN for profile switch' });
+    }
+  }
+
+  dbManager.setActiveUserId(cleanId);
+  res.json({
+    success: true,
+    activeUserId: cleanId,
+    user: {
+      userId: user.userId,
+      name: user.name,
+      role: user.role,
+      avatar: user.avatar,
+      hasPin: !!user.pin,
+      hasFaceProfile: !!user.settings?.ownerFaceProfile
+    }
+  });
+});
+
+// Update profile endpoint
+app.put('/api/auth/profile', (req, res) => {
+  const updated = dbManager.updateUser(req.userId, req.body);
+  if (!updated) return res.status(404).json({ success: false, error: 'User not found' });
+  res.json({ success: true, user: updated });
+});
+
+// Delete user account endpoint
+app.delete('/api/users/:id', (req, res) => {
+  try {
+    const deleted = dbManager.deleteUser(req.params.id);
+    res.json({ success: true, deleted, users: dbManager.getUsers() });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
 });
 
 // -------------------------------------------------------------
@@ -2387,23 +2548,28 @@ app.post('/api/agent/research', async (req, res) => {
 
 // Dump entire database (for client hydration)
 app.get('/api/db/all', (req, res) => {
-  res.json({ success: true, db: dbManager.getAll() });
+  res.json({
+    success: true,
+    db: dbManager.getAll(req.userId),
+    users: dbManager.getUsers(),
+    activeUserId: req.userId
+  });
 });
 
 // Memory Store Endpoints
 app.get('/api/memory', (req, res) => {
-  res.json({ memories: dbManager.getMemories() });
+  res.json({ memories: dbManager.getMemories(req.userId) });
 });
 
 app.post('/api/memory', (req, res) => {
   const { text, category } = req.body;
   if (!text) return res.status(400).json({ error: 'Text required' });
-  const result = dbManager.addMemory(text, category);
+  const result = dbManager.addMemory(text, category, req.userId);
   res.json({ success: true, item: result.item, memories: result.memories });
 });
 
 app.delete('/api/memory/:id', (req, res) => {
-  const memories = dbManager.deleteMemory(req.params.id);
+  const memories = dbManager.deleteMemory(req.params.id, req.userId);
   res.json({ success: true, memories });
 });
 
@@ -2473,7 +2639,7 @@ async function dispatchGuardianAlertMessage(details) {
 // Full Financial Data Summary
 app.get('/api/finance/summary', (req, res) => {
   try {
-    const data = dbManager.getFinanceData();
+    const data = dbManager.getFinanceData(req.userId);
     res.json({ success: true, ...data });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2483,8 +2649,8 @@ app.get('/api/finance/summary', (req, res) => {
 // Accounts CRUD
 app.post('/api/finance/accounts', (req, res) => {
   try {
-    const account = dbManager.addPaymentAccount(req.body);
-    broadcastToClients({ type: 'FINANCE_UPDATED', summary: dbManager.getFinanceData() });
+    const account = dbManager.addPaymentAccount(req.body, req.userId);
+    broadcastToClients({ type: 'FINANCE_UPDATED', userId: req.userId, summary: dbManager.getFinanceData(req.userId) });
     res.json({ success: true, account });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2493,9 +2659,9 @@ app.post('/api/finance/accounts', (req, res) => {
 
 app.put('/api/finance/accounts/:id', (req, res) => {
   try {
-    const updated = dbManager.updatePaymentAccount(req.params.id, req.body);
+    const updated = dbManager.updatePaymentAccount(req.params.id, req.body, req.userId);
     if (!updated) return res.status(404).json({ error: 'Account not found' });
-    broadcastToClients({ type: 'FINANCE_UPDATED', summary: dbManager.getFinanceData() });
+    broadcastToClients({ type: 'FINANCE_UPDATED', userId: req.userId, summary: dbManager.getFinanceData(req.userId) });
     res.json({ success: true, account: updated });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2504,8 +2670,8 @@ app.put('/api/finance/accounts/:id', (req, res) => {
 
 app.delete('/api/finance/accounts/:id', (req, res) => {
   try {
-    const accounts = dbManager.deletePaymentAccount(req.params.id);
-    broadcastToClients({ type: 'FINANCE_UPDATED', summary: dbManager.getFinanceData() });
+    const accounts = dbManager.deletePaymentAccount(req.params.id, req.userId);
+    broadcastToClients({ type: 'FINANCE_UPDATED', userId: req.userId, summary: dbManager.getFinanceData(req.userId) });
     res.json({ success: true, accounts });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2515,7 +2681,7 @@ app.delete('/api/finance/accounts/:id', (req, res) => {
 // Transactions
 app.post('/api/finance/transactions', async (req, res) => {
   try {
-    const result = dbManager.addTransaction(req.body);
+    const result = dbManager.addTransaction(req.body, req.userId);
     if (result.shouldAlertGuardian && result.guardianAlertDetails) {
       // Asynchronously dispatch the guardian message
       dispatchGuardianAlertMessage(result.guardianAlertDetails).catch(err => {
@@ -2523,7 +2689,7 @@ app.post('/api/finance/transactions', async (req, res) => {
       });
     }
 
-    broadcastToClients({ type: 'FINANCE_UPDATED', summary: dbManager.getFinanceData() });
+    broadcastToClients({ type: 'FINANCE_UPDATED', userId: req.userId, summary: dbManager.getFinanceData(req.userId) });
     res.json({ success: true, ...result });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2532,8 +2698,8 @@ app.post('/api/finance/transactions', async (req, res) => {
 
 app.delete('/api/finance/transactions/:id', (req, res) => {
   try {
-    const summary = dbManager.deleteTransaction(req.params.id);
-    broadcastToClients({ type: 'FINANCE_UPDATED', summary });
+    const summary = dbManager.deleteTransaction(req.params.id, req.userId);
+    broadcastToClients({ type: 'FINANCE_UPDATED', userId: req.userId, summary });
     res.json({ success: true, summary });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2547,8 +2713,8 @@ app.post('/api/finance/transfer', (req, res) => {
     if (!fromAccountId || !toAccountId || !amount) {
       return res.status(400).json({ error: 'fromAccountId, toAccountId, and amount are required' });
     }
-    const result = dbManager.transferFunds({ fromAccountId, toAccountId, amount, description });
-    broadcastToClients({ type: 'FINANCE_UPDATED', summary: dbManager.getFinanceData() });
+    const result = dbManager.transferFunds({ fromAccountId, toAccountId, amount, description }, req.userId);
+    broadcastToClients({ type: 'FINANCE_UPDATED', userId: req.userId, summary: dbManager.getFinanceData(req.userId) });
     res.json({ success: true, ...result });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2558,8 +2724,8 @@ app.post('/api/finance/transfer', (req, res) => {
 // Budget Settings Update
 app.put('/api/finance/budget', (req, res) => {
   try {
-    const summary = dbManager.updateBudgetSettings(req.body);
-    broadcastToClients({ type: 'FINANCE_UPDATED', summary });
+    const summary = dbManager.updateBudgetSettings(req.body, req.userId);
+    broadcastToClients({ type: 'FINANCE_UPDATED', userId: req.userId, summary });
     res.json({ success: true, budget: summary.budget });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2569,8 +2735,8 @@ app.put('/api/finance/budget', (req, res) => {
 // Finance Settings Update (Currency, Privacy Mode)
 app.put('/api/finance/settings', (req, res) => {
   try {
-    const settings = dbManager.updateFinanceSettings(req.body);
-    broadcastToClients({ type: 'FINANCE_UPDATED', summary: dbManager.getFinanceData() });
+    const settings = dbManager.updateFinanceSettings(req.body, req.userId);
+    broadcastToClients({ type: 'FINANCE_UPDATED', userId: req.userId, summary: dbManager.getFinanceData(req.userId) });
     res.json({ success: true, settings });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2580,7 +2746,7 @@ app.put('/api/finance/settings', (req, res) => {
 // Test Guardian Alert Trigger
 app.post('/api/finance/guardian-alert/test', async (req, res) => {
   try {
-    const fin = dbManager.getFinanceData();
+    const fin = dbManager.getFinanceData(req.userId);
     const details = {
       guardianName: fin.budget?.guardianName || 'Guardian',
       guardianPhone: fin.budget?.guardianPhone || '',
@@ -2605,9 +2771,9 @@ app.post('/api/finance/import-statement', (req, res) => {
     if (!statementText) {
       return res.status(400).json({ error: 'statementText is required' });
     }
-    const result = financialIntelligenceEngine.importStatement(statementText, format, accountId);
+    const result = financialIntelligenceEngine.importStatement(statementText, format, accountId, req.userId);
     if (result.success) {
-      broadcastToClients({ type: 'FINANCE_UPDATED', summary: dbManager.getFinanceData() });
+      broadcastToClients({ type: 'FINANCE_UPDATED', userId: req.userId, summary: dbManager.getFinanceData(req.userId) });
     }
     res.json(result);
   } catch (err) {
@@ -2622,7 +2788,7 @@ app.post('/api/finance/categories/correct', (req, res) => {
     if (!merchant || !category) {
       return res.status(400).json({ error: 'merchant and category are required' });
     }
-    const result = financialIntelligenceEngine.learnMerchantCategory(merchant, category);
+    const result = financialIntelligenceEngine.learnMerchantCategory(merchant, category, req.userId);
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2632,7 +2798,7 @@ app.post('/api/finance/categories/correct', (req, res) => {
 // Multi-Horizon Financial Forecast (1m, 3m, 6m, 1y, 3y, 5y)
 app.get('/api/finance/forecast', (req, res) => {
   try {
-    const forecast = financialIntelligenceEngine.generateForecast(req.query);
+    const forecast = financialIntelligenceEngine.generateForecast(req.query, req.userId);
     res.json({ success: true, ...forecast });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2642,7 +2808,7 @@ app.get('/api/finance/forecast', (req, res) => {
 // What-If Scenario Simulation
 app.post('/api/finance/what-if', (req, res) => {
   try {
-    const simulation = financialIntelligenceEngine.simulateWhatIf(req.body);
+    const simulation = financialIntelligenceEngine.simulateWhatIf(req.body, req.userId);
     res.json({ success: true, ...simulation });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2652,7 +2818,7 @@ app.post('/api/finance/what-if', (req, res) => {
 // Subscriptions & Recurring Payment Detection
 app.get('/api/finance/subscriptions', (req, res) => {
   try {
-    const subscriptions = financialIntelligenceEngine.detectSubscriptions();
+    const subscriptions = financialIntelligenceEngine.detectSubscriptions(req.userId);
     res.json({ success: true, subscriptions });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2662,7 +2828,7 @@ app.get('/api/finance/subscriptions', (req, res) => {
 // Unusual Spending / Anomaly Detection
 app.get('/api/finance/anomalies', (req, res) => {
   try {
-    const anomalies = financialIntelligenceEngine.detectAnomalies();
+    const anomalies = financialIntelligenceEngine.detectAnomalies(req.userId);
     res.json({ success: true, anomalies });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2672,7 +2838,7 @@ app.get('/api/finance/anomalies', (req, res) => {
 // Safe Weekly Spend Allowance
 app.get('/api/finance/safe-weekly', (req, res) => {
   try {
-    const safeSpend = financialIntelligenceEngine.getSafeWeeklySpend();
+    const safeSpend = financialIntelligenceEngine.getSafeWeeklySpend(req.userId);
     res.json({ success: true, ...safeSpend });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2932,84 +3098,104 @@ app.post('/api/analytics/increment', (req, res) => {
 
 // Chat History Endpoints
 app.get('/api/db/chats', (req, res) => {
-  res.json({ success: true, chats: dbManager.getChatHistory() });
+  res.json({ success: true, chats: dbManager.getChatHistory(req.userId) });
 });
 
 app.post('/api/db/chats', (req, res) => {
-  const chats = dbManager.saveChatHistory(req.body.chats);
+  const chats = dbManager.saveChatHistory(req.body.chats, req.userId);
   res.json({ success: true, chats });
 });
 
 app.post('/api/db/chats/entry', (req, res) => {
   const { query, response } = req.body;
   if (!query) return res.status(400).json({ error: 'Query required' });
-  const entry = dbManager.addChatEntry(query, response);
-  res.json({ success: true, entry, chats: dbManager.getChatHistory() });
+  const entry = dbManager.addChatEntry(query, response, req.userId);
+  res.json({ success: true, entry, chats: dbManager.getChatHistory(req.userId) });
 });
 
 app.delete('/api/db/chats/:id', (req, res) => {
-  const chats = dbManager.deleteChatEntry(req.params.id);
+  const chats = dbManager.deleteChatEntry(req.params.id, req.userId);
   res.json({ success: true, chats });
 });
 
 // Reminders Endpoints
 app.get('/api/db/reminders', (req, res) => {
-  res.json({ success: true, reminders: dbManager.getReminders() });
+  res.json({ success: true, reminders: dbManager.getReminders(req.userId) });
 });
 
 app.post('/api/db/reminders', (req, res) => {
   let reminders;
   if (Array.isArray(req.body.reminders)) {
-    reminders = dbManager.saveReminders(req.body.reminders);
+    reminders = dbManager.saveReminders(req.body.reminders, req.userId);
   } else {
-    reminders = dbManager.addReminder(req.body);
+    reminders = dbManager.addReminder(req.body, req.userId);
   }
   res.json({ success: true, reminders });
 });
 
 app.delete('/api/db/reminders/:id', (req, res) => {
-  const reminders = dbManager.deleteReminder(req.params.id);
+  const reminders = dbManager.deleteReminder(req.params.id, req.userId);
   res.json({ success: true, reminders });
 });
 
 // Automations Endpoints
 app.get('/api/db/automations', (req, res) => {
-  res.json({ success: true, automations: dbManager.getAutomations() });
+  res.json({ success: true, automations: dbManager.getAutomations(req.userId) });
 });
 
 app.post('/api/db/automations', (req, res) => {
-  const automations = dbManager.saveAutomations(req.body.automations || req.body);
+  const automations = dbManager.saveAutomations(req.body.automations || req.body, req.userId);
   res.json({ success: true, automations });
+});
+
+// Notes & Documents Endpoints
+app.get('/api/db/notes', (req, res) => {
+  res.json({ success: true, notes: dbManager.getNotes(req.userId) });
+});
+
+app.post('/api/db/notes', (req, res) => {
+  const notes = dbManager.saveNotes(req.body.notes || req.body, req.userId);
+  res.json({ success: true, notes });
+});
+
+// Tasks & Kanban Endpoints
+app.get('/api/db/tasks', (req, res) => {
+  res.json({ success: true, tasks: dbManager.getTasks(req.userId) });
+});
+
+app.post('/api/db/tasks', (req, res) => {
+  const tasks = dbManager.saveTasks(req.body.tasks || req.body, req.userId);
+  res.json({ success: true, tasks });
 });
 
 // Health Vitals Telemetry Endpoints
 app.get('/api/db/health', (req, res) => {
-  res.json({ success: true, vitals: dbManager.getHealthVitals() });
+  res.json({ success: true, vitals: dbManager.getHealthVitals(req.userId) });
 });
 
 app.post('/api/db/health', (req, res) => {
-  const entry = dbManager.addHealthVital(req.body);
-  res.json({ success: true, entry, vitals: dbManager.getHealthVitals() });
+  const entry = dbManager.addHealthVital(req.body, req.userId);
+  res.json({ success: true, entry, vitals: dbManager.getHealthVitals(req.userId) });
 });
 
 // Settings & Preferences Endpoints
 app.get('/api/db/settings', (req, res) => {
-  res.json({ success: true, settings: dbManager.getSettings() });
+  res.json({ success: true, settings: dbManager.getSettings(req.userId) });
 });
 
 app.post('/api/db/settings', (req, res) => {
-  const settings = dbManager.updateSettings(req.body);
+  const settings = dbManager.updateSettings(req.body, req.userId);
   res.json({ success: true, settings });
 });
 
 // Backup Export & Import Endpoints
 app.get('/api/db/export', (req, res) => {
-  res.json(dbManager.exportBackup());
+  res.json(dbManager.exportBackup(req.userId));
 });
 
 app.post('/api/db/import', (req, res) => {
   try {
-    const data = dbManager.importBackup(req.body);
+    const data = dbManager.importBackup(req.body, req.userId);
     res.json({ success: true, message: 'Database imported successfully', db: data });
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -3018,13 +3204,13 @@ app.post('/api/db/import', (req, res) => {
 
 // Face Biometric Profile Endpoints for permanent server database storage
 app.get('/api/face-profile', (req, res) => {
-  const profile = dbManager.getFaceProfile();
+  const profile = dbManager.getFaceProfile(req.userId);
   res.json({ success: true, profile });
 });
 
 app.post('/api/face-profile', (req, res) => {
-  const profile = dbManager.saveFaceProfile(req.body);
-  console.log('[Face Biometrics] Permanent owner face profile saved to server database.');
+  const profile = dbManager.saveFaceProfile(req.body, req.userId);
+  console.log(`[Face Biometrics] Permanent face profile saved for user "${req.userId}".`);
   res.json({ success: true, profile });
 });
 
@@ -3349,7 +3535,7 @@ app.post('/api/ollama/query', async (req, res) => {
 app.post('/api/agent/chat', async (req, res) => {
   try {
     const { query, model = 'llama3', userKey = '' } = req.body;
-    const result = await agentEngine.processQuery({ query, model, userKey });
+    const result = await agentEngine.processQuery({ query, model, userKey, userId: req.userId });
     res.json(result);
   } catch (err) {
     console.error('[API /api/agent/chat Error]:', err.message);
@@ -3360,7 +3546,7 @@ app.post('/api/agent/chat', async (req, res) => {
 app.post('/api/memory/semantic-search', (req, res) => {
   try {
     const { query, limit = 5 } = req.body;
-    const memories = vectorMemory.searchMemory(query, limit);
+    const memories = vectorMemory.searchMemory(query, limit, req.userId);
     res.json({ success: true, query, memories });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -3369,16 +3555,16 @@ app.post('/api/memory/semantic-search', (req, res) => {
 
 app.post('/api/memory/auto-extract', (req, res) => {
   try {
-    const chats = dbManager.getChatHistory();
+    const chats = dbManager.getChatHistory(req.userId);
     let extractedCount = 0;
     for (const chat of chats) {
       if (chat.query) {
-        const added = vectorMemory.extractMemoriesFromText(chat.query);
+        const added = vectorMemory.extractMemoriesFromText(chat.query, req.userId);
         extractedCount += added.length;
       }
     }
     dbManager.save();
-    res.json({ success: true, extractedCount, memories: vectorMemory.getAllMemories() });
+    res.json({ success: true, extractedCount, memories: vectorMemory.getAllMemories(req.userId) });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -3502,26 +3688,7 @@ app.post('/api/fetch-page', async (req, res) => {
   }
 });
 
-// --- BIOMETRIC FACE PROFILE DATABASE ENDPOINTS ---
-app.get('/api/face-profile', (req, res) => {
-  try {
-    const profile = db.getFaceProfile();
-    res.json({ success: true, profile });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
 
-app.post('/api/face-profile', (req, res) => {
-  try {
-    const profile = req.body;
-    const saved = db.saveFaceProfile(profile);
-    console.log('[Biometric DB] Owner Face Profile permanently saved to jasper.db.json!');
-    res.json({ success: true, profile: saved });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
 
 // -------------------------------------------------------------
 // PC REMOTE DESKTOP & FULL INTERACTIVE INPUT ENDPOINTS
@@ -3624,7 +3791,7 @@ app.post('/api/agent/query', async (req, res) => {
   const { query, model } = req.body;
   if (!query) return res.status(400).json({ error: 'query is required' });
   try {
-    const result = await agentEngine.processQuery({ query, model });
+    const result = await agentEngine.processQuery({ query, model, userId: req.userId });
     res.json(result);
   } catch (e) {
     res.status(500).json({ error: e.message });

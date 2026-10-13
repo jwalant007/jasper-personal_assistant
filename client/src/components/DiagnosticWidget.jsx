@@ -78,42 +78,41 @@ export default function DiagnosticWidget() {
   };
 
   return (
-    <div className="flex flex-col h-full font-mono text-xs select-none">
+    <div className="flex flex-col h-full font-sans text-xs select-none">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-cyan-500/20 pb-2 mb-3">
-        <div className="flex items-center gap-1.5 font-orbitron font-bold text-cyan-400 tracking-wider">
-          <Cpu size={14} className="text-cyan-400 animate-pulse" />
-          JASPER SYSTEM CORE DIAGNOSTICS
+      <div className="flex items-center justify-between border-b border-white/[0.08] pb-2.5 mb-3">
+        <div className="flex items-center gap-2 font-semibold text-white">
+          <Cpu size={15} className="text-indigo-400" />
+          <span>System Diagnostics</span>
         </div>
-        <div className="flex items-center gap-1 text-[9px] text-sky-500 font-bold">
+        <div className="flex items-center gap-1.5 text-[10px] text-emerald-400 font-mono bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
           <RefreshCw size={10} className="animate-spin" style={{ animationDuration: '6s' }} />
-          LIVE DIAGS
+          <span>Live Feed</span>
         </div>
       </div>
 
       {/* Grid Diagnostics */}
       <div className="grid grid-cols-2 gap-2.5 mb-3">
         {/* CPU Panel */}
-        <div className="bg-cyan-950/10 border border-cyan-500/10 p-2 rounded flex flex-col gap-1.5">
-          <div className="flex items-center gap-1 text-sky-400 font-bold uppercase text-[9px]">
-            <Cpu size={11} /> CPU Diagnostics
+        <div className="bg-slate-900/60 border border-white/[0.08] p-3 rounded-xl flex flex-col gap-1.5">
+          <div className="flex items-center gap-1.5 text-slate-400 font-medium text-[11px]">
+            <Cpu size={12} className="text-indigo-400" /> CPU Telemetry
           </div>
-          <div className="text-[10px] text-cyan-100 truncate font-semibold" title={data.cpuModel}>
+          <div className="text-xs text-slate-200 truncate font-semibold" title={data.cpuModel}>
             {data.cpuModel}
           </div>
-          <div className="grid grid-cols-2 gap-1 text-[9px] text-sky-500">
-            <div>CORES: <span className="text-cyan-400 font-bold">{data.cpuCount}</span></div>
-            <div>ARCH: <span className="text-cyan-400 font-bold">{data.arch}</span></div>
+          <div className="grid grid-cols-2 gap-1 text-[11px] text-slate-400 font-mono">
+            <div>Cores: <span className="text-white font-semibold">{data.cpuCount}</span></div>
+            <div>Arch: <span className="text-white font-semibold">{data.arch}</span></div>
           </div>
-          {/* Futuristic live CPU core blocks */}
-          <div className="flex gap-0.5 mt-1">
+          {/* Live CPU core indicators */}
+          <div className="flex gap-1 mt-1.5">
             {Array.from({ length: Math.min(data.cpuCount, 16) }).map((_, idx) => {
-              // Mock load variation per core
               const isActive = (idx * 7 + Date.now() / 1000) % 3 > 0.8;
               return (
                 <div 
                   key={idx} 
-                  className={`w-1.5 h-3 rounded-sm transition-colors duration-300 ${isActive ? 'bg-cyan-400 shadow-[0_0_4px_rgba(0,240,255,0.6)]' : 'bg-cyan-950/40 border border-cyan-850/20'}`}
+                  className={`w-1.5 h-3.5 rounded-full transition-colors duration-300 ${isActive ? 'bg-indigo-400' : 'bg-slate-800'}`}
                 />
               );
             })}
@@ -121,54 +120,49 @@ export default function DiagnosticWidget() {
         </div>
 
         {/* RAM Panel */}
-        <div className="bg-cyan-950/10 border border-cyan-500/10 p-2 rounded flex flex-col gap-1">
+        <div className="bg-slate-900/60 border border-white/[0.08] p-3 rounded-xl flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1 text-sky-400 font-bold uppercase text-[9px]">
-              <Database size={11} /> Memory Core
+            <div className="flex items-center gap-1.5 text-slate-400 font-medium text-[11px]">
+              <Database size={12} className="text-sky-400" /> Memory (RAM)
             </div>
-            <span className="text-cyan-400 text-[9px] font-bold glow-cyan">{data.memory.usagePercent}%</span>
+            <span className="text-sky-400 text-xs font-mono font-semibold">{data.memory.usagePercent}%</span>
           </div>
-          <div className="progress-container my-1">
-            <div className="progress-fill" style={{ width: `${data.memory.usagePercent}%` }} />
+          <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden my-1">
+            <div className="h-full bg-sky-400 rounded-full transition-all duration-300" style={{ width: `${data.memory.usagePercent}%` }} />
           </div>
-          <div className="grid grid-cols-2 gap-1 text-[9px] text-sky-500">
-            <div>USED: <span className="text-cyan-400 font-bold">{formatBytes(data.memory.used)}</span></div>
-            <div>FREE: <span className="text-cyan-400 font-bold">{formatBytes(data.memory.free)}</span></div>
-          </div>
-          {/* Paging blocks */}
-          <div className="flex justify-between text-[7px] text-cyan-800/60 select-none mt-0.5 leading-none">
-            <span>[||||||||||||]</span>
-            <span>SWAP: NOMINAL</span>
+          <div className="grid grid-cols-2 gap-1 text-[11px] text-slate-400 font-mono">
+            <div>Used: <span className="text-white font-semibold">{formatBytes(data.memory.used)}</span></div>
+            <div>Free: <span className="text-white font-semibold">{formatBytes(data.memory.free)}</span></div>
           </div>
         </div>
       </div>
 
       {/* OS Details Banner */}
-      <div className="bg-cyan-950/10 border border-cyan-500/10 p-2 rounded grid grid-cols-3 gap-1 mb-3 text-[9px] text-sky-500 text-center">
+      <div className="bg-slate-900/60 border border-white/[0.08] p-2.5 rounded-xl grid grid-cols-3 gap-2 mb-3 text-xs text-slate-400 text-center font-mono">
         <div>
-          HOST: <span className="text-cyan-400 font-bold uppercase block truncate">{data.hostname}</span>
+          Host: <span className="text-white font-semibold uppercase block truncate">{data.hostname}</span>
         </div>
         <div>
-          PLATFORM: <span className="text-cyan-400 font-bold uppercase block">{data.platform}</span>
+          Platform: <span className="text-white font-semibold uppercase block">{data.platform}</span>
         </div>
         <div>
-          UPTIME: <span className="text-cyan-400 font-bold block">{formatUptime(data.uptime)}</span>
+          Uptime: <span className="text-white font-semibold block">{formatUptime(data.uptime)}</span>
         </div>
       </div>
 
       {/* Logging Terminal Output */}
-      <div className="flex-1 bg-black/40 border border-cyan-500/10 rounded p-2 flex flex-col overflow-hidden">
-        <div className="text-[9px] text-sky-400 font-bold border-b border-cyan-500/10 pb-1 mb-1 uppercase tracking-wider flex justify-between items-center">
+      <div className="flex-1 bg-slate-950/70 border border-white/[0.08] rounded-xl p-3 flex flex-col overflow-hidden">
+        <div className="text-[11px] text-slate-400 font-medium border-b border-white/[0.06] pb-1.5 mb-2 flex justify-between items-center">
           <span>System Action Stream</span>
-          <span className="flex items-center gap-1 text-[8px] text-green-400">
-            <span className="w-1 h-1 rounded-full bg-green-400 animate-pulse" />
-            LIVE FEED
+          <span className="flex items-center gap-1 text-[9px] text-emerald-400 font-mono">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            Connected
           </span>
         </div>
-        <div className="flex-1 overflow-y-auto font-mono text-[9px] text-cyan-300/80 flex flex-col gap-1 pr-1">
+        <div className="flex-1 overflow-y-auto font-mono text-[10px] text-slate-300 flex flex-col gap-1 pr-1 custom-scrollbar">
           {logs.map((log, index) => (
             <div key={index} className="truncate select-text">
-              <span className="text-sky-600 font-semibold">&gt;&gt;</span> {log}
+              <span className="text-indigo-400 font-semibold">&gt;&gt;</span> {log}
             </div>
           ))}
         </div>

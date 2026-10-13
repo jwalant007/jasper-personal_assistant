@@ -14,6 +14,7 @@ import { playJarvisBeep, playJarvisScan, playJarvisPowerUp, playMysticSnap } fro
 import DiagnosticWidget from './DiagnosticWidget';
 import PaymentBalanceWidget from './PaymentBalanceWidget';
 import JasperCommandCenter from './JasperCommandCenter';
+import UserProfileMenu from './UserProfileMenu';
 
 // Code-Split Dynamic Heavy Modules (Loads on demand when window opens)
 const UniversalTvRemoteWidget = React.lazy(() => import('./UniversalTvRemoteWidget'));
@@ -441,7 +442,7 @@ function OsWindow({
         <div
           onMouseDown={handleResizeMouseDown}
           onTouchStart={handleResizeTouchStart}
-          className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize flex items-center justify-center text-cyan-500/60 hover:text-cyan-300"
+          className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize flex items-center justify-center text-slate-500 hover:text-indigo-400"
         >
           <svg className="w-3 h-3" viewBox="0 0 6 6" fill="currentColor">
             <path d="M6 6H4V4h2v2zM6 2H4v2h2V2zM2 6H0V4h2v2z" />
@@ -734,7 +735,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
         playJarvisBeep('error');
         break;
       case 'ok_sign':
-        setGestureFeedback('OK SIGN: JARVIS VOICE ACTIVATED');
+        setGestureFeedback('OK Gesture: Voice Activated');
         playJarvisBeep('command');
         if (onMicClick) onMicClick();
         break;
@@ -922,7 +923,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
             window.dispatchEvent(new CustomEvent('jasper:os-gesture', { detail: { gesture: 'AIR_CURSOR', cursor: { x, y }, isClicking } }));
           },
           onOkSign: () => {
-            setGestureFeedback('OK SIGN: JARVIS VOICE ACTIVATED');
+            setGestureFeedback('OK Gesture: Voice Activated');
             playJarvisBeep('command');
             if (onMicClick) onMicClick();
             window.dispatchEvent(new CustomEvent('jasper:os-gesture', { detail: { gesture: 'OK_SIGN' } }));
@@ -1233,6 +1234,9 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
             <span>Classic</span>
           </button>
 
+          {/* User Profile Switcher */}
+          <UserProfileMenu onLockSystem={onLockSystem} />
+
           {/* Lock OS Button */}
           {onLockSystem && (
             <button
@@ -1263,7 +1267,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
                   <Radio className="w-5 h-5 animate-pulse" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-base text-neutral-100 font-orbitron">Hardware Satellite Bridge</h3>
+                  <h3 className="font-semibold text-base text-neutral-100">Hardware Satellite Bridge</h3>
                   <p className="text-xs text-neutral-400 font-mono">Cloud-to-Local Physical Device Relay</p>
                 </div>
               </div>
@@ -1437,11 +1441,11 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
             <div className="flex items-center gap-2">
               <span className="font-sans text-xs uppercase tracking-wider text-slate-100 font-bold flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
-                {desktopLayoutMode === 'commandCenter' ? 'JARVIS AI Command Center' : 'JASPER Applications'}
+                {desktopLayoutMode === 'commandCenter' ? 'Jasper AI Workspace' : 'Jasper Applications'}
               </span>
               <span className="text-[10px] font-mono text-slate-400 bg-slate-900/90 px-2.5 py-0.5 rounded-full border border-white/[0.08]">
                 {desktopLayoutMode === 'commandCenter' 
-                  ? 'Central AI Core & HUD' 
+                  ? 'AI Command Center' 
                   : desktopLayoutMode === 'matrix' 
                   ? 'All 35 Apps Matrix' 
                   : '2 Rows Shelf'} &bull; Bento Workspace
@@ -1457,7 +1461,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
                     ? 'bg-indigo-500/25 text-white border border-indigo-400/40 shadow-sm font-semibold'
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
-                title="JARVIS Central AI Core & Command Center HUD"
+                title="Jasper Command Center"
               >
                 <Zap className="w-3.5 h-3.5 text-cyan-400" />
                 <span>Command Center</span>

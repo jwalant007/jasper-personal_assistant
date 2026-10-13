@@ -53,11 +53,11 @@ class FinancialIntelligenceEngine {
   /**
    * Classify a transaction description/merchant into one of 12 standard categories.
    */
-  classifyTransaction(description = '', merchant = '') {
+  classifyTransaction(description = '', merchant = '', userId = null) {
     const text = `${description} ${merchant}`.toLowerCase();
 
     // 1. Check user-taught merchant rules first
-    const dbData = dbManager.getFinanceData();
+    const dbData = dbManager.getFinanceData(userId);
     const customRules = dbData.settings?.merchantCategoryRules || this.merchantLearningStore;
     for (const [mKey, cat] of Object.entries(customRules)) {
       if (text.includes(mKey.toLowerCase())) {
@@ -80,12 +80,12 @@ class FinancialIntelligenceEngine {
   /**
    * Learn from a user correction to automatically categorize future transactions.
    */
-  learnMerchantCategory(merchantPattern, correctCategory) {
+  learnMerchantCategory(merchantPattern, correctCategory, userId = null) {
     if (!merchantPattern || !FINANCIAL_CATEGORIES.includes(correctCategory)) {
       return { success: false, error: 'Invalid merchant pattern or category' };
     }
 
-    const fin = dbManager.getFinanceData();
+    const fin = dbManager.getFinanceData(userId);
     if (!fin.settings.merchantCategoryRules) {
       fin.settings.merchantCategoryRules = {};
     }
@@ -93,13 +93,14 @@ class FinancialIntelligenceEngine {
     const cleanPattern = merchantPattern.trim().toLowerCase();
     fin.settings.merchantCategoryRules[cleanPattern] = correctCategory;
     this.merchantLearningStore[cleanPattern] = correctCategory;
-    dbManager.updateFinanceSettings({ merchantCategoryRules: fin.settings.merchantCategoryRules });
+    dbManager.updateFinanceSettings({ merchantCategoryRules: fin.settings.merchantCategoryRules }, userId);
 
     // Store in semantic vector memory
     vectorMemory.addMemory(
       `Merchant "${merchantPattern}" is categorized as "${correctCategory}" by user directive.`,
       'financial',
-      { merchant: cleanPattern, category: correctCategory }
+      { merchant: cleanPattern, category: correctCategory },
+      userId
     );
 
     return { success: true, learned: { merchant: cleanPattern, category: correctCategory } };
@@ -109,7 +110,7 @@ class FinancialIntelligenceEngine {
    * Parse CSV or JSON statement data safely.
    * Format supported: Date, Description/Merchant, Amount, Type (Debit/Credit/Expense/Income)
    */
-  importStatement(rawText, format = 'csv', accountId = 'acc_1') {
+  importStatement(rawText, format = 'csv', accountId = 'acc_1', userId = null) {
     if (!rawText || typeof rawText !== 'string') {
       return { success: false, error: 'Empty or invalid statement text' };
     }
@@ -139,7 +140,7 @@ class FinancialIntelligenceEngine {
         if (!isNaN(rawAmount) && rawAmount !== 0) {
           const type = (rawType.includes('credit') || rawType.includes('income') || rawAmount > 0) ? 'income' : 'expense';
           const absAmount = Math.abs(rawAmount);
-          const category = this.classifyTransaction(desc, parts[4] || '');
+          const category = this.classifyTransaction(desc, parts[4] || '', userId);
 
           const tx = dbManager.addTransaction({
             date: new Date(dateStr).toISOString() || new Date().toISOString(),
@@ -149,7 +150,7 @@ class FinancialIntelligenceEngine {
             description: desc,
             merchant: parts[4] || desc,
             category
-          });
+          }, userId);
 
           if (tx && tx.transaction) {
             importedTransactions.push(tx.transaction);
@@ -168,8 +169,8 @@ class FinancialIntelligenceEngine {
   /**
    * Detect recurring subscriptions and repeat bills.
    */
-  detectSubscriptions() {
-    const fin = dbManager.getFinanceData();
+  detectSubscriptions(userId = null) {
+    const fin = dbManager.getFinanceData(userId);
     const transactions = fin.transactions || [];
     const potentialRecurring = {};
 
@@ -213,8 +214,8 @@ class FinancialIntelligenceEngine {
   /**
    * Detect unusual spending spikes, duplicate charges, or anomalies.
    */
-  detectAnomalies() {
-    const fin = dbManager.getFinanceData();
+  detectAnomalies(userId = null) {
+    const fin = dbManager.getFinanceData(userId);
     const txs = fin.transactions || [];
     const monthlyLimit = fin.budget.monthlyLimit || 2000;
     const anomalies = [];
@@ -276,8 +277,8 @@ class FinancialIntelligenceEngine {
    * Multi-Horizon Financial Forecasting across 1m, 3m, 6m, 1y, 3y, 5y.
    * Outputs Base, Conservative, and Optimistic models.
    */
-  generateForecast(customAssumptions = {}) {
-    const fin = dbManager.getFinanceData();
+  generateForecast(customAssumptions = {}, userId = null) {
+    const fin = dbManager.getFinanceData(userId);
     const currentLiquid = fin.analytics.liquidBalance || 0;
     const monthlyLimit = fin.budget.monthlyLimit || 2000;
     const monthlySpend = fin.budget.monthSpend || 0;
@@ -347,9 +348,9 @@ class FinancialIntelligenceEngine {
    * "What-If" Scenario Simulator
    * e.g. "What if I save ₹5,000 more every month?", "What if my expenses increase 10%?", "What if I buy something worth ₹80,000?"
    */
-  simulateScenario(params = {}) {
+  simulateScenario(params = {}, userId = null) {
     const { incomeChangePercent = 0, expenseChangePercent = 0, extraMonthlySavings = 0, oneTimePurchase = 0 } = params;
-    const fin = dbManager.getFinanceData();
+    const fin = dbManager.getFinanceData(userId);
     const currentLiquid = fin.analytics.liquidBalance || 0;
     const monthlyLimit = fin.budget.monthlyLimit || 2000;
     const baselineMonthlySpend = Math.max(fin.budget.monthSpend || 0, monthlyLimit);
@@ -394,15 +395,15 @@ class FinancialIntelligenceEngine {
     };
   }
 
-  simulateWhatIf(params) {
-    return this.simulateScenario(params);
+  simulateWhatIf(params, userId = null) {
+    return this.simulateScenario(params, userId);
   }
 
   /**
    * Calculate Safe Weekly Spending Allowance based on monthly limit and remaining days
    */
-  getSafeWeeklySpend() {
-    const fin = dbManager.getFinanceData();
+  getSafeWeeklySpend(userId = null) {
+    const fin = dbManager.getFinanceData(userId);
     const monthlyLimit = fin.budget.monthlyLimit || 2000;
     const monthSpend = fin.budget.monthSpend || 0;
     const remainingBudget = Math.max(0, monthlyLimit - monthSpend);

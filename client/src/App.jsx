@@ -65,9 +65,11 @@ import {
   captureWebcamFrameAsBase64,
   syncOwnerProfileFromServer
 } from './utils/faceBiometrics.js';
-import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, PhoneForwarded, BookOpen, Activity, Heart, Laptop, Languages, Box, MessageSquare, KeyRound, ShieldAlert, Video, Download, XCircle } from 'lucide-react';
+import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, PhoneForwarded, BookOpen, Activity, Heart, Laptop, Languages, Box, MessageSquare, KeyRound, ShieldAlert, Video, Download, XCircle, X } from 'lucide-react';
 
-import { useJasperApp, useJasperModals, useJasperChat } from './context/index.jsx';
+import { useJasperApp, useJasperModals, useJasperChat, useJasperUser } from './context/index.jsx';
+import UserProfileMenu from './components/UserProfileMenu';
+import MultiUserLockTerminal from './components/MultiUserLockTerminal';
 
 export default function App() {
   // 1. Core System & Preference Context
@@ -529,7 +531,7 @@ export default function App() {
 
   const unlockingRef = useRef(false);
 
-  const speakWelcomeBoss = () => {
+  const speakWelcomeBoss = (userName) => {
     try {
       if (typeof window !== 'undefined' && window.speechSynthesis) {
         window.speechSynthesis.cancel();
@@ -540,7 +542,8 @@ export default function App() {
           spoken = true;
           window.speechSynthesis.cancel();
           
-          const utterance = new SpeechSynthesisUtterance("Welcome boss");
+          const greetingName = userName ? String(userName).trim() : 'boss';
+          const utterance = new SpeechSynthesisUtterance(`Welcome ${greetingName}`);
           const voices = window.speechSynthesis.getVoices() || [];
           const voice = voices.find(v => v.lang?.startsWith('en-GB')) || 
                         voices.find(v => v.name?.includes('Google UK English')) ||
@@ -565,7 +568,7 @@ export default function App() {
           }, 250);
         }
       }
-      setSpeakingText("Welcome boss");
+      setSpeakingText(`Welcome ${userName || 'boss'}`);
     } catch (e) {
       console.warn("TTS Welcome voice failed:", e);
     }
@@ -623,7 +626,7 @@ export default function App() {
     }
   };
 
-  const handleUnlockSuccess = () => {
+  const handleUnlockSuccess = (authenticatedUser) => {
     if (unlockingRef.current) return;
     unlockingRef.current = true;
 
@@ -635,7 +638,7 @@ export default function App() {
     setBiometricMode('success');
     setScanStatusText('IDENTITY CONFIRMED. ACCESS GRANTED!');
     playFuturisticChime();
-    speakWelcomeBoss();
+    speakWelcomeBoss(authenticatedUser?.name);
     setTimeout(() => {
       setIsLocked(false);
       setBiometricMode('idle');
@@ -1600,25 +1603,25 @@ export default function App() {
   return (
     <div className={`relative flex flex-col overflow-hidden bg-black text-cyan-50 select-none ${viewMode === 'mobile' && !isMobileScreen ? 'w-[360px] h-[800px] max-w-[100vw] max-h-[100dvh] mx-auto my-auto rounded-2xl border border-cyan-500/40 shadow-[0_0_50px_rgba(0,240,255,0.25)]' : 'w-full h-screen'}`}>
       
-      {/* Render Cloud Cold-Start Awakening Indicator */}
+      {/* Cloud Cold-Start Indicator */}
       {isCloudColdStarting && (
-        <div className="fixed top-2 left-1/2 -translate-x-1/2 z-[99999] flex items-center gap-2.5 px-4 py-2 rounded-full bg-cyan-950/90 border border-cyan-400 text-cyan-200 text-xs font-orbitron shadow-[0_0_25px_rgba(6,182,212,0.6)] backdrop-blur-xl animate-pulse">
-          <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping inline-block" />
-          <span>ARC REACTOR ONLINE: WARMING CLOUD CORE...</span>
+        <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[99999] flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-white/[0.1] text-slate-200 text-xs font-medium shadow-xl backdrop-blur-xl">
+          <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse inline-block" />
+          <span>Connecting to Cloud Core...</span>
         </div>
       )}
       
       {/* Universal Exit Phone Mode Banner (Always visible on laptop screens) */}
       {viewMode === 'mobile' && !isMobileScreen && (
-        <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[999999] flex items-center gap-3 px-4 py-2 rounded-full bg-slate-950/95 border border-sky-400 shadow-[0_0_30px_rgba(56,189,248,0.5)] backdrop-blur-2xl">
-          <span className="text-xs font-semibold text-sky-200">📱 Mobile View Active</span>
+        <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[999999] flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-slate-900/95 border border-white/[0.1] shadow-xl backdrop-blur-xl">
+          <span className="text-xs text-slate-300 font-medium">Mobile View</span>
           <button
             onClick={() => setViewMode('pc')}
-            className="px-3.5 py-1 rounded-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-all shadow-lg cursor-pointer"
-            title="Switch back to full laptop/PC screen"
+            className="px-3 py-1 rounded-full bg-white/[0.1] hover:bg-white/[0.18] text-white text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer"
+            title="Switch back to full desktop layout"
           >
-            <Monitor size={13} />
-            <span>Switch Back to PC Layout</span>
+            <Monitor size={12} />
+            <span>Switch to Desktop</span>
           </button>
         </div>
       )}
@@ -1627,9 +1630,6 @@ export default function App() {
       {typeof window !== 'undefined' && (window.electronAPI || (navigator.userAgent && navigator.userAgent.toLowerCase().includes('electron'))) ? (
         <div style={{ WebkitAppRegion: 'drag', height: '24px', width: '100%', position: 'absolute', top: 0, left: 0, zIndex: 9999, pointerEvents: 'none' }}></div>
       ) : null}
-
-      {/* Background Holographic Grid */}
-      <div className="hologram-grid" />
       
       {/* Main Container */}
       <div className="flex-1 flex overflow-hidden z-10 w-full h-full relative">
@@ -2093,6 +2093,9 @@ export default function App() {
                 >
                   {isPhoneBrainMode ? (isMobileLayout ? '📱 Phone Core' : '📱 Phone Core') : (isMobileLayout ? '🧠 PC Core' : '🧠 PC Core')}
                 </button>
+                {/* Multi-User Profile Switcher */}
+                <UserProfileMenu onLockSystem={() => setIsLocked(true)} />
+
                 <button 
                   onClick={() => setIsLocked(true)}
                   className="text-[11px] py-1 px-2.5 rounded-xl font-sans text-rose-300 bg-rose-500/15 border border-rose-500/25 hover:bg-rose-500/25 transition-all cursor-pointer"
@@ -2399,10 +2402,11 @@ export default function App() {
               <button
                 type="button"
                 onClick={scrollToTop}
-                className="absolute bottom-20 right-5 z-50 py-2 px-3.5 bg-cyan-950/95 border border-cyan-400 text-cyan-300 font-orbitron font-extrabold text-[10px] rounded-full shadow-[0_0_20px_rgba(0,240,255,0.5)] flex items-center gap-1.5 hover:bg-cyan-900 transition-all cursor-pointer"
+                className="absolute bottom-20 right-5 z-50 py-2 px-3.5 bg-slate-900/90 border border-white/[0.12] text-slate-200 font-sans font-medium text-xs rounded-full shadow-xl flex items-center gap-1.5 hover:bg-slate-850 hover:text-white transition-all cursor-pointer backdrop-blur-md"
                 title="Scroll to Top"
               >
-                ⬆️ TOP
+                <span>↑</span>
+                <span>Top</span>
               </button>
             )}
               </>
@@ -2413,10 +2417,10 @@ export default function App() {
 
       {/* Sliding TV Remote Control Overlay */}
       {showTvRemote && (
-        <div className={`fixed z-40 p-4 rounded-lg tv-remote-panel animate-slide-in ${isMobileLayout ? 'top-14 inset-x-2 w-auto max-h-[85vh] overflow-y-auto' : 'top-16 right-4 w-[460px] max-w-[95vw] max-h-[88vh] overflow-y-auto'}`}>
-          <div className="flex justify-between items-center border-b border-cyan-500/20 pb-2 mb-3 select-none">
-            <span className="font-orbitron font-bold text-xs text-cyan-400">UNIVERSAL SMART TV & JIO FIBER STB</span>
-            <button onClick={() => setShowTvRemote(false)} className="text-sky-500 hover:text-cyan-400 font-bold text-[10px]">[X] CLOSE</button>
+        <div className={`fixed z-40 p-4 rounded-2xl bg-slate-950/95 border border-white/[0.1] shadow-2xl backdrop-blur-2xl animate-slide-in ${isMobileLayout ? 'top-14 inset-x-2 w-auto max-h-[85vh] overflow-y-auto' : 'top-16 right-4 w-[460px] max-w-[95vw] max-h-[88vh] overflow-y-auto'}`}>
+          <div className="flex justify-between items-center border-b border-white/[0.08] pb-2.5 mb-3 select-none">
+            <span className="font-sans font-semibold text-xs text-white">Smart TV & JioFiber Remote</span>
+            <button onClick={() => setShowTvRemote(false)} className="text-slate-400 hover:text-white font-medium text-xs p-1 rounded-lg hover:bg-slate-800 transition-colors">Close</button>
           </div>
           <TvRemoteWidget onLog={(text, type) => console.log(`[${type}] ${text}`)} />
         </div>
@@ -2424,10 +2428,10 @@ export default function App() {
 
       {/* Sliding Phone Control Overlay */}
       {showPhoneControl && (
-        <div className={`fixed z-40 p-4 rounded-lg tv-remote-panel animate-slide-in flex flex-col ${isMobileLayout ? 'top-14 inset-x-2 w-auto h-[calc(100%-4.5rem)]' : 'top-20 right-4 w-[580px] max-w-[92vw] h-[calc(100%-7rem)]'}`}>
-          <div className="flex justify-between items-center border-b border-cyan-500/20 pb-2 mb-3 select-none">
-            <span className="font-orbitron font-bold text-xs text-cyan-400">PHONE UPLINK</span>
-            <button onClick={() => setShowPhoneControl(false)} className="text-sky-500 hover:text-cyan-400 font-bold text-[10px]">[X] CLOSE</button>
+        <div className={`fixed z-40 p-4 rounded-2xl bg-slate-950/95 border border-white/[0.1] shadow-2xl backdrop-blur-2xl animate-slide-in flex flex-col ${isMobileLayout ? 'top-14 inset-x-2 w-auto h-[calc(100%-4.5rem)]' : 'top-20 right-4 w-[580px] max-w-[92vw] h-[calc(100%-7rem)]'}`}>
+          <div className="flex justify-between items-center border-b border-white/[0.08] pb-2.5 mb-3 select-none">
+            <span className="font-sans font-semibold text-xs text-white">Phone Uplink</span>
+            <button onClick={() => setShowPhoneControl(false)} className="text-slate-400 hover:text-white font-medium text-xs p-1 rounded-lg hover:bg-slate-800 transition-colors">Close</button>
           </div>
           <div className="flex-1 overflow-y-auto phone-scroll pr-2">
             <PhoneControlWidget />
@@ -2437,7 +2441,7 @@ export default function App() {
 
       {/* Image Synthesis Lab Overlay */}
       {showImageGenerator && (
-        <div className={`fixed z-40 p-4 rounded-lg imagen-panel animate-slide-in flex flex-col ${isMobileLayout ? 'top-14 inset-x-2 w-auto max-h-[85vh]' : 'top-20 right-4 w-[380px] maxHeight-[calc(100%-7rem)]'}`}>
+        <div className={`fixed z-40 p-4 rounded-2xl bg-slate-950/95 border border-white/[0.1] shadow-2xl backdrop-blur-2xl animate-slide-in flex flex-col ${isMobileLayout ? 'top-14 inset-x-2 w-auto max-h-[85vh]' : 'top-20 right-4 w-[380px] maxHeight-[calc(100%-7rem)]'}`}>
           <ImageGeneratorWidget
             onClose={() => setShowImageGenerator(false)}
             onLog={(text, type) => console.log(`[${type}] ${text}`)}
@@ -2447,10 +2451,10 @@ export default function App() {
 
       {/* Sliding PC Diagnostics Overlay */}
       {showDiagnostics && (
-        <div className={`fixed z-40 p-4 rounded-lg diagnostics-panel animate-slide-in flex flex-col ${isMobileLayout ? 'top-14 inset-x-2 w-auto h-[calc(100%-4.5rem)]' : 'top-20 right-4 w-[420px] h-[calc(100%-7rem)]'}`}>
-          <div className="flex justify-between items-center border-b border-cyan-500/20 pb-2 mb-3 select-none">
-            <span className="font-orbitron font-bold text-xs text-cyan-400">SYSTEM DIAGNOSTICS</span>
-            <button onClick={() => setShowDiagnostics(false)} className="text-sky-500 hover:text-cyan-400 font-bold text-[10px]">[X] CLOSE</button>
+        <div className={`fixed z-40 p-4 rounded-2xl bg-slate-950/95 border border-white/[0.1] shadow-2xl backdrop-blur-2xl animate-slide-in flex flex-col ${isMobileLayout ? 'top-14 inset-x-2 w-auto h-[calc(100%-4.5rem)]' : 'top-20 right-4 w-[420px] h-[calc(100%-7rem)]'}`}>
+          <div className="flex justify-between items-center border-b border-white/[0.08] pb-2.5 mb-3 select-none">
+            <span className="font-sans font-semibold text-xs text-white">System Diagnostics</span>
+            <button onClick={() => setShowDiagnostics(false)} className="text-slate-400 hover:text-white font-medium text-xs p-1 rounded-lg hover:bg-slate-800 transition-colors">Close</button>
           </div>
           <div className="flex-1 overflow-y-auto">
             <DiagnosticWidget />
@@ -2480,334 +2484,89 @@ export default function App() {
 
       {/* Triggered Reminder Alert Modal */}
       {showReminderAlert && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="hud-panel hud-panel-orange max-w-sm w-full p-6 font-mono text-center flex flex-col gap-5 relative select-none">
-            <div className="absolute inset-x-0 top-0 h-0.5 bg-orange-500/30 pointer-events-none animate-pulse" />
-            <div className="flex justify-center mb-1">
-              <div className="relative w-16 h-16 flex items-center justify-center border-2 border-orange-500/40 rounded-full animate-pulse glow-orange">
-                <span className="w-3.5 h-3.5 rounded-full bg-orange-500 animate-ping absolute" />
-                <Shield size={32} className="text-orange-500" />
-              </div>
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md animate-in fade-in duration-200 p-4">
+          <div className="max-w-sm w-full p-6 rounded-2xl bg-slate-900 border border-white/[0.1] shadow-2xl text-center flex flex-col gap-4 relative select-none">
+            <div className="mx-auto w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+              <Shield size={24} />
             </div>
             
-            <div className="flex flex-col gap-0.5">
-              <h2 className="font-orbitron font-extrabold text-sm text-orange-500 tracking-[0.15em] glow-orange">PROTOCOL ALERT</h2>
-              <span className="text-[9px] text-sky-500 uppercase tracking-widest">Jasper Reminder Triggered</span>
+            <div className="flex flex-col gap-1">
+              <h2 className="font-semibold text-base text-white">Scheduled Reminder</h2>
+              <span className="text-xs text-slate-400">Time-based reminder trigger</span>
             </div>
             
-            <div className="bg-orange-950/15 border border-orange-500/30 rounded p-3.5 my-1">
-              <div className="text-[9px] text-sky-400 font-bold uppercase tracking-wider mb-1">TASK DESCRIPTION</div>
-              <p className="text-xs font-semibold text-orange-200 uppercase tracking-wider">
+            <div className="bg-slate-950/60 border border-white/[0.08] rounded-xl p-3.5 my-1 text-left">
+              <div className="text-[10px] text-slate-400 font-medium uppercase tracking-wider mb-1">Task</div>
+              <p className="text-sm font-medium text-slate-200">
                 {showReminderAlert.task}
               </p>
             </div>
-            
-            <p className="text-[9px] text-slate-400 leading-relaxed font-sans">
-              System schedule parameter matched. Standing by for task acknowledgment protocols, Sir.
-            </p>
             
             <button 
               onClick={() => {
                 setShowReminderAlert(null);
                 playFuturisticChime();
               }}
-              className="btn-control btn-control-orange font-bold py-2.5 w-full text-center text-[10px] tracking-widest font-orbitron"
+              className="py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs transition-colors shadow-sm shadow-indigo-500/20 cursor-pointer"
             >
-              ACKNOWLEDGE & CLEAR ALERT
+              Dismiss
             </button>
           </div>
         </div>
       )}
 
-      {/* Security lock state */}
+      {/* Multi-User Security & Identity Lock Terminal */}
       {isLocked && (
-        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-3 bg-black/95 backdrop-blur-lg overflow-y-auto">
-          <div className="hud-panel max-w-md w-[92vw] sm:w-full p-5 sm:p-8 font-mono text-center flex flex-col gap-5 relative select-none my-auto">
-            <div className="absolute inset-x-0 top-0 h-0.5 bg-cyan-500/20 pointer-events-none" />
-            
-            {/* Header section */}
-            <div className="flex justify-center mb-1">
-              <div className="relative w-16 h-16 flex items-center justify-center border border-cyan-500/30 rounded-full animate-pulse">
-                <Shield size={32} className={biometricMode === 'success' ? 'text-green-400 animate-pulse' : biometricMode === 'failed' ? 'text-red-500 animate-shake' : 'text-cyan-400'} />
-              </div>
-            </div>
-            <div className="flex flex-col gap-1">
-              <h2 className="font-orbitron font-extrabold text-base text-cyan-400 tracking-[0.1em]">SECURITY OVERRIDE TERMINAL</h2>
-              <span className="text-[9px] text-sky-500 uppercase tracking-widest">Jasper Secure Shield Protocol</span>
-            </div>
-
-            {/* Main Interactive Scanning Area */}
-            {biometricMode === 'idle' && (
-              <div className="flex flex-col gap-4 py-3">
-                <div className="flex items-center justify-center gap-2">
-                  {hasOwnerProfile() ? (
-                    <span className="inline-flex items-center gap-1.5 text-[9px] font-mono font-bold px-2.5 py-1 rounded bg-green-950/60 border border-green-500/40 text-green-400">
-                      <UserCheck size={12} /> OWNER FACE PROFILE ACTIVE
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1.5 text-[9px] font-mono font-bold px-2.5 py-1 rounded bg-amber-950/60 border border-amber-500/40 text-amber-300">
-                      <UserX size={12} /> NO OWNER FACE ENROLLED
-                    </span>
-                  )}
-                </div>
-
-                <p className="text-[10px] text-slate-400 leading-relaxed font-sans max-w-xs mx-auto">
-                  Strict security protocol active. Enter passcode or use biometric recognition to unlock system core.
-                </p>
-
-                {failedAuthAttempts > 0 && (
-                  <div className={`p-2.5 rounded border text-center transition-all ${
-                    failedAuthAttempts >= 3 
-                      ? 'bg-red-950/80 border-red-500 text-red-300 shadow-[0_0_20px_rgba(239,68,68,0.6)] animate-pulse' 
-                      : 'bg-amber-950/60 border-amber-500/50 text-amber-300'
-                  }`}>
-                    <div className="flex items-center justify-center gap-1.5 text-[11px] font-mono font-bold">
-                      <ShieldAlert size={15} className={failedAuthAttempts >= 3 ? 'text-red-400' : 'text-amber-400'} />
-                      <span>
-                        FAILED ATTEMPTS: {failedAuthAttempts}/3
-                      </span>
-                    </div>
-                    {failedAuthAttempts >= 3 ? (
-                      <div className="text-[9px] font-mono text-red-400 tracking-wider mt-1 uppercase font-semibold">
-                        🚨 SECURITY BREACH DISPATCHED TO NTFY CHANNEL (PHONE ALERTED)
-                      </div>
-                    ) : (
-                      <div className="text-[8px] font-mono text-amber-400/80 tracking-wider mt-0.5">
-                        Warning: 3 failed attempts will trigger instant ntfy intruder alert to phone
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Passcode Login Form */}
-                <form 
-                  onSubmit={handlePasscodeSubmit}
-                  className="flex flex-col gap-2 my-1"
-                >
-                  <div className="flex gap-2">
-                    <input 
-                      type="password"
-                      value={passcode}
-                      onChange={(e) => {
-                        setPasscode(e.target.value);
-                        if (passcodeError) setPasscodeError('');
-                      }}
-                      placeholder="Enter passcode / password..."
-                      className={`bg-black/60 border ${passcodeError ? 'border-red-500 text-red-200' : 'border-cyan-500/30 text-cyan-200'} rounded px-3 py-2 text-xs placeholder-sky-700 outline-none focus:border-cyan-400 font-mono flex-1 transition-all`}
-                    />
-                    <button 
-                      type="submit"
-                      className="px-4 py-2 text-xs font-orbitron font-bold uppercase tracking-wider text-cyan-400 border border-cyan-500/40 bg-cyan-950/60 hover:bg-cyan-900/80 hover:border-cyan-400 rounded transition-all glow-cyan"
-                    >
-                      LOGIN
-                    </button>
-                  </div>
-                  {passcodeError && (
-                    <div className="text-[10px] text-red-400 font-mono font-bold flex items-center justify-center gap-1.5 mt-0.5 animate-pulse">
-                      <AlertTriangle size={12} className="text-red-400" /> {passcodeError}
-                    </div>
-                  )}
-                  <div className="text-[9px] font-mono text-cyan-400/60 text-center mt-1">
-                    Passcode: <span className="text-cyan-300 font-bold">jasper</span> &bull; or Face / Voice Scan
-                  </div>
-                </form>
-
-                <div className="grid grid-cols-2 gap-2.5 mt-1">
-                  <button 
-                    onClick={() => setBiometricMode('face_scan')}
-                    className="btn-control flex flex-col items-center gap-1.5 py-3 rounded border-cyan-500/40 bg-cyan-950/20 hover:border-cyan-400 hover:bg-cyan-950/40 transition-all duration-300"
-                  >
-                    <Camera size={18} className="text-cyan-400" />
-                    <span className="text-[9px] font-orbitron font-bold tracking-wider">FACE SCAN (STRICT)</span>
-                  </button>
-                  <button 
-                    onClick={() => setBiometricMode('face_enroll')}
-                    className="btn-control flex flex-col items-center gap-1.5 py-3 rounded border-cyan-500/40 bg-cyan-950/20 hover:border-cyan-400 hover:bg-cyan-950/40 transition-all duration-300"
-                  >
-                    <UserPlus size={18} className="text-cyan-400" />
-                    <span className="text-[9px] font-orbitron font-bold tracking-wider">{hasOwnerProfile() ? 'RE-ENROLL FACE' : 'ENROLL MY FACE'}</span>
-                  </button>
-                </div>
-
-                <button 
-                  onClick={startVoiceScan}
-                  className="btn-control flex items-center justify-center gap-2 py-2 rounded border-cyan-500/20 bg-cyan-950/10 hover:border-cyan-400 text-slate-300 transition-all"
-                >
-                  <Mic size={14} className="text-cyan-400" />
-                  <span className="text-[9px] font-orbitron font-bold tracking-wider">USE VOICE PRINT OVERRIDE</span>
-                </button>
-
-                <button 
-                  onClick={handleMasterOverridePrompt}
-                  className="text-[9px] text-slate-500 hover:text-cyan-400 uppercase tracking-widest font-bold mt-1 transition-colors"
-                >
-                  Master override key
-                </button>
-              </div>
-            )}
-
-            {/* Face Scanning Screen & Face Enrollment Screen */}
-            {(biometricMode === 'face_scan' || biometricMode === 'face_enroll') && (
-              <div className="flex flex-col items-center gap-4 py-2">
-                <div className="text-[10px] font-orbitron font-bold text-cyan-400 tracking-wider">
-                  {biometricMode === 'face_enroll' ? 'ENROLLING OWNER BIOMETRICS' : 'VERIFYING OWNER BIOMETRICS'}
-                </div>
-                <div className="relative w-48 h-48 rounded-full overflow-hidden border-2 border-cyan-500/50 bg-black flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.2)]">
-                  <video 
-                    ref={videoRef} 
-                    autoPlay 
-                    playsInline 
-                    muted 
-                    className="w-full h-full object-cover rounded-full transform scale-x-[-1]" 
-                  />
-                  <canvas 
-                    ref={canvasRef} 
-                    width={192} 
-                    height={192} 
-                    className="absolute inset-0 pointer-events-none" 
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5 w-full">
-                  <div className="w-full bg-cyan-950/60 h-2 rounded-full overflow-hidden border border-cyan-500/30">
-                    <div 
-                      className={`h-full transition-all duration-100 ${biometricMode === 'face_enroll' ? 'bg-amber-400' : 'bg-cyan-400'}`}
-                      style={{ width: `${scanProgress}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-[8px] text-cyan-400 uppercase tracking-wider font-semibold font-mono px-1">
-                    <span className="truncate max-w-[220px] text-left">{scanStatusText}</span>
-                    <span>{scanProgress}%</span>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => setBiometricMode('idle')}
-                  className="text-[9px] text-red-400 hover:text-red-300 font-bold tracking-widest uppercase mt-1 transition-colors border border-red-500/30 px-3 py-1 rounded"
-                >
-                  Cancel Scan
-                </button>
-              </div>
-            )}
-
-
-            {/* Voice Scanning Screen */}
-            {biometricMode === 'voice_scan' && (
-              <div className="flex flex-col items-center gap-4 py-4 w-full">
-                <div className="relative w-full h-20 bg-cyan-950/15 border border-cyan-500/20 rounded flex items-center justify-center overflow-hidden">
-                  <canvas 
-                    ref={voiceCanvasRef} 
-                    width={380} 
-                    height={80} 
-                    className="w-full h-full" 
-                  />
-                </div>
-                <div className="flex flex-col gap-2 bg-cyan-950/10 border border-cyan-500/10 rounded p-3 text-center w-full">
-                  <span className="text-[8px] text-sky-400 uppercase font-bold tracking-wider">PLEASE SAY</span>
-                  <p className="text-[11px] font-semibold text-cyan-200 uppercase tracking-wide">
-                    "Authorization Delta-Nine, unlock system"
-                  </p>
-                  {voiceTranscript && (
-                    <div className="mt-2 border-t border-cyan-500/10 pt-2 text-[9px] italic text-sky-500">
-                      Detected: "{voiceTranscript}"
-                    </div>
-                  )}
-                </div>
-                <div className="text-[8px] text-cyan-400 uppercase tracking-wider font-mono">
-                  {scanStatusText}
-                </div>
-                <button 
-                  onClick={() => setBiometricMode('idle')}
-                  className="text-[9px] text-red-400 hover:text-red-300 font-bold tracking-widest uppercase mt-1 transition-colors"
-                >
-                  Cancel Scan
-                </button>
-              </div>
-            )}
-
-            {/* Success Screen */}
-            {biometricMode === 'success' && (
-              <div className="flex flex-col items-center gap-4 py-6">
-                <div className="relative w-16 h-16 rounded-full border-2 border-green-500 flex items-center justify-center text-green-500 shadow-[0_0_15px_rgba(34,197,94,0.4)] animate-bounce">
-                  <Shield size={28} />
-                </div>
-                <div className="flex flex-col gap-1 text-center">
-                  <h3 className="font-orbitron font-extrabold text-sm text-green-400 tracking-wider uppercase">ACCESS GRANTED</h3>
-                  <span className="text-[9px] text-slate-400 font-mono tracking-widest">{scanStatusText}</span>
-                </div>
-              </div>
-            )}
-
-            {/* Failed Screen */}
-            {biometricMode === 'failed' && (
-              <div className="flex flex-col items-center gap-4 py-4">
-                <div className="relative w-16 h-16 rounded-full border-2 border-red-500 flex items-center justify-center text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.4)] animate-shake">
-                  <AlertTriangle size={28} className="text-red-500" />
-                </div>
-                <div className="flex flex-col gap-2 text-center w-full">
-                  <h3 className="font-orbitron font-extrabold text-sm text-red-500 tracking-wider uppercase">OVERRIDE REJECTED</h3>
-                  <p className="text-[9px] text-slate-400 leading-relaxed px-4">{scanStatusText}</p>
-                  {failedAuthAttempts > 0 && (
-                    <div className={`text-[9px] font-mono px-3 py-1.5 rounded mx-4 ${
-                      failedAuthAttempts >= 3
-                        ? 'bg-red-950/80 border border-red-500 text-red-300 font-bold animate-pulse'
-                        : 'bg-amber-950/50 border border-amber-500/40 text-amber-300'
-                    }`}>
-                      {failedAuthAttempts >= 3
-                        ? '🚨 3 FAILED ATTEMPTS: Intrusion notification dispatched to ntfy channel!'
-                        : `Security Alert: ${failedAuthAttempts}/3 failed attempts. (Alert at 3)`}
-                    </div>
-                  )}
-                </div>
-                <div className="flex gap-4 mt-2">
-                  <button 
-                    onClick={() => {
-                      if (lastScanMode === 'face_scan') {
-                        setBiometricMode('face_scan');
-                      } else if (lastScanMode === 'voice_scan') {
-                        startVoiceScan();
-                      } else {
-                        setBiometricMode('idle');
-                      }
-                    }}
-                    className="text-[9px] text-cyan-400 hover:text-cyan-300 font-bold tracking-widest uppercase font-mono border border-cyan-500/30 px-3 py-1.5 rounded transition-colors"
-                  >
-                    Try Again
-                  </button>
-                  <button 
-                    onClick={handleMasterOverridePrompt}
-                    className="text-[9px] text-red-400 hover:text-red-300 font-bold tracking-widest uppercase font-mono border border-red-500/30 px-3 py-1.5 rounded transition-colors"
-                  >
-                    Master Override
-                  </button>
-                </div>
-              </div>
-            )}
-
-          </div>
-        </div>
+        <MultiUserLockTerminal
+          onUnlockSuccess={handleUnlockSuccess}
+          biometricMode={biometricMode}
+          onTriggerFaceScan={(user) => {
+            setBiometricMode('face_scan');
+            setLastScanMode('face_scan');
+            startRealFaceScan();
+          }}
+          onTriggerFaceEnroll={(user) => {
+            setBiometricMode('face_enroll');
+            setLastScanMode('face_enroll');
+            startFaceEnrollment();
+          }}
+          videoRef={videoRef}
+          canvasRef={canvasRef}
+          scanProgress={scanProgress}
+          scanStatusText={scanStatusText}
+          failedAuthAttempts={failedAuthAttempts}
+          intrusionAlertDispatched={intrusionAlertDispatched}
+          onFailedAttempt={handleFailedAuthAttempt}
+        />
       )}
 
-      {/* Settings Panel HUD Overlay */}
+      {/* Settings Panel Modal */}
       {showSettings && (
         <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
-          <div className="hud-panel max-w-md w-full p-5 font-mono text-xs flex flex-col gap-4 relative animate-in fade-in zoom-in duration-200">
-            <div className="flex items-center justify-between border-b border-cyan-500/20 pb-2">
-              <div className="flex items-center gap-1.5 font-orbitron font-bold text-cyan-400 text-sm tracking-wider">
-                <Shield size={16} />
-                SYSTEM SETTINGS HUD
+          <div className="max-w-md w-full p-6 rounded-2xl bg-slate-900 border border-white/[0.1] shadow-2xl font-sans text-xs flex flex-col gap-4 relative animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                  <Settings size={16} />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-sm text-white">System Settings</h3>
+                  <p className="text-[11px] text-slate-400">AI provider, server uplink & authentication</p>
+                </div>
               </div>
               <button 
                 onClick={() => setShowSettings(false)}
-                className="text-sky-500 hover:text-cyan-400 font-bold"
+                className="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
               >
-                [X] CLOSE
+                <X size={16} />
               </button>
             </div>
 
-            <form onSubmit={handleSaveKey} className="flex flex-col gap-3">
+            <form onSubmit={handleSaveKey} className="flex flex-col gap-3.5">
               {/* Primary AI Provider Selector */}
-              <div className="flex flex-col gap-1.5 bg-cyan-950/40 p-3 rounded border border-cyan-500/40">
-                <label className="text-[10px] text-cyan-300 uppercase font-extrabold flex items-center gap-1 font-orbitron">
-                  <Cpu size={14} className="text-cyan-400 animate-pulse" /> Primary AI Engine Provider
+              <div className="flex flex-col gap-2 p-3.5 rounded-xl bg-slate-950/60 border border-white/[0.06]">
+                <label className="text-xs text-slate-300 font-medium flex items-center gap-1.5">
+                  <Cpu size={14} className="text-indigo-400" /> AI Engine Provider
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -2816,13 +2575,13 @@ export default function App() {
                       setAiProvider('gemini');
                       geminiClient.setProvider('gemini');
                     }}
-                    className={`py-2 px-3 rounded text-[11px] font-bold font-mono border flex items-center justify-center gap-1.5 transition-all ${
+                    className={`py-2 px-3 rounded-xl text-xs font-medium border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                       aiProvider === 'gemini'
-                        ? 'bg-purple-500/25 border-purple-400 text-purple-200 shadow-[0_0_12px_rgba(168,85,247,0.3)]'
-                        : 'bg-black/40 border-cyan-500/20 text-slate-400 hover:text-slate-200'
+                        ? 'bg-indigo-600 border-indigo-400 text-white shadow-sm shadow-indigo-500/20'
+                        : 'bg-slate-900/80 border-white/[0.08] text-slate-400 hover:text-slate-200'
                     }`}
                   >
-                    ☁️ Google Gemini (Online)
+                    ☁️ Google Gemini
                   </button>
                   <button
                     type="button"
@@ -2830,107 +2589,103 @@ export default function App() {
                       setAiProvider('ollama');
                       geminiClient.setProvider('ollama');
                     }}
-                    className={`py-2 px-3 rounded text-[11px] font-bold font-mono border flex items-center justify-center gap-1.5 transition-all ${
+                    className={`py-2 px-3 rounded-xl text-xs font-medium border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                       aiProvider === 'ollama'
-                        ? 'bg-cyan-500/25 border-cyan-400 text-cyan-200 shadow-[0_0_12px_rgba(0,240,255,0.3)]'
-                        : 'bg-black/40 border-cyan-500/20 text-slate-400 hover:text-slate-200'
+                        ? 'bg-indigo-600 border-indigo-400 text-white shadow-sm shadow-indigo-500/20'
+                        : 'bg-slate-900/80 border-white/[0.08] text-slate-400 hover:text-slate-200'
                     }`}
                   >
-                    🦙 Ollama Local (Offline)
+                    🦙 Ollama Local
                   </button>
                 </div>
 
                 {/* Ollama Model Selector & Status */}
                 {aiProvider === 'ollama' && (
-                  <div className="flex flex-col gap-1.5 mt-2 pt-2 border-t border-cyan-500/20 bg-cyan-950/20 p-2.5 rounded border border-cyan-500/30">
+                  <div className="flex flex-col gap-2 mt-2 pt-2.5 border-t border-white/[0.06]">
                     <div className="flex justify-between items-center">
-                      <label className="text-[9px] text-cyan-300 font-mono uppercase font-bold">Active Local Model</label>
-                      <span className="text-[8px] text-emerald-400 font-mono font-bold bg-emerald-950 px-1.5 py-0.5 rounded border border-emerald-500/30">
-                        ● Local Daemon Active (127.0.0.1:11434)
+                      <label className="text-[11px] text-slate-400">Active Local Model</label>
+                      <span className="text-[9px] text-emerald-400 font-mono bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                        ● Local Daemon (127.0.0.1:11434)
                       </span>
                     </div>
                     <select
                       value={ollamaModel}
                       onChange={(e) => setOllamaModel(e.target.value)}
-                      className="w-full bg-slate-900 border border-cyan-500/40 rounded px-3 py-1.5 text-xs text-cyan-100 outline-none focus:border-cyan-300 font-mono cursor-pointer"
+                      className="w-full bg-slate-900 border border-white/[0.1] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-400 font-sans cursor-pointer"
                     >
                       {availableOllamaModels.map(m => (
                         <option key={m} value={m}>{m} (Local Model)</option>
                       ))}
                     </select>
                     
-                    <div className="flex flex-col gap-1 mt-1">
-                      <p className="text-[9px] text-cyan-200/90 leading-relaxed font-sans">
-                        Runs 100% locally on your laptop with zero internet connection and zero API keys required.
-                      </p>
-                    </div>
+                    <p className="text-[11px] text-slate-400 leading-relaxed font-sans">
+                      Runs 100% locally on your computer with zero API keys and zero internet usage required.
+                    </p>
                   </div>
                 )}
 
                 {/* Gemini Model Configuration */}
                 {aiProvider === 'gemini' && (
-                  <div className="flex flex-col gap-1.5 mt-2 pt-2 border-t border-cyan-500/20">
-                    <label className="text-[10px] text-purple-300 uppercase font-semibold">Gemini API Studio Access Key</label>
+                  <div className="flex flex-col gap-1.5 mt-2 pt-2.5 border-t border-white/[0.06]">
+                    <label className="text-[11px] text-slate-300 font-medium">Gemini API Key</label>
                     <div className="relative flex items-center">
                       <input
                         type={showKey ? 'text' : 'password'}
                         value={apiKey}
                         onChange={(e) => setApiKey(e.target.value)}
                         placeholder="Paste Gemini API Key"
-                        className="w-full bg-black/60 border border-purple-500/30 rounded px-3 py-2 text-xs text-purple-100 outline-none focus:border-purple-400 pr-9 font-mono"
+                        className="w-full bg-slate-950 border border-white/[0.1] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-400 pr-9 font-mono"
                       />
                       <button 
                         type="button" 
                         onClick={() => setShowKey(!showKey)}
-                        className="absolute right-2.5 text-purple-400 hover:text-purple-300"
+                        className="absolute right-2.5 text-slate-400 hover:text-white"
                       >
                         {showKey ? <EyeOff size={14} /> : <Eye size={14} />}
                       </button>
                     </div>
-                    <span className="text-[9px] text-purple-300/70 leading-normal font-sans">
-                      Required for Google Gemini 2.0 Flash cloud execution. Get a free key at Google AI Studio.
+                    <span className="text-[10px] text-slate-400 leading-normal font-sans">
+                      Used for Gemini 2.0 Flash cloud execution. Free keys available at Google AI Studio.
                     </span>
                   </div>
                 )}
               </div>
 
-              <div className="flex flex-col gap-1.5 border-t border-cyan-500/20 pt-3">
+              {/* Server URL */}
+              <div className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-[10px] text-sky-400 uppercase font-semibold flex items-center gap-1">
-                    <Radio size={12} className="text-cyan-400" /> JASPER Server URL / IP Address
+                  <label className="text-[11px] text-slate-300 font-medium flex items-center gap-1.5">
+                    <Radio size={12} className="text-indigo-400" /> Backend Server URL
                   </label>
-                  <span className="text-[8px] text-cyan-400 font-bold bg-cyan-950/60 px-1.5 py-0.5 rounded border border-cyan-500/30">
-                    REMOTE / NGROK
+                  <span className="text-[9px] text-slate-400 font-mono bg-slate-800 px-1.5 py-0.5 rounded">
+                    Remote Relay
                   </span>
                 </div>
                 <input
                   type="text"
                   value={serverIp}
                   onChange={(e) => setServerIpState(e.target.value)}
-                  placeholder="https://5b34-2405-201-202f-28a9-ddad-6cf0-2973-7f39.ngrok-free.app"
-                  className="w-full bg-black/60 border border-cyan-500/30 rounded px-3 py-2 text-xs text-cyan-100 outline-none focus:border-cyan-400 font-mono"
+                  placeholder="https://your-backend.ngrok-free.app"
+                  className="w-full bg-slate-950 border border-white/[0.1] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-400 font-mono"
                 />
-                <span className="text-[9px] text-sky-600 leading-normal font-sans">
-                  Target backend server URL or IP address. Automatically defaults to <strong className="text-cyan-400">https://5b34-2405-201-202f-28a9-ddad-6cf0-2973-7f39.ngrok-free.app</strong>.
-                </span>
               </div>
 
-
-              <div className="border-t border-cyan-500/20 pt-3 flex flex-col gap-2.5 bg-cyan-950/20 p-3.5 rounded border border-cyan-500/30">
+              {/* Biometric Face Lock Security */}
+              <div className="p-3.5 rounded-xl bg-slate-950/60 border border-white/[0.06] flex flex-col gap-2">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-cyan-400 font-bold uppercase text-[10px] font-orbitron">
-                    <Fingerprint size={14} /> BIOMETRIC FACE LOCK SECURITY
+                  <div className="flex items-center gap-1.5 text-white font-medium text-xs">
+                    <Fingerprint size={14} className="text-indigo-400" /> Face Biometrics
                   </div>
-                  <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${hasOwnerProfile() ? 'bg-green-950 text-green-400 border border-green-500/40' : 'bg-amber-950 text-amber-400 border border-amber-500/40'}`}>
-                    {hasOwnerProfile() ? 'ENROLLED' : 'NOT REGISTERED'}
+                  <span className={`text-[9px] font-medium px-2 py-0.5 rounded-full ${hasOwnerProfile() ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}`}>
+                    {hasOwnerProfile() ? 'Enrolled' : 'Not Registered'}
                   </span>
                 </div>
 
-                <p className="text-[9px] text-slate-300 leading-relaxed font-sans">
-                  Strict biometric face matching ensures JASPER will <strong>only unlock when your specific face</strong> is recognized by the webcam.
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Webcam facial recognition unlocks your workspace automatically when authorized.
                 </p>
 
-                <div className="flex gap-2 mt-1">
+                <div className="flex gap-2 mt-0.5">
                   <button 
                     type="button"
                     onClick={() => {
@@ -2938,9 +2693,9 @@ export default function App() {
                       setIsLocked(true);
                       setBiometricMode('face_enroll');
                     }}
-                    className="btn-control flex-1 py-2 text-[9px] font-bold font-orbitron flex items-center justify-center gap-1.5 bg-cyan-950/40 border-cyan-500/40 hover:border-cyan-400"
+                    className="flex-1 py-1.5 px-3 rounded-xl border border-white/[0.1] bg-slate-900 hover:bg-slate-850 text-slate-200 text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                   >
-                    <UserPlus size={12} /> {hasOwnerProfile() ? 'RE-ENROLL MY FACE' : 'REGISTER MY FACE'}
+                    <UserPlus size={12} /> {hasOwnerProfile() ? 'Re-enroll Face' : 'Register Face'}
                   </button>
 
                   {hasOwnerProfile() && (
@@ -2950,36 +2705,32 @@ export default function App() {
                         clearOwnerProfile();
                         setTick(t => t + 1);
                       }}
-                      className="btn-control py-2 px-3 text-[9px] font-bold font-orbitron text-red-400 border-red-500/40 bg-red-950/20 hover:bg-red-950/40"
+                      className="py-1.5 px-3 rounded-xl border border-rose-500/20 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 text-xs font-medium transition-colors cursor-pointer"
                     >
-                      <Trash2 size={12} /> CLEAR
+                      <Trash2 size={12} />
                     </button>
                   )}
                 </div>
               </div>
 
-              {/* System Passcode / Password Configuration */}
-              <div className="border-t border-cyan-500/20 pt-3 flex flex-col gap-2 bg-cyan-950/20 p-3.5 rounded border border-cyan-500/30">
+              {/* System Passcode / PIN */}
+              <div className="p-3.5 rounded-xl bg-slate-950/60 border border-white/[0.06] flex flex-col gap-2">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-cyan-400 font-bold uppercase text-[10px] font-orbitron">
-                    <KeyRound size={14} /> SYSTEM LOCK PASSCODE / PIN
+                  <div className="flex items-center gap-1.5 text-white font-medium text-xs">
+                    <KeyRound size={14} className="text-indigo-400" /> System Passcode / PIN
                   </div>
-                  <span className="text-[8px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-500/30">
-                    CURRENT: {systemPasscode || 'jasper'}
+                  <span className="text-[9px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded">
+                    Default: {systemPasscode || 'jasper'}
                   </span>
                 </div>
 
-                <p className="text-[9px] text-slate-300 leading-relaxed font-sans">
-                  Set a custom alphanumeric passcode or PIN required to unlock JASPER OS.
-                </p>
-
-                <div className="flex gap-2 mt-1">
+                <div className="flex gap-2">
                   <input 
                     type="text"
                     value={tempPasscode}
                     onChange={(e) => setTempPasscode(e.target.value)}
-                    placeholder="Enter new lock passcode..."
-                    className="bg-black/60 border border-cyan-500/30 rounded px-3 py-1.5 text-xs text-cyan-200 placeholder-sky-700 outline-none focus:border-cyan-400 font-mono flex-1 transition-all"
+                    placeholder="New lock passcode"
+                    className="bg-slate-950 border border-white/[0.1] rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-indigo-400 font-mono flex-1 transition-all"
                   />
                   <button 
                     type="button"
@@ -2991,33 +2742,23 @@ export default function App() {
                       setPasscodeSavedBadge(true);
                       setTimeout(() => setPasscodeSavedBadge(false), 2500);
                     }}
-                    className="px-3 py-1.5 text-[10px] font-orbitron font-bold uppercase tracking-wider text-cyan-400 border border-cyan-500/40 bg-cyan-950/60 hover:bg-cyan-900/80 rounded transition-all glow-cyan"
+                    className="px-3.5 py-1.5 text-xs font-medium text-white bg-slate-800 hover:bg-slate-750 border border-white/[0.1] rounded-xl transition-all cursor-pointer"
                   >
-                    SAVE
+                    Save
                   </button>
                 </div>
                 {passcodeSavedBadge && (
-                  <span className="text-[9px] text-green-400 font-mono flex items-center gap-1 mt-0.5">
-                    <CheckCircle2 size={11} /> Passcode successfully updated to "{systemPasscode}"!
+                  <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
+                    <CheckCircle2 size={11} /> Passcode saved
                   </span>
                 )}
               </div>
 
-              <div className="border-t border-cyan-500/10 pt-3 flex flex-col gap-2 bg-cyan-950/10 p-3 rounded">
-                <div className="flex items-center gap-1 text-sky-400 font-bold uppercase text-[9px]">
-                  <HelpCircle size={11} /> WAKE WORD GUIDE
-                </div>
-                <p className="text-[9px] text-cyan-300/80 leading-relaxed font-sans">
-                  JASPER is configured for continuous background listening. Minimize this browser or keep it open. Simply say <strong className="text-cyan-400 glow-cyan">"Hey Jasper"</strong> from anywhere in the room. 
-                  Windows native speech recognition will auto-focus this tab, play the chime, and prompt you for commands.
-                </p>
-              </div>
-
               <button 
                 type="submit" 
-                className="btn-control font-bold py-2 mt-2 w-full text-center"
+                className="py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs transition-colors shadow-sm shadow-indigo-500/20 cursor-pointer mt-1"
               >
-                COMMIT ACCESS KEY & SYSTEM SYNC
+                Save Preferences
               </button>
             </form>
           </div>
@@ -3196,8 +2937,8 @@ export default function App() {
                   <Palette className="w-6 h-6 animate-pulse" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold tracking-wider text-purple-300 uppercase font-orbitron">Custom Themes</h2>
-                  <p className="text-xs text-slate-400 font-mono">Select UI visual theme preset</p>
+                  <h2 className="text-base font-semibold text-white">Custom Themes</h2>
+                  <p className="text-xs text-slate-400">Select interface color theme</p>
                 </div>
               </div>
               <button onClick={() => setShowThemes(false)} className="p-2 rounded-xl bg-slate-800/60 hover:bg-rose-500/20 hover:text-rose-400 text-slate-400">

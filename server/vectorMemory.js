@@ -168,8 +168,12 @@ class VectorMemoryEngine {
         this.memories = JSON.parse(raw);
         let updated = false;
 
-        // Ensure every memory has pre-computed local dense embedding
+        // Ensure every memory has pre-computed local dense embedding and userId
         for (const mem of this.memories) {
+          if (!mem.userId) {
+            mem.userId = 'jwalant';
+            updated = true;
+          }
           if (!mem.vector || mem.vector.length !== VECTOR_DIMS) {
             mem.vector = computeLocalDenseEmbedding(mem.text);
             mem.tokens = tokenize(mem.text);
@@ -182,18 +186,21 @@ class VectorMemoryEngine {
         const baseline = [
           {
             id: 1,
+            userId: 'jwalant',
             text: 'User prefers concise audio responses',
             category: 'preference',
             date: new Date().toISOString()
           },
           {
             id: 2,
+            userId: 'jwalant',
             text: 'Default smart home TV is Samsung Frame in Living Room',
             category: 'device',
             date: new Date().toISOString()
           },
           {
             id: 3,
+            userId: 'jwalant',
             text: 'User name is Jwalant',
             category: 'profile',
             date: new Date().toISOString()
@@ -222,12 +229,24 @@ class VectorMemoryEngine {
     }
   }
 
-  addMemory(text, category = 'general', metadata = {}) {
+  addMemory(text, category = 'general', metadata = {}, userId = 'jwalant') {
     if (!text || typeof text !== 'string') return null;
     const cleanText = text.trim();
 
-    // Check for existing duplicate memory to avoid bloat
-    const existingIndex = this.memories.findIndex(m => m.text.toLowerCase().trim() === cleanText.toLowerCase());
+    // Handle flexible argument order: addMemory(text, category, userId) or addMemory(text, category, metadata, userId)
+    let targetUserId = userId;
+    let actualMetadata = metadata;
+    if (typeof metadata === 'string') {
+      targetUserId = metadata;
+      actualMetadata = {};
+    }
+    targetUserId = String(targetUserId || 'jwalant').trim().toLowerCase();
+
+    // Check for existing duplicate memory for this user to avoid bloat
+    const existingIndex = this.memories.findIndex(
+      m => m.text.toLowerCase().trim() === cleanText.toLowerCase() &&
+           String(m.userId || 'jwalant').toLowerCase() === targetUserId
+    );
     if (existingIndex !== -1) {
       this.memories[existingIndex].date = new Date().toISOString();
       this.memories[existingIndex].vector = computeLocalDenseEmbedding(cleanText);
@@ -239,12 +258,13 @@ class VectorMemoryEngine {
     const newId = this.memories.length > 0 ? Math.max(...this.memories.map(m => m.id || 0)) + 1 : 1;
     const memoryObj = {
       id: newId,
+      userId: targetUserId,
       text: cleanText,
       category,
       date: new Date().toISOString(),
       tokens: tokenize(cleanText),
       vector: computeLocalDenseEmbedding(cleanText),
-      metadata
+      metadata: actualMetadata
     };
 
     this.memories.push(memoryObj);
@@ -252,21 +272,31 @@ class VectorMemoryEngine {
     return memoryObj;
   }
 
-  deleteMemory(id) {
+  deleteMemory(id, userId = null) {
     const numId = parseInt(id, 10);
-    this.memories = this.memories.filter(m => m.id !== numId);
+    const targetUserId = userId ? String(userId).trim().toLowerCase() : null;
+    this.memories = this.memories.filter(m => {
+      if (m.id !== numId) return true;
+      if (targetUserId && String(m.userId || 'jwalant').toLowerCase() !== targetUserId) {
+        return true; // Not owned by requesting user
+      }
+      return false; // Deleted
+    });
     this.saveStore();
     return true;
   }
 
   /**
-   * Search memory using a hybrid retrieval engine:
+   * Search memory using a hybrid retrieval engine strictly scoped to the user:
    * 1. 128D Dense Semantic Vector Cosine Similarity (subwords + synonyms)
    * 2. Okapi BM25 Ranking (IDF + term frequencies + doc length normalization)
    * 3. Exact term overlap bonus
    */
-  searchMemory(query, topK = 5) {
-    if (!query || this.memories.length === 0) return [];
+  searchMemory(query, topK = 5, userId = 'jwalant') {
+    if (!query) return [];
+    const targetUserId = String(userId || 'jwalant').trim().toLowerCase();
+    const userPool = this.memories.filter(m => String(m.userId || 'jwalant').toLowerCase() === targetUserId);
+    if (userPool.length === 0) return [];
 
     const queryTokens = tokenize(query);
     if (queryTokens.length === 0) return [];
@@ -283,13 +313,13 @@ class VectorMemoryEngine {
       }
     }
 
-    // Compute BM25 parameters across corpus
-    const N = this.memories.length;
+    // Compute BM25 parameters across corpus for this user
+    const N = userPool.length;
     let totalDocLen = 0;
     const docTermFreqs = [];
 
     for (let i = 0; i < N; i++) {
-      const docTokens = this.memories[i].tokens || tokenize(this.memories[i].text);
+      const docTokens = userPool[i].tokens || tokenize(userPool[i].text);
       totalDocLen += docTokens.length;
       const tfMap = {};
       for (const t of docTokens) {
@@ -313,7 +343,7 @@ class VectorMemoryEngine {
     }
 
     // Score documents
-    const scored = this.memories.map((mem, idx) => {
+    const scored = userPool.map((mem, idx) => {
       // 1. Dense vector cosine similarity
       const docVec = mem.vector || computeLocalDenseEmbedding(mem.text);
       const denseSim = vectorCosineSimilarity(queryVec, docVec);
@@ -362,9 +392,9 @@ class VectorMemoryEngine {
   }
 
   /**
-   * Automatically extract key user facts and preferences from conversation text.
+   * Automatically extract key user facts and preferences from conversation text for this user.
    */
-  extractMemoriesFromText(text) {
+  extractMemoriesFromText(text, userId = 'jwalant') {
     if (!text || typeof text !== 'string') return [];
 
     const extracted = [];
@@ -390,7 +420,7 @@ class VectorMemoryEngine {
       if (match) {
         const fact = match[0].trim();
         if (fact.length > 5 && fact.length < 150) {
-          const added = this.addMemory(fact, category, { source: 'conversation' });
+          const added = this.addMemory(fact, category, { source: 'conversation' }, userId);
           if (added) extracted.push(added);
         }
       }
@@ -399,7 +429,11 @@ class VectorMemoryEngine {
     return extracted;
   }
 
-  getAllMemories() {
+  getAllMemories(userId = null) {
+    if (userId) {
+      const targetUserId = String(userId).trim().toLowerCase();
+      return this.memories.filter(m => String(m.userId || 'jwalant').toLowerCase() === targetUserId);
+    }
     return this.memories;
   }
 }

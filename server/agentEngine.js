@@ -1116,7 +1116,7 @@ Key Directives:
           };
         }
       } else {
-        result = await tool.handler(args);
+        result = await tool.handler(args, { userId: opts.userId || 'jwalant', ...opts });
       }
       const elapsed = Date.now() - startTime;
 
@@ -1155,15 +1155,21 @@ Key Directives:
    * Parse a natural-language query and execute appropriate tools.
    * Uses keyword intent routing as primary (fast, offline), falls back to AI reasoning.
    */
-  async processQuery({ query, userKey = '', model = 'gemini' }) {
-    console.log(`[AgentEngine] Processing query: "${query}"`);
+  async processQuery({ query, userKey = '', model = 'gemini', userId = 'jwalant' }) {
+    const cleanUserId = String(userId || 'jwalant').trim().toLowerCase();
+    const userProfile = dbManager.getUser(cleanUserId) || { name: 'User', userId: cleanUserId };
+    const userName = userProfile.name || cleanUserId;
+    console.log(`[AgentEngine] Processing query for user "${cleanUserId}" (${userName}): "${query}"`);
 
-    // Retrieve relevant memories
-    const relevantMemories = vectorMemory.searchMemory(query, 3);
-    vectorMemory.extractMemoriesFromText(query);
+    // Retrieve relevant memories for THIS user
+    const relevantMemories = vectorMemory.searchMemory(query, 3, cleanUserId);
+    vectorMemory.extractMemoriesFromText(query, cleanUserId);
 
     const lower = query.toLowerCase();
     const results = [];
+
+    // Helper for executing tools with current user context
+    const runTool = (toolName, args = {}) => this.executeTool(toolName, args, { userId: cleanUserId });
 
     // ── Immediate Cancellation & Interruption Handler ─────────────────────
     if (lower.match(/\b(stop|cancel that|cancel|hold on|don't send|never mind)\b/)) {
