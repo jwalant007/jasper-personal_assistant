@@ -1675,7 +1675,7 @@ export default function App() {
               {isSnippetCopied ? '✓ Copied' : 'Copy'}
             </button>
           </div>
-          <pre className="p-3.5 overflow-x-auto text-[#E2E8F0] leading-normal font-mono select-text">
+          <pre className="p-3.5 overflow-x-auto custom-scrollbar text-[#E2E8F0] leading-normal font-mono select-text">
             <code>{cm.code}</code>
           </pre>
         </div>
@@ -1801,7 +1801,7 @@ export default function App() {
         {/* Left Navigation Sidebar / Mobile Slide Drawer */}
         {showSidebar && (
           <aside className={`sidebar-panel flex flex-col justify-between h-full select-none shrink-0 border-r border-white/[0.08] bg-[#0E121A]/95 backdrop-blur-2xl transition-all duration-300 z-50 ${isMobileLayout ? 'fixed inset-y-0 left-0 w-[300px] max-w-[86vw] shadow-2xl p-4 safe-pt safe-pb' : 'w-[280px] relative z-20 p-3.5'}`}>
-            <div className="flex flex-col gap-3 overflow-y-auto no-scrollbar flex-1">
+            <div className="flex flex-col gap-3 overflow-y-auto assistant-menu-scrollbar custom-scrollbar min-h-0 flex-1 pr-1.5">
               {/* Brand Header */}
               <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
                 <div className="flex items-center gap-2.5">
@@ -2316,7 +2316,7 @@ export default function App() {
                 <div 
                   ref={hudPanelRef}
                   onScroll={handleHudScroll}
-                  className={`flex-1 overflow-y-auto relative bg-[#0B0D12] border border-white/[0.08] rounded-2xl backdrop-blur-2xl shadow-2xl ${isMobileLayout ? 'p-3' : 'p-6'} transition-all flex flex-col`}
+                  className={`flex-1 min-h-0 overflow-y-auto assistant-workspace-scrollbar custom-scrollbar relative bg-[#0B0D12] border border-white/[0.08] rounded-2xl backdrop-blur-2xl shadow-2xl ${isMobileLayout ? 'p-3' : 'p-6'} transition-all flex flex-col`}
                 >
                   {/* Ambient Electric Border Highlight */}
                   <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#67DFFF]/40 to-transparent pointer-events-none" />
@@ -2433,7 +2433,7 @@ export default function App() {
                     </div>
                   ) : (
                     /* Command Center Hero & Quick Directive Cards */
-                    <div className="flex-1 flex flex-col items-center justify-center max-w-4xl w-full mx-auto py-6 px-2 gap-6 my-auto">
+                    <div className="flex-1 flex flex-col items-center justify-start sm:justify-center max-w-4xl w-full mx-auto py-6 px-2 gap-6 min-h-min">
                       {/* Core AI Arc Reactor Visualization */}
                       <div className="flex flex-col items-center gap-3">
                         <div 
