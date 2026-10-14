@@ -1505,29 +1505,58 @@ export default function App() {
 
     setJasperState('processing');
 
-    // 1. Query Gemini / Fallback Handler with Attachments
-    const response = await geminiClient.sendQuery(queryText, (text, type) => {
-      console.log(`[${type.toUpperCase()}] ${text}`);
-    }, attachments);
+    try {
+      // 1. Query Gemini / Fallback Handler with Attachments & 15-second safety race
+      const queryPromise = geminiClient.sendQuery(queryText, (text, type) => {
+        console.log(`[${type.toUpperCase()}] ${text}`);
+      }, attachments);
 
-    // 2. Add new chat to history
-    const newChat = {
-      id: Date.now(),
-      query: queryText,
-      attachments: attachments,
-      response: response,
-      timestamp: new Date().toLocaleString()
-    };
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Directive took longer than expected to complete')), 15000)
+      );
 
-    setPastChats((prev) => [newChat, ...prev]);
-    setSelectedChatId(newChat.id);
+      const response = await Promise.race([queryPromise, timeoutPromise]);
 
-    // 3. Set Speaking Text for Text-to-Speech
-    setSpeakingText(response);
-    
-    // Play success chime
-    if (voiceControllerRef.current) {
-      voiceControllerRef.current.playSuccess();
+      // 2. Add new chat to history
+      const newChat = {
+        id: Date.now(),
+        query: queryText,
+        attachments: attachments,
+        response: response || "Directive processed, Sir.",
+        timestamp: new Date().toLocaleString()
+      };
+
+      setPastChats((prev) => [newChat, ...prev]);
+      setSelectedChatId(newChat.id);
+
+      // 3. Set Speaking Text for Text-to-Speech
+      if (response && response.trim()) {
+        setSpeakingText(response);
+      } else {
+        setJasperState('idle');
+      }
+      
+      // Play success chime
+      if (voiceControllerRef.current) {
+        voiceControllerRef.current.playSuccess();
+      }
+    } catch (err) {
+      console.error('[handleCommand Error]:', err);
+      const fallbackResponse = `I received your directive: "${queryText}", Sir. Local systems are active and standing by.`;
+      const errChat = {
+        id: Date.now(),
+        query: queryText,
+        attachments: attachments,
+        response: fallbackResponse,
+        timestamp: new Date().toLocaleString()
+      };
+      setPastChats((prev) => [errChat, ...prev]);
+      setSelectedChatId(errChat.id);
+      setSpeakingText(fallbackResponse);
+      if (voiceControllerRef.current) {
+        voiceControllerRef.current.playError();
+      }
+      setJasperState('idle');
     }
   };
 
@@ -3028,7 +3057,10 @@ export default function App() {
         onStateChange={setJasperState}
         onCommandReceived={handleCommand}
         speakingText={speakingText}
-        onSpeakingComplete={() => setSpeakingText('')}
+        onSpeakingComplete={() => {
+          setSpeakingText('');
+          setJasperState('idle');
+        }}
         triggerWake={triggerWakeOnMount}
       />
 

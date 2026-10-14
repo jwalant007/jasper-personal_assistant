@@ -199,7 +199,7 @@ async function queryLocalModel({ prompt, model = 'llama3.2:latest', system = '',
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(postData)
       },
-      timeout: 45000
+      timeout: 7000
     };
 
     const req = http.request(options, (res) => {

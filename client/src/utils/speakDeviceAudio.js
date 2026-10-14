@@ -107,6 +107,7 @@ export const speakDeviceAudio = (text, options = {}) => {
       window.speechSynthesis.cancel();
 
       let spoken = false;
+      let completed = false;
 
       const executeSpeak = () => {
         if (spoken) return;
@@ -115,6 +116,9 @@ export const speakDeviceAudio = (text, options = {}) => {
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.rate = rate;
         utterance.pitch = pitch;
+
+        // Keep reference on window to prevent Chrome garbage-collection bug dropping onend
+        window.__currentSpeechUtterance = utterance;
 
         const voices = window.speechSynthesis.getVoices() || [];
         const preferredVoice = voices.find(v => v.lang?.startsWith('en-GB')) ||
@@ -128,11 +132,29 @@ export const speakDeviceAudio = (text, options = {}) => {
           utterance.voice = preferredVoice;
         }
 
-        if (onStart) utterance.onstart = onStart;
-        utterance.onend = () => {
+        // Calculate expected speech duration with safety buffer
+        const maxDurationMs = Math.max(3000, Math.min(25000, (text.length / 8) * 1000 + 2500));
+        let safetyTimer = setTimeout(() => {
+          if (!completed) {
+            completed = true;
+            window.__currentSpeechUtterance = null;
+            if (onEnd) onEnd();
+          }
+        }, maxDurationMs);
+
+        const handleComplete = () => {
+          if (completed) return;
+          completed = true;
+          if (safetyTimer) clearTimeout(safetyTimer);
+          window.__currentSpeechUtterance = null;
           if (onEnd) onEnd();
         };
+
+        if (onStart) utterance.onstart = onStart;
+        utterance.onend = handleComplete;
         utterance.onerror = (err) => {
+          if (safetyTimer) clearTimeout(safetyTimer);
+          window.__currentSpeechUtterance = null;
           console.warn('[speakDeviceAudio] WebSpeech error event:', err);
           fallbackHtml5Audio(text, onStart, onEnd, onError);
         };

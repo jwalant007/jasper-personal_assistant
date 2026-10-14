@@ -82,52 +82,81 @@ const VoiceController = forwardRef(({
       }
 
       const rec = new SpeechRecognitionClass();
-    rec.continuous = false;
-    rec.interimResults = false;
-    rec.lang = 'en-US';
+      rec.continuous = false;
+      rec.interimResults = true;
+      rec.lang = 'en-US';
 
-    rec.onstart = () => {
-      setIsListening(true);
-      onStateChange('listening');
-      // Set a safety timeout: if no speech is detected for 10 seconds, abort listening
-      if (speechTimeoutRef.current) clearTimeout(speechTimeoutRef.current);
-      speechTimeoutRef.current = setTimeout(() => {
-        rec.abort();
-      }, 10000);
-    };
+      let lastTranscript = '';
+      let commandDispatched = false;
 
-    rec.onresult = (event) => {
-      if (speechTimeoutRef.current) clearTimeout(speechTimeoutRef.current);
-      const command = event.results[0][0].transcript;
-      console.log('[VoiceController] Recognized speech:', command);
-      onCommandReceived(command);
-    };
+      rec.onstart = () => {
+        lastTranscript = '';
+        commandDispatched = false;
+        setIsListening(true);
+        onStateChange('listening');
+        // Set a safety timeout: if no speech is detected for 10 seconds, abort listening
+        if (speechTimeoutRef.current) clearTimeout(speechTimeoutRef.current);
+        speechTimeoutRef.current = setTimeout(() => {
+          try { rec.abort(); } catch (_) {}
+        }, 10000);
+      };
 
-    rec.onerror = (e) => {
-      console.error('[VoiceController] Speech error:', e);
-      setIsListening(false);
-      onStateChange('error');
-      playChime('sleep');
-      setTimeout(() => {
-        onStateChange(curr => curr === 'error' ? 'idle' : curr);
-      }, 3000);
-    };
+      rec.onresult = (event) => {
+        if (speechTimeoutRef.current) clearTimeout(speechTimeoutRef.current);
+        let interim = '';
+        let final = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            final += event.results[i][0].transcript;
+          } else {
+            interim += event.results[i][0].transcript;
+          }
+        }
+        const captured = (final || interim).trim();
+        if (captured) {
+          lastTranscript = captured;
+        }
 
-    rec.onend = () => {
-      setIsListening(false);
-      // Wait to see if we transitioned to speaking or processing, otherwise set idle
-      setTimeout(() => {
-        onStateChange(current => {
-          if (current === 'listening') return 'idle';
-          return current;
-        });
-      }, 200);
-    };
+        if (final.trim() && !commandDispatched) {
+          commandDispatched = true;
+          console.log('[VoiceController] Recognized final speech:', final.trim());
+          onStateChange('processing');
+          onCommandReceived(final.trim());
+        }
+      };
 
-    setRecognition(rec);
-    return () => {
-      if (speechTimeoutRef.current) clearTimeout(speechTimeoutRef.current);
-    };
+      rec.onerror = (e) => {
+        console.error('[VoiceController] Speech error:', e);
+        setIsListening(false);
+        onStateChange('error');
+        playChime('sleep');
+        setTimeout(() => {
+          onStateChange(curr => curr === 'error' ? 'idle' : curr);
+        }, 2500);
+      };
+
+      rec.onend = () => {
+        setIsListening(false);
+        if (!commandDispatched && lastTranscript.trim()) {
+          commandDispatched = true;
+          console.log('[VoiceController] Dispatching buffered speech on end:', lastTranscript.trim());
+          onStateChange('processing');
+          onCommandReceived(lastTranscript.trim());
+        } else if (!commandDispatched) {
+          // If no speech was spoken, safely transition back to idle
+          setTimeout(() => {
+            onStateChange(current => {
+              if (current === 'listening') return 'idle';
+              return current;
+            });
+          }, 300);
+        }
+      };
+
+      setRecognition(rec);
+      return () => {
+        if (speechTimeoutRef.current) clearTimeout(speechTimeoutRef.current);
+      };
     } catch (err) {
       console.warn('[VoiceController] SpeechRecognition init caught:', err);
     }
@@ -238,25 +267,51 @@ const VoiceController = forwardRef(({
   useEffect(() => {
     if (!speakingText || typeof window === 'undefined') return;
 
+    let isDisposed = false;
+    let safetyTimer = null;
+
     try {
-      speakDeviceAudio(speakingText, {
-        rate: 1.05,
-        pitch: 0.95,
-        onStart: () => onStateChange('speaking'),
-        onEnd: () => {
-          onStateChange('idle');
-          onSpeakingComplete();
-        },
-        onError: () => {
+      const maxDuration = Math.max(3000, Math.min(25000, (speakingText.length / 8) * 1000 + 2500));
+      safetyTimer = setTimeout(() => {
+        if (!isDisposed) {
+          console.warn('[VoiceController] Safety speech timeout fired, releasing to idle.');
           onStateChange('idle');
           onSpeakingComplete();
         }
+      }, maxDuration);
+
+      speakDeviceAudio(speakingText, {
+        rate: 1.05,
+        pitch: 0.95,
+        onStart: () => {
+          if (!isDisposed) onStateChange('speaking');
+        },
+        onEnd: () => {
+          if (safetyTimer) clearTimeout(safetyTimer);
+          if (!isDisposed) {
+            onStateChange('idle');
+            onSpeakingComplete();
+          }
+        },
+        onError: () => {
+          if (safetyTimer) clearTimeout(safetyTimer);
+          if (!isDisposed) {
+            onStateChange('idle');
+            onSpeakingComplete();
+          }
+        }
       });
     } catch (e) {
+      if (safetyTimer) clearTimeout(safetyTimer);
       console.warn('[VoiceController] Speech synthesis failed:', e);
       onStateChange('idle');
       onSpeakingComplete();
     }
+
+    return () => {
+      isDisposed = true;
+      if (safetyTimer) clearTimeout(safetyTimer);
+    };
   }, [speakingText]);
 
   const startListeningWithChime = () => {
@@ -266,9 +321,15 @@ const VoiceController = forwardRef(({
         window.speechSynthesis.cancel(); // Mute if speaking
       }
       playChime('wake');
-      recognition.abort(); // Cancel active recognition
+      try {
+        recognition.abort(); // Cancel active recognition
+      } catch (_) {}
       setTimeout(() => {
-        recognition.start();
+        try {
+          recognition.start();
+        } catch (startErr) {
+          console.warn('[VoiceController] recognition.start notice:', startErr?.message || startErr);
+        }
       }, 150);
     } catch (e) {
       console.error('Failed to start recognition:', e);

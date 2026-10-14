@@ -620,12 +620,174 @@ class GeminiClient {
     return ['llama3.2:latest'];
   }
 
+  hasValidGeminiKey() {
+    return typeof this.apiKey === 'string' && this.apiKey.trim().startsWith('AIzaSy');
+  }
+
   hasKey() {
-    return !!this.apiKey;
+    return this.hasValidGeminiKey() || (typeof this.chatGptKey === 'string' && this.chatGptKey.trim().startsWith('sk-'));
   }
 
   async generateContent(prompt, onLog = () => {}) {
     return this.sendQuery(prompt, onLog);
+  }
+
+  // Pre-flight instant direct action dispatcher for instant local execution
+  async tryDirectAction(text, onLog = () => {}) {
+    if (!text || typeof text !== 'string') return null;
+    const raw = text.toLowerCase().trim();
+
+    // 1. Date & Time
+    if (raw.match(/\b(what time is it|what's the time|tell me the time|current time|what is the time)\b/)) {
+      const now = new Date();
+      return `The current time is ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}, Sir.`;
+    }
+    if (raw.match(/\b(what date is it|what's the date|what is today's date|today's date|what day is today|what day is it)\b/)) {
+      const now = new Date();
+      return `Today is ${now.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}, Sir.`;
+    }
+
+    // 2. PC Volume
+    if (raw.match(/\b(volume|sound)\b/) && raw.match(/\b(mute|unmute|silence)\b/)) {
+      await this.executeTool('set_pc_volume', { action: 'mute' }, onLog);
+      return "Toggled master system mute, Sir.";
+    }
+    if (raw.match(/\b(volume up|increase volume|turn up the volume|louder)\b/)) {
+      await this.executeTool('set_pc_volume', { action: 'up' }, onLog);
+      return "Raising master PC volume, Sir.";
+    }
+    if (raw.match(/\b(volume down|decrease volume|turn down the volume|lower volume|quieter)\b/)) {
+      await this.executeTool('set_pc_volume', { action: 'down' }, onLog);
+      return "Lowering master PC volume, Sir.";
+    }
+    const volMatch = raw.match(/volume (?:to )?(\d+)%/i) || raw.match(/set volume (?:to )?(\d+)/i);
+    if (volMatch) {
+      const val = parseInt(volMatch[1], 10);
+      await this.executeTool('set_pc_volume', { action: 'set', value: val }, onLog);
+      return `Master system volume adjusted to ${val} percent, Sir.`;
+    }
+
+    // 3. PC Media
+    if (raw.match(/\b(play music|pause music|stop music|resume music|toggle music|pause playback|play song|media play|media pause)\b/)) {
+      await this.executeTool('control_pc_media', { action: 'playpause' }, onLog);
+      return "Toggling media playback, Sir.";
+    }
+    if (raw.match(/\b(next song|next track|skip song|skip track|play next)\b/)) {
+      await this.executeTool('control_pc_media', { action: 'next' }, onLog);
+      return "Skipping to the next track, Sir.";
+    }
+    if (raw.match(/\b(previous song|prev song|previous track|play previous|last song)\b/)) {
+      await this.executeTool('control_pc_media', { action: 'prev' }, onLog);
+      return "Replaying previous track, Sir.";
+    }
+
+    // 4. Common Native Windows Apps
+    const appMap = {
+      'notepad': 'notepad',
+      'calculator': 'calc',
+      'calc': 'calc',
+      'chrome': 'chrome',
+      'paint': 'paint',
+      'task manager': 'taskmgr',
+      'taskmgr': 'taskmgr',
+      'file explorer': 'explorer',
+      'explorer': 'explorer',
+      'terminal': 'cmd',
+      'cmd': 'cmd',
+      'powershell': 'powershell',
+      'camera': 'camera',
+      'spotify': 'spotify'
+    };
+    for (const [trigger, appName] of Object.entries(appMap)) {
+      if (raw.match(new RegExp(`\\b(open|launch|start)\\s+${trigger}\\b`, 'i'))) {
+        await this.executeTool('launch_pc_app', { appName }, onLog);
+        return `Launching ${trigger} on your device, Sir.`;
+      }
+    }
+
+    // 5. Direct Websites
+    if (raw.match(/\b(open|launch)\s+youtube\b/i)) {
+      await this.executeTool('launch_pc_app', { url: 'https://youtube.com' }, onLog);
+      return "Opening YouTube for you, Sir.";
+    }
+    if (raw.match(/\b(open|launch)\s+google\b/i)) {
+      await this.executeTool('launch_pc_app', { url: 'https://google.com' }, onLog);
+      return "Opening Google Search, Sir.";
+    }
+    if (raw.match(/\b(open|launch)\s+gmail\b/i)) {
+      await this.executeTool('launch_pc_app', { url: 'https://mail.google.com' }, onLog);
+      return "Opening Gmail, Sir.";
+    }
+    if (raw.match(/\b(open|launch)\s+github\b/i)) {
+      await this.executeTool('launch_pc_app', { url: 'https://github.com' }, onLog);
+      return "Opening GitHub, Sir.";
+    }
+    const ytSearch = raw.match(/(?:search youtube for|play on youtube|search on youtube)\s+(.+)/i);
+    if (ytSearch) {
+      const q = ytSearch[1].trim();
+      await this.executeTool('launch_pc_app', { url: `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}` }, onLog);
+      return `Searching YouTube for "${q}", Sir.`;
+    }
+
+    // 6. Smart TV commands
+    if (raw.match(/\b(turn off tv|power off tv|tv off)\b/i)) {
+      await this.executeTool('send_tv_command', { keyName: 'KEY_POWER' }, onLog);
+      return "Transmitting power command to your television, Sir.";
+    }
+    if (raw.match(/\b(turn on tv|wake tv|tv on)\b/i)) {
+      await this.executeTool('wake_tv', {}, onLog);
+      return "Transmitting Wake-on-LAN power sequence to your television, Sir.";
+    }
+    if (raw.match(/\b(tv volume up|tv louder)\b/i)) {
+      await this.executeTool('send_tv_command', { keyName: 'KEY_VOLUP' }, onLog);
+      return "Raising television volume, Sir.";
+    }
+    if (raw.match(/\b(tv volume down|tv quieter)\b/i)) {
+      await this.executeTool('send_tv_command', { keyName: 'KEY_VOLDOWN' }, onLog);
+      return "Lowering television volume, Sir.";
+    }
+    if (raw.match(/\b(mute tv|unmute tv)\b/i)) {
+      await this.executeTool('send_tv_command', { keyName: 'KEY_MUTE' }, onLog);
+      return "Toggling mute on television, Sir.";
+    }
+
+    // 7. Weather
+    if (raw.match(/\b(what is the weather|weather today|current weather|weather forecast|temperature outside)\b/i)) {
+      const data = await this.executeTool('get_weather_data', {}, onLog);
+      if (data && data.current_weather) {
+        return `Atmospheric diagnostics check complete, Sir. The current temperature is ${data.current_weather.temperature}°C, with wind speeds at ${data.current_weather.windspeed} km/h.`;
+      }
+      return "Atmospheric diagnostics report nominal ambient temperatures, Sir.";
+    }
+
+    // 8. Identity & diagnostics
+    if (raw.match(/\b(who are you|what is jasper|what are you)\b/i)) {
+      return "I am J.A.S.P.E.R. — Just Another Super Personal Assistant. I serve as your operating system intelligence, coordinating hardware controls, task automation, and ambient assistance, Sir.";
+    }
+    if (raw.match(/\b(what can you do|help|capabilities|features)\b/i)) {
+      return "I can control PC volume and media, launch applications and websites, inspect system telemetry, search the web, manage connected Samsung TVs and mobile phones, and execute tasks, Sir.";
+    }
+    if (raw.match(/\b(how are you|system status|health)\b/i)) {
+      return "All core neural pathways and hardware telemetry report optimal stability, Sir. Operating at peak computational efficiency.";
+    }
+    if (raw.match(/\b(thank you|thanks|good job|well done)\b/i)) {
+      return "Always an honor to assist you, Sir. Standing by for your next directive.";
+    }
+
+    // 9. Simple Math Calculation
+    if (raw.match(/\b(calculate|what is|solve)\b/i) && raw.match(/[\d+\-*/^()]/)) {
+      try {
+        const mathExpr = raw.replace(/[^0-9+\-*/().^]/g, '');
+        if (mathExpr.length > 0 && /^[0-9+\-*/().\s^]+$/.test(mathExpr)) {
+          const calcResult = Function(`"use strict"; return (${mathExpr});`)();
+          if (typeof calcResult === 'number' && !isNaN(calcResult)) {
+            return `Calculation complete, Sir: ${mathExpr} = ${calcResult}`;
+          }
+        }
+      } catch (_) {}
+    }
+
+    return null;
   }
 
   // Local tool executors calling backend Express routes
@@ -1243,6 +1405,14 @@ class GeminiClient {
   }
 
   async sendQuery(userText, onLog, attachments = []) {
+    // 0. Instant direct operational action check (volume, media, apps, websites, search, weather, time, tv, calc)
+    if (!attachments || attachments.length === 0) {
+      const directActionResponse = await this.tryDirectAction(userText, onLog);
+      if (directActionResponse) {
+        return directActionResponse;
+      }
+    }
+
     // Search semantic memory vector store for relevance
     const relevantMemories = await this.fetchSemanticMemories(userText);
     if (relevantMemories.length > 0) {
@@ -1285,8 +1455,8 @@ class GeminiClient {
       promptWithMemory += attachedTextContent;
     }
 
-    // 2. Route directly to Gemini Cloud if API key is configured
-    if (this.apiKey && this.provider !== 'ollama') {
+    // 2. Route directly to Gemini Cloud if VALID API key is configured
+    if (this.hasValidGeminiKey() && this.provider !== 'ollama') {
       onLog(`[JASPER CORE] Processing neural request via Google Gemini Cloud...`, 'info');
       
       const userParts = [
@@ -1338,52 +1508,45 @@ class GeminiClient {
       });
     }
 
-    // First, check local intent rules for volume, app launch, etc.
-    const raw = userText.toLowerCase().trim();
-
-    if (raw.includes('volume') && (raw.includes('mute') || raw.includes('unmute'))) {
-      await this.executeTool('set_pc_volume', { action: 'mute' }, onLog);
-    } else if (raw.includes('volume up') || raw.includes('increase volume')) {
-      await this.executeTool('set_pc_volume', { action: 'up' }, onLog);
-    } else if (raw.includes('volume down') || raw.includes('decrease volume')) {
-      await this.executeTool('set_pc_volume', { action: 'down' }, onLog);
-    } else {
-      const volMatch = raw.match(/volume (?:to )?(\d+)%/);
-      if (volMatch) {
-        await this.executeTool('set_pc_volume', { action: 'set', value: parseInt(volMatch[1], 10) }, onLog);
-      }
-    }
-
-    if (raw.includes('ffc mobile') || raw.includes('fc mobile') || raw.includes('fifa mobile')) {
-      await this.executeTool('open_phone_app', { packageName: 'com.ea.gp.fifamobile' }, onLog);
-    }
-
     try {
       const payload = { prompt: fullPrompt, model: this.ollamaModel };
       if (images.length > 0) {
         payload.images = images;
       }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+
       const res = await fetch(`${getApiBase()}/api/ollama/query`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
+
       if (res.ok) {
         const data = await res.json();
-        if (data.success && data.response && !data.response.includes('connection failed') && !data.response.includes('offline or starting')) {
+        const resp = (data.response || '').trim();
+        // Discard unfulfilled canned responses
+        if (data.success && resp && 
+            !resp.includes('connection failed') && 
+            !resp.includes('offline or starting') &&
+            !resp.includes('directive registered and processed through Jasper neural core') &&
+            !resp.includes('Directive registered and processed')) {
           if (data.toolExecuted) {
             onLog(`[LOCAL TOOL] Executed ${data.toolExecuted.tool}: ${JSON.stringify(data.toolExecuted.args)}`, 'success');
           }
           onLog(`[OLLAMA ENGINE] Response generated by '${data.model || this.ollamaModel}'.`, 'success');
-          return data.response;
+          return resp;
         }
       }
     } catch (e) {
-      console.warn('[Ollama API Error]:', e);
+      console.warn('[Ollama API Error]:', e?.message || e);
     }
 
-    // If local Ollama is offline but Gemini Key exists, failover to Gemini Cloud!
-    if (this.apiKey) {
+    // If local Ollama is offline but valid Gemini Key exists, failover to Gemini Cloud!
+    if (this.hasValidGeminiKey()) {
       onLog(`[NEURAL CORE] Local Ollama offline. Failover to Gemini Cloud AI...`, 'warning');
       try {
         this.chatHistory.push({ role: 'user', parts: [{ text: fullPrompt }] });
@@ -1444,6 +1607,10 @@ class GeminiClient {
       throw new Error("Maximum tool calling execution depth exceeded.");
     }
 
+    if (!this.hasValidGeminiKey()) {
+      throw new Error("Gemini API key is not in Google AI Studio format (expected prefix 'AIzaSy').");
+    }
+
     // Try dynamic auto-updated model list first, or fallback to curated list
     const dynamicModels = await this.fetchLatestAvailableModels(onLog);
     const models = (dynamicModels && dynamicModels.length) 
@@ -1479,12 +1646,19 @@ class GeminiClient {
           break;
         } else {
           const errData = await res.json().catch(() => ({}));
-          lastError = new Error(errData.error?.message || `HTTP ${res.status}`);
-          console.warn(`[Gemini API] Model ${model} returned error: ${lastError.message}`);
+          const errMsg = errData.error?.message || `HTTP ${res.status}`;
+          lastError = new Error(errMsg);
+          console.warn(`[Gemini API] Model ${model} returned error: ${errMsg}`);
+          if (res.status === 400 || res.status === 403 || errMsg.toLowerCase().includes('api key')) {
+            throw lastError;
+          }
         }
       } catch (err) {
         lastError = err;
         console.warn(`[Gemini API] Model ${model} fetch failed: ${err.message}`);
+        if (err.message && err.message.toLowerCase().includes('api key')) {
+          throw err;
+        }
       }
     }
 
@@ -1797,27 +1971,15 @@ class GeminiClient {
     }
   }
 
-  // Zero-Key local fallback parses basic requests offline & queries Local Ollama AI
+  // Zero-Key local fallback parses basic requests offline & executes local tools
   async handleFallbackOfflineMode(text, onLog) {
     const raw = text.toLowerCase().trim();
-    onLog(`[JASPER CORE] Running in offline mode. Querying local Ollama AI endpoint...`, 'info');
+    onLog(`[JASPER CORE] Processing directive through local intelligence core...`, 'info');
 
-    // Attempt local Ollama endpoint query first
-    try {
-      const res = await fetch(`${getApiBase()}/api/ollama/query`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: text, model: 'llama3' })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success && data.response) {
-          onLog(`[LOCAL AI] Response received from Ollama model.`, 'success');
-          return data.response;
-        }
-      }
-    } catch (e) {
-      console.warn('[Ollama API Error]:', e);
+    // Check direct action first
+    const directAction = await this.tryDirectAction(text, onLog);
+    if (directAction) {
+      return directAction;
     }
 
     // Date & Time query
@@ -2019,7 +2181,19 @@ class GeminiClient {
       return "Always an honor to assist you, Sir. Standing by for your next directive.";
     }
 
-    return `Directive received, Sir. I have registered and processed: "${text}". All core systems are standing by.`;
+    // Search / Factual query answering fallback via Wikipedia or web search
+    try {
+      const searchRes = await this.executeTool('search_internet', { query: text }, onLog);
+      if (searchRes && searchRes.results && searchRes.results.length > 0) {
+        const top = searchRes.results[0];
+        const snippet = (top.snippet || '').trim();
+        if (snippet) {
+          return `${snippet}`;
+        }
+      }
+    } catch (_) {}
+
+    return `I have processed your directive: "${text}", Sir. Standing by with all core subroutines active.`;
   }
 
   async generateHumanCallTurn({ contactName, goal, history = [], recipientWords = '' }) {

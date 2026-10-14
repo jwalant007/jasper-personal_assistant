@@ -512,6 +512,22 @@ const TOOL_REGISTRY = {
     }
   },
 
+  control_pc_media: {
+    name: 'control_pc_media',
+    description: 'Control PC media playback (playpause, next, prev)',
+    permissionLevel: 1,
+    parameters: { action: "'playpause'|'next'|'prev'" },
+    async handler({ action = 'playpause' }) {
+      const actionMapping = { 'playpause': 179, 'next': 176, 'prev': 177 };
+      const keyChar = actionMapping[action] || 179;
+      return new Promise((resolve) => {
+        exec(`powershell.exe -Command "$w=New-Object -ComObject WScript.Shell;$w.SendKeys([char]${keyChar})"`, (err) => {
+          resolve({ success: !err, action });
+        });
+      });
+    }
+  },
+
   create_reminder: {
     name: 'create_reminder',
     description: 'Create a reminder for the user at a specific time',
@@ -1317,6 +1333,55 @@ Key Directives:
       results.push({ intent: isIncome ? 'record_income' : 'record_expense', ...r });
     }
 
+    // Media playback control
+    if (lower.match(/\b(play|pause|resume|stop|toggle)\s+(music|song|track|media|playback)\b/) || lower.match(/\b(media\s+(play|pause|stop)|music\s+(play|pause|stop))\b/)) {
+      const r = await this.executeTool('control_pc_media', { action: 'playpause' });
+      results.push({ intent: 'media_playpause', ...r });
+    } else if (lower.match(/\b(next|skip)\s+(song|track|music)\b/) || lower.match(/\bplay\s+next\b/)) {
+      const r = await this.executeTool('control_pc_media', { action: 'next' });
+      results.push({ intent: 'media_next', ...r });
+    } else if (lower.match(/\b(previous|prev|last)\s+(song|track|music)\b/) || lower.match(/\bplay\s+(previous|prev)\b/)) {
+      const r = await this.executeTool('control_pc_media', { action: 'prev' });
+      results.push({ intent: 'media_prev', ...r });
+    }
+
+    // Websites
+    if (lower.match(/\b(open|launch|go to)\s+(youtube|google|gmail|github|spotify|netflix|twitter|reddit)\b/)) {
+      const sites = {
+        youtube: 'https://youtube.com',
+        google: 'https://google.com',
+        gmail: 'https://mail.google.com',
+        github: 'https://github.com',
+        spotify: 'https://open.spotify.com',
+        netflix: 'https://netflix.com',
+        twitter: 'https://x.com',
+        reddit: 'https://reddit.com'
+      };
+      for (const [site, url] of Object.entries(sites)) {
+        if (lower.includes(site)) {
+          const r = await this.executeTool('open_application', { url });
+          results.push({ intent: 'open_website', site, url, ...r });
+          break;
+        }
+      }
+    }
+
+    // Web Search
+    if (lower.match(/\b(search\s+(for\s+)?|google\s+|look\s+up\s+)(.+)/i)) {
+      const searchMatch = lower.match(/\b(?:search\s+(?:for\s+)?|google\s+|look\s+up\s+)(.+)/i);
+      if (searchMatch) {
+        const queryTerm = searchMatch[1].trim();
+        const r = await this.executeTool('open_application', { url: `https://www.google.com/search?q=${encodeURIComponent(queryTerm)}` });
+        results.push({ intent: 'web_search', query: queryTerm, ...r });
+      }
+    }
+
+    // Weather report
+    if (lower.match(/\b(weather|temperature|forecast|atmospheric)\b/)) {
+      const briefing = await this.executeTool('get_morning_briefing', {});
+      results.push({ intent: 'weather_report', weather: briefing.weather });
+    }
+
     // Volume
     if (lower.match(/volume|mute|unmute|louder|quieter|sound/)) {
       const volMatch = lower.match(/(\d+)\s*%/);
@@ -1373,6 +1438,18 @@ Key Directives:
       if (lower.includes('wake') || lower.includes('turn on')) {
         const r = await this.executeTool('wake_tv', {});
         results.push({ intent: 'wake_tv', ...r });
+      } else if (lower.includes('turn off') || lower.includes('power off') || lower.includes('off')) {
+        const r = await this.executeTool('send_tv_command', { keyName: 'KEY_POWER' });
+        results.push({ intent: 'tv_power_off', ...r });
+      } else if (lower.includes('mute') || lower.includes('unmute')) {
+        const r = await this.executeTool('send_tv_command', { keyName: 'KEY_MUTE' });
+        results.push({ intent: 'tv_mute', ...r });
+      } else if (lower.includes('volume up') || lower.includes('louder')) {
+        const r = await this.executeTool('send_tv_command', { keyName: 'KEY_VOLUP' });
+        results.push({ intent: 'tv_volume_up', ...r });
+      } else if (lower.includes('volume down') || lower.includes('quieter')) {
+        const r = await this.executeTool('send_tv_command', { keyName: 'KEY_VOLDOWN' });
+        results.push({ intent: 'tv_volume_down', ...r });
       }
     }
 
@@ -1500,6 +1577,34 @@ Key Directives:
         const cTool = results.find(r => r.intent === 'get_phone_contacts');
         const resObj = cTool.result || {};
         response = `You have ${resObj.count || (resObj.contacts?.length) || 0} contacts synchronized from your Android phonebook, Sir. Ready for speed dialing and WhatsApp messaging.`;
+      } else if (results.some(r => r.intent === 'media_playpause')) {
+        response = "Toggled master media playback, Sir.";
+      } else if (results.some(r => r.intent === 'media_next')) {
+        response = "Skipping to the next track, Sir.";
+      } else if (results.some(r => r.intent === 'media_prev')) {
+        response = "Replaying previous track, Sir.";
+      } else if (results.some(r => r.intent === 'open_website')) {
+        const siteTool = results.find(r => r.intent === 'open_website');
+        response = `Opening ${siteTool.site || 'website'} for you, Sir.`;
+      } else if (results.some(r => r.intent === 'web_search')) {
+        const searchTool = results.find(r => r.intent === 'web_search');
+        response = `Searching the web for "${searchTool.query || ''}", Sir.`;
+      } else if (results.some(r => r.intent === 'weather_report')) {
+        const weatherTool = results.find(r => r.intent === 'weather_report');
+        response = `Atmospheric diagnostics check complete, Sir. Local conditions: ${weatherTool.weather || 'optimal'}.`;
+      } else if (results.some(r => r.intent === 'tv_power_off')) {
+        response = "Sending power command to your television, Sir.";
+      } else if (results.some(r => r.intent === 'tv_mute')) {
+        response = "Toggled mute on your Smart TV, Sir.";
+      } else if (results.some(r => r.intent === 'tv_volume_up')) {
+        response = "Raising TV volume, Sir.";
+      } else if (results.some(r => r.intent === 'tv_volume_down')) {
+        response = "Lowering TV volume, Sir.";
+      } else if (results.some(r => r.intent === 'volume_control')) {
+        response = "Master system volume updated, Sir.";
+      } else if (results.some(r => r.intent === 'app_launch')) {
+        const aTool = results.find(r => r.intent === 'app_launch');
+        response = `Launching ${aTool.app || 'application'} on your computer, Sir.`;
       } else {
         const successCount = results.filter(r => r.success !== false).length;
         const toolNames = results.map(r => r.tool || r.intent).join(', ');
@@ -1531,7 +1636,7 @@ Key Directives:
           response = `Understood, Sir. "${query}" — processed through Jasper local neural core.${memCtx}`;
         }
       } else {
-        response = `Understood, Sir. "${query}" — directive registered and processed through Jasper neural core.${memCtx}`;
+        response = `Directive processed, Sir. "${query}" registered and standing by for your next instruction.${memCtx}`;
       }
     }
 
