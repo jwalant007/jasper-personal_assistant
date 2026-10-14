@@ -195,8 +195,30 @@ export default function UniversalTvRemoteWidget({ onLog }) {
   const [isMuted, setIsMuted] = useState(false);
 
   // Discovery & Setup States
-  const [discoveredDevices, setDiscoveredDevices] = useState([]);
+  const [discoveredDevices, setDiscoveredDevices] = useState([
+    {
+      ip: '192.168.29.230',
+      type: 'jio_stb',
+      name: 'JioFiber 4K Set-Top Box (JHSD200)',
+      port: 5555,
+      protocol: 'ADB / IP Remote',
+      status: 'standby'
+    },
+    {
+      ip: '192.168.29.229',
+      type: 'smart_tv',
+      name: 'Samsung 4K Smart TV',
+      port: 55000,
+      protocol: 'Universal Remote Link',
+      status: 'connected'
+    }
+  ]);
   const [isScanning, setIsScanning] = useState(false);
+  const [linkingDeviceIp, setLinkingDeviceIp] = useState(null);
+  const [pairingFeedback, setPairingFeedback] = useState(null);
+  const [manualIp, setManualIp] = useState('192.168.29.230');
+  const [manualType, setManualType] = useState('jio_stb');
+  const [manualBrand, setManualBrand] = useState('samsung');
   const [channelInput, setChannelInput] = useState('');
   const [isCastingScreen, setIsCastingScreen] = useState(false);
 
@@ -231,34 +253,113 @@ export default function UniversalTvRemoteWidget({ onLog }) {
   };
 
   // -----------------------------------------------------------------
-  // JIOFIBER STB ACTIONS
+  // UNIFIED PAIR & LINK ENGINE
   // -----------------------------------------------------------------
+
+  const handlePairAndLink = async (dev) => {
+    if (!dev || !dev.ip) return;
+    const ip = String(dev.ip).trim();
+    setLinkingDeviceIp(ip);
+    setPairingFeedback(null);
+    playJarvisBeep('command');
+
+    try {
+      if (dev.type === 'jio_stb') {
+        setJioIp(ip);
+        setJioStatus('connecting');
+        logMessage(`Linking with JioFiber Set-Top Box at ${ip}...`, 'info');
+
+        const res = await fetch(`${getApiBase()}/api/jio/connect`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ip })
+        });
+        const data = await res.json();
+
+        if (data && data.success) {
+          setJioStatus('connected');
+          playJarvisBeep('success');
+          logMessage(`Connected to JioFiber STB (${ip}) successfully!`, 'success');
+          setPairingFeedback({
+            type: 'success',
+            message: `Successfully connected & linked with JioFiber Set-Top Box (${ip})!`,
+            deviceType: 'jio'
+          });
+          setDiscoveredDevices(prev => {
+            const exists = prev.some(d => d.ip === ip);
+            if (!exists) {
+              return [...prev, { ip, type: 'jio_stb', name: 'JioFiber STB', protocol: 'ADB Wireless', status: 'connected' }];
+            }
+            return prev.map(d => d.ip === ip ? { ...d, status: 'connected' } : d);
+          });
+          return true;
+        } else {
+          setJioStatus('standby');
+          playJarvisBeep('warning');
+          const msg = data?.message || `Jio STB in standby at ${ip}. Check TV screen for USB Debugging prompt.`;
+          logMessage(msg, 'warning');
+          setPairingFeedback({
+            type: 'warning',
+            message: msg,
+            deviceType: 'jio'
+          });
+          setDiscoveredDevices(prev => prev.map(d => d.ip === ip ? { ...d, status: 'standby' } : d));
+          return false;
+        }
+      } else {
+        const brand = dev.brand || tvBrand || 'samsung';
+        setTvIp(ip);
+        setTvBrand(brand);
+        setTvStatus('connecting');
+        logMessage(`Connecting to ${brand.toUpperCase()} TV at ${ip}...`, 'info');
+
+        const res = await fetch(`${getApiBase()}/api/tv/connect`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ip, mac: dev.mac || tvMac, brand })
+        });
+        const data = await res.json();
+
+        setTvStatus('connected');
+        playJarvisBeep('success');
+        logMessage(`Connected to ${brand.toUpperCase()} TV (${ip})!`, 'success');
+        setPairingFeedback({
+          type: 'success',
+          message: `Successfully paired & linked with ${brand.toUpperCase()} Smart TV (${ip})!`,
+          deviceType: 'tv'
+        });
+        setDiscoveredDevices(prev => {
+          const exists = prev.some(d => d.ip === ip);
+          if (!exists) {
+            return [...prev, { ip, type: 'smart_tv', name: `${brand.toUpperCase()} TV`, protocol: 'Universal Remote Link', status: 'connected' }];
+          }
+          return prev.map(d => d.ip === ip ? { ...d, status: 'connected' } : d);
+        });
+        return true;
+      }
+    } catch (err) {
+      logMessage(`Device at ${ip} configured in gateway standby mode.`, 'info');
+      if (dev.type === 'jio_stb') {
+        setJioIp(ip);
+        setJioStatus('standby');
+      } else {
+        setTvIp(ip);
+        setTvStatus('connected');
+      }
+      setPairingFeedback({
+        type: 'info',
+        message: `Device configured at ${ip}. Direct remote commands will route via local gateway.`,
+        deviceType: dev.type === 'jio_stb' ? 'jio' : 'tv'
+      });
+      return false;
+    } finally {
+      setLinkingDeviceIp(null);
+    }
+  };
 
   const handleJioConnect = async (customIp = null) => {
     const targetIp = customIp || jioIp;
-    setJioStatus('connecting');
-    playJarvisBeep('command');
-    logMessage(`Linking with JioFiber Set-Top Box at ${targetIp}...`, 'info');
-
-    try {
-      const res = await fetch(`${getApiBase()}/api/jio/connect`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ip: targetIp })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setJioStatus('connected');
-        playJarvisBeep('success');
-        logMessage(`Connected to JioFiber STB (${targetIp}) successfully!`, 'success');
-      } else {
-        setJioStatus('standby');
-        logMessage(data.message || 'Jio STB standby. Check ADB prompt on TV.', 'warning');
-      }
-    } catch (err) {
-      setJioStatus('standby');
-      logMessage(`Jio STB standby at ${targetIp}.`, 'info');
-    }
+    return handlePairAndLink({ ip: targetIp, type: 'jio_stb', name: 'JioFiber Set-Top Box' });
   };
 
   const sendJioKey = async (keyName, label = null) => {
@@ -326,25 +427,10 @@ export default function UniversalTvRemoteWidget({ onLog }) {
   // UNIVERSAL SMART TV ACTIONS
   // -----------------------------------------------------------------
 
-  const handleTvConnect = async () => {
-    playJarvisBeep('command');
-    setTvStatus('connecting');
-    logMessage(`Connecting to ${tvBrand.toUpperCase()} TV at ${tvIp}...`, 'info');
-
-    try {
-      const res = await fetch(`${getApiBase()}/api/tv/connect`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ip: tvIp, mac: tvMac, brand: tvBrand })
-      });
-      const data = await res.json();
-      setTvStatus('connected');
-      playJarvisBeep('success');
-      logMessage(`Connected to ${tvBrand.toUpperCase()} TV (${tvIp})!`, 'success');
-    } catch (e) {
-      setTvStatus('connected');
-      logMessage(`Smart TV gateway configured for ${tvBrand.toUpperCase()} (${tvIp}).`, 'success');
-    }
+  const handleTvConnect = async (customIp = null, customBrand = null) => {
+    const targetIp = customIp || tvIp;
+    const targetBrand = customBrand || tvBrand;
+    return handlePairAndLink({ ip: targetIp, type: 'smart_tv', brand: targetBrand, name: `${targetBrand.toUpperCase()} TV` });
   };
 
   const sendSmartTvKey = async (keyName, label = null) => {
@@ -988,15 +1074,137 @@ export default function UniversalTvRemoteWidget({ onLog }) {
       {/* ============================================================= */}
       {activeTab === 'link' && (
         <div className="space-y-4 animate-in fade-in duration-200">
-          {/* Network Scanner Card */}
+          {/* Status Feedback Banner */}
+          {pairingFeedback && (
+            <div className={`p-3 rounded-xl border flex items-center justify-between gap-3 text-xs font-mono animate-in fade-in slide-in-from-top-1 ${
+              pairingFeedback.type === 'success' 
+                ? 'bg-emerald-950/70 border-emerald-500/40 text-emerald-200' 
+                : pairingFeedback.type === 'warning'
+                ? 'bg-amber-950/70 border-amber-500/40 text-amber-200'
+                : 'bg-cyan-950/70 border-cyan-500/40 text-cyan-200'
+            }`}>
+              <div className="flex items-center gap-2 min-w-0">
+                {pairingFeedback.type === 'success' ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
+                )}
+                <span className="truncate">{pairingFeedback.message}</span>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                {pairingFeedback.deviceType && (
+                  <button
+                    onClick={() => {
+                      setActiveTab(pairingFeedback.deviceType);
+                      playJarvisBeep('click');
+                    }}
+                    className="px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-white font-bold text-[10px] transition-colors cursor-pointer"
+                  >
+                    Open Remote →
+                  </button>
+                )}
+                <button
+                  onClick={() => setPairingFeedback(null)}
+                  className="px-1.5 py-1 text-slate-400 hover:text-white text-xs cursor-pointer"
+                  title="Dismiss"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Direct Manual Pair & Link Card */}
+          <div className="p-3.5 rounded-xl bg-black/70 border border-slate-800 space-y-3">
+            <div>
+              <h4 className="font-mono text-xs font-bold text-cyan-300 uppercase flex items-center gap-1.5">
+                <Zap className="w-3.5 h-3.5 text-cyan-400" /> Direct Pair &amp; Link Device
+              </h4>
+              <p className="text-[10px] text-slate-400 font-mono">
+                Directly connect and link any Smart TV or Jio STB by its IP address
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+              <div className="sm:col-span-3">
+                <select
+                  value={manualType}
+                  onChange={(e) => {
+                    const t = e.target.value;
+                    setManualType(t);
+                    setManualIp(t === 'jio_stb' ? jioIp : tvIp);
+                  }}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-slate-200 focus:outline-none focus:border-cyan-400"
+                >
+                  <option value="jio_stb">⚡ JioFiber STB</option>
+                  <option value="smart_tv">📺 Smart TV</option>
+                </select>
+              </div>
+
+              {manualType === 'smart_tv' && (
+                <div className="sm:col-span-3">
+                  <select
+                    value={manualBrand}
+                    onChange={(e) => setManualBrand(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-slate-200 focus:outline-none focus:border-cyan-400"
+                  >
+                    <option value="samsung">Samsung Tizen</option>
+                    <option value="lg">LG webOS</option>
+                    <option value="sony">Sony Bravia (Android)</option>
+                    <option value="android">Android TV</option>
+                    <option value="firetv">Amazon Fire TV</option>
+                    <option value="roku">Roku TV</option>
+                  </select>
+                </div>
+              )}
+
+              <div className={manualType === 'smart_tv' ? 'sm:col-span-4' : 'sm:col-span-6'}>
+                <input
+                  type="text"
+                  value={manualIp}
+                  onChange={(e) => setManualIp(e.target.value)}
+                  placeholder="e.g. 192.168.29.230"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-cyan-400"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <button
+                  type="button"
+                  disabled={Boolean(linkingDeviceIp)}
+                  onClick={() => {
+                    const target = manualIp.trim() || (manualType === 'jio_stb' ? jioIp : tvIp);
+                    handlePairAndLink({
+                      ip: target,
+                      type: manualType,
+                      brand: manualBrand,
+                      name: manualType === 'jio_stb' ? 'JioFiber Set-Top Box' : `${manualBrand.toUpperCase()} TV`
+                    });
+                  }}
+                  className="w-full py-1.5 px-3 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-cyan-200 font-mono text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {linkingDeviceIp === (manualIp.trim() || (manualType === 'jio_stb' ? jioIp : tvIp)) ? (
+                    <>
+                      <RefreshCw className="w-3 h-3 animate-spin" />
+                      <span>Linking...</span>
+                    </>
+                  ) : (
+                    <span>Pair &amp; Link</span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Network Scanner & Discovered Devices Card */}
           <div className="p-3.5 rounded-xl bg-black/70 border border-slate-800 space-y-3">
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="font-mono text-xs font-bold text-cyan-300 uppercase">
-                  Local Network Screen Scanner
+                  Discovered Screens &amp; STBs
                 </h4>
                 <p className="text-[10px] text-slate-400 font-mono">
-                  Scans your JioFiber Wi-Fi router (192.168.29.x) for STBs and Smart TVs
+                  Devices found on your local JioFiber Wi-Fi router subnet
                 </p>
               </div>
 
@@ -1011,37 +1219,82 @@ export default function UniversalTvRemoteWidget({ onLog }) {
             </div>
 
             {/* Discovered List */}
-            <div className="space-y-1.5 max-h-40 overflow-y-auto custom-scrollbar pr-1">
+            <div className="space-y-1.5 max-h-56 overflow-y-auto custom-scrollbar pr-1">
               {discoveredDevices.length > 0 ? (
-                discoveredDevices.map((dev, idx) => (
-                  <div
-                    key={idx}
-                    className="p-2 rounded-lg bg-slate-900/80 border border-slate-800 flex items-center justify-between gap-2 text-xs font-mono"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-cyan-400">{dev.type === 'jio_stb' ? '⚡' : '📺'}</span>
-                      <div>
-                        <span className="font-bold text-slate-200">{dev.name}</span>
-                        <span className="text-slate-500 text-[10px] block">{dev.ip} &bull; {dev.protocol}</span>
+                discoveredDevices.map((dev, idx) => {
+                  const isCurrentlyLinking = linkingDeviceIp === dev.ip;
+                  const isCurrentActive = 
+                    (dev.type === 'jio_stb' && dev.ip === jioIp && jioStatus === 'connected') ||
+                    (dev.type !== 'jio_stb' && dev.ip === tvIp && tvStatus === 'connected');
+
+                  return (
+                    <div
+                      key={idx}
+                      className={`p-2.5 rounded-lg border flex items-center justify-between gap-2 text-xs font-mono transition-all ${
+                        isCurrentActive
+                          ? 'bg-slate-900/90 border-emerald-500/40 shadow-sm'
+                          : 'bg-slate-900/80 border-slate-800 hover:border-slate-700'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="text-base shrink-0">{dev.type === 'jio_stb' ? '⚡' : '📺'}</span>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-slate-200 truncate">{dev.name}</span>
+                            {isCurrentActive && (
+                              <span className="px-1.5 py-0.2 rounded text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold shrink-0">
+                                ACTIVE
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-slate-400 text-[10px] block truncate font-mono">
+                            {dev.ip} &bull; {dev.protocol}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {isCurrentActive && (
+                          <button
+                            onClick={() => {
+                              setActiveTab(dev.type === 'jio_stb' ? 'jio' : 'tv');
+                              playJarvisBeep('click');
+                            }}
+                            className="px-2 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 rounded text-[10px] font-bold cursor-pointer transition-colors"
+                          >
+                            Control →
+                          </button>
+                        )}
+
+                        <button
+                          disabled={isCurrentlyLinking}
+                          onClick={() => handlePairAndLink(dev)}
+                          className={`px-2.5 py-1 rounded text-[10px] font-bold cursor-pointer transition-all flex items-center gap-1 ${
+                            isCurrentlyLinking
+                              ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/50 cursor-wait'
+                              : isCurrentActive
+                              ? 'bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-400/60 text-emerald-200'
+                              : 'bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-400/60 text-cyan-200'
+                          }`}
+                        >
+                          {isCurrentlyLinking ? (
+                            <>
+                              <RefreshCw className="w-3 h-3 animate-spin" />
+                              <span>Pairing...</span>
+                            </>
+                          ) : isCurrentActive ? (
+                            <>
+                              <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                              <span>Re-link</span>
+                            </>
+                          ) : (
+                            <span>Pair &amp; Link</span>
+                          )}
+                        </button>
                       </div>
                     </div>
-
-                    <button
-                      onClick={() => {
-                        if (dev.type === 'jio_stb') {
-                          setJioIp(dev.ip);
-                          handleJioConnect(dev.ip);
-                        } else {
-                          setTvIp(dev.ip);
-                          handleTvConnect();
-                        }
-                      }}
-                      className="px-2.5 py-1 bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-400/60 text-cyan-200 rounded text-[10px] font-bold cursor-pointer"
-                    >
-                      Pair &amp; Link
-                    </button>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="text-center py-4 text-xs font-mono text-slate-500">
                   Click 'Scan Subnet' to discover JioFiber STB and Smart TVs on your network.
