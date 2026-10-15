@@ -3534,8 +3534,15 @@ app.post('/api/ollama/query', async (req, res) => {
 
 app.post('/api/agent/chat', async (req, res) => {
   try {
-    const { query, model = 'llama3', userKey = '' } = req.body;
-    const result = await agentEngine.processQuery({ query, model, userKey, userId: req.userId });
+    const { query, model = 'llama3', userKey = '', timezone, clientTime } = req.body;
+    const result = await agentEngine.processQuery({ 
+      query, 
+      model, 
+      userKey, 
+      userId: req.userId,
+      timezone: timezone || req.headers['x-timezone'] || 'Asia/Kolkata',
+      clientTime
+    });
     res.json(result);
   } catch (err) {
     console.error('[API /api/agent/chat Error]:', err.message);
@@ -3788,10 +3795,16 @@ app.post('/api/agent/execute-plan', async (req, res) => {
 
 // Process natural-language query
 app.post('/api/agent/query', async (req, res) => {
-  const { query, model } = req.body;
+  const { query, model, timezone, clientTime } = req.body;
   if (!query) return res.status(400).json({ error: 'query is required' });
   try {
-    const result = await agentEngine.processQuery({ query, model, userId: req.userId });
+    const result = await agentEngine.processQuery({ 
+      query, 
+      model, 
+      userId: req.userId,
+      timezone: timezone || req.headers['x-timezone'] || 'Asia/Kolkata',
+      clientTime
+    });
     res.json(result);
   } catch (e) {
     res.status(500).json({ error: e.message });

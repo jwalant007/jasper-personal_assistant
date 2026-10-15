@@ -280,7 +280,11 @@ export default function JasperAgentHubWidget({ onClose }) {
       setCurrentStep(3);
       const res = await fetch(`${apiBase}/api/agent/query`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query })
+        body: JSON.stringify({ 
+          query,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          clientTime: new Date().toLocaleTimeString()
+        })
       });
       const data = await res.json();
 
@@ -500,7 +504,10 @@ export default function JasperAgentHubWidget({ onClose }) {
       )}
 
       {/* Chat history */}
-      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div 
+        className="assistant-workspace-scrollbar overflow-y-scroll"
+        style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10, paddingRight: 6 }}
+      >
         {consoleHistory.length === 0 && (
           <div style={{ textAlign: 'center', padding: '40px 20px', color: 'rgba(200,220,255,0.3)' }}>
             <Bot size={40} style={{ margin: '0 auto 12px', display: 'block', opacity: 0.4 }} />
@@ -540,16 +547,34 @@ export default function JasperAgentHubWidget({ onClose }) {
               </div>
               {entry.toolsExecuted?.length > 0 && (
                 <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {entry.toolsExecuted.map((t, i) => (
-                    <div key={i} style={{
-                      fontSize: 11, color: 'rgba(200,220,255,0.5)', display: 'flex', alignItems: 'center', gap: 6,
-                      background: 'rgba(0,212,255,0.05)', borderRadius: 6, padding: '4px 10px'
-                    }}>
-                      <CheckCircle2 size={10} color="#22c55e" />
-                      <code style={{ color: '#00d4ff' }}>{t.tool || t.intent}</code>
-                      {t.result && <span>→ {JSON.stringify(t.result).substring(0, 60)}</span>}
-                    </div>
-                  ))}
+                  {entry.toolsExecuted.map((t, i) => {
+                    const res = t.result || t;
+                    let displayResult = null;
+                    if (res && typeof res === 'object') {
+                      if (res.time) {
+                        displayResult = `${res.time}${res.date ? ` (${res.date})` : ''}`;
+                      } else {
+                        displayResult = JSON.stringify(res);
+                      }
+                    } else if (res) {
+                      displayResult = String(res);
+                    }
+                    return (
+                      <div key={i} style={{
+                        fontSize: 11, color: 'rgba(200,220,255,0.7)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6,
+                        background: 'rgba(0,212,255,0.06)', border: '1px solid rgba(0,212,255,0.15)', borderRadius: 6, padding: '5px 10px',
+                        wordBreak: 'break-word', overflowX: 'auto', maxWidth: '100%'
+                      }} className="assistant-workspace-scrollbar">
+                        <CheckCircle2 size={12} color="#22c55e" style={{ flexShrink: 0 }} />
+                        <code style={{ color: '#00d4ff', fontWeight: 600 }}>{t.tool || t.intent}</code>
+                        {displayResult && (
+                          <span style={{ fontFamily: 'monospace', color: '#67DFFF', fontSize: 11 }}>
+                            → {displayResult}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
               <div style={{ fontSize: 10, color: 'rgba(200,220,255,0.3)', marginTop: 4, paddingLeft: 4 }}>{entry.timestamp}</div>

@@ -193,7 +193,7 @@ export default function DraggableModalWrapper({
         </div>
 
         {/* Modal Children Content (Expands to 100% height and width cleanly) */}
-        <div className="flex-1 w-full overflow-y-auto custom-scrollbar flex flex-col p-2 sm:p-4">
+        <div className="flex-1 w-full overflow-y-scroll assistant-workspace-scrollbar flex flex-col p-2 sm:p-4">
           {children}
         </div>
       </div>

@@ -71,14 +71,26 @@ const TOOL_REGISTRY = {
     name: 'get_time',
     description: 'Get the current date and time',
     permissionLevel: 0,
-    parameters: {},
-    async handler(_args) {
+    parameters: {
+      timezone: { type: 'string', description: 'User timezone (e.g. Asia/Kolkata)' }
+    },
+    async handler(args = {}, context = {}) {
       const now = new Date();
+      const tz = args?.timezone || context?.timezone || 'Asia/Kolkata';
+      let timeStr;
+      let dateStr;
+      try {
+        timeStr = now.toLocaleTimeString('en-US', { timeZone: tz, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        dateStr = now.toLocaleDateString('en-US', { timeZone: tz, weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      } catch (_) {
+        timeStr = now.toLocaleTimeString();
+        dateStr = now.toLocaleDateString();
+      }
       return {
-        time: now.toLocaleTimeString(),
-        date: now.toLocaleDateString(),
+        time: timeStr,
+        date: dateStr,
         iso: now.toISOString(),
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        timezone: tz
       };
     }
   },
@@ -1171,11 +1183,12 @@ Key Directives:
    * Parse a natural-language query and execute appropriate tools.
    * Uses keyword intent routing as primary (fast, offline), falls back to AI reasoning.
    */
-  async processQuery({ query, userKey = '', model = 'gemini', userId = 'jwalant' }) {
+  async processQuery({ query, userKey = '', model = 'gemini', userId = 'jwalant', timezone, clientTime, context = {} }) {
     const cleanUserId = String(userId || 'jwalant').trim().toLowerCase();
+    const effectiveTz = timezone || context?.timezone || 'Asia/Kolkata';
     const userProfile = dbManager.getUser(cleanUserId) || { name: 'User', userId: cleanUserId };
     const userName = userProfile.name || cleanUserId;
-    console.log(`[AgentEngine] Processing query for user "${cleanUserId}" (${userName}): "${query}"`);
+    console.log(`[AgentEngine] Processing query for user "${cleanUserId}" (${userName}) [TZ: ${effectiveTz}]: "${query}"`);
 
     // Retrieve relevant memories for THIS user
     const relevantMemories = vectorMemory.searchMemory(query, 3, cleanUserId);
@@ -1185,7 +1198,7 @@ Key Directives:
     const results = [];
 
     // Helper for executing tools with current user context
-    const runTool = (toolName, args = {}) => this.executeTool(toolName, args, { userId: cleanUserId });
+    const runTool = (toolName, args = {}) => this.executeTool(toolName, { ...args, timezone: effectiveTz }, { userId: cleanUserId, timezone: effectiveTz, clientTime });
 
     // ── Immediate Cancellation & Interruption Handler ─────────────────────
     if (lower.match(/\b(stop|cancel that|cancel|hold on|don't send|never mind)\b/)) {
@@ -1411,8 +1424,8 @@ Key Directives:
 
     // Time
     if (lower.match(/\btime\b|\bdate\b|what.*time|current time/)) {
-      const r = await this.executeTool('get_time', {});
-      results.push({ intent: 'get_time', ...r });
+      const r = await this.executeTool('get_time', { timezone: effectiveTz }, { userId: cleanUserId, timezone: effectiveTz, clientTime });
+      results.push({ intent: 'get_time', ...r, ...(r.result || {}) });
     }
 
     // Network
@@ -1605,6 +1618,12 @@ Key Directives:
       } else if (results.some(r => r.intent === 'app_launch')) {
         const aTool = results.find(r => r.intent === 'app_launch');
         response = `Launching ${aTool.app || 'application'} on your computer, Sir.`;
+      } else if (results.some(r => r.intent === 'get_time')) {
+        const timeTool = results.find(r => r.intent === 'get_time');
+        const resObj = timeTool.result || timeTool;
+        const timeStr = resObj.time || (new Date()).toLocaleTimeString('en-US', { timeZone: effectiveTz });
+        const dateStr = resObj.date ? ` on ${resObj.date}` : '';
+        response = `The current time is ${timeStr}${dateStr}, Sir.`;
       } else {
         const successCount = results.filter(r => r.success !== false).length;
         const toolNames = results.map(r => r.tool || r.intent).join(', ');
