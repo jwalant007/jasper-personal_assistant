@@ -1928,44 +1928,44 @@ export default function App() {
         {/* Left Navigation Sidebar / Mobile Slide Drawer */}
         {showSidebar && (
           <aside className={`sidebar-panel flex flex-col justify-between h-full select-none shrink-0 border-r border-white/[0.08] bg-[#0E121A]/95 backdrop-blur-2xl transition-all duration-300 z-50 ${isMobileLayout ? 'fixed inset-y-0 left-0 w-[300px] max-w-[86vw] shadow-2xl p-4 safe-pt safe-pb' : 'w-[280px] relative z-20 p-3.5'}`}>
-            <div className="relative flex-1 min-h-0 flex flex-row overflow-hidden">
-              <div ref={sidebarScrollRef} onScroll={handleSidebarScroll} className="flex flex-col gap-3 overflow-y-scroll assistant-menu-scrollbar min-h-0 flex-1 pr-1.5">
-              {/* Brand Header */}
-              <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-[#171D28] border border-[#67DFFF]/25 flex items-center justify-center shrink-0 shadow-sm">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#67DFFF] animate-pulse" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-sans font-bold text-sm tracking-wide text-white leading-none">
-                      J.A.S.P.E.R.
-                    </span>
-                    <span className="font-sans text-[10px] text-[#A2ABBC] tracking-wider uppercase mt-0.5">
-                      Personal Assistant
-                    </span>
-                  </div>
+            {/* Brand Header — Pinned to Top */}
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.06] shrink-0 mb-1">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-[#171D28] border border-[#67DFFF]/25 flex items-center justify-center shrink-0 shadow-sm">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#67DFFF] animate-pulse" />
                 </div>
-                {isMobileLayout ? (
-                  <button 
-                    onClick={() => setShowSidebar(false)}
-                    className="w-8 h-8 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-[#A2ABBC] hover:text-white flex items-center justify-center transition-colors touch-target-44 cursor-pointer"
-                    title="Close Drawer"
-                    aria-label="Close Navigation Drawer"
-                  >
-                    <X size={16} />
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => setShowSidebar(false)}
-                    className="p-1.5 rounded-lg text-[#A2ABBC] hover:text-white hover:bg-white/[0.05] transition-colors cursor-pointer"
-                    title="Collapse Sidebar"
-                    aria-label="Collapse Sidebar"
-                  >
-                    <PanelLeftClose size={15} />
-                  </button>
-                )}
+                <div className="flex flex-col">
+                  <span className="font-sans font-bold text-sm tracking-wide text-white leading-none">
+                    J.A.S.P.E.R.
+                  </span>
+                  <span className="font-sans text-[10px] text-[#A2ABBC] tracking-wider uppercase mt-0.5">
+                    Personal Assistant
+                  </span>
+                </div>
               </div>
+              {isMobileLayout ? (
+                <button 
+                  onClick={() => setShowSidebar(false)}
+                  className="w-8 h-8 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-[#A2ABBC] hover:text-white flex items-center justify-center transition-colors touch-target-44 cursor-pointer"
+                  title="Close Drawer"
+                  aria-label="Close Navigation Drawer"
+                >
+                  <X size={16} />
+                </button>
+              ) : (
+                <button
+                  onClick={() => setShowSidebar(false)}
+                  className="p-1.5 rounded-lg text-[#A2ABBC] hover:text-white hover:bg-white/[0.05] transition-colors cursor-pointer"
+                  title="Collapse Sidebar"
+                  aria-label="Collapse Sidebar"
+                >
+                  <PanelLeftClose size={15} />
+                </button>
+              )}
+            </div>
 
+            {/* Scrollable Conversation & Subsystems List with Visible Cyan Scrollbar */}
+            <div ref={sidebarScrollRef} onScroll={handleSidebarScroll} className="flex flex-col gap-3 overflow-y-scroll assistant-menu-scrollbar min-h-0 flex-1 pr-1.5">
               {/* Primary Action: New Conversation */}
               <button 
                 onClick={() => {
@@ -2294,63 +2294,10 @@ export default function App() {
                   </div>
                 </div>
               )}
-              </div>
-
-              {/* Floating Cybernetic Scroll Rail for Left Sidebar */}
-              {sidebarHasOverflow && (
-                <div className="w-3 my-1 flex flex-col items-center justify-between shrink-0 select-none z-20 pointer-events-auto pl-0.5">
-                  <button
-                    type="button"
-                    onClick={() => sidebarScrollRef.current?.scrollBy({ top: -140, behavior: 'smooth' })}
-                    className="w-4 h-4 rounded bg-[#111620] border border-[#67DFFF]/40 text-[#67DFFF] hover:text-white hover:border-[#67DFFF] flex items-center justify-center text-[8px] transition-all cursor-pointer shadow-sm"
-                    title="Scroll Up"
-                  >
-                    ▲
-                  </button>
-                  
-                  {/* Draggable & Clickable Track */}
-                  <div 
-                    onPointerDown={(e) => {
-                      const track = e.currentTarget;
-                      const updateScroll = (clientY) => {
-                        const rect = track.getBoundingClientRect();
-                        const ratio = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
-                        if (sidebarScrollRef.current) {
-                          sidebarScrollRef.current.scrollTop = ratio * (sidebarScrollRef.current.scrollHeight - sidebarScrollRef.current.clientHeight);
-                        }
-                      };
-                      updateScroll(e.clientY);
-                      const onMove = (moveEvt) => updateScroll(moveEvt.clientY);
-                      const onUp = () => {
-                        window.removeEventListener('pointermove', onMove);
-                        window.removeEventListener('pointerup', onUp);
-                      };
-                      window.addEventListener('pointermove', onMove);
-                      window.addEventListener('pointerup', onUp);
-                    }}
-                    className="flex-1 w-1.5 my-1.5 rounded-full bg-[#111620]/90 border border-[#67DFFF]/30 relative cursor-pointer group shadow-[0_0_8px_rgba(0,0,0,0.8)]"
-                    title="Click or drag to scroll side menu"
-                  >
-                    <div 
-                      style={{ top: `${Math.min(94, Math.max(6, sidebarScrollProgress))}%` }}
-                      className="absolute -left-1 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-gradient-to-r from-[#67DFFF] to-sky-400 border border-white shadow-[0_0_10px_#67DFFF] group-hover:scale-125 transition-transform"
-                    />
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => sidebarScrollRef.current?.scrollBy({ top: 140, behavior: 'smooth' })}
-                    className="w-4 h-4 rounded bg-[#111620] border border-[#67DFFF]/40 text-[#67DFFF] hover:text-white hover:border-[#67DFFF] flex items-center justify-center text-[8px] transition-all cursor-pointer shadow-sm"
-                    title="Scroll Down"
-                  >
-                    ▼
-                  </button>
-                </div>
-              )}
             </div>
 
             {/* Footer details in sidebar */}
-            <div className="border-t border-white/[0.06] pt-3 mt-2 flex items-center justify-between text-xs text-[#A2ABBC]">
+            <div className="border-t border-white/[0.06] pt-3 mt-2 shrink-0 flex items-center justify-between text-xs text-[#A2ABBC]">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
                 <span className="text-[11px] font-mono text-[#F3F5FA]">Core Online</span>
@@ -2482,7 +2429,7 @@ export default function App() {
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              className={`flex-1 overflow-hidden flex flex-col relative ${isMobileLayout ? 'p-2 sm:p-3' : 'p-4'}`}
+              className={`flex-1 min-h-0 overflow-hidden flex flex-col relative ${isMobileLayout ? 'p-2 sm:p-3' : 'p-4'}`}
             >
               {/* Drag & Drop Overlay */}
                 {isDraggingOver && (
