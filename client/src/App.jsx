@@ -65,7 +65,7 @@ import {
   captureWebcamFrameAsBase64,
   syncOwnerProfileFromServer
 } from './utils/faceBiometrics.js';
-import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, PhoneForwarded, BookOpen, Activity, Heart, Laptop, Languages, Box, MessageSquare, KeyRound, ShieldAlert, Video, Download, XCircle, X, Search, Menu, PanelLeft, PanelLeftClose, Volume2, Copy, Check, MessageSquarePlus, Paperclip } from 'lucide-react';
+import { Shield, Settings, Send, Eye, EyeOff, HelpCircle, ChevronDown, ChevronUp, Tv, Lock, Cpu, Sparkles, Smartphone, Camera, Mic, Radio, Fingerprint, RefreshCw, AlertTriangle, UserCheck, UserX, UserPlus, Trash2, Monitor, Globe, Calendar, Brain, Store, BarChart3, Bot, ShieldCheck, Workflow, LayoutDashboard, MapPin, Trophy, Palette, CheckCircle2, PhoneCall, PhoneForwarded, BookOpen, Activity, Heart, Laptop, Languages, Box, MessageSquare, KeyRound, ShieldAlert, Video, Download, XCircle, X, Search, Menu, PanelLeft, PanelLeftClose, Volume2, Copy, Check, MessageSquarePlus, Paperclip } from 'lucide-react';
 import { speakDeviceAudio } from './utils/speakDeviceAudio.js';
 
 import { useJasperApp, useJasperModals, useJasperChat, useJasperUser } from './context/index.jsx';
@@ -383,12 +383,25 @@ export default function App() {
     }
   };
 
-  const handleHudScroll = (e) => {
-    if (e.target.scrollTop > 60) {
-      setShowScrollTopButton(true);
-    } else {
-      setShowScrollTopButton(false);
-    }
+  const [hudScrollProgress, setHudScrollProgress] = useState(0);
+  const [hudCanScrollDown, setHudCanScrollDown] = useState(false);
+  const [hudCanScrollUp, setHudCanScrollUp] = useState(false);
+  const [hudHasOverflow, setHudHasOverflow] = useState(false);
+
+  const checkHudScroll = () => {
+    const el = hudPanelRef.current;
+    if (!el) return;
+    const max = el.scrollHeight - el.clientHeight;
+    const hasMore = max > 16;
+    setHudHasOverflow(hasMore);
+    setHudCanScrollUp(el.scrollTop > 20);
+    setHudCanScrollDown(hasMore && el.scrollTop < max - 20);
+    setHudScrollProgress(max > 0 ? (el.scrollTop / max) * 100 : 0);
+    setShowScrollTopButton(el.scrollTop > 60);
+  };
+
+  const handleHudScroll = () => {
+    checkHudScroll();
   };
 
   const scrollToTop = () => {
@@ -396,6 +409,23 @@ export default function App() {
       hudPanelRef.current.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
+
+  const scrollToBottom = () => {
+    if (hudPanelRef.current) {
+      hudPanelRef.current.scrollTo({ top: hudPanelRef.current.scrollHeight, behavior: 'smooth' });
+    }
+  };
+
+  useEffect(() => {
+    checkHudScroll();
+    const handleResize = () => checkHudScroll();
+    window.addEventListener('resize', handleResize);
+    const timer = setTimeout(checkHudScroll, 400);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(timer);
+    };
+  }, [selectedChatId, pastChats, jasperState]);
   // Robust Mobile Device & Small Screen Detector
   const checkIsMobileDevice = () => {
     if (typeof window === 'undefined') return false;
@@ -2689,8 +2719,105 @@ export default function App() {
                   </button>
                 </form>
 
-                {/* Scroll-To-Top Floating Button */}
-                {showScrollTopButton && (
+                {/* FLOATING CYBERNETIC SCROLL DOWN / UP BAR */}
+                {hudHasOverflow && (
+                  <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-40 pointer-events-auto flex items-center gap-2 bg-[#0E121A]/95 border border-[#67DFFF]/50 hover:border-[#67DFFF] rounded-full px-4 py-1.5 shadow-[0_0_24px_rgba(103,223,255,0.3)] backdrop-blur-xl transition-all duration-300">
+                    <button
+                      type="button"
+                      onClick={() => (hudCanScrollDown ? scrollToBottom() : scrollToTop())}
+                      className="flex items-center gap-2 text-[11px] font-mono font-bold text-[#67DFFF] hover:text-white transition-all cursor-pointer"
+                      title={hudCanScrollDown ? "Scroll down to reveal conversation" : "Scroll back to top"}
+                    >
+                      {hudCanScrollDown ? (
+                        <>
+                          <ChevronDown className="w-3.5 h-3.5 text-[#67DFFF] animate-bounce" />
+                          <span>SCROLL DOWN</span>
+                        </>
+                      ) : (
+                        <>
+                          <ChevronUp className="w-3.5 h-3.5 text-[#67DFFF]" />
+                          <span>SCROLL TO TOP</span>
+                        </>
+                      )}
+                    </button>
+
+                    <div className="h-3 w-px bg-white/20" />
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => hudPanelRef.current?.scrollBy({ top: -160, behavior: 'smooth' })}
+                        disabled={!hudCanScrollUp}
+                        className={`p-1 rounded-full transition-all ${
+                          hudCanScrollUp ? 'text-[#67DFFF] hover:bg-[#67DFFF]/20 cursor-pointer' : 'text-neutral-600 opacity-40 cursor-not-allowed'
+                        }`}
+                        title="Step Up"
+                      >
+                        <ChevronUp className="w-3 h-3" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => hudPanelRef.current?.scrollBy({ top: 160, behavior: 'smooth' })}
+                        disabled={!hudCanScrollDown}
+                        className={`p-1 rounded-full transition-all ${
+                          hudCanScrollDown ? 'text-[#67DFFF] hover:bg-[#67DFFF]/20 cursor-pointer' : 'text-neutral-600 opacity-40 cursor-not-allowed'
+                        }`}
+                        title="Step Down"
+                      >
+                        <ChevronDown className="w-3 h-3" />
+                      </button>
+                    </div>
+
+                    <span className="text-[10px] font-mono text-[#67DFFF]/90 font-bold pl-0.5">
+                      {Math.round(hudScrollProgress)}%
+                    </span>
+                  </div>
+                )}
+
+                {/* FLOATING RIGHT-SIDE CYBERNETIC SCROLL RAIL */}
+                {hudHasOverflow && (
+                  <div className="absolute right-2 top-20 bottom-24 w-4 z-40 hidden sm:flex flex-col items-center justify-between pointer-events-auto py-1 select-none">
+                    <button
+                      type="button"
+                      onClick={scrollToTop}
+                      className="w-5 h-5 rounded-md bg-[#0B0D12]/90 border border-[#67DFFF]/40 text-[#67DFFF] hover:text-white flex items-center justify-center text-[10px] shadow transition-all cursor-pointer hover:border-[#67DFFF]"
+                      title="Scroll to Top"
+                    >
+                      <ChevronUp className="w-3 h-3" />
+                    </button>
+                    
+                    {/* Visual Track & Draggable/Clickable Indicator */}
+                    <div 
+                      onClick={(e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const clickRatio = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+                        if (hudPanelRef.current) {
+                          const target = clickRatio * (hudPanelRef.current.scrollHeight - hudPanelRef.current.clientHeight);
+                          hudPanelRef.current.scrollTo({ top: target, behavior: 'smooth' });
+                        }
+                      }}
+                      className="flex-1 w-1.5 my-1.5 rounded-full bg-[#111620]/90 border border-[#67DFFF]/30 relative cursor-pointer group shadow-[0_0_8px_rgba(0,0,0,0.8)]"
+                      title="Click to jump scroll position"
+                    >
+                      <div 
+                        style={{ top: `${Math.min(94, Math.max(6, hudScrollProgress))}%` }}
+                        className="absolute -left-1 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-gradient-to-r from-[#67DFFF] to-sky-400 border border-white shadow-[0_0_12px_#67DFFF] group-hover:scale-125 transition-transform"
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={scrollToBottom}
+                      className="w-5 h-5 rounded-md bg-[#0B0D12]/90 border border-[#67DFFF]/40 text-[#67DFFF] hover:text-white flex items-center justify-center text-[10px] shadow transition-all cursor-pointer hover:border-[#67DFFF]"
+                      title="Scroll to Bottom"
+                    >
+                      <ChevronDown className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Legacy Mobile Scroll-To-Top fallback button */}
+                {showScrollTopButton && !hudHasOverflow && (
                   <button
                     type="button"
                     onClick={scrollToTop}
