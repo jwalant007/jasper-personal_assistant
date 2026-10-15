@@ -1626,12 +1626,13 @@ export default function App() {
   // Safe markdown and code-block renderer
   const renderResponseContent = (text, chatId) => {
     if (!text) return null;
+    const safeText = typeof text === 'string' ? text : (typeof text === 'object' ? JSON.stringify(text, null, 2) : String(text || ''));
 
     // Detect code blocks ```lang ... ```
     const codeBlockRegex = /```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g;
     const codeMatches = [];
     let match;
-    while ((match = codeBlockRegex.exec(text)) !== null) {
+    while ((match = codeBlockRegex.exec(safeText)) !== null) {
       codeMatches.push({
         start: match.index,
         end: codeBlockRegex.lastIndex,
@@ -1643,7 +1644,7 @@ export default function App() {
     if (codeMatches.length === 0) {
       return (
         <div className="flex flex-col gap-3 leading-relaxed text-sm sm:text-[15px] text-[#F3F5FA]">
-          {text.split('\n\n').map((para, pIdx) => {
+          {safeText.split('\n\n').map((para, pIdx) => {
             const trimmed = para.trim();
             if (!trimmed) return null;
             const imgMatch = /!\[(.*?)\]\((.*?)\)/.exec(trimmed);
@@ -1675,7 +1676,7 @@ export default function App() {
     let cursor = 0;
     codeMatches.forEach((cm, idx) => {
       if (cm.start > cursor) {
-        const textBefore = text.slice(cursor, cm.start).trim();
+        const textBefore = safeText.slice(cursor, cm.start).trim();
         if (textBefore) {
           elements.push(
             <div key={`txt-${idx}`} className="flex flex-col gap-2.5">
@@ -1712,8 +1713,8 @@ export default function App() {
       cursor = cm.end;
     });
 
-    if (cursor < text.length) {
-      const rest = text.slice(cursor).trim();
+    if (cursor < safeText.length) {
+      const rest = safeText.slice(cursor).trim();
       if (rest) {
         elements.push(
           <div key="txt-rest" className="flex flex-col gap-2.5">
@@ -2361,106 +2362,110 @@ export default function App() {
                   )}
 
                   {/* Active Chat Conversation View */}
-                  {selectedChatId ? (
-                    <div className="flex flex-col gap-4 max-w-4xl w-full mx-auto pb-4">
-                      {/* Chat Prompt Banner */}
-                      <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-[#111620] border border-white/[0.08] text-xs text-[#A2ABBC]">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="text-[#67DFFF] font-semibold uppercase text-[10px] tracking-wider">Prompt</span>
-                          <span className="text-white font-medium truncate max-w-[200px] sm:max-w-md">
-                            {pastChats.find(c => c.id === selectedChatId)?.query}
-                          </span>
+                  {(() => {
+                    const activeChat = selectedChatId ? pastChats.find(c => c.id === selectedChatId) : null;
+                    if (!activeChat) return null;
+                    return (
+                      <div className="flex flex-col gap-4 max-w-4xl w-full mx-auto pb-4">
+                        {/* Chat Prompt Banner */}
+                        <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-[#111620] border border-white/[0.08] text-xs text-[#A2ABBC]">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-[#67DFFF] font-semibold uppercase text-[10px] tracking-wider">Prompt</span>
+                            <span className="text-white font-medium truncate max-w-[200px] sm:max-w-md">
+                              {activeChat.query}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-[10px] text-[#A2ABBC]/60 font-mono">
+                              {activeChat.timestamp}
+                            </span>
+                            <button
+                              onClick={handleNewChat}
+                              className="px-2 py-1 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-white text-[11px] font-sans transition-colors cursor-pointer"
+                            >
+                              Close
+                            </button>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-[10px] text-[#A2ABBC]/60 font-mono">
-                            {pastChats.find(c => c.id === selectedChatId)?.timestamp}
-                          </span>
-                          <button
-                            onClick={handleNewChat}
-                            className="px-2 py-1 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-white text-[11px] font-sans transition-colors cursor-pointer"
-                          >
-                            Close
-                          </button>
-                        </div>
-                      </div>
 
-                      {/* Attachments Preview */}
-                      {pastChats.find(c => c.id === selectedChatId)?.attachments?.length > 0 && (
-                        <div className="flex flex-wrap gap-2.5 my-1">
-                          {pastChats.find(c => c.id === selectedChatId).attachments.map((att) => (
-                            att.isImage ? (
-                              <div 
-                                key={att.id} 
-                                className="relative group cursor-pointer border border-white/[0.1] rounded-xl overflow-hidden bg-[#111620] p-1 hover:border-[#67DFFF]/50 transition-all shadow-md"
-                                onClick={() => setLightboxImage(att.dataUrl)}
-                              >
-                                <img src={att.dataUrl} alt={att.name} className="h-32 max-w-xs object-cover rounded-lg" />
-                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[#67DFFF] font-sans text-xs font-medium transition-opacity">
-                                  Expand Image
+                        {/* Attachments Preview */}
+                        {activeChat.attachments?.length > 0 && (
+                          <div className="flex flex-wrap gap-2.5 my-1">
+                            {activeChat.attachments.map((att) => (
+                              att.isImage ? (
+                                <div 
+                                  key={att.id} 
+                                  className="relative group cursor-pointer border border-white/[0.1] rounded-xl overflow-hidden bg-[#111620] p-1 hover:border-[#67DFFF]/50 transition-all shadow-md"
+                                  onClick={() => setLightboxImage(att.dataUrl)}
+                                >
+                                  <img src={att.dataUrl} alt={att.name} className="h-32 max-w-xs object-cover rounded-lg" />
+                                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[#67DFFF] font-sans text-xs font-medium transition-opacity">
+                                    Expand Image
+                                  </div>
                                 </div>
-                              </div>
-                            ) : (
-                              <div key={att.id} className="flex items-center gap-2.5 px-3 py-2 bg-[#111620] border border-white/[0.08] rounded-xl font-sans text-xs text-white shadow-sm">
-                                <span className="text-lg">{att.icon || '📄'}</span>
-                                <div className="flex flex-col">
-                                  <span className="font-medium text-white truncate max-w-[180px]">{att.name}</span>
-                                  <span className="text-[10px] text-[#A2ABBC]">{(att.size / 1024).toFixed(1)} KB</span>
+                              ) : (
+                                <div key={att.id} className="flex items-center gap-2.5 px-3 py-2 bg-[#111620] border border-white/[0.08] rounded-xl font-sans text-xs text-white shadow-sm">
+                                  <span className="text-lg">{att.icon || '📄'}</span>
+                                  <div className="flex flex-col">
+                                    <span className="font-medium text-white truncate max-w-[180px]">{att.name}</span>
+                                    <span className="text-[10px] text-[#A2ABBC]">{(att.size / 1024).toFixed(1)} KB</span>
+                                  </div>
                                 </div>
-                              </div>
-                            )
-                          ))}
-                        </div>
-                      )}
+                              )
+                            ))}
+                          </div>
+                        )}
 
-                      {/* Assistant Response Bubble with Formatted Markdown & Syntax Highlighting */}
-                      <div className="p-5 rounded-2xl bg-[#111620]/90 border border-white/[0.08] shadow-sm leading-relaxed text-[#F3F5FA] font-sans text-sm sm:text-base">
-                        {renderResponseContent(pastChats.find(c => c.id === selectedChatId)?.response)}
-                      </div>
+                        {/* Assistant Response Bubble with Formatted Markdown & Syntax Highlighting */}
+                        <div className="p-5 rounded-2xl bg-[#111620]/90 border border-white/[0.08] shadow-sm leading-relaxed text-[#F3F5FA] font-sans text-sm sm:text-base">
+                          {renderResponseContent(activeChat.response)}
+                        </div>
 
-                      {/* Actions Toolbar */}
-                      <div className="flex items-center justify-between px-2 text-xs">
-                        <div className="flex items-center gap-1.5">
+                        {/* Actions Toolbar */}
+                        <div className="flex items-center justify-between px-2 text-xs">
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleCopyResponse(activeChat.response, activeChat.id)}
+                              className="px-2.5 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-[#A2ABBC] hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer"
+                              title="Copy response to clipboard"
+                            >
+                              {copySuccess === activeChat.id ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+                              <span>{copySuccess === activeChat.id ? 'Copied' : 'Copy'}</span>
+                            </button>
+                            <button
+                              onClick={() => {
+                                const text = activeChat.response;
+                                if (text) speakDeviceAudio(text);
+                              }}
+                              className="px-2.5 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-[#A2ABBC] hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer"
+                              title="Read response aloud"
+                            >
+                              <Volume2 size={13} className="text-[#67DFFF]" />
+                              <span>Speak</span>
+                            </button>
+                            <button
+                              onClick={() => {
+                                const query = activeChat.query;
+                                if (query) handleCommand(query);
+                              }}
+                              className="px-2.5 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-[#A2ABBC] hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer"
+                              title="Regenerate response"
+                            >
+                              <RefreshCw size={13} />
+                              <span>Regenerate</span>
+                            </button>
+                          </div>
                           <button
-                            onClick={() => handleCopyResponse(pastChats.find(c => c.id === selectedChatId)?.response, selectedChatId)}
-                            className="px-2.5 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-[#A2ABBC] hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer"
-                            title="Copy response to clipboard"
+                            onClick={handleClear}
+                            className="text-xs text-[#A2ABBC] hover:text-rose-400 transition-colors cursor-pointer px-2 py-1"
+                            title="Delete this conversation"
                           >
-                            {copySuccess === selectedChatId ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
-                            <span>{copySuccess === selectedChatId ? 'Copied' : 'Copy'}</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              const text = pastChats.find(c => c.id === selectedChatId)?.response;
-                              if (text) speakDeviceAudio(text);
-                            }}
-                            className="px-2.5 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-[#A2ABBC] hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer"
-                            title="Read response aloud"
-                          >
-                            <Volume2 size={13} className="text-[#67DFFF]" />
-                            <span>Speak</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              const query = pastChats.find(c => c.id === selectedChatId)?.query;
-                              if (query) handleCommand(query);
-                            }}
-                            className="px-2.5 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-[#A2ABBC] hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer"
-                            title="Regenerate response"
-                          >
-                            <RefreshCw size={13} />
-                            <span>Regenerate</span>
+                            Clear
                           </button>
                         </div>
-                        <button
-                          onClick={handleClear}
-                          className="text-xs text-[#A2ABBC] hover:text-rose-400 transition-colors cursor-pointer px-2 py-1"
-                          title="Delete this conversation"
-                        >
-                          Clear
-                        </button>
                       </div>
-                    </div>
-                  ) : (
+                    );
+                  })() || (
                     /* Command Center Hero & Quick Directive Cards */
                     <div className="flex-1 flex flex-col items-center justify-start sm:justify-center max-w-4xl w-full mx-auto py-6 px-2 gap-6 min-h-min">
                       {/* Core AI Arc Reactor Visualization */}

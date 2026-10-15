@@ -4,8 +4,16 @@ import { Workflow, Plus, Play, Trash2, ArrowRight, Zap, XCircle, CheckCircle2, C
 
 export default function AutomationBuilderWidget({ onClose }) {
   const [workflows, setWorkflows] = useState(() => {
-    const s = localStorage.getItem('jasper_workflows');
-    return s ? JSON.parse(s) : [
+    try {
+      const s = localStorage.getItem('jasper_workflows');
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.warn('Failed to parse jasper_workflows:', e);
+    }
+    return [
       {
         id: 1,
         name: 'Low Battery TV Saver',

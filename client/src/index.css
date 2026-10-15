@@ -2316,7 +2316,6 @@ input, textarea, select {
     overflow-x: hidden !important;
     max-width: 100vw !important;
     width: 100vw;
-    font-size: 13px;
   }
   
   .hud-panel {
@@ -2340,9 +2339,10 @@ input, textarea, select {
     width: 3px;
   }
 
-  /* Force modals and dialog cards to stay within mobile screen width */
-  .glass-card-jarvis, .modal-card, [class*="max-w-"] {
+  /* Force modals and dialog cards to stay cleanly within mobile screen viewport */
+  .glass-card-jarvis, .modal-card, .draggable-modal-card, [role="dialog"], .draggable-modal-container {
     max-width: calc(100vw - 16px) !important;
+    max-height: calc(100dvh - 20px) !important;
     box-sizing: border-box;
   }
 

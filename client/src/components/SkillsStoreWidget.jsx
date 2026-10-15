@@ -3,8 +3,16 @@ import { Store, Cloud, Newspaper, TrendingUp, Trophy, Code, Languages, Check, To
 
 export default function SkillsStoreWidget({ onClose }) {
   const [skills, setSkills] = useState(() => {
-    const s = localStorage.getItem('jasper_skills');
-    return s ? JSON.parse(s) : [
+    try {
+      const s = localStorage.getItem('jasper_skills');
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.warn('Failed to parse jasper_skills:', e);
+    }
+    return [
       { id: 'weather', name: 'Weather Forecast', desc: 'Real-time temperature, humidity & satellite radar', icon: 'Cloud', enabled: true, category: 'Utilities' },
       { id: 'news', name: 'Global News Feed', desc: 'Live headlines from RSS & news APIs', icon: 'Newspaper', enabled: true, category: 'Information' },
       { id: 'finance', name: 'Stock & Crypto Tracker', desc: 'Real-time Yahoo Finance chart & market data', icon: 'TrendingUp', enabled: true, category: 'Finance' },

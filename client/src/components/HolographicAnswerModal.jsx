@@ -237,6 +237,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '', ini
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState(initialTab || 'viewport'); // 'viewport' | 'blender' | 'tools' | 'calibration'
+  const [mobilePanel, setMobilePanel] = useState('viewport'); // 'viewport' | 'projects' (mobile view)
 
   // 2. 3D Hologram Viewport States
   const [query, setQuery] = useState(initialQuery || '');
@@ -583,6 +584,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '', ini
   // Load project into 3D Viewport
   const loadProject = (project) => {
     setActiveProjectId(project.id);
+    setMobilePanel('viewport');
     if (sfxEnabled) playJarvisBeep('select');
 
     if (project.mode) {
@@ -886,13 +888,39 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '', ini
         </div>
       </div>
 
+      {/* MOBILE PANEL SWITCHER (< lg) */}
+      <div className="lg:hidden flex items-center justify-center border-b border-cyan-500/20 bg-slate-950/80 p-2 gap-2 text-xs font-mono shrink-0">
+        <button
+          onClick={() => setMobilePanel('viewport')}
+          className={`flex-1 py-1.5 px-3 rounded-lg border text-center font-bold transition-all flex items-center justify-center gap-1.5 ${
+            mobilePanel === 'viewport'
+              ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200 shadow-sm shadow-cyan-500/20'
+              : 'border-slate-800 text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Eye className="w-3.5 h-3.5 text-cyan-400" />
+          <span>3D Viewport & HUD</span>
+        </button>
+        <button
+          onClick={() => setMobilePanel('projects')}
+          className={`flex-1 py-1.5 px-3 rounded-lg border text-center font-bold transition-all flex items-center justify-center gap-1.5 ${
+            mobilePanel === 'projects'
+              ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200 shadow-sm shadow-cyan-500/20'
+              : 'border-slate-800 text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <FolderClock className="w-3.5 h-3.5 text-cyan-400" />
+          <span>Creations ({projects.length})</span>
+        </button>
+      </div>
+
       {/* TWO-PART MAIN BODY */}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
         
         {/* ========================================================= */}
         {/* PART 1: HISTORY OF CREATIONS & PROJECTS (LEFT PANEL: 4 COLS) */}
         {/* ========================================================= */}
-        <div className="lg:col-span-4 border-r border-cyan-500/20 bg-slate-950/70 flex flex-col overflow-hidden">
+        <div className={`lg:col-span-4 border-r border-cyan-500/20 bg-slate-950/70 flex flex-col overflow-hidden ${mobilePanel === 'projects' ? 'flex' : 'hidden lg:flex'}`}>
           {/* Panel Header */}
           <div className="p-4 border-b border-cyan-500/15 space-y-3">
             <div className="flex items-center justify-between">
@@ -1021,14 +1049,14 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '', ini
         {/* ========================================================= */}
         {/* PART 2: HOLOGRAPHIC WORKSTATION & TOOLS (RIGHT PANEL: 8 COLS) */}
         {/* ========================================================= */}
-        <div className="lg:col-span-8 flex flex-col overflow-hidden bg-slate-950/40">
+        <div className={`lg:col-span-8 flex flex-col overflow-hidden bg-slate-950/40 ${mobilePanel === 'viewport' ? 'flex' : 'hidden lg:flex'}`}>
           
           {/* SUB-HEADER TOOL TABS */}
-          <div className="flex items-center justify-between border-b border-cyan-500/15 px-4 py-2 bg-slate-950/60 text-xs font-mono">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between border-b border-cyan-500/15 px-3 sm:px-4 py-2 bg-slate-950/60 text-xs font-mono overflow-x-auto no-scrollbar gap-2 shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-nowrap shrink-0">
               <button
                 onClick={() => setActiveTab('viewport')}
-                className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
+                className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                   activeTab === 'viewport' ? 'bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/40 shadow-sm' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
@@ -1037,7 +1065,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '', ini
               </button>
               <button
                 onClick={() => setActiveTab('blender')}
-                className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
+                className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                   activeTab === 'blender' ? 'bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/40 shadow-sm' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
@@ -1047,7 +1075,7 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '', ini
               </button>
               <button
                 onClick={() => setActiveTab('tools')}
-                className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
+                className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                   activeTab === 'tools' ? 'bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/40 shadow-sm' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
@@ -1056,17 +1084,17 @@ export default function HolographicAnswerModal({ onClose, initialQuery = '', ini
               </button>
               <button
                 onClick={() => setActiveTab('calibration')}
-                className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
+                className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                   activeTab === 'calibration' ? 'bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/40 shadow-sm' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
                 <Tv className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Projection Calibration (?w={calibWidth}&h={calibHeight})</span>
+                <span>Projection Calibration</span>
               </button>
             </div>
 
             {/* Quick Action Badges */}
-            <div className="flex items-center gap-2 text-[10px]">
+            <div className="hidden sm:flex items-center gap-2 text-[10px] shrink-0">
               <button
                 onClick={() => {
                   if (sfxEnabled) playJarvisBeep('click');

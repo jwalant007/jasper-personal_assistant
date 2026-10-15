@@ -6,31 +6,63 @@ export default function PersonalAssistantWidget({ onClose, onSpeakBriefing }) {
 
   // Persistent States
   const [events, setEvents] = useState(() => {
-    const s = localStorage.getItem('jasper_events');
-    return s ? JSON.parse(s) : [
+    try {
+      const s = localStorage.getItem('jasper_events');
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.warn('Failed to parse jasper_events:', e);
+    }
+    return [
       { id: 1, title: 'Team Sync Meeting', time: '10:00 AM', date: 'Today' },
       { id: 2, title: 'Project Demo Review', time: '03:30 PM', date: 'Today' }
     ];
   });
 
   const [todos, setTodos] = useState(() => {
-    const s = localStorage.getItem('jasper_todos');
-    return s ? JSON.parse(s) : [
+    try {
+      const s = localStorage.getItem('jasper_todos');
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.warn('Failed to parse jasper_todos:', e);
+    }
+    return [
       { id: 1, text: 'Review security audit logs', completed: false, priority: 'high' },
       { id: 2, text: 'Backup smart home configurations', completed: true, priority: 'medium' }
     ];
   });
 
   const [reminders, setReminders] = useState(() => {
-    const s = localStorage.getItem('jasper_reminders');
-    return s ? JSON.parse(s) : [
+    try {
+      const s = localStorage.getItem('jasper_reminders');
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.warn('Failed to parse jasper_reminders:', e);
+    }
+    return [
       { id: 1, title: 'Take evening break', time: '06:00 PM' }
     ];
   });
 
   const [habits, setHabits] = useState(() => {
-    const s = localStorage.getItem('jasper_habits');
-    return s ? JSON.parse(s) : [
+    try {
+      const s = localStorage.getItem('jasper_habits');
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.warn('Failed to parse jasper_habits:', e);
+    }
+    return [
       { id: 1, name: 'Drink 2L Water', streak: 5, doneToday: true },
       { id: 2, name: '30 Mins Workout', streak: 3, doneToday: false },
       { id: 3, name: 'Read 15 Mins', streak: 12, doneToday: true }

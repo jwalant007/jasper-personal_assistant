@@ -56,8 +56,9 @@ export default function DraggableModalWrapper({
         const dx = clientX - dragStartRef.current.x;
         const dy = clientY - dragStartRef.current.y;
         
-        const newX = dragStartRef.current.startLeft + dx;
-        const maxY = typeof window !== 'undefined' ? window.innerHeight - 80 : 600;
+        const maxX = typeof window !== 'undefined' ? Math.max(0, window.innerWidth - 80) : 400;
+        const newX = Math.max(0, Math.min(dragStartRef.current.startLeft + dx, maxX));
+        const maxY = typeof window !== 'undefined' ? Math.max(0, window.innerHeight - 80) : 600;
         const newY = Math.max(0, Math.min(dragStartRef.current.startTop + dy, maxY));
 
         setPos({ x: newX, y: newY });
@@ -110,6 +111,7 @@ export default function DraggableModalWrapper({
     top: `${pos.y}px`,
     width: 'auto',
     maxWidth: 'calc(100vw - 24px)',
+    maxHeight: 'calc(100dvh - 20px)',
     transform: 'none',
     margin: 0,
     zIndex: 70
@@ -127,8 +129,10 @@ export default function DraggableModalWrapper({
 
       <div
         ref={dragRef}
+        role="dialog"
+        aria-modal="true"
         style={modalStyle}
-        className={`pointer-events-auto relative ${isMaximized ? 'w-full h-full' : `${maxWidth} w-[96vw]`} flex flex-col transition-all duration-150 rounded-2xl overflow-hidden bg-black border border-neutral-800 shadow-[0_10px_50px_rgba(0,0,0,1)] backdrop-blur-2xl ${
+        className={`draggable-modal-container draggable-modal-card pointer-events-auto relative ${isMaximized ? 'w-full h-full' : `${maxWidth} w-[96vw] max-h-[calc(100dvh-20px)] sm:max-h-[calc(100dvh-40px)]`} flex flex-col transition-all duration-150 rounded-2xl overflow-hidden bg-black border border-neutral-800 shadow-[0_10px_50px_rgba(0,0,0,1)] backdrop-blur-2xl ${
           isDragging 
             ? 'cursor-grabbing shadow-[0_0_50px_rgba(245,197,66,0.4)] ring-2 ring-amber-400/50 select-none' 
             : ''

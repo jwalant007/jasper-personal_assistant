@@ -12,9 +12,17 @@ export function JasperChatProvider({ children }) {
 
   // Past Chat History
   const [pastChats, setPastChats] = useState(() => {
-    const uid = localStorage.getItem('jasper_current_user_id') || 'jwalant';
-    const saved = localStorage.getItem(getStorageKey(uid)) || (uid === 'jwalant' ? localStorage.getItem('jasper_past_chats') : null);
-    return saved ? JSON.parse(saved) : [
+    try {
+      const uid = localStorage.getItem('jasper_current_user_id') || 'jwalant';
+      const saved = localStorage.getItem(getStorageKey(uid)) || (uid === 'jwalant' ? localStorage.getItem('jasper_past_chats') : null);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.warn('Failed to parse cached pastChats, falling back to default:', e);
+    }
+    return [
       { 
         id: 1, 
         query: 'who is narendra modi', 

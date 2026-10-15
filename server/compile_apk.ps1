@@ -12,8 +12,14 @@ $env:JAVA_HOME = $jdkPath
 $env:ANDROID_HOME = "C:\Users\Jwalant\android-sdk"
 
 Write-Host "[APK Builder] Using JAVA_HOME: $env:JAVA_HOME"
-Write-Host "[APK Builder] Copying updated Web assets into Capacitor Android..."
+Write-Host "[APK Builder] Building latest production Web bundle..."
 Set-Location "c:\Users\Jwalant\.gemini\antigravity\scratch\jasper-assistant\client"
+& npm.cmd run build
+if ($LASTEXITCODE -ne 0) {
+    throw "Vite web build failed with exit code $LASTEXITCODE"
+}
+
+Write-Host "[APK Builder] Copying updated Web assets into Capacitor Android..."
 & npx.cmd cap copy android
 
 Write-Host "[APK Builder] Compiling native Android APK with explicit target :app:assembleDebug..."

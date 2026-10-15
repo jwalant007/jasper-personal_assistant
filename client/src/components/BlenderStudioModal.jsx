@@ -2476,12 +2476,18 @@ print("[Blender Script] Holographic torus generated successfully.")
 
                 <button
                   onClick={handleRenderScene}
-                  disabled={loading}
+                  disabled={loading || (status && !status.installed)}
                   className="w-full py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 text-white font-mono text-xs rounded transition flex items-center justify-center space-x-2"
+                  title={status && !status.installed ? "Blender 4.x CLI required on server host" : "Execute Headless Render"}
                 >
                   <ImageIcon className="w-4 h-4" />
-                  <span>Execute Headless Render</span>
+                  <span>{status && !status.installed ? 'Blender CLI Not Installed' : 'Execute Headless Render'}</span>
                 </button>
+                {status && !status.installed && (
+                  <p className="text-[11px] font-mono text-amber-400/90 text-center bg-amber-500/10 border border-amber-500/20 rounded p-2">
+                    Host server requires Blender CLI installed to perform background Cycles/EEVEE headless renders. Live 3D interactive viewport is fully operational.
+                  </p>
+                )}
               </div>
             )}
 
