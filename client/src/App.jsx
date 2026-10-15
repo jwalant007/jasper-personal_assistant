@@ -2429,8 +2429,8 @@ export default function App() {
                               className="px-2.5 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-[#A2ABBC] hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer"
                               title="Copy response to clipboard"
                             >
-                              {copySuccess === activeChat.id ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
-                              <span>{copySuccess === activeChat.id ? 'Copied' : 'Copy'}</span>
+                              {copiedChatId === activeChat.id ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+                              <span>{copiedChatId === activeChat.id ? 'Copied' : 'Copy'}</span>
                             </button>
                             <button
                               onClick={() => {
