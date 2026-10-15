@@ -228,7 +228,7 @@ export default function AudioConversationPage({
           </div>
 
           {/* Scrollable Conversation Content */}
-          <div ref={chatScrollRef} className="flex-1 overflow-y-auto p-5 space-y-4 custom-scrollbar">
+          <div ref={chatScrollRef} className="flex-1 overflow-y-scroll p-5 space-y-4 assistant-workspace-scrollbar">
             
             {/* Display User Query */}
             {latestQuery ? (

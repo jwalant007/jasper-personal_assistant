@@ -416,11 +416,35 @@ export default function App() {
     }
   };
 
+  const sidebarScrollRef = useRef(null);
+  const [sidebarScrollProgress, setSidebarScrollProgress] = useState(0);
+  const [sidebarHasOverflow, setSidebarHasOverflow] = useState(false);
+
+  const checkSidebarScroll = () => {
+    const el = sidebarScrollRef.current;
+    if (!el) return;
+    const max = el.scrollHeight - el.clientHeight;
+    const hasMore = max > 12;
+    setSidebarHasOverflow(hasMore);
+    setSidebarScrollProgress(max > 0 ? (el.scrollTop / max) * 100 : 0);
+  };
+
+  const handleSidebarScroll = () => {
+    checkSidebarScroll();
+  };
+
   useEffect(() => {
     checkHudScroll();
-    const handleResize = () => checkHudScroll();
+    checkSidebarScroll();
+    const handleResize = () => {
+      checkHudScroll();
+      checkSidebarScroll();
+    };
     window.addEventListener('resize', handleResize);
-    const timer = setTimeout(checkHudScroll, 400);
+    const timer = setTimeout(() => {
+      checkHudScroll();
+      checkSidebarScroll();
+    }, 400);
     return () => {
       window.removeEventListener('resize', handleResize);
       clearTimeout(timer);
@@ -1794,6 +1818,11 @@ export default function App() {
     return (c.query && c.query.toLowerCase().includes(q)) || (c.response && c.response.toLowerCase().includes(q));
   });
 
+  useEffect(() => {
+    const timer = setTimeout(checkSidebarScroll, 120);
+    return () => clearTimeout(timer);
+  }, [showSidebar, filteredPastChats.length]);
+
   return (
     <div className={`jasper-shell w-full h-full min-h-screen min-h-dvh flex flex-col overflow-hidden bg-[#0B0D12] text-[#F3F5FA] select-none relative ${viewMode === 'mobile' && !isMobileScreen ? 'w-[390px] h-[844px] max-w-[100vw] max-h-[100dvh] mx-auto my-auto rounded-3xl border border-white/[0.12] shadow-[0_24px_80px_rgba(0,0,0,0.8)]' : ''}`}>
       
@@ -1861,7 +1890,8 @@ export default function App() {
         {/* Left Navigation Sidebar / Mobile Slide Drawer */}
         {showSidebar && (
           <aside className={`sidebar-panel flex flex-col justify-between h-full select-none shrink-0 border-r border-white/[0.08] bg-[#0E121A]/95 backdrop-blur-2xl transition-all duration-300 z-50 ${isMobileLayout ? 'fixed inset-y-0 left-0 w-[300px] max-w-[86vw] shadow-2xl p-4 safe-pt safe-pb' : 'w-[280px] relative z-20 p-3.5'}`}>
-            <div className="flex flex-col gap-3 overflow-y-auto assistant-menu-scrollbar custom-scrollbar min-h-0 flex-1 pr-1.5">
+            <div className="relative flex-1 min-h-0 flex flex-row overflow-hidden">
+              <div ref={sidebarScrollRef} onScroll={handleSidebarScroll} className="flex flex-col gap-3 overflow-y-scroll assistant-menu-scrollbar min-h-0 flex-1 pr-1.5">
               {/* Brand Header */}
               <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
                 <div className="flex items-center gap-2.5">
@@ -2226,6 +2256,59 @@ export default function App() {
                   </div>
                 </div>
               )}
+              </div>
+
+              {/* Floating Cybernetic Scroll Rail for Left Sidebar */}
+              {sidebarHasOverflow && (
+                <div className="w-3 my-1 flex flex-col items-center justify-between shrink-0 select-none z-20 pointer-events-auto pl-0.5">
+                  <button
+                    type="button"
+                    onClick={() => sidebarScrollRef.current?.scrollBy({ top: -140, behavior: 'smooth' })}
+                    className="w-4 h-4 rounded bg-[#111620] border border-[#67DFFF]/40 text-[#67DFFF] hover:text-white hover:border-[#67DFFF] flex items-center justify-center text-[8px] transition-all cursor-pointer shadow-sm"
+                    title="Scroll Up"
+                  >
+                    ▲
+                  </button>
+                  
+                  {/* Draggable & Clickable Track */}
+                  <div 
+                    onPointerDown={(e) => {
+                      const track = e.currentTarget;
+                      const updateScroll = (clientY) => {
+                        const rect = track.getBoundingClientRect();
+                        const ratio = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+                        if (sidebarScrollRef.current) {
+                          sidebarScrollRef.current.scrollTop = ratio * (sidebarScrollRef.current.scrollHeight - sidebarScrollRef.current.clientHeight);
+                        }
+                      };
+                      updateScroll(e.clientY);
+                      const onMove = (moveEvt) => updateScroll(moveEvt.clientY);
+                      const onUp = () => {
+                        window.removeEventListener('pointermove', onMove);
+                        window.removeEventListener('pointerup', onUp);
+                      };
+                      window.addEventListener('pointermove', onMove);
+                      window.addEventListener('pointerup', onUp);
+                    }}
+                    className="flex-1 w-1.5 my-1.5 rounded-full bg-[#111620]/90 border border-[#67DFFF]/30 relative cursor-pointer group shadow-[0_0_8px_rgba(0,0,0,0.8)]"
+                    title="Click or drag to scroll side menu"
+                  >
+                    <div 
+                      style={{ top: `${Math.min(94, Math.max(6, sidebarScrollProgress))}%` }}
+                      className="absolute -left-1 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-gradient-to-r from-[#67DFFF] to-sky-400 border border-white shadow-[0_0_10px_#67DFFF] group-hover:scale-125 transition-transform"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => sidebarScrollRef.current?.scrollBy({ top: 140, behavior: 'smooth' })}
+                    className="w-4 h-4 rounded bg-[#111620] border border-[#67DFFF]/40 text-[#67DFFF] hover:text-white hover:border-[#67DFFF] flex items-center justify-center text-[8px] transition-all cursor-pointer shadow-sm"
+                    title="Scroll Down"
+                  >
+                    ▼
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Footer details in sidebar */}
@@ -2376,7 +2459,7 @@ export default function App() {
                 <div 
                   ref={hudPanelRef}
                   onScroll={handleHudScroll}
-                  className={`flex-1 min-h-0 overflow-y-auto assistant-workspace-scrollbar custom-scrollbar relative bg-[#0B0D12] border border-white/[0.08] rounded-2xl backdrop-blur-2xl shadow-2xl ${isMobileLayout ? 'p-3' : 'p-6'} transition-all flex flex-col`}
+                  className={`flex-1 min-h-0 overflow-y-scroll assistant-workspace-scrollbar relative bg-[#0B0D12] border border-white/[0.08] rounded-2xl backdrop-blur-2xl shadow-2xl ${isMobileLayout ? 'p-3' : 'p-6'} transition-all flex flex-col`}
                 >
                   {/* Ambient Electric Border Highlight */}
                   <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#67DFFF]/40 to-transparent pointer-events-none" />
@@ -2776,42 +2859,53 @@ export default function App() {
 
                 {/* FLOATING RIGHT-SIDE CYBERNETIC SCROLL RAIL */}
                 {hudHasOverflow && (
-                  <div className="absolute right-2 top-20 bottom-24 w-4 z-40 hidden sm:flex flex-col items-center justify-between pointer-events-auto py-1 select-none">
+                  <div className="absolute right-1 sm:right-2.5 top-16 sm:top-20 bottom-24 sm:bottom-28 w-4 sm:w-4.5 z-40 flex flex-col items-center justify-between pointer-events-auto py-1 select-none">
                     <button
                       type="button"
                       onClick={scrollToTop}
-                      className="w-5 h-5 rounded-md bg-[#0B0D12]/90 border border-[#67DFFF]/40 text-[#67DFFF] hover:text-white flex items-center justify-center text-[10px] shadow transition-all cursor-pointer hover:border-[#67DFFF]"
+                      className="w-5 h-5 rounded-md bg-[#0B0D12]/95 border border-[#67DFFF]/40 text-[#67DFFF] hover:text-white hover:border-[#67DFFF] flex items-center justify-center text-[10px] shadow-[0_0_8px_rgba(0,0,0,0.6)] transition-all cursor-pointer"
                       title="Scroll to Top"
                     >
-                      <ChevronUp className="w-3 h-3" />
+                      <ChevronUp className="w-3.5 h-3.5" />
                     </button>
                     
                     {/* Visual Track & Draggable/Clickable Indicator */}
                     <div 
-                      onClick={(e) => {
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        const clickRatio = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
-                        if (hudPanelRef.current) {
-                          const target = clickRatio * (hudPanelRef.current.scrollHeight - hudPanelRef.current.clientHeight);
-                          hudPanelRef.current.scrollTo({ top: target, behavior: 'smooth' });
-                        }
+                      onPointerDown={(e) => {
+                        const track = e.currentTarget;
+                        const updateScroll = (clientY) => {
+                          const rect = track.getBoundingClientRect();
+                          const ratio = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+                          if (hudPanelRef.current) {
+                            const target = ratio * (hudPanelRef.current.scrollHeight - hudPanelRef.current.clientHeight);
+                            hudPanelRef.current.scrollTop = target;
+                          }
+                        };
+                        updateScroll(e.clientY);
+                        const onMove = (moveEvt) => updateScroll(moveEvt.clientY);
+                        const onUp = () => {
+                          window.removeEventListener('pointermove', onMove);
+                          window.removeEventListener('pointerup', onUp);
+                        };
+                        window.addEventListener('pointermove', onMove);
+                        window.addEventListener('pointerup', onUp);
                       }}
-                      className="flex-1 w-1.5 my-1.5 rounded-full bg-[#111620]/90 border border-[#67DFFF]/30 relative cursor-pointer group shadow-[0_0_8px_rgba(0,0,0,0.8)]"
-                      title="Click to jump scroll position"
+                      className="flex-1 w-1.5 my-1.5 rounded-full bg-[#111620]/95 border border-[#67DFFF]/35 relative cursor-pointer group shadow-[0_0_10px_rgba(0,0,0,0.9)]"
+                      title="Click or drag to jump scroll position"
                     >
                       <div 
                         style={{ top: `${Math.min(94, Math.max(6, hudScrollProgress))}%` }}
-                        className="absolute -left-1 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-gradient-to-r from-[#67DFFF] to-sky-400 border border-white shadow-[0_0_12px_#67DFFF] group-hover:scale-125 transition-transform"
+                        className="absolute -left-1 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-gradient-to-r from-[#67DFFF] to-sky-400 border border-white shadow-[0_0_12px_#67DFFF] group-hover:scale-125 transition-transform"
                       />
                     </div>
 
                     <button
                       type="button"
                       onClick={scrollToBottom}
-                      className="w-5 h-5 rounded-md bg-[#0B0D12]/90 border border-[#67DFFF]/40 text-[#67DFFF] hover:text-white flex items-center justify-center text-[10px] shadow transition-all cursor-pointer hover:border-[#67DFFF]"
+                      className="w-5 h-5 rounded-md bg-[#0B0D12]/95 border border-[#67DFFF]/40 text-[#67DFFF] hover:text-white hover:border-[#67DFFF] flex items-center justify-center text-[10px] shadow-[0_0_8px_rgba(0,0,0,0.6)] transition-all cursor-pointer"
                       title="Scroll to Bottom"
                     >
-                      <ChevronDown className="w-3 h-3" />
+                      <ChevronDown className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 )}
