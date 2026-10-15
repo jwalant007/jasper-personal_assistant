@@ -1207,6 +1207,44 @@ export default function App() {
 
     const queryText = commandText.trim() || (attachments.length === 1 ? `[Uploaded file: ${attachments[0].name}]` : `[Uploaded ${attachments.length} files]`);
 
+    // Intercept Google Gemini API Key direct input or command
+    const geminiKeyMatch = queryText.match(/(?:(?:set|register|use|my|gemini)\s+(?:api\s+)?key[:=\s]+)?(AIzaSy[A-Za-z0-9_-]{33})/i);
+    if (geminiKeyMatch) {
+      const extractedKey = geminiKeyMatch[1];
+      localStorage.setItem('jasper_gemini_key', extractedKey);
+      localStorage.setItem('jasper_gemini_api_key', extractedKey);
+      if (typeof setApiKey === 'function') setApiKey(extractedKey);
+      if (typeof setAiProvider === 'function') setAiProvider('gemini');
+      geminiClient.setApiKey(extractedKey);
+      geminiClient.setProvider('gemini');
+
+      // Sync key to server
+      try {
+        fetch(`${getApiBase()}/api/config/apikey`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ apiKey: extractedKey })
+        }).catch(() => {});
+      } catch (_) {}
+
+      const response = `⚡ **Google Gemini 2.0 Flash Cloud Core Activated, Sir!**\n\nYour API key has been securely configured. Multimodal reasoning, deep cognition, coding assistance, and all autonomous subroutines are now operating at maximum fidelity.`;
+      
+      const newChat = {
+        id: Date.now(),
+        query: queryText,
+        attachments: attachments,
+        response: response,
+        timestamp: new Date().toLocaleString()
+      };
+      setPastChats((prev) => [newChat, ...prev]);
+      setSelectedChatId(newChat.id);
+      setSpeakingText("Google Gemini 2.0 Flash Cloud Core successfully activated, Sir!");
+      if (voiceControllerRef.current) {
+        voiceControllerRef.current.playSuccess();
+      }
+      return;
+    }
+
     // Intercept Phone Sentinel & Offline Mobile Push Alerts Commands
     const sentinelRegex = /(phone sentinel|offline alert|offline notification|phone alert|weather alert|notify my phone|send notification to my phone|test phone alert|test push)/i;
     if (sentinelRegex.test(queryText)) {

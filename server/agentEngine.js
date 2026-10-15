@@ -23,6 +23,7 @@ const busyModeEngine = require('./busyModeEngine');
 const meetingEngine = require('./meetingEngine');
 const telephonyEngine = require('./telephonyEngine');
 const financialIntelligenceEngine = require('./financialIntelligenceEngine');
+const knowledgeEngine = require('./knowledgeEngine');
 const { exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
@@ -1641,21 +1642,24 @@ Key Directives:
         response = `All neural subroutines and hardware interfaces report optimal stability, Sir. Operating at peak efficiency.`;
       } else if (lower.match(/\b(thank you|thanks|good job|well done)\b/)) {
         response = `Always a pleasure to be of service, Sir. Standing by for further directives.`;
-      } else if (lower.match(/\b(calculate|what is|solve)\b/) && lower.match(/[\d+\-*/^()]/)) {
-        try {
-          const mathExpr = lower.replace(/[^0-9+\-*/().^]/g, '');
-          if (mathExpr.length > 0) {
-            // Safe evaluation of simple math
-            const calcResult = Function(`"use strict"; return (${mathExpr});`)();
-            response = `Calculation complete, Sir: ${mathExpr} = ${calcResult}`;
-          } else {
-            response = `Understood, Sir. I have analyzed: "${query}".${memCtx}`;
-          }
-        } catch (_) {
-          response = `Understood, Sir. "${query}" — processed through Jasper local neural core.${memCtx}`;
-        }
       } else {
-        response = `Directive processed, Sir. "${query}" registered and standing by for your next instruction.${memCtx}`;
+        // Universal Knowledge & Task Solver (Gemini 2.0 Cloud, Math, Conversions, Task Drafting, Coding, Wikipedia Knowledge, DuckDuckGo)
+        try {
+          const effectiveKey = (userKey && userKey.startsWith('AIzaSy')) ? userKey : (process.env.GEMINI_API_KEY || '');
+          const knowledgeAns = await knowledgeEngine.resolveUniversalQuery(query, {
+            userName,
+            apiKey: effectiveKey,
+            timezone: effectiveTz
+          });
+          if (knowledgeAns && knowledgeAns.trim()) {
+            response = knowledgeAns.trim() + memCtx;
+          } else {
+            response = `Directive processed, Sir. "${query}" registered and standing by for your next instruction.${memCtx}`;
+          }
+        } catch (kErr) {
+          console.warn('[AgentEngine] Knowledge engine failed:', kErr.message);
+          response = `Directive processed, Sir. "${query}" registered and standing by for your next instruction.${memCtx}`;
+        }
       }
     }
 

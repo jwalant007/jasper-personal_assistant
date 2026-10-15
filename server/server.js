@@ -3829,6 +3829,26 @@ app.get('/api/agent/tools', (req, res) => {
   res.json({ tools: agentEngine.getToolRegistry() });
 });
 
+// Configure or retrieve Gemini API key dynamically
+app.post('/api/config/apikey', (req, res) => {
+  const { apiKey } = req.body;
+  if (!apiKey || typeof apiKey !== 'string') {
+    return res.status(400).json({ success: false, error: 'apiKey string is required' });
+  }
+  const cleanKey = apiKey.trim();
+  process.env.GEMINI_API_KEY = cleanKey;
+  try {
+    const knowledgeEngine = require('./knowledgeEngine');
+    knowledgeEngine.setApiKey(cleanKey);
+  } catch (_) {}
+  res.json({ success: true, message: 'Gemini API key updated successfully' });
+});
+
+app.get('/api/config/apikey', (req, res) => {
+  const hasKey = Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.startsWith('AIzaSy'));
+  res.json({ configured: hasKey });
+});
+
 // =============================================================
 // ACTIVITY LOG ENDPOINTS
 // =============================================================

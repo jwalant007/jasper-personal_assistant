@@ -2181,7 +2181,57 @@ class GeminiClient {
       return "Always an honor to assist you, Sir. Standing by for your next directive.";
     }
 
-    // Search / Factual query answering fallback via Wikipedia or web search
+    // 1. Try backend agentEngine + knowledgeEngine via /api/agent/chat
+    try {
+      const res = await fetch(`${getApiBase()}/api/agent/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: text,
+          userKey: this.apiKey || '',
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const resp = (data.response || data.text || '').trim();
+        if (resp && !resp.includes('standing by for your next instruction') && !resp.includes('registered and standing by')) {
+          onLog(`[KNOWLEDGE CORE] Query resolved via J.A.S.P.E.R. intelligence gateway.`, 'success');
+          return resp;
+        }
+      }
+    } catch (serverErr) {
+      console.warn('[GeminiClient] Server agent query fallback failed:', serverErr.message);
+    }
+
+    // 2. Client-side Safe Math Evaluation
+    const mathAnswer = this.evaluateClientMath(text);
+    if (mathAnswer) {
+      return mathAnswer;
+    }
+
+    // 3. Client-side Unit & Currency Conversions
+    const convAnswer = this.evaluateClientConversion(text);
+    if (convAnswer) {
+      return convAnswer;
+    }
+
+    // 4. Client-side Task Solutions (Emails, Letters, Coding, Schedules)
+    const taskAnswer = this.evaluateClientTask(text);
+    if (taskAnswer) {
+      return taskAnswer;
+    }
+
+    // 5. Client-side Wikipedia REST API Query (Open CORS origin=*)
+    try {
+      const wikiAnswer = await this.queryClientWikipedia(text);
+      if (wikiAnswer) {
+        onLog(`[KNOWLEDGE ARCHIVE] Knowledge summary retrieved from encyclopedic core.`, 'success');
+        return wikiAnswer;
+      }
+    } catch (_) {}
+
+    // 6. Client-side DuckDuckGo Web Intelligence
     try {
       const searchRes = await this.executeTool('search_internet', { query: text }, onLog);
       if (searchRes && searchRes.results && searchRes.results.length > 0) {
@@ -2193,8 +2243,278 @@ class GeminiClient {
       }
     } catch (_) {}
 
-    return `I have processed your directive: "${text}", Sir. Standing by with all core subroutines active.`;
+    return `I have analyzed your directive regarding "${text}", Sir. All core subroutines stand ready to assist. You can paste your free Google Gemini API key directly into the chat at any time to activate multimodal cloud intelligence.`;
   }
+
+  evaluateClientMath(raw) {
+    const cleaned = (raw || '').toLowerCase()
+      .replace(/^(what is|what's|calculate|solve|evaluate|compute)\s+/i, '')
+      .replace(/[?.,!]+$/, '')
+      .trim();
+
+    const sqrtMatch = cleaned.match(/^(?:square root of|sqrt)\s*(\d+(?:\.\d+)?)$/i);
+    if (sqrtMatch) {
+      const num = parseFloat(sqrtMatch[1]);
+      return `Square root computation, Sir: √${num} = **${Math.sqrt(num)}**.`;
+    }
+
+    const percentMatch = cleaned.match(/^(\d+(?:\.\d+)?)\s*(?:%|percent)\s*(?:of)\s*(\d+(?:\.\d+)?)$/i);
+    if (percentMatch) {
+      const pct = parseFloat(percentMatch[1]);
+      const base = parseFloat(percentMatch[2]);
+      return `Percentage calculation, Sir: **${pct}% of ${base} = ${(pct / 100) * base}**.`;
+    }
+
+    // Check for expressions with sqrt and arithmetic (e.g., "sqrt(256) + 40", "sqrt(144) * 2")
+    const withSqrt = cleaned.replace(/sqrt\s*\(([^)]+)\)/gi, (m, p) => `Math.sqrt(${p})`);
+    const testPattern = cleaned.replace(/sqrt\s*\([^)]+\)/gi, '1');
+    if (/^[0-9\s+\-*/().*^%]+$/.test(testPattern) && /\d/.test(testPattern) && /[+\-*/^%]/.test(testPattern)) {
+      try {
+        const sanitized = withSqrt.replace(/\^/g, '**').replace(/%/g, '/100');
+        if (/^[0-9\s+\-*/().*Math.sqrt]+$/.test(sanitized)) {
+          const val = (new Function(`"use strict"; return (${sanitized});`))();
+          if (typeof val === 'number' && !isNaN(val) && isFinite(val)) {
+            return `Calculation complete, Sir: **${cleaned} = ${val}**.`;
+          }
+        }
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  evaluateClientConversion(raw) {
+    const lower = (raw || '').toLowerCase().replace(/^(convert|what is|how much is)\s+/i, '').replace(/[?.,!]+$/, '').trim();
+
+    const usdToInr = lower.match(/^(\d+(?:\.\d+)?)\s*(?:usd|dollars?|\$)\s*(?:to|in)\s*(?:inr|rupees?|rs\.?|₹)/i);
+    if (usdToInr) {
+      const amt = parseFloat(usdToInr[1]);
+      const inr = Math.round(amt * 86.5 * 100) / 100;
+      return `Currency telemetry: **$${amt} USD** is approximately **₹${inr.toLocaleString('en-IN')} INR** (at ~86.5 INR/USD).`;
+    }
+
+    const inrToUsd = lower.match(/^(\d+(?:\.\d+)?)\s*(?:inr|rupees?|rs\.?|₹)\s*(?:to|in)\s*(?:usd|dollars?|\$)/i);
+    if (inrToUsd) {
+      const amt = parseFloat(inrToUsd[1]);
+      return `Currency telemetry: **₹${amt.toLocaleString('en-IN')} INR** is approximately **$${(amt / 86.5).toFixed(2)} USD** (at ~86.5 INR/USD).`;
+    }
+
+    const miToKm = lower.match(/^(\d+(?:\.\d+)?)\s*(?:miles?|mi)\s*(?:to|in)\s*(?:kilometers?|km)/i);
+    if (miToKm) {
+      const val = parseFloat(miToKm[1]);
+      return `Distance conversion: **${val} miles** = **${(val * 1.60934).toFixed(2)} km**, Sir.`;
+    }
+
+    const kmToMi = lower.match(/^(\d+(?:\.\d+)?)\s*(?:kilometers?|km)\s*(?:to|in)\s*(?:miles?|mi)/i);
+    if (kmToMi) {
+      const val = parseFloat(kmToMi[1]);
+      return `Distance conversion: **${val} km** = **${(val / 1.60934).toFixed(2)} miles**, Sir.`;
+    }
+
+    const cToF = lower.match(/^(\d+(?:\.\d+)?)\s*(?:c|celsius)\s*(?:to|in)\s*(?:f|fahrenheit)/i);
+    if (cToF) {
+      const val = parseFloat(cToF[1]);
+      return `Thermal conversion: **${val}°C** = **${((val * 9/5) + 32).toFixed(1)}°F**, Sir.`;
+    }
+
+    const fToC = lower.match(/^(\d+(?:\.\d+)?)\s*(?:f|fahrenheit)\s*(?:to|in)\s*(?:c|celsius)/i);
+    if (fToC) {
+      const val = parseFloat(fToC[1]);
+      return `Thermal conversion: **${val}°F** = **${(((val - 32) * 5/9)).toFixed(1)}°C**, Sir.`;
+    }
+    return null;
+  }
+
+  evaluateClientTask(raw) {
+    const lower = (raw || '').toLowerCase().trim();
+
+    if (lower.match(/\b(reschedule|postpone|move|rescheduling)\b.*\b(meeting|call|sync|discussion|chat|appointment)\b/)) {
+      const personMatch = raw.match(/\b(?:with|for)\s+([A-Z][a-z]+|\b[a-z]+\b)/i);
+      const recipient = personMatch ? personMatch[1] : '[Recipient Name]';
+
+      return `Certainly, Sir. Here is a courteous, professional email to reschedule your meeting:
+
+---
+**Subject:** Rescheduling Request: Our Upcoming Sync — [Your Name]
+
+Dear ${recipient},
+
+I hope this message finds you well.
+
+Due to an unexpected scheduling conflict that has arisen, I regret that I will need to request rescheduling our upcoming meeting previously set for [Original Date & Time].
+
+I apologize for any disruption to your calendar. Would any of the following alternatives work for you?
+- **Option 1:** Tomorrow at [Alternative Time 1]
+- **Option 2:** [Day of Week] at [Alternative Time 2]
+
+Please let me know if either of those suits your availability, or feel free to suggest a time that works better for you.
+
+Thank you very much for your understanding and flexibility.
+
+Best regards,  
+**Jwalant**  
+---`;
+    }
+
+    if (lower.match(/\b(sick leave|leave application|leave request|time off|vacation leave)\b/)) {
+      return `Certainly, Sir. Here is a formal, polished leave application ready for your dispatch:
+
+---
+**Subject:** Leave Application — Jwalant — [Dates]
+
+Dear [Manager/Supervisor Name],
+
+I am writing to formally request leave of absence from [Start Date] to [End Date] due to health reasons / medical rest. 
+
+I have ensured that all my immediate responsibilities are updated, and [Colleague Name] has kindly agreed to cover urgent operational items during my absence. I will monitor critical communications as health permits and resume full duties on [Return Date].
+
+Thank you for your understanding.
+
+Warm regards,  
+**Jwalant**  
+[Contact Information]  
+---`;
+    }
+
+    if (lower.match(/\b(resignation letter|resignation)\b/)) {
+      return `Understood, Sir. Here is a courteous and professional resignation letter:
+
+---
+**Subject:** Resignation — Jwalant
+
+Dear [Manager Name],
+
+Please accept this letter as formal notification that I am resigning from my position as [Your Role] at [Company Name]. My last day of service will be [Last Working Date], in accordance with my notice period.
+
+I am immensely grateful for the opportunities, mentorship, and professional growth I have experienced during my tenure here. I appreciate the camaraderie of the team and will look back fondly on our achievements together.
+
+During my remaining time, I will actively assist in transferring all ongoing projects, documenting key processes, and ensuring a seamless transition. 
+
+I wish the team and company continued success in the future.
+
+Sincerely,  
+**Jwalant**  
+---`;
+    }
+
+    if (lower.match(/\b(fibonacci|fibonacci sequence|fibonacci series)\b/)) {
+      return `Here is an optimized Python implementation for calculating Fibonacci numbers:
+
+\`\`\`python
+def fibonacci(n: int) -> int:
+    """Returns the nth Fibonacci number (0-indexed)."""
+    if n <= 0:
+        return 0
+    elif n == 1:
+        return 1
+    
+    a, b = 0, 1
+    for _ in range(2, n + 1):
+        a, b = b, a + b
+    return b
+
+# Demonstration:
+print("10th Fibonacci number:", fibonacci(10))  # 55
+\`\`\``;
+    }
+
+    if (lower.match(/\b(binary search|bsearch)\b/)) {
+      return `Here is the standard, optimal Binary Search implementation in Python:
+
+\`\`\`python
+def binary_search(arr: list, target) -> int:
+    low = 0
+    high = len(arr) - 1
+
+    while low <= high:
+        mid = (low + high) // 2
+        guess = arr[mid]
+
+        if guess == target:
+            return mid
+        elif guess < target:
+            low = mid + 1
+        else:
+            high = mid - 1
+
+    return -1
+
+sample_list = [2, 5, 8, 12, 16, 23, 38, 56, 72, 91]
+print("Index of 23:", binary_search(sample_list, 23))  # 5
+\`\`\``;
+    }
+
+    if (lower.match(/\b(palindrome|check palindrome)\b/)) {
+      return `Here is an optimal Python solution to check for palindromes, Sir:
+
+\`\`\`python
+def is_palindrome(text: str) -> bool:
+    cleaned = ''.join(char.lower() for char in text if char.isalnum())
+    return cleaned == cleaned[::-1]
+
+print(is_palindrome("A man, a plan, a canal: Panama"))  # True
+print(is_palindrome("race a car"))                      # False
+\`\`\``;
+    }
+
+    if (lower.match(/\b(organize|plan|schedule|routine)\b.*\b(day|daily|study|productivity|workout)\b/)) {
+      return `Here is an optimized high-efficiency daily routine structured for peak cognitive performance, Sir:
+
+### ⚡ J.A.S.P.E.R. High-Performance Schedule
+
+| Time Block | Phase | Objective |
+| :--- | :--- | :--- |
+| **06:30 – 07:30** | *Activation* | Hydration, physical workout, and brief morning meditation |
+| **07:30 – 08:30** | *Briefing & Fuel* | Nutritious breakfast and J.A.S.P.E.R. Morning Briefing review |
+| **08:30 – 11:30** | *Deep Work Block I* | Highest-priority cognitive tasks (coding, strategic planning, writing) |
+| **11:30 – 12:30** | *Administrative* | Communications, emails, and sync calls |
+| **12:30 – 13:30** | *Recharge* | Balanced lunch and screen-free mental pause |
+| **13:30 – 16:30** | *Deep Work Block II* | Implementation, project building, collaborative execution |
+| **16:30 – 17:30** | *Wrap-Up & Review* | Task logging, daily retrospectives, planning tomorrow's objectives |
+| **18:00 – 21:00** | *Personal & Leisure* | Family time, hobbies, reading, and relaxation |
+| **22:00 – 22:30** | *Shutdown Sequence* | Digital screens off; preparation for 7–8 hours restorative sleep |`;
+    }
+
+    return null;
+  }
+
+  async queryClientWikipedia(query) {
+    if (query.match(/\b(write|draft|compose|create|make|code|generate|remind|schedule|book|call)\b/i)) {
+      return null;
+    }
+
+    const cleaned = query
+      .replace(/^(who was|who is|who were|what was|what is|what are|tell me about|explain|describe|define|history of|where is|how does|how do|can you explain)\s+/i, '')
+      .replace(/[?.,!]+$/, '')
+      .trim();
+
+    if (!cleaned || cleaned.length < 2) return null;
+
+    try {
+      const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleaned)}&format=json&origin=*`;
+      const searchRes = await fetch(searchUrl);
+      if (!searchRes.ok) return null;
+      const searchData = await searchRes.json();
+      const hits = searchData?.query?.search || [];
+      if (hits.length === 0) return null;
+
+      const searchKeywords = cleaned.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+      const topHit = hits.find(hit => {
+        const titleLower = hit.title.toLowerCase();
+        return searchKeywords.some(kw => titleLower.includes(kw));
+      }) || hits[0];
+
+      const pageUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(topHit.title)}`;
+      const pageRes = await fetch(pageUrl);
+      if (!pageRes.ok) return null;
+      const pageData = await pageRes.json();
+
+      if (pageData.extract && pageData.extract.length > 30) {
+        return `According to J.A.S.P.E.R. knowledge archives on **${pageData.title}**:\n\n${pageData.extract}${pageData.description ? `\n\n*${pageData.description}*` : ''}`;
+      }
+    } catch (_) {}
+    return null;
+  }
+
 
   async generateHumanCallTurn({ contactName, goal, history = [], recipientWords = '' }) {
     const systemPrompt = `You are J.A.S.P.E.R., an ultra-intelligent, warm, friendly, natural human-like AI voice assistant placing a live phone call on behalf of your owner Jwalant.
