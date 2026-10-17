@@ -73,7 +73,59 @@ function findBrowserExecutable() {
     } catch(e) {}
   }
 
-  // 2. Linux / Cloud / Docker / VPS paths
+  // 2. Puppeteer's bundled / cached browser (works across Windows, Mac, Linux)
+  try {
+    const puppeteer = require('puppeteer');
+    if (puppeteer && typeof puppeteer.executablePath === 'function') {
+      const pPath = puppeteer.executablePath();
+      if (pPath && fs.existsSync(pPath)) {
+        return pPath;
+      }
+    }
+  } catch(e) {}
+
+  // 3. Windows paths
+  const winPaths = [
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+    'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+    'C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe',
+    process.env.LOCALAPPDATA ? path.join(process.env.LOCALAPPDATA, 'Google', 'Chrome', 'Application', 'chrome.exe') : null,
+    process.env.USERPROFILE ? path.join(process.env.USERPROFILE, '.cache', 'puppeteer', 'chrome') : null
+  ].filter(Boolean);
+
+  for (const p of winPaths) {
+    try {
+      if (fs.existsSync(p)) {
+        if (fs.statSync(p).isDirectory()) {
+          // If directory like .cache/puppeteer/chrome, search for chrome.exe inside
+          const findExe = (dir) => {
+            const items = fs.readdirSync(dir);
+            for (const item of items) {
+              const full = path.join(dir, item);
+              try {
+                const s = fs.statSync(full);
+                if (s.isDirectory()) {
+                  const res = findExe(full);
+                  if (res) return res;
+                } else if (item.toLowerCase() === 'chrome.exe') {
+                  return full;
+                }
+              } catch(e) {}
+            }
+            return null;
+          };
+          const found = findExe(p);
+          if (found) return found;
+        } else {
+          return p;
+        }
+      }
+    } catch(e) {}
+  }
+
+  // 4. Linux / Cloud / Docker / VPS paths
   const linuxPaths = [
     '/usr/bin/google-chrome-stable',
     '/usr/bin/google-chrome',
@@ -88,17 +140,14 @@ function findBrowserExecutable() {
     } catch(e) {}
   }
 
-  // 3. Windows paths
-  const winPaths = [
-    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-    'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
-    'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
-    'C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe',
-    process.env.LOCALAPPDATA ? path.join(process.env.LOCALAPPDATA, 'Google', 'Chrome', 'Application', 'chrome.exe') : null
-  ].filter(Boolean);
-
-  for (const p of winPaths) {
+  // 5. macOS paths
+  const macPaths = [
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+    '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser',
+    '/Applications/Chromium.app/Contents/MacOS/Chromium'
+  ];
+  for (const p of macPaths) {
     try {
       if (fs.existsSync(p)) return p;
     } catch(e) {}

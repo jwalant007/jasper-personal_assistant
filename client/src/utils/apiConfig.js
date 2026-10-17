@@ -33,8 +33,13 @@ export function getServerIp() {
   }
   if (saved && saved.trim()) return saved.trim();
 
-  // If running as native Android APK or Windows Desktop EXE, default directly to Render Cloud
-  if (isCapacitorNative() || isElectronApp()) {
+  // If running as Windows Desktop EXE (Electron), default to localhost (where local server + Chrome live)
+  if (isElectronApp()) {
+    return 'localhost';
+  }
+
+  // If running as native Android APK, default directly to Render Cloud
+  if (isCapacitorNative()) {
     return RENDER_CLOUD_HOST;
   }
 

@@ -8,7 +8,7 @@ import {
   ShieldAlert, Bell, Volume2
 } from 'lucide-react';
 import geminiClient from '../utils/geminiClient';
-import { getApiBase } from '../utils/apiConfig.js';
+import { getApiBase, isCloudMode, setServerToLocalhost, getServerIp } from '../utils/apiConfig.js';
 
 export default function SocialAutoReplyWidget({ onClose, onLog }) {
   const [platform, setPlatform] = useState('whatsapp'); // 'whatsapp' | 'instagram'
@@ -1967,10 +1967,40 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
                 </button>
               </div>
             ) : waWebStatus === 'no_browser_available' ? (
-              <div className="flex flex-col items-center gap-3 py-6 text-center">
-                <div className="text-3xl">💻</div>
-                <p className="text-sm font-bold text-amber-300">Local Browser Not Found</p>
-                <p className="text-xs text-slate-400 font-mono">Chrome or Chromium was not detected on this host. WhatsApp messaging is running in Phone Link (ADB) mode.</p>
+              <div className="flex flex-col items-center gap-3 py-4 text-center">
+                <div className="w-12 h-12 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-2xl">💻</div>
+                <div className="space-y-1">
+                  <p className="text-sm font-bold text-amber-300">
+                    {isCloudMode() ? 'Connected to Cloud Server (Render)' : 'Local Browser Not Found'}
+                  </p>
+                  <p className="text-xs text-slate-300 font-mono leading-relaxed max-w-xs">
+                    {isCloudMode() 
+                      ? 'WhatsApp Web requires a local PC browser (Chrome). The Render Cloud container does not run a desktop browser.'
+                      : 'Chrome or Chromium was not detected on this host. Run the server on your PC where Chrome is installed.'}
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-2 w-full pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setServerToLocalhost();
+                      window.location.reload();
+                    }}
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-xs font-mono shadow-lg flex items-center justify-center gap-2"
+                  >
+                    💻 Switch to Local PC Server (localhost:3001)
+                  </button>
+                  <p className="text-[10px] text-slate-400 font-mono">
+                    Target host: <span className="text-amber-300 font-bold">{getServerIp()}</span>
+                  </p>
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-700/60 text-[10px] text-slate-400 font-mono text-left w-full space-y-1.5 mt-1">
+                  <div className="font-bold text-slate-300">💡 How to use WhatsApp Auto-Reply:</div>
+                  <div>• <strong className="text-emerald-300">WhatsApp Web:</strong> Connect using your laptop server where Chrome is installed to scan the QR code.</div>
+                  <div>• <strong className="text-cyan-300">Phone Link (ADB):</strong> When away from PC or in Cloud mode, JASPER auto-sends messages directly through your connected Android phone!</div>
+                </div>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-4 py-4">
