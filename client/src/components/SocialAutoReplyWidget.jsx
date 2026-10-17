@@ -57,17 +57,24 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
 
   const [waWebStatus, setWaWebStatus] = useState('not_initialized'); // 'not_initialized' | 'initializing' | 'qr_pending' | 'authenticated' | 'ready' | 'error'
   const [waWebQr, setWaWebQr] = useState(null);
+  const [waWebQrDataUrl, setWaWebQrDataUrl] = useState(null);
   const [showWaQrModal, setShowWaQrModal] = useState(false);
 
-  const handleWaWebConnect = async () => {
+  const handleWaWebConnect = async (forceReset = false) => {
     setWaWebStatus('initializing');
-    showBanner('Starting WhatsApp Web connection... Generating QR Code...', 'info');
+    showBanner(forceReset ? '🔄 Purging session and generating a fresh WhatsApp QR...' : 'Starting WhatsApp Web connection... Generating QR Code...', 'info');
     setShowWaQrModal(true);
     try {
-      const res = await fetch('/api/social/wa-connect', { method: 'POST' });
+      const res = await fetch(`${getApiBase()}/api/social/wa-connect`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ forceReset })
+      });
       const data = await res.json();
       if (data.success) {
         setWaWebStatus(data.status);
+        if (data.qr) setWaWebQr(data.qr);
+        if (data.qrDataUrl) setWaWebQrDataUrl(data.qrDataUrl);
         if (data.status === 'ready') {
           showBanner('✅ WhatsApp Web connected! All messages will auto-send instantly!', 'success');
         } else {
@@ -82,30 +89,60 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
     }
   };
 
-  // Poll WA Web status
+  // Poll & Listen to WA Web status
   useEffect(() => {
+    let isMounted = true;
     const pollWaStatus = async () => {
       try {
-        const res = await fetch('/api/social/wa-status');
+        const res = await fetch(`${getApiBase()}/api/social/wa-status`);
         const data = await res.json();
+        if (!isMounted) return;
         setWaWebStatus(data.status);
         if (data.qr) setWaWebQr(data.qr);
+        if (data.qrDataUrl) setWaWebQrDataUrl(data.qrDataUrl);
         if (data.status === 'ready') {
           setWaWebQr(null);
+          setWaWebQrDataUrl(null);
           setShowWaQrModal(false);
         }
       } catch(e) {}
     };
-    const interval = setInterval(pollWaStatus, 3000);
+
+    const handleWaEvent = (e) => {
+      const data = e.detail;
+      if (!data || !isMounted) return;
+      if (data.type === 'WA_QR_CODE') {
+        if (data.qr) setWaWebQr(data.qr);
+        if (data.qrDataUrl) setWaWebQrDataUrl(data.qrDataUrl);
+        setWaWebStatus('qr_pending');
+      } else if (data.type === 'WA_STATUS') {
+        setWaWebStatus(data.status);
+        if (data.status === 'ready') {
+          setWaWebQr(null);
+          setWaWebQrDataUrl(null);
+          setShowWaQrModal(false);
+        }
+      }
+    };
+
+    window.addEventListener('jasper-wa-event', handleWaEvent);
+    const intervalMs = (showWaQrModal || waWebStatus === 'initializing') ? 1500 : 4000;
+    const interval = setInterval(pollWaStatus, intervalMs);
     pollWaStatus();
-    return () => clearInterval(interval);
-  }, []);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+      window.removeEventListener('jasper-wa-event', handleWaEvent);
+    };
+  }, [showWaQrModal, waWebStatus]);
 
   const handleWaWebDisconnect = async () => {
     try {
-      await fetch('/api/social/wa-disconnect', { method: 'POST' });
+      await fetch(`${getApiBase()}/api/social/wa-disconnect`, { method: 'POST' });
       setWaWebStatus('not_initialized');
       setWaWebQr(null);
+      setWaWebQrDataUrl(null);
       setShowWaQrModal(false);
       showBanner('WhatsApp Web disconnected.', 'info');
     } catch(e) {}
@@ -184,7 +221,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
         setShowImportModal(false);
         showBanner(`Successfully imported ${imported.length} real contacts!`, 'success');
         try {
-          await fetch('/api/social/contacts/bulk', {
+          await fetch(`${getApiBase()}/api/social/contacts/bulk`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contacts: merged })
@@ -224,7 +261,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
     setBulkIgText('');
     showBanner(`Imported ${newIgContacts.length} Instagram Direct accounts!`, 'success');
     try {
-      await fetch('/api/social/contacts/bulk', {
+      await fetch(`${getApiBase()}/api/social/contacts/bulk`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ contacts: merged })
@@ -237,7 +274,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
   // Load config, accounts, contacts & logs from backend
   const fetchConfigAndLogs = async () => {
     try {
-      const resConfig = await fetch('/api/social/config');
+      const resConfig = await fetch(`${getApiBase()}/api/social/config`);
       const dataConfig = await resConfig.json();
       if (dataConfig.success && dataConfig.config) {
         setWhatsappEnabled(dataConfig.config.whatsappEnabled ?? true);
@@ -248,7 +285,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
         if (dataConfig.config.emergencyKeyword) setEmergencyKeyword(dataConfig.config.emergencyKeyword);
       }
 
-      const resAcc = await fetch('/api/social/accounts');
+      const resAcc = await fetch(`${getApiBase()}/api/social/accounts`);
       const dataAcc = await resAcc.json();
       if (dataAcc.success && dataAcc.accounts) {
         setAccountConfig(prev => ({
@@ -259,13 +296,13 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
         }));
       }
 
-      const resContacts = await fetch('/api/social/contacts');
+      const resContacts = await fetch(`${getApiBase()}/api/social/contacts`);
       const dataContacts = await resContacts.json();
       if (dataContacts.success && dataContacts.contacts && dataContacts.contacts.length > 0) {
         setContacts(dataContacts.contacts);
       }
 
-      const resLogs = await fetch('/api/social/logs');
+      const resLogs = await fetch(`${getApiBase()}/api/social/logs`);
       const dataLogs = await resLogs.json();
       if (dataLogs.success && dataLogs.logs) {
         setLogs(dataLogs.logs);
@@ -282,7 +319,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
     }
 
     try {
-      const res = await fetch('/api/social/contacts', {
+      const res = await fetch(`${getApiBase()}/api/social/contacts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -325,7 +362,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
     setIsSyncingContacts(true);
     showBanner('Syncing real contacts & WhatsApp chats from connected phone...', 'info');
     try {
-      const res = await fetch('/api/social/sync-contacts', {
+      const res = await fetch(`${getApiBase()}/api/social/sync-contacts`, {
         method: 'POST'
       });
       const data = await res.json();
@@ -351,7 +388,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
 
   const saveAccountsToServer = async (updatedAcc) => {
     try {
-      await fetch('/api/social/accounts', {
+      await fetch(`${getApiBase()}/api/social/accounts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -374,7 +411,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
 
   const saveConfig = async (updated) => {
     try {
-      await fetch('/api/social/config', {
+      await fetch(`${getApiBase()}/api/social/config`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updated)
@@ -421,7 +458,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
 
     setIsSending(true);
     try {
-      const res = await fetch('/api/social/send', {
+      const res = await fetch(`${getApiBase()}/api/social/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -469,7 +506,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
     const simName = topContact?.name || 'Incoming Caller';
 
     try {
-      const res = await fetch('/api/social/call-handler', {
+      const res = await fetch(`${getApiBase()}/api/social/call-handler`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -505,7 +542,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
 
   const handleClearLogs = async () => {
     try {
-      await fetch('/api/social/logs/clear', { method: 'POST' });
+      await fetch(`${getApiBase()}/api/social/logs/clear`, { method: 'POST' });
     } catch (e) {}
     setLogs([]);
     showBanner('Activity logs cleared.', 'info');
@@ -514,7 +551,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
   const handleTriggerTestEmergency = async () => {
     try {
       showBanner('🚨 Dispatching test emergency alert (Windows Toast + Audio)...', 'info');
-      const res = await fetch('/api/social/emergency-trigger', {
+      const res = await fetch(`${getApiBase()}/api/social/emergency-trigger`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1479,7 +1516,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
                   onClick={async () => {
                     showBanner('Testing Phone Link: Launching Instagram on phone...', 'info');
                     try {
-                      await fetch('/api/social/send', {
+                      await fetch(`${getApiBase()}/api/social/send`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -1859,28 +1896,81 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
                   <p className="text-sm font-bold text-emerald-300">WhatsApp Web Connected!</p>
                   <p className="text-xs text-slate-400 font-mono mt-1">All messages will auto-send instantly without any clicks.</p>
                 </div>
-                <button type="button" onClick={handleWaWebDisconnect} className="px-4 py-1.5 rounded-xl bg-red-900/40 text-red-300 text-xs font-mono border border-red-500/40">
+                <button type="button" onClick={handleWaWebDisconnect} className="px-4 py-1.5 rounded-xl bg-red-900/40 text-red-300 text-xs font-mono border border-red-500/40 hover:bg-red-800/60 transition-colors">
                   Disconnect
                 </button>
               </div>
-            ) : waWebQr ? (
+            ) : (waWebQrDataUrl || waWebQr) ? (
               <div className="flex flex-col items-center gap-3">
-                <div className="p-3 rounded-xl bg-white">
+                <div className="p-3 rounded-2xl bg-white shadow-[0_0_25px_rgba(255,255,255,0.2)] border border-slate-200">
                   <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(waWebQr)}`}
+                    src={waWebQrDataUrl || `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(waWebQr)}`}
                     alt="WhatsApp Web QR Code"
-                    className="w-56 h-56 rounded-lg"
+                    className="w-56 h-56 rounded-xl object-contain"
                   />
                 </div>
                 <div className="text-center space-y-1">
                   <p className="text-sm font-bold text-amber-300">📱 Open WhatsApp on your phone</p>
                   <p className="text-xs text-slate-300 font-mono">Tap <strong className="text-white">⋮ Menu</strong> → <strong className="text-white">Linked Devices</strong> → <strong className="text-white">Link a Device</strong></p>
-                  <p className="text-xs text-slate-300 font-mono">Point your phone camera at this QR code</p>
+                  <p className="text-xs text-slate-400 font-mono">Point your phone camera at this QR code</p>
                 </div>
                 <div className="flex items-center gap-1.5 text-[10px] text-amber-400 font-mono animate-pulse">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                  <span>Waiting for scan...</span>
+                  <span>Waiting for scan... (updates automatically)</span>
                 </div>
+                <div className="flex items-center gap-2 pt-1 w-full justify-center">
+                  <button
+                    type="button"
+                    onClick={() => handleWaWebConnect(false)}
+                    className="px-3 py-1 rounded-lg bg-emerald-900/40 border border-emerald-500/40 text-emerald-300 text-[11px] font-mono hover:bg-emerald-800/50 transition-colors"
+                  >
+                    🔄 Refresh
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleWaWebConnect(true)}
+                    className="px-3 py-1 rounded-lg bg-amber-900/40 border border-amber-500/40 text-amber-300 text-[11px] font-mono hover:bg-amber-800/50 transition-colors"
+                  >
+                    ⚡ Force Reset Session
+                  </button>
+                </div>
+              </div>
+            ) : waWebStatus === 'initializing' ? (
+              <div className="flex flex-col items-center gap-4 py-8">
+                <div className="w-12 h-12 border-4 border-emerald-500/30 border-t-emerald-400 rounded-full animate-spin"></div>
+                <div className="text-center space-y-1.5">
+                  <p className="text-sm font-bold text-emerald-300">Initializing WhatsApp Web Engine</p>
+                  <p className="text-xs text-slate-300 font-mono">Launching background Chromium &amp; generating your QR code...</p>
+                  <p className="text-[10px] text-amber-400 font-mono">Takes ~3–5 seconds. Stand by...</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleWaWebConnect(true)}
+                  className="mt-2 px-3 py-1 rounded-lg bg-slate-800 border border-slate-600 text-slate-300 text-[11px] font-mono hover:bg-slate-700"
+                >
+                  ⚡ Force Fresh Restart
+                </button>
+              </div>
+            ) : (waWebStatus === 'error' || waWebStatus === 'auth_failed') ? (
+              <div className="flex flex-col items-center gap-4 py-6">
+                <div className="w-12 h-12 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center text-2xl">⚠️</div>
+                <div className="text-center space-y-1">
+                  <p className="text-sm font-bold text-red-300">Connection Failed</p>
+                  <p className="text-xs text-slate-400 font-mono">Stale session data or browser handshake error detected.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleWaWebConnect(true)}
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-bold text-xs font-mono shadow-lg flex items-center gap-2"
+                >
+                  ⚡ Purge Session &amp; Retry Fresh QR
+                </button>
+              </div>
+            ) : waWebStatus === 'no_browser_available' ? (
+              <div className="flex flex-col items-center gap-3 py-6 text-center">
+                <div className="text-3xl">💻</div>
+                <p className="text-sm font-bold text-amber-300">Local Browser Not Found</p>
+                <p className="text-xs text-slate-400 font-mono">Chrome or Chromium was not detected on this host. WhatsApp messaging is running in Phone Link (ADB) mode.</p>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-4 py-4">
@@ -1891,7 +1981,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
                 </div>
                 <button
                   type="button"
-                  onClick={handleWaWebConnect}
+                  onClick={() => handleWaWebConnect(false)}
                   className="px-6 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-sm font-mono shadow-lg flex items-center gap-2"
                 >
                   🌐 Generate QR Code

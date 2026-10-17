@@ -320,6 +320,8 @@ export default function App() {
             }
           } else if (data.type === 'EMERGENCY_DISMISSED') {
             setActiveEmergency(null);
+          } else if (data.type === 'WA_QR_CODE' || data.type === 'WA_STATUS') {
+            window.dispatchEvent(new CustomEvent('jasper-wa-event', { detail: data }));
           }
         } catch (e) {}
       };

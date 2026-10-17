@@ -30,8 +30,9 @@ const morningRoutineEngine = require('./morningRoutineEngine');
 // Optional WhatsApp Web Client (whatsapp-web.js) for laptop WhatsApp Web auto-send
 let Client, LocalAuth, WAStatus;
 let waClient = null;
-let waClientStatus = 'not_initialized'; // 'not_initialized' | 'qr_pending' | 'authenticated' | 'ready' | 'error'
+let waClientStatus = 'not_initialized'; // 'not_initialized' | 'initializing' | 'qr_pending' | 'authenticated' | 'ready' | 'error'
 let waQrCode = null;
+let waQrDataUrl = null;
 const waReplyCooldowns = new Map();
 
 try {
@@ -43,6 +44,16 @@ try {
 } catch(e) {
   console.log('[WhatsApp Web] whatsapp-web.js not installed — phone ADB mode only. Run: npm install whatsapp-web.js');
 }
+
+let QRCode = null;
+try {
+  QRCode = require('qrcode');
+  console.log('[WhatsApp Web] qrcode module loaded successfully');
+} catch(e) {
+  console.log('[WhatsApp Web] qrcode module not installed');
+}
+
+const WA_AUTH_PATH = path.join(__dirname, 'data', '.wwebjs_auth');
 
 // Cross-Platform Browser Binary Finder (Windows, Linux, macOS, Docker, Cloud)
 function findBrowserExecutable() {
@@ -96,9 +107,47 @@ function findBrowserExecutable() {
   return null;
 }
 
-function initWhatsAppWebClient(isManual = false) {
+function initWhatsAppWebClient(isManual = false, forceReset = false) {
   if (!Client) return { success: false, reason: 'LIBRARY_NOT_INSTALLED' };
-  if (waClient) return { success: true, reason: 'ALREADY_RUNNING' };
+
+  if (forceReset) {
+    console.log('[WhatsApp Web] Force reset requested: destroying client and purging auth cache...');
+    if (waClient) {
+      try {
+        waClient.destroy();
+      } catch (e) {}
+      waClient = null;
+    }
+    waQrCode = null;
+    waQrDataUrl = null;
+    waClientStatus = 'initializing';
+    global.jasperWAClientReady = false;
+
+    // Purge session directories
+    const pathsToClean = [
+      WA_AUTH_PATH,
+      path.join(__dirname, '.wwebjs_auth'),
+      path.join(process.cwd(), '.wwebjs_auth'),
+      path.join(process.cwd(), '.wwebjs_cache')
+    ];
+    for (const p of pathsToClean) {
+      try {
+        if (fs.existsSync(p)) {
+          fs.rmSync(p, { recursive: true, force: true });
+          console.log(`[WhatsApp Web] Cleaned stale auth dir: ${p}`);
+        }
+      } catch (err) {
+        console.warn(`[WhatsApp Web] Could not remove ${p}: ${err.message}`);
+      }
+    }
+  }
+
+  if (waClient) {
+    if (waClientStatus === 'ready') return { success: true, reason: 'ALREADY_RUNNING', status: 'ready' };
+    if (waClientStatus === 'qr_pending' && waQrCode) {
+      return { success: true, reason: 'QR_READY', status: 'qr_pending', qr: waQrCode, qrDataUrl: waQrDataUrl };
+    }
+  }
 
   const executablePath = findBrowserExecutable();
 
@@ -120,10 +169,20 @@ function initWhatsAppWebClient(isManual = false) {
 
   console.log(`[WhatsApp Web] Initializing WhatsApp Web client with browser: ${executablePath}`);
   waClientStatus = 'initializing';
+  broadcastToClients({ type: 'WA_STATUS', status: 'initializing', message: 'Launching browser and generating WhatsApp QR code...' });
 
   try {
+    try {
+      if (!fs.existsSync(WA_AUTH_PATH)) {
+        fs.mkdirSync(WA_AUTH_PATH, { recursive: true });
+      }
+    } catch (e) {}
+
     waClient = new Client({
-      authStrategy: new LocalAuth({ clientId: 'jasper-assistant' }),
+      authStrategy: new LocalAuth({
+        clientId: 'jasper-assistant',
+        dataPath: WA_AUTH_PATH
+      }),
       puppeteer: {
         headless: true,
         executablePath,
@@ -133,135 +192,156 @@ function initWhatsAppWebClient(isManual = false) {
           '--disable-gpu',
           '--disable-dev-shm-usage',
           '--no-first-run',
-          '--no-zygote',
-          '--single-process'
+          '--disable-accelerated-2d-canvas'
         ]
       }
     });
 
-  waClient.on('qr', (qr) => {
-    waQrCode = qr;
-    waClientStatus = 'qr_pending';
-    console.log('[WhatsApp Web] QR Code received — scan in the app');
-    broadcastToClients({ type: 'WA_QR_CODE', qr });
-  });
-
-  waClient.on('authenticated', () => {
-    waClientStatus = 'authenticated';
-    waQrCode = null;
-    console.log('[WhatsApp Web] Authenticated successfully!');
-    broadcastToClients({ type: 'WA_STATUS', status: 'authenticated' });
-  });
-
-  waClient.on('ready', () => {
-    waClientStatus = 'ready';
-    waQrCode = null;
-    global.jasperWAClient = waClient;
-    global.jasperWAClientReady = true;
-    console.log('[WhatsApp Web] Client READY! Auto-send active via WhatsApp Web.');
-    broadcastToClients({ type: 'WA_STATUS', status: 'ready', message: 'WhatsApp Web connected! Auto-send active.' });
-  });
-
-  // Automated WhatsApp Message Responder
-  waClient.on('message', async (msg) => {
-    try {
-      if (msg.fromMe) return; // Ignore outgoing messages
-      const from = msg.from;
-      if (!from) return;
-
-      // 1. Ignore Status broadcasts & channels
-      if (from === 'status@broadcast' || from.endsWith('@broadcast') || from.endsWith('@newsletter')) {
-        return;
+    waClient.on('qr', async (qr) => {
+      waQrCode = qr;
+      waClientStatus = 'qr_pending';
+      if (QRCode) {
+        try {
+          waQrDataUrl = await QRCode.toDataURL(qr, { margin: 2, scale: 6 });
+        } catch (qrErr) {
+          console.warn('[WhatsApp Web] QRCode.toDataURL error:', qrErr.message);
+        }
       }
+      console.log('[WhatsApp Web] QR Code received and rendered — scan in the app (length: ' + qr.length + ')');
+      broadcastToClients({ type: 'WA_QR_CODE', qr, qrDataUrl: waQrDataUrl });
+    });
 
-      // 2. Skip group chats by default
-      if (from.endsWith('@g.us')) return;
+    waClient.on('authenticated', () => {
+      waClientStatus = 'authenticated';
+      waQrCode = null;
+      waQrDataUrl = null;
+      console.log('[WhatsApp Web] Authenticated successfully!');
+      broadcastToClients({ type: 'WA_STATUS', status: 'authenticated' });
+    });
 
-      // 3. Ignore empty text, stickers, media without captions
-      const incomingText = (msg.body || '').trim();
-      if (!incomingText) return;
+    waClient.on('auth_failure', (msg) => {
+      waClientStatus = 'auth_failed';
+      waQrCode = null;
+      waQrDataUrl = null;
+      global.jasperWAClientReady = false;
+      console.error('[WhatsApp Web] Authentication failure:', msg);
+      broadcastToClients({ type: 'WA_STATUS', status: 'auth_failed', error: msg });
+    });
 
-      const config = dbManager.getSocialAutoReplyConfig();
-      if (!config.whatsappEnabled) {
-        console.log('[WhatsApp Web] Incoming message ignored because WhatsApp Auto-Reply is toggled OFF.');
-        return;
-      }
+    waClient.on('ready', () => {
+      waClientStatus = 'ready';
+      waQrCode = null;
+      waQrDataUrl = null;
+      global.jasperWAClient = waClient;
+      global.jasperWAClientReady = true;
+      console.log('[WhatsApp Web] Client READY! Auto-send active via WhatsApp Web.');
+      broadcastToClients({ type: 'WA_STATUS', status: 'ready', message: 'WhatsApp Web connected! Auto-send active.' });
+    });
 
-      const fromNumber = from.replace('@c.us', '').replace('@lid', '');
-
-      // 4. Rate-limiting Cooldown (2 minutes per sender) to prevent spamming & WhatsApp rate-limits
-      const lastReplyTime = waReplyCooldowns.get(from) || 0;
-      const COOLDOWN_MS = 2 * 60 * 1000;
-      if (Date.now() - lastReplyTime < COOLDOWN_MS) {
-        console.log(`[WhatsApp Web Auto-Responder] Skipping ${fromNumber} — auto-reply cooldown active (${Math.round((COOLDOWN_MS - (Date.now() - lastReplyTime))/1000)}s left)`);
-        return;
-      }
-      waReplyCooldowns.set(from, Date.now());
-
-      console.log(`[WhatsApp Web Auto-Responder] Message from ${fromNumber}: "${incomingText}"`);
-
-      let replyText = config.presets[config.activePreset] || config.presets.drive;
-      if (config.activePreset === 'ai_smart') {
-        replyText = `JASPER AI Assistant: Jwalant is currently occupied. I have logged your message: "${incomingText.slice(0, 50)}" and will alert him shortly.`;
-      }
-
-      // Check emergency keyword
-      let isEmergency = false;
-      const kw = (config.emergencyKeyword || 'URGENT').toUpperCase();
-      const upperMsg = incomingText.toUpperCase();
-      if (upperMsg.includes(kw) || /\b(SOS|HELP|EMERGENCY|HOSPITAL|ASAP)\b/i.test(incomingText)) {
-        isEmergency = true;
-        replyText = `🚨 URGENT PRIORITY ALERT: Your emergency message has been flagged to Jwalant with high priority. Stand by.`;
-        notificationManager.triggerEmergencyAlert({
-          source: 'whatsapp',
-          sender: fromNumber,
-          senderName: msg._data?.notifyName || fromNumber,
-          message: incomingText,
-          broadcastFn: broadcastToClients
-        });
-      }
-
-      // 5. Resilient dispatch: try msg.reply, fall back to waClient.sendMessage if quoted reply fails
+    // Automated WhatsApp Message Responder
+    waClient.on('message', async (msg) => {
       try {
-        await msg.reply(replyText);
-      } catch (replyErr) {
-        console.warn(`[WhatsApp Web Auto-Responder] msg.reply failed (${replyErr.message}), falling back to direct sendMessage`);
-        await waClient.sendMessage(from, replyText);
+        if (msg.fromMe) return; // Ignore outgoing messages
+        const from = msg.from;
+        if (!from) return;
+
+        // 1. Ignore Status broadcasts & channels
+        if (from === 'status@broadcast' || from.endsWith('@broadcast') || from.endsWith('@newsletter')) {
+          return;
+        }
+
+        // 2. Skip group chats by default
+        if (from.endsWith('@g.us')) return;
+
+        // 3. Ignore empty text, stickers, media without captions
+        const incomingText = (msg.body || '').trim();
+        if (!incomingText) return;
+
+        const config = dbManager.getSocialAutoReplyConfig();
+        if (!config.whatsappEnabled) {
+          console.log('[WhatsApp Web] Incoming message ignored because WhatsApp Auto-Reply is toggled OFF.');
+          return;
+        }
+
+        const fromNumber = from.replace('@c.us', '').replace('@lid', '');
+
+        // 4. Rate-limiting Cooldown (2 minutes per sender) to prevent spamming & WhatsApp rate-limits
+        const lastReplyTime = waReplyCooldowns.get(from) || 0;
+        const COOLDOWN_MS = 2 * 60 * 1000;
+        if (Date.now() - lastReplyTime < COOLDOWN_MS) {
+          console.log(`[WhatsApp Web Auto-Responder] Skipping ${fromNumber} — auto-reply cooldown active (${Math.round((COOLDOWN_MS - (Date.now() - lastReplyTime))/1000)}s left)`);
+          return;
+        }
+        waReplyCooldowns.set(from, Date.now());
+
+        console.log(`[WhatsApp Web Auto-Responder] Message from ${fromNumber}: "${incomingText}"`);
+
+        let replyText = config.presets[config.activePreset] || config.presets.drive;
+        if (config.activePreset === 'ai_smart') {
+          replyText = `JASPER AI Assistant: Jwalant is currently occupied. I have logged your message: "${incomingText.slice(0, 50)}" and will alert him shortly.`;
+        }
+
+        // Check emergency keyword
+        let isEmergency = false;
+        const kw = (config.emergencyKeyword || 'URGENT').toUpperCase();
+        const upperMsg = incomingText.toUpperCase();
+        if (upperMsg.includes(kw) || /\b(SOS|HELP|EMERGENCY|HOSPITAL|ASAP)\b/i.test(incomingText)) {
+          isEmergency = true;
+          replyText = `🚨 URGENT PRIORITY ALERT: Your emergency message has been flagged to Jwalant with high priority. Stand by.`;
+          notificationManager.triggerEmergencyAlert({
+            source: 'whatsapp',
+            sender: fromNumber,
+            senderName: msg._data?.notifyName || fromNumber,
+            message: incomingText,
+            broadcastFn: broadcastToClients
+          });
+        }
+
+        // 5. Resilient dispatch: try msg.reply, fall back to waClient.sendMessage if quoted reply fails
+        try {
+          await msg.reply(replyText);
+        } catch (replyErr) {
+          console.warn(`[WhatsApp Web Auto-Responder] msg.reply failed (${replyErr.message}), falling back to direct sendMessage`);
+          await waClient.sendMessage(from, replyText);
+        }
+
+        console.log(`[WhatsApp Web Auto-Responder] Dispatched automated reply to ${fromNumber}: "${replyText}"`);
+
+        const log = dbManager.addSocialLog({
+          platform: 'whatsapp',
+          type: isEmergency ? 'emergency_alert' : 'auto_reply',
+          recipient: fromNumber,
+          recipientName: msg._data?.notifyName || fromNumber,
+          incomingTextOrCall: `Incoming WhatsApp: "${incomingText}"`,
+          actionTaken: isEmergency 
+            ? `🚨 EMERGENCY ALERT: Dispatched Desktop Toast, Spoken Alarm & Auto-Reply` 
+            : `Auto-replied with ${config.activePreset.toUpperCase()} Mode Preset via WhatsApp Web`,
+          messageSent: replyText,
+          status: 'Delivered',
+          isEmergency
+        });
+
+        broadcastToClients({ type: isEmergency ? 'EMERGENCY_ALERT' : 'SOCIAL_MESSAGE_SENT', log });
+      } catch(err) {
+        console.error('[WhatsApp Web Auto-Responder Error]:', err.message);
       }
+    });
 
-      console.log(`[WhatsApp Web Auto-Responder] Dispatched automated reply to ${fromNumber}: "${replyText}"`);
-
-      const log = dbManager.addSocialLog({
-        platform: 'whatsapp',
-        type: isEmergency ? 'emergency_alert' : 'auto_reply',
-        recipient: fromNumber,
-        recipientName: msg._data?.notifyName || fromNumber,
-        incomingTextOrCall: `Incoming WhatsApp: "${incomingText}"`,
-        actionTaken: isEmergency 
-          ? `🚨 EMERGENCY ALERT: Dispatched Desktop Toast, Spoken Alarm & Auto-Reply` 
-          : `Auto-replied with ${config.activePreset.toUpperCase()} Mode Preset via WhatsApp Web`,
-        messageSent: replyText,
-        status: 'Delivered',
-        isEmergency
-      });
-
-      broadcastToClients({ type: isEmergency ? 'EMERGENCY_ALERT' : 'SOCIAL_MESSAGE_SENT', log });
-    } catch(err) {
-      console.error('[WhatsApp Web Auto-Responder Error]:', err.message);
-    }
-  });
-
-  waClient.on('disconnected', (reason) => {
-    waClientStatus = 'disconnected';
-    global.jasperWAClientReady = false;
-    console.log('[WhatsApp Web] Disconnected:', reason);
-    broadcastToClients({ type: 'WA_STATUS', status: 'disconnected' });
-    waClient = null;
-  });
+    waClient.on('disconnected', (reason) => {
+      waClientStatus = 'disconnected';
+      global.jasperWAClientReady = false;
+      waQrCode = null;
+      waQrDataUrl = null;
+      console.log('[WhatsApp Web] Disconnected:', reason);
+      broadcastToClients({ type: 'WA_STATUS', status: 'disconnected', reason });
+      try { waClient.destroy(); } catch (e) {}
+      waClient = null;
+    });
 
     waClient.initialize().catch(e => {
       waClientStatus = 'error';
       console.log('[WhatsApp Web] Browser launch notice:', e.message);
+      broadcastToClients({ type: 'WA_STATUS', status: 'error', error: e.message });
     });
 
     return { success: true };
@@ -2259,21 +2339,39 @@ app.get('/api/social/wa-status', async (req, res) => {
       liveState = 'unresponsive: ' + e.message;
     }
   }
-  res.json({ status: waClientStatus, liveState, hasQr: !!waQrCode, qr: waQrCode });
+  res.json({
+    status: waClientStatus,
+    liveState,
+    hasQr: !!waQrCode,
+    qr: waQrCode,
+    qrDataUrl: waQrDataUrl
+  });
 });
 
 // Initialize / connect WhatsApp Web client (triggers QR)
-app.post('/api/social/wa-connect', (req, res) => {
+app.post('/api/social/wa-connect', async (req, res) => {
   try {
     if (!Client) {
       return res.status(503).json({ error: 'whatsapp-web.js not installed. Run: npm install whatsapp-web.js in server/' });
     }
-    if (waClientStatus === 'ready') {
+    const forceReset = req.body && (req.body.forceReset === true || req.body.force === true);
+
+    if (!forceReset && waClientStatus === 'ready') {
       return res.json({ success: true, status: 'ready', message: 'WhatsApp Web already connected!' });
     }
-    waClient = null;
-    waClientStatus = 'not_initialized';
-    const initRes = initWhatsAppWebClient(true);
+
+    // If QR code is already active and valid, return it immediately
+    if (!forceReset && waClient && waClientStatus === 'qr_pending' && waQrCode) {
+      return res.json({
+        success: true,
+        status: 'qr_pending',
+        qr: waQrCode,
+        qrDataUrl: waQrDataUrl,
+        message: 'Existing QR code ready to scan'
+      });
+    }
+
+    const initRes = initWhatsAppWebClient(true, forceReset);
     if (!initRes.success && initRes.reason === 'NO_BROWSER') {
       return res.json({ 
         success: false, 
@@ -2281,7 +2379,13 @@ app.post('/api/social/wa-connect', (req, res) => {
         error: 'No Chrome/Chromium browser found on this host. WhatsApp Web requires a local browser. Use Phone Link (ADB) mode for mobile WhatsApp messaging.' 
       });
     }
-    res.json({ success: true, status: waClientStatus, message: 'WhatsApp Web initializing — scan QR code in the app' });
+    res.json({
+      success: true,
+      status: waClientStatus,
+      qr: waQrCode,
+      qrDataUrl: waQrDataUrl,
+      message: 'WhatsApp Web initializing — scan QR code in the app'
+    });
   } catch(e) {
     res.status(500).json({ error: e.message });
   }
@@ -2291,9 +2395,13 @@ app.post('/api/social/wa-connect', (req, res) => {
 app.post('/api/social/wa-disconnect', async (req, res) => {
   try {
     if (waClient) {
-      await waClient.destroy();
+      try {
+        await waClient.destroy();
+      } catch (e) {}
       waClient = null;
       waClientStatus = 'not_initialized';
+      waQrCode = null;
+      waQrDataUrl = null;
       global.jasperWAClientReady = false;
     }
     res.json({ success: true, message: 'WhatsApp Web disconnected' });

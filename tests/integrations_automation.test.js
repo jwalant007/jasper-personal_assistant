@@ -137,3 +137,25 @@ test('Integrations: /api/version and download manifest metadata', async () => {
   assert.strictEqual(manifestRes.statusCode, 200);
   assert.ok(manifestRes.body.binaries || manifestRes.body.downloads);
 });
+
+test('Integrations: /api/social/wa-status reports connection state and QR fields', async () => {
+  const statusRes = await makeRequest(app, 'GET', '/api/social/wa-status');
+  assert.strictEqual(statusRes.statusCode, 200);
+  assert.ok('status' in statusRes.body);
+  assert.ok('hasQr' in statusRes.body);
+  assert.ok('qr' in statusRes.body);
+  assert.ok('qrDataUrl' in statusRes.body);
+});
+
+test('Integrations: /api/social/config and accounts respond cleanly', async () => {
+  const cfgRes = await makeRequest(app, 'GET', '/api/social/config');
+  assert.strictEqual(cfgRes.statusCode, 200);
+  assert.strictEqual(cfgRes.body.success, true);
+  assert.ok(cfgRes.body.config);
+
+  const accRes = await makeRequest(app, 'GET', '/api/social/accounts');
+  assert.strictEqual(accRes.statusCode, 200);
+  assert.strictEqual(accRes.body.success, true);
+  assert.ok(accRes.body.accounts);
+});
+
