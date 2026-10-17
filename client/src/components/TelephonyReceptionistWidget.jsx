@@ -5,11 +5,12 @@ import {
   Play, Settings, Clock, DollarSign, ShieldAlert, Sparkles, 
   CheckCircle2, AlertTriangle, ExternalLink, RefreshCw, Volume2, 
   Send, Users, Calendar, ArrowRight, Zap, Radio, UserCheck, 
-  BookmarkPlus, Check, Mic, Star, Search, Plus, Trash2, Shield, Smartphone
+  BookmarkPlus, Check, Mic, Star, Search, Plus, Trash2, Shield, Smartphone,
+  Sun, Bell, AlarmClock
 } from 'lucide-react';
 
 export default function TelephonyReceptionistWidget({ onClose }) {
-  const [activeTab, setActiveTab] = useState('intelligence'); // 'intelligence' | 'contacts' | 'switchboard' | 'meetings' | 'logs' | 'config'
+  const [activeTab, setActiveTab] = useState('intelligence'); // 'intelligence' | 'morning' | 'contacts' | 'switchboard' | 'meetings' | 'logs' | 'config'
   const [config, setConfig] = useState({
     enabled: true,
     receptionistName: 'JASPER',
@@ -35,6 +36,29 @@ export default function TelephonyReceptionistWidget({ onClose }) {
   const [pullUpStatus, setPullUpStatus] = useState('');
   const [customReply, setCustomReply] = useState('');
 
+  // ☀️ Morning Wake-Up Call & Routine State (100% Free Hybrid Methods 1, 2, 4)
+  const [routineConfig, setRoutineConfig] = useState({
+    enabled: true,
+    time: '07:30',
+    days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+    channels: { phoneAdb: true, inAppVoip: true, ntfyPush: true },
+    ntfyTopic: 'jasper-jwalant-alerts',
+    contentPreferences: {
+      includeCalendar: true,
+      includeWeather: true,
+      includeTasks: true,
+      includeBudget: true,
+      includeOvernightMessages: true
+    }
+  });
+  const [routinePreview, setRoutinePreview] = useState(null);
+  const [isTriggeringRoutine, setIsTriggeringRoutine] = useState(false);
+  const [routineTriggerResult, setRoutineTriggerResult] = useState(null);
+  const [activeVoipCall, setActiveVoipCall] = useState(null);
+  const [voipCallStatus, setVoipCallStatus] = useState('idle'); // 'idle' | 'ringing' | 'connected' | 'concluded'
+  const [voipVoiceInput, setVoipVoiceInput] = useState('');
+  const [isSpeakingBriefing, setIsSpeakingBriefing] = useState(false);
+
   // Synced Contacts & Speed Dial state
   const [contacts, setContacts] = useState([]);
   const [isSyncingContacts, setIsSyncingContacts] = useState(false);
@@ -57,13 +81,15 @@ export default function TelephonyReceptionistWidget({ onClose }) {
   // Fetch all telephony & meeting data
   const fetchData = async () => {
     try {
-      const [cfgRes, relayRes, meetRes, logRes, liveRes, contactRes] = await Promise.all([
+      const [cfgRes, relayRes, meetRes, logRes, liveRes, contactRes, routineCfgRes, routinePrevRes] = await Promise.all([
         fetch(`${getApiBase()}/api/telephony/config`).then(r => r.json()).catch(() => ({})),
         fetch(`${getApiBase()}/api/telephony/relays`).then(r => r.json()).catch(() => ({})),
         fetch(`${getApiBase()}/api/meetings`).then(r => r.json()).catch(() => ({})),
         fetch(`${getApiBase()}/api/telephony/logs`).then(r => r.json()).catch(() => ({})),
         fetch(`${getApiBase()}/api/telephony/live/sessions`).then(r => r.json()).catch(() => ({})),
-        fetch(`${getApiBase()}/api/telephony/contacts`).then(r => r.json()).catch(() => ({}))
+        fetch(`${getApiBase()}/api/telephony/contacts`).then(r => r.json()).catch(() => ({})),
+        fetch(`${getApiBase()}/api/routine/config`).then(r => r.json()).catch(() => ({})),
+        fetch(`${getApiBase()}/api/routine/preview`).then(r => r.json()).catch(() => ({}))
       ]);
 
       if (cfgRes.success) setConfig(cfgRes.config);
@@ -72,6 +98,8 @@ export default function TelephonyReceptionistWidget({ onClose }) {
       if (logRes.success) setLogs(logRes.logs);
       if (liveRes.success) setLiveSessions(liveRes.active?.length ? liveRes.active : (liveRes.recent || []));
       if (contactRes.success) setContacts(contactRes.contacts || []);
+      if (routineCfgRes.success) setRoutineConfig(routineCfgRes.config);
+      if (routinePrevRes.success) setRoutinePreview(routinePrevRes);
     } catch (err) {
       console.error('[TelephonyWidget] Error fetching data:', err);
     }
@@ -103,6 +131,107 @@ export default function TelephonyReceptionistWidget({ onClose }) {
       setStatusMessage('Simulation dispatch failed: ' + e.message);
     } finally {
       setTimeout(() => setIsSimulating(false), 6000);
+    }
+  };
+
+  // ☀️ Morning Routine Actions (100% Free Hybrid Methods 1, 2, 4)
+  const handleSaveRoutineConfig = async (updates) => {
+    try {
+      const res = await fetch(`${getApiBase()}/api/routine/config`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      });
+      const data = await res.json();
+      if (data.success) {
+        setRoutineConfig(data.config);
+        setStatusMessage('☀️ Morning Routine schedule saved successfully!');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleTriggerRoutineNow = async () => {
+    setIsTriggeringRoutine(true);
+    setStatusMessage('☀️ Triggering Hybrid Wake-Up Sequence (Android ADB, In-App Call, ntfy Siren)...');
+    try {
+      const res = await fetch(`${getApiBase()}/api/routine/trigger`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await res.json();
+      setRoutineTriggerResult(data);
+      if (data.success) {
+        setActiveVoipCall({
+          sessionId: data.sessionId,
+          briefing: data.briefing,
+          startedAt: Date.now()
+        });
+        setVoipCallStatus('ringing');
+        setStatusMessage('📞 Wake-Up Call dispatched! Phone awakened (Method 1), Siren push sent (Method 4), In-App call screen ringing (Method 2).');
+      }
+    } catch (e) {
+      setStatusMessage('Wake-Up call trigger error: ' + e.message);
+    } finally {
+      setIsTriggeringRoutine(false);
+    }
+  };
+
+  const handleAcceptVoipCall = () => {
+    setVoipCallStatus('connected');
+    if (activeVoipCall?.briefing && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(activeVoipCall.briefing);
+      utterance.rate = 1.05;
+      utterance.pitch = 1.0;
+      utterance.onstart = () => setIsSpeakingBriefing(true);
+      utterance.onend = () => setIsSpeakingBriefing(false);
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  const handleDeclineVoipCall = async () => {
+    if (activeVoipCall?.sessionId) {
+      await fetch(`${getApiBase()}/api/routine/respond`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: activeVoipCall.sessionId, action: 'decline' })
+      }).catch(() => {});
+    }
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    setVoipCallStatus('idle');
+    setActiveVoipCall(null);
+  };
+
+  const handleSendVoipVoiceDirective = async (textToSend) => {
+    const text = textToSend || voipVoiceInput;
+    if (!text.trim() || !activeVoipCall?.sessionId) return;
+    try {
+      const res = await fetch(`${getApiBase()}/api/routine/respond`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: activeVoipCall.sessionId,
+          action: 'respond',
+          userSpeech: text.trim()
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setStatusMessage(`J.A.S.P.E.R. Morning Response: "${data.spokenResponse}"`);
+        if ('speechSynthesis' in window && data.spokenResponse) {
+          const u = new SpeechSynthesisUtterance(data.spokenResponse);
+          window.speechSynthesis.speak(u);
+        }
+        setTimeout(() => {
+          setVoipCallStatus('idle');
+          setActiveVoipCall(null);
+          setVoipVoiceInput('');
+        }, 3000);
+      }
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -471,9 +600,10 @@ export default function TelephonyReceptionistWidget({ onClose }) {
       )}
 
       {/* Navigation Tabs */}
-      <div className="flex border-b border-slate-800 bg-slate-950/40 px-4 gap-2">
+      <div className="flex border-b border-slate-800 bg-slate-950/40 px-4 gap-2 overflow-x-auto">
         {[
           { id: 'intelligence', label: 'Live Call Intelligence', icon: Sparkles, badge: liveSessions.length > 0 ? 'ACTIVE' : 'NEW' },
+          { id: 'morning', label: '☀️ Morning Wake-Up Call', icon: Sun, badge: routineConfig.enabled ? `${routineConfig.time} AUTO` : 'OFF' },
           { id: 'contacts', label: 'Synced Contacts & Speed Dial', icon: Users, badge: contacts.length > 0 ? `${contacts.length} SYNCED` : null },
           { id: 'switchboard', label: 'Multi-Line Switchboard', icon: PhoneForwarded, badge: relays.length > 0 ? 'ACTIVE' : null },
           { id: 'meetings', label: 'Google Meet Launcher', icon: Video, badge: meetings.length },
@@ -883,6 +1013,414 @@ export default function TelephonyReceptionistWidget({ onClose }) {
                   })}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* TAB: AUTONOMOUS MORNING WAKE-UP & DAY-BRIEFING CALL */}
+        {activeTab === 'morning' && (
+          <div className="space-y-4 animate-in fade-in">
+            {/* Header / Hero Banner */}
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-950/40 via-orange-950/30 to-slate-900/80 border border-amber-500/30 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-400">
+                    <Sun className="w-5 h-5 animate-spin" style={{ animationDuration: '20s' }} />
+                  </div>
+                  <h3 className="font-orbitron font-bold text-base text-amber-200">
+                    AUTONOMOUS MORNING WAKE-UP & DAY-BRIEFING CALL
+                  </h3>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    100% FREE • LOCAL HYBRID
+                  </span>
+                </div>
+                <p className="text-xs text-slate-300 max-w-2xl">
+                  JARVIS-inspired autonomous morning call combining <b>Method 1</b> (Android Phone Screen & Volume wake via ADB), <b>Method 2</b> (In-App VoIP two-way audio dialog), and <b>Method 4</b> (Urgent ntfy siren push). Ringing you with your agenda, weather, and letting you verbally adjust appointments.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={handleTriggerRoutineNow}
+                  disabled={isTriggeringRoutine}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold text-xs tracking-wide shadow-lg shadow-amber-500/20 active:scale-95 disabled:opacity-50 transition-all cursor-pointer"
+                >
+                  <PhoneCall className={`w-4 h-4 ${isTriggeringRoutine ? 'animate-bounce' : ''}`} />
+                  <span>{isTriggeringRoutine ? 'CALLING YOU...' : '📞 TRIGGER CALL NOW (TEST)'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Trigger Result Notification if any */}
+            {routineTriggerResult && (
+              <div className="p-3 rounded-xl bg-slate-950/80 border border-amber-500/30 text-xs flex items-center justify-between text-slate-200 animate-in fade-in">
+                <div className="flex items-center gap-3">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                  <span>
+                    <b>Wake-Up Sequence Initiated:</b> Android ADB ({routineTriggerResult.channelsDispatched?.phoneAdb ? 'Awakened' : 'Skipped'}), In-App VoIP ({routineTriggerResult.channelsDispatched?.inAppVoip ? 'Ringing' : 'Skipped'}), ntfy Siren ({routineTriggerResult.channelsDispatched?.ntfyPush ? 'Dispatched' : 'Skipped'}).
+                  </span>
+                </div>
+                <button onClick={() => setRoutineTriggerResult(null)} className="text-slate-400 hover:text-white text-xs">✕</button>
+              </div>
+            )}
+
+            {/* Main Configuration Grid: Schedule (Left) + Channels & Content (Right) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* LEFT CARD: Schedule & Timing Creator / Editor */}
+              <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+                  <div className="flex items-center gap-2">
+                    <AlarmClock className="w-4 h-4 text-amber-400" />
+                    <h4 className="font-orbitron font-semibold text-xs text-amber-300">SCHEDULE & TIMING</h4>
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer text-xs">
+                    <span className="text-slate-400">Master Routine:</span>
+                    <input
+                      type="checkbox"
+                      checked={routineConfig.enabled}
+                      onChange={(e) => {
+                        const updated = { ...routineConfig, enabled: e.target.checked };
+                        setRoutineConfig(updated);
+                        handleSaveRoutineConfig(updated);
+                      }}
+                      className="accent-amber-400 rounded w-4 h-4 cursor-pointer"
+                    />
+                    <span className={`font-bold ${routineConfig.enabled ? 'text-emerald-400' : 'text-slate-500'}`}>
+                      {routineConfig.enabled ? 'ACTIVE' : 'PAUSED'}
+                    </span>
+                  </label>
+                </div>
+
+                {/* Wake-Up Time */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-slate-300 flex items-center justify-between">
+                    <span>Wake-Up Alarm Time (24h)</span>
+                    <span className="text-[11px] font-mono text-amber-400 font-semibold">{routineConfig.time}</span>
+                  </label>
+                  <input
+                    type="time"
+                    value={routineConfig.time || '07:30'}
+                    onChange={(e) => setRoutineConfig({ ...routineConfig, time: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-amber-300 font-mono font-bold focus:border-amber-400 focus:outline-none"
+                  />
+                  <p className="text-[11px] text-slate-400">Background daemon evaluates every minute to trigger on scheduled days.</p>
+                </div>
+
+                {/* Active Days Selector */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-slate-300">Repeat on Days</label>
+                  <div className="grid grid-cols-7 gap-1.5">
+                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => {
+                      const isSelected = routineConfig.days?.includes(day);
+                      return (
+                        <button
+                          key={day}
+                          type="button"
+                          onClick={() => {
+                            const currentDays = routineConfig.days || [];
+                            const nextDays = isSelected
+                              ? currentDays.filter(d => d !== day)
+                              : [...currentDays, day];
+                            setRoutineConfig({ ...routineConfig, days: nextDays });
+                          }}
+                          className={`py-2 text-xs font-bold rounded-lg border transition-all ${
+                            isSelected
+                              ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-sm'
+                              : 'bg-slate-900/60 border-slate-800 text-slate-500 hover:text-slate-300'
+                          }`}
+                        >
+                          {day}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="flex gap-2 pt-1 text-[11px]">
+                    <button
+                      type="button"
+                      onClick={() => setRoutineConfig({ ...routineConfig, days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] })}
+                      className="text-cyan-400 hover:underline"
+                    >
+                      Weekdays
+                    </button>
+                    <span className="text-slate-600">•</span>
+                    <button
+                      type="button"
+                      onClick={() => setRoutineConfig({ ...routineConfig, days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] })}
+                      className="text-cyan-400 hover:underline"
+                    >
+                      Every Day
+                    </button>
+                    <span className="text-slate-600">•</span>
+                    <button
+                      type="button"
+                      onClick={() => setRoutineConfig({ ...routineConfig, days: ['Sat', 'Sun'] })}
+                      className="text-cyan-400 hover:underline"
+                    >
+                      Weekends
+                    </button>
+                  </div>
+                </div>
+
+                {/* Save Schedule Button */}
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => handleSaveRoutineConfig(routineConfig)}
+                    className="w-full py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-bold text-xs tracking-wide shadow-md transition-all active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Check className="w-4 h-4 text-amber-400" />
+                    <span>SAVE SCHEDULE & TIMING</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* RIGHT CARD: Mix of Methods 1, 2, 4 Delivery Channels */}
+              <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+                  <div className="flex items-center gap-2">
+                    <Radio className="w-4 h-4 text-cyan-400" />
+                    <h4 className="font-orbitron font-semibold text-xs text-cyan-300">HYBRID DELIVERY CHANNELS (METHODS 1, 2, 4)</h4>
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-mono">Parallel Dispatch</span>
+                </div>
+
+                {/* Channel 1: Phone ADB */}
+                <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800 flex items-start justify-between gap-3">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <Smartphone className="w-4 h-4 text-emerald-400" />
+                      <span className="text-xs font-bold text-slate-200">Method 1: Android Phone Hardware Wake (ADB)</span>
+                    </div>
+                    <p className="text-[11px] text-slate-400">
+                      Sends ADB wake command (`KEYCODE_WAKEUP`), brings screen out of sleep, sets media volume to max, launches J.A.S.P.E.R. or sounds alarm.
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={routineConfig.channels?.phoneAdb ?? true}
+                    onChange={(e) => {
+                      const updated = {
+                        ...routineConfig,
+                        channels: { ...routineConfig.channels, phoneAdb: e.target.checked }
+                      };
+                      setRoutineConfig(updated);
+                    }}
+                    className="accent-emerald-400 rounded w-4 h-4 cursor-pointer mt-1"
+                  />
+                </div>
+
+                {/* Channel 2: In-App VoIP Call */}
+                <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800 flex items-start justify-between gap-3">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <PhoneCall className="w-4 h-4 text-cyan-400" />
+                      <span className="text-xs font-bold text-slate-200">Method 2: In-App VoIP Two-Way Call</span>
+                    </div>
+                    <p className="text-[11px] text-slate-400">
+                      Pops up interactive call screen on desktop/mobile dashboard. Speaks morning briefing, listens for your voice commands, and reschedules meetings live.
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={routineConfig.channels?.inAppVoip ?? true}
+                    onChange={(e) => {
+                      const updated = {
+                        ...routineConfig,
+                        channels: { ...routineConfig.channels, inAppVoip: e.target.checked }
+                      };
+                      setRoutineConfig(updated);
+                    }}
+                    className="accent-cyan-400 rounded w-4 h-4 cursor-pointer mt-1"
+                  />
+                </div>
+
+                {/* Channel 4: Urgent ntfy.sh Siren */}
+                <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800 space-y-2">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <Bell className="w-4 h-4 text-rose-400" />
+                        <span className="text-xs font-bold text-slate-200">Method 4: Urgent ntfy.sh Priority Siren</span>
+                      </div>
+                      <p className="text-[11px] text-slate-400">
+                        Priority 5 siren alert directly to your phone. Bypasses Android Do Not Disturb with a 1-tap call pickup URL. Free and zero setup.
+                      </p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={routineConfig.channels?.ntfyPush ?? true}
+                      onChange={(e) => {
+                        const updated = {
+                          ...routineConfig,
+                          channels: { ...routineConfig.channels, ntfyPush: e.target.checked }
+                        };
+                        setRoutineConfig(updated);
+                      }}
+                      className="accent-rose-400 rounded w-4 h-4 cursor-pointer mt-1"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 pt-1">
+                    <span className="text-[11px] text-slate-400 font-mono">Topic:</span>
+                    <input
+                      type="text"
+                      value={routineConfig.ntfyTopic || 'jasper-jwalant-alerts'}
+                      onChange={(e) => setRoutineConfig({ ...routineConfig, ntfyTopic: e.target.value })}
+                      placeholder="jasper-jwalant-alerts"
+                      className="flex-1 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-rose-300 font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Content Modules & Live Briefing Preview Section */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Preferences Checkboxes */}
+              <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 space-y-3">
+                <div className="flex items-center gap-2 border-b border-slate-800/80 pb-2">
+                  <Sparkles className="w-4 h-4 text-amber-400" />
+                  <h4 className="font-orbitron font-semibold text-xs text-slate-200">BRIEFING CONTENT MODULES</h4>
+                </div>
+                <div className="space-y-2 text-xs">
+                  {[
+                    { key: 'includeCalendar', label: '📅 Calendar & Meeting Times', desc: 'Schedules, Google Meet URLs & morning buffers' },
+                    { key: 'includeWeather', label: '🌦️ Weather Sentinel', desc: 'Current temperature, rain radar & transit conditions' },
+                    { key: 'includeBudget', label: '💰 Safe-to-Spend Balance', desc: 'Guardian Financial Engine balance & daily allowance' },
+                    { key: 'includeTasks', label: '⚡ Priority Tasks & Reminders', desc: 'Unfinished high-priority tasks for today' },
+                    { key: 'includeOvernightMessages', label: '📥 Overnight Calls & Screening', desc: 'Screened calls & urgent messages received while asleep' }
+                  ].map(mod => (
+                    <label key={mod.key} className="flex items-start gap-2.5 cursor-pointer p-1.5 rounded-lg hover:bg-slate-900 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={routineConfig.contentPreferences?.[mod.key] ?? true}
+                        onChange={(e) => {
+                          const updated = {
+                            ...routineConfig,
+                            contentPreferences: {
+                              ...routineConfig.contentPreferences,
+                              [mod.key]: e.target.checked
+                            }
+                          };
+                          setRoutineConfig(updated);
+                        }}
+                        className="accent-amber-400 rounded w-4 h-4 mt-0.5"
+                      />
+                      <div>
+                        <div className="font-medium text-slate-200">{mod.label}</div>
+                        <div className="text-[10px] text-slate-400">{mod.desc}</div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Dynamic Live Script Preview (Spans 2 columns) */}
+              <div className="md:col-span-2 p-4 rounded-xl bg-slate-950/60 border border-slate-800 flex flex-col justify-between space-y-3">
+                <div>
+                  <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                    <div className="flex items-center gap-2">
+                      <Radio className="w-4 h-4 text-emerald-400" />
+                      <h4 className="font-orbitron font-semibold text-xs text-emerald-300">LIVE COMPILED MORNING SCRIPT</h4>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const res = await fetch(`${getApiBase()}/api/routine/preview`).then(r => r.json()).catch(() => ({}));
+                          if (res.success) setRoutinePreview(res);
+                        }}
+                        className="p-1 rounded text-slate-400 hover:text-cyan-300 transition-colors text-xs flex items-center gap-1 cursor-pointer"
+                        title="Recompile Script from Live Systems"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        <span>Refresh</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (isSpeakingBriefing) {
+                            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+                            setIsSpeakingBriefing(false);
+                          } else {
+                            const text = routinePreview?.previewText || 'Good morning Jwalant. All systems nominal.';
+                            if ('speechSynthesis' in window) {
+                              window.speechSynthesis.cancel();
+                              const u = new SpeechSynthesisUtterance(text);
+                              u.onstart = () => setIsSpeakingBriefing(true);
+                              u.onend = () => setIsSpeakingBriefing(false);
+                              window.speechSynthesis.speak(u);
+                            }
+                          }
+                        }}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                          isSpeakingBriefing
+                            ? 'bg-rose-500/30 text-rose-300 border border-rose-500/50 animate-pulse'
+                            : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30'
+                        }`}
+                      >
+                        <Volume2 className="w-3.5 h-3.5" />
+                        <span>{isSpeakingBriefing ? 'Stop Audio' : '🔊 Hear Sample Briefing'}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 p-3 rounded-lg bg-slate-900/90 border border-slate-800 text-xs font-mono text-slate-200 leading-relaxed max-h-44 overflow-y-auto">
+                    {routinePreview?.previewText || 'Loading live briefing preview from J.A.S.P.E.R. intelligence subsystems...'}
+                  </div>
+                </div>
+
+                {/* Interactive Simulated Voice Directive */}
+                <div className="pt-2 border-t border-slate-800/80">
+                  <div className="text-[11px] text-slate-400 mb-1.5 font-medium flex items-center justify-between">
+                    <span>Simulate Voice Directive (What you say back during wake-up):</span>
+                    <span className="text-cyan-400 text-[10px]">Natural Language Action Engine</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="e.g. 'Push my first meeting by 15 minutes' or 'Snooze 10 minutes'"
+                      value={voipVoiceInput}
+                      onChange={(e) => setVoipVoiceInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleSendVoipVoiceDirective(voipVoiceInput);
+                        }
+                      }}
+                      className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-sans"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleSendVoipVoiceDirective(voipVoiceInput)}
+                      className="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs flex items-center gap-1 cursor-pointer"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>Send</span>
+                    </button>
+                  </div>
+
+                  <div className="flex flex-wrap gap-1.5 mt-2 text-[10px]">
+                    {[
+                      'Push 10 AM meeting by 15 mins',
+                      'Snooze wake-up call for 10 minutes',
+                      'Confirm schedule, I am awake'
+                    ].map(sample => (
+                      <button
+                        key={sample}
+                        type="button"
+                        onClick={() => {
+                          setVoipVoiceInput(sample);
+                          handleSendVoipVoiceDirective(sample);
+                        }}
+                        className="px-2 py-0.5 rounded-md bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
+                      >
+                        "{sample}"
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -1667,6 +2205,161 @@ export default function TelephonyReceptionistWidget({ onClose }) {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* IN-APP VOIP TWO-WAY CALL SCREEN MODAL (METHOD 2) */}
+      {activeVoipCall && voipCallStatus !== 'idle' && (
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-cyan-500/50 rounded-2xl p-6 w-full max-w-lg shadow-2xl space-y-6 text-center animate-in fade-in zoom-in-95">
+            {/* Status Header */}
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3 text-left">
+              <div className="flex items-center gap-2">
+                <Radio className="w-4 h-4 text-cyan-400 animate-pulse" />
+                <span className="font-orbitron font-bold text-xs text-cyan-300">J.A.S.P.E.R. VOIP AUDIO CALL</span>
+              </div>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                voipCallStatus === 'ringing' 
+                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 animate-pulse'
+                  : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+              }`}>
+                {voipCallStatus === 'ringing' ? 'INCOMING CALL' : 'CONNECTED'}
+              </span>
+            </div>
+
+            {/* Glowing Avatar & Caller Info */}
+            <div className="flex flex-col items-center justify-center space-y-3">
+              <div className="relative">
+                <div className={`w-24 h-24 rounded-full bg-gradient-to-tr from-cyan-600 via-blue-600 to-indigo-600 flex items-center justify-center shadow-2xl ring-4 ring-cyan-400/40 ${
+                  voipCallStatus === 'ringing' ? 'animate-bounce' : ''
+                }`}>
+                  <Sun className="w-12 h-12 text-amber-300 animate-spin" style={{ animationDuration: '15s' }} />
+                </div>
+                {voipCallStatus === 'connected' && (
+                  <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 border-2 border-slate-900 flex items-center justify-center">
+                    <Check className="w-3.5 h-3.5 text-white" />
+                  </span>
+                )}
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold font-orbitron text-white">J.A.S.P.E.R. Assistant</h3>
+                <p className="text-xs text-cyan-300">Autonomous Morning Wake-Up & Daily Briefing</p>
+              </div>
+            </div>
+
+            {/* Call State: Ringing */}
+            {voipCallStatus === 'ringing' && (
+              <div className="space-y-6">
+                <p className="text-xs text-slate-300">
+                  Good morning! J.A.S.P.E.R. is ringing with your daily briefing, weather radar, and calendar schedule.
+                </p>
+
+                <div className="flex gap-4 justify-center">
+                  <button
+                    type="button"
+                    onClick={handleDeclineVoipCall}
+                    className="flex-1 py-3 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-rose-600/30 transition-all cursor-pointer"
+                  >
+                    <PhoneOff className="w-4 h-4" />
+                    <span>DECLINE / SNOOZE</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleAcceptVoipCall}
+                    className="flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 transition-all cursor-pointer animate-pulse"
+                  >
+                    <PhoneCall className="w-4 h-4" />
+                    <span>ACCEPT CALL</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Call State: Connected */}
+            {voipCallStatus === 'connected' && (
+              <div className="space-y-4 text-left">
+                {/* Waveform / Equalizer Animation */}
+                <div className="flex items-center justify-center gap-1.5 h-8 py-1">
+                  {[40, 70, 30, 90, 60, 100, 45, 80, 50, 75, 35, 95, 60, 40].map((h, i) => (
+                    <span
+                      key={i}
+                      className="w-1 bg-cyan-400 rounded-full transition-all duration-300"
+                      style={{
+                        height: isSpeakingBriefing ? `${h}%` : '20%',
+                        opacity: isSpeakingBriefing ? 1 : 0.4
+                      }}
+                    />
+                  ))}
+                </div>
+
+                {/* Spoken Briefing Text Box */}
+                <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 font-mono max-h-36 overflow-y-auto leading-relaxed">
+                  {activeVoipCall.briefing}
+                </div>
+
+                {/* Voice Directive Input */}
+                <div className="space-y-2">
+                  <label className="text-[11px] font-semibold text-slate-300 block">
+                    Speak or Type Adjustments:
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="e.g. 'Push 10 AM by 15 mins', 'Snooze 10 mins'..."
+                      value={voipVoiceInput}
+                      onChange={(e) => setVoipVoiceInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleSendVoipVoiceDirective(voipVoiceInput);
+                      }}
+                      className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleSendVoipVoiceDirective(voipVoiceInput)}
+                      className="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs flex items-center gap-1 cursor-pointer"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>Send</span>
+                    </button>
+                  </div>
+
+                  <div className="flex flex-wrap gap-1.5 text-[10px]">
+                    {[
+                      'Push 10 AM meeting by 15 mins',
+                      'Snooze 10 minutes',
+                      'I am awake, thank you'
+                    ].map(cmd => (
+                      <button
+                        key={cmd}
+                        type="button"
+                        onClick={() => {
+                          setVoipVoiceInput(cmd);
+                          handleSendVoipVoiceDirective(cmd);
+                        }}
+                        className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 cursor-pointer"
+                      >
+                        "{cmd}"
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* End Call Button */}
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={handleDeclineVoipCall}
+                    className="w-full py-2.5 rounded-xl bg-rose-600/80 hover:bg-rose-600 text-white font-bold text-xs tracking-wider flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
+                  >
+                    <PhoneOff className="w-4 h-4" />
+                    <span>END CALL</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

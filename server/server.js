@@ -25,6 +25,7 @@ const telephonyEngine = require('./telephonyEngine');
 const meetingEngine = require('./meetingEngine');
 const callIntelligenceEngine = require('./callIntelligenceEngine');
 const financialIntelligenceEngine = require('./financialIntelligenceEngine');
+const morningRoutineEngine = require('./morningRoutineEngine');
 
 // Optional WhatsApp Web Client (whatsapp-web.js) for laptop WhatsApp Web auto-send
 let Client, LocalAuth, WAStatus;
@@ -743,6 +744,7 @@ busyModeEngine.setBroadcastFn(broadcastToClients);
 telephonyEngine.setBroadcastFn(broadcastToClients);
 meetingEngine.setBroadcastFn(broadcastToClients);
 callIntelligenceEngine.setBroadcastFn(broadcastToClients);
+morningRoutineEngine.setBroadcastFn(broadcastToClients);
 
 // Spawns the background listener.ps1 script
 function startBackgroundVoiceListener() {
@@ -2113,6 +2115,9 @@ let backgroundDaemonsStarted = false;
 function startBackgroundDaemons() {
   if (backgroundDaemonsStarted) return;
   backgroundDaemonsStarted = true;
+
+  // Start autonomous Morning Wake-Up & Routine schedule clock
+  morningRoutineEngine.startDaemon();
 
   // Syncs Call App (Call logs & Contacts), WhatsApp and Instagram every 45s continuously
   setInterval(async () => {
@@ -4617,6 +4622,56 @@ app.post('/api/telephony/live/simulate-football-scenario', async (req, res) => {
       session,
       message: 'Incoming screening simulation triggered.'
     });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// =============================================================
+// AUTONOMOUS MORNING WAKE-UP CALL & ROUTINE (HYBRID METHODS 1, 2, 4)
+// =============================================================
+
+// Get Morning Routine Configuration & Active Schedule
+app.get('/api/routine/config', (req, res) => {
+  res.json({ success: true, config: morningRoutineEngine.getConfig() });
+});
+
+// Update Morning Routine Configuration & Schedule
+app.post('/api/routine/config', (req, res) => {
+  try {
+    const updated = morningRoutineEngine.saveConfig(req.body || {});
+    res.json({ success: true, config: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Trigger Wake-Up Call Routine (Instant Manual Test or Scheduled)
+app.post('/api/routine/trigger', async (req, res) => {
+  try {
+    const results = await morningRoutineEngine.triggerWakeUpSequence(true);
+    res.json({ success: true, ...results });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Process In-Call Response (Accept, Decline, or Voice Directive)
+app.post('/api/routine/respond', async (req, res) => {
+  try {
+    const { sessionId, action, userSpeech } = req.body || {};
+    const result = await morningRoutineEngine.processCallResponse(sessionId, action, userSpeech);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Preview Dynamic Morning Briefing Text
+app.get('/api/routine/preview', async (req, res) => {
+  try {
+    const preview = await morningRoutineEngine.compileMorningBriefing(req.userId || 'jwalant');
+    res.json({ success: true, ...preview });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

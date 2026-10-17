@@ -1,0 +1,27 @@
+{
+  "enabled": true,
+  "time": "07:45",
+  "days": [
+    "Mon",
+    "Tue",
+    "Wed",
+    "Thu",
+    "Fri"
+  ],
+  "channels": {
+    "phoneAdb": true,
+    "inAppVoip": true,
+    "ntfyPush": true
+  },
+  "ntfyTopic": "jasper-jwalant-alerts",
+  "persona": "JARVIS British Executive",
+  "contentPreferences": {
+    "includeCalendar": true,
+    "includeWeather": true,
+    "includeTasks": true,
+    "includeBudget": true,
+    "includeOvernightMessages": true
+  },
+  "lastTriggeredDate": "2026-10-17",
+  "activeCallSession": null
+}

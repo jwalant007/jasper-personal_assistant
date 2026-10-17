@@ -56,9 +56,11 @@ function sendPushToPhone({
         port: 443,
         path: '/',
         method: 'POST',
+        agent: false,
         headers: {
           'Content-Type': 'application/json',
-          'Content-Length': payload.length
+          'Content-Length': payload.length,
+          'Connection': 'close'
         }
       }, (res) => {
         if (res.statusCode >= 200 && res.statusCode < 300) {
