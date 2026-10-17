@@ -32,18 +32,33 @@ if ($LASTEXITCODE -ne 0) {
 $apkFile = Get-ChildItem -Path "app\build\outputs" -Recurse -Filter "*.apk" | Select-Object -First 1
 if ($apkFile) {
     Write-Host "[APK Builder] SUCCESS! Generated APK at: $($apkFile.FullName)"
-    Copy-Item -Path $apkFile.FullName -Destination "c:\Users\Jwalant\.gemini\antigravity\scratch\jasper-assistant\JASPER_Assistant.apk" -Force
-    Write-Host "[APK Builder] Copied updated APK to project root: JASPER_Assistant.apk"
+    $rootDest = "c:\Users\Jwalant\.gemini\antigravity\scratch\jasper-assistant\JASPER_Assistant.apk"
+    $downloadsDest = "c:\Users\Jwalant\.gemini\antigravity\scratch\jasper-assistant\server\downloads\JASPER_Assistant.apk"
+    
+    Copy-Item -Path $apkFile.FullName -Destination $rootDest -Force
+    Write-Host "[APK Builder] Copied updated APK to project root: $rootDest"
+    
+    if (-not (Test-Path "c:\Users\Jwalant\.gemini\antigravity\scratch\jasper-assistant\server\downloads")) {
+        New-Item -ItemType Directory -Path "c:\Users\Jwalant\.gemini\antigravity\scratch\jasper-assistant\server\downloads" -Force | Out-Null
+    }
+    Copy-Item -Path $apkFile.FullName -Destination $downloadsDest -Force
+    Write-Host "[APK Builder] Copied updated APK to server distribution: $downloadsDest"
     
     $adbPath = "C:\Users\Jwalant\AppData\Local\Android\platform-tools\adb.exe"
-    if (Test-Path $adbPath) {
-        Write-Host "[APK Builder] Attempting automatic wireless ADB push to connected Android device..."
+    if (-not (Test-Path $adbPath)) {
+        $adbCmd = Get-Command adb -ErrorAction SilentlyContinue
+        if ($adbCmd) { $adbPath = $adbCmd.Source }
+    }
+    
+    if ($adbPath -and (Test-Path $adbPath)) {
+        Write-Host "[APK Builder] Checking connected ADB devices..."
         try {
-            & $adbPath connect 192.168.29.159:42931
-            & $adbPath install -r "c:\Users\Jwalant\.gemini\antigravity\scratch\jasper-assistant\JASPER_Assistant.apk"
-            Write-Host "[APK Builder] SUCCESS! Updated APK automatically installed on your phone over wireless ADB!"
+            & $adbPath devices
+            Write-Host "[APK Builder] Installing updated APK to connected Android device..."
+            & $adbPath install -r $rootDest
+            Write-Host "[APK Builder] SUCCESS! Updated APK automatically installed on your phone!"
         } catch {
-            Write-Host "[APK Builder] Phone wireless ADB install skipped: $($_.Exception.Message)"
+            Write-Host "[APK Builder] Phone ADB install notice: $($_.Exception.Message)"
         }
     }
 } else {

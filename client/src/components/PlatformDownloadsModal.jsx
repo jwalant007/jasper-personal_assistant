@@ -59,7 +59,7 @@ export default function PlatformDownloadsModal({ onClose }) {
     server: {
       isRender: isCloudMode(),
       cloudUrl: RENDER_CLOUD_URL,
-      version: '1.0.2'
+      version: '1.0.3'
     },
     binaries: {
       apk: {

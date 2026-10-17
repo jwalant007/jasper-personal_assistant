@@ -16,14 +16,26 @@ if %errorlevel% neq 0 (
     exit /b
 )
 
-echo [1/2] Connecting to 24/7 JASPER Cloud Hub (https://jasper-personal-assistant.onrender.com)...
-set CLOUD_URL=https://jasper-personal-assistant.onrender.com
+echo [1/3] Checking connection to local or cloud JASPER instance...
+set TARGET_URL=https://jasper-personal-assistant.onrender.com
 
-echo [2/2] Opening Telephony Core & Switchboard on Workstation...
-start "" "%CLOUD_URL%"
+:: Detect if local development server or production server is active
+powershell -NoProfile -Command "$client = New-Object System.Net.Sockets.TcpClient; try { $client.Connect('127.0.0.1', 5173); exit 0 } catch { try { $client.Connect('127.0.0.1', 5000); exit 1 } catch { exit 2 } } finally { $client.Close() }"
+if %errorlevel% equ 0 (
+    set TARGET_URL=http://localhost:5173
+    echo [DETECTED] Local Vite Dev Server is active at http://localhost:5173!
+) else if %errorlevel% equ 1 (
+    set TARGET_URL=http://localhost:5000
+    echo [DETECTED] Local Production Server is active at http://localhost:5000!
+) else (
+    echo [DETECTED] Connecting to 24/7 JASPER Cloud Hub (https://jasper-personal-assistant.onrender.com)...
+)
+
+echo [2/3] Opening Telephony & AI Receptionist Core...
+start "" "%TARGET_URL%"
 
 echo.
 echo =================================================================
-echo   JASPER Telephony Core is live on %CLOUD_URL%
+echo   JASPER Telephony & Receptionist Hub is live on %TARGET_URL%
 echo =================================================================
 exit

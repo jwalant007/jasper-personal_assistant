@@ -1,5 +1,6 @@
 @echo off
 title JASPER AI ASSISTANT - STARTING SYSTEM CORE
+color 0B
 echo =================================================================
 echo             JASPER PERSONALIZED AI ASSISTANT CORE
 echo =================================================================
@@ -29,7 +30,7 @@ if not exist node_modules (
 
 echo.
 echo [SYSTEM] Starting JASPER Assistant Services...
-echo [SYSTEM] Waking up background modules...
+echo [SYSTEM] Waking up background modules (Port 5000 Server & Port 5173 Client)...
 echo.
 call npm start
 pause

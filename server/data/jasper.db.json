@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "lastUpdated": "2026-10-17T15:17:10.097Z",
+  "lastUpdated": "2026-10-17T16:04:30.858Z",
   "activeUserId": "jwalant",
   "users": {
     "jwalant": {
@@ -4360,7 +4360,7 @@
             "id": "acc_1",
             "name": "Primary Bank Account",
             "type": "bank",
-            "balance": 54550,
+            "balance": 57200,
             "currency": "₹",
             "institution": "Savings Account",
             "isDefault": true,
@@ -4389,6 +4389,42 @@
           "alertsHistory": []
         },
         "transactions": [
+          {
+            "id": "tx_1792253069333",
+            "date": "2026-10-10T00:00:00.000Z",
+            "accountId": "acc_1",
+            "toAccountId": null,
+            "type": "income",
+            "amount": 200,
+            "category": "Transport",
+            "description": "Metro Card Recharge",
+            "merchant": "Metro Card Recharge",
+            "tags": []
+          },
+          {
+            "id": "tx_1792253069332",
+            "date": "2026-10-05T00:00:00.000Z",
+            "accountId": "acc_1",
+            "toAccountId": null,
+            "type": "income",
+            "amount": 2000,
+            "category": "Other",
+            "description": "Monthly Pocket Money",
+            "merchant": "Monthly Pocket Money",
+            "tags": []
+          },
+          {
+            "id": "tx_1792253069332",
+            "date": "2026-10-01T00:00:00.000Z",
+            "accountId": "acc_1",
+            "toAccountId": null,
+            "type": "income",
+            "amount": 450,
+            "category": "Food",
+            "description": "Grocery Supermarket",
+            "merchant": "Grocery Supermarket",
+            "tags": []
+          },
           {
             "id": "tx_1792250228569",
             "date": "2026-10-10T00:00:00.000Z",

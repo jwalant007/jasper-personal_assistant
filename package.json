@@ -1,6 +1,6 @@
 {
   "name": "jasper-assistant",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "JASPER - Personalized AI Assistant",
   "main": "electron/main.js",
   "scripts": {
@@ -18,7 +18,7 @@
     "test:os": "python -m pytest jasper-os/tests",
     "test:all": "node --test tests/*.test.js && python -m pytest jasper-os/tests",
     "electron:dev": "concurrently -k \"cross-env BROWSER=none npm run client\" \"wait-on http://localhost:5173 && electron .\"",
-    "electron:build": "npm run build:client && electron-builder"
+    "electron:build": "npm run build:client && electron-builder --config.directories.output=\"C:/Users/Jwalant/AppData/Local/Temp/jasper-electron-dist\" && powershell -ExecutionPolicy Bypass -Command \"Copy-Item 'C:/Users/Jwalant/AppData/Local/Temp/jasper-electron-dist/*.exe' 'server/downloads/JASPER_Assistant_Setup.exe' -Force\""
   },
   "dependencies": {
     "concurrently": "^8.2.2",

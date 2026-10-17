@@ -6,6 +6,7 @@ node_modules/
 dist/
 **/dist/
 dist-electron/
+release-electron/
 build/
 **/build/
 
