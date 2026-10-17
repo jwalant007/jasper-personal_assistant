@@ -6,6 +6,22 @@ const execFilePromise = util.promisify(execFile);
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
+const net = require('net');
+
+function probeHostPort(hostPort, timeoutMs = 600) {
+  if (!hostPort || typeof hostPort !== 'string') return Promise.resolve(false);
+  const parts = hostPort.split(':');
+  const host = parts[0];
+  const port = parseInt(parts[1], 10) || 5555;
+  return new Promise((resolve) => {
+    const s = new net.Socket();
+    s.setTimeout(timeoutMs);
+    s.once('connect', () => { s.destroy(); resolve(true); });
+    s.once('timeout', () => { s.destroy(); resolve(false); });
+    s.once('error', () => { s.destroy(); resolve(false); });
+    s.connect(port, host);
+  });
+}
 
 // Helper to resolve adb path robustly
 function getAdbPath() {
@@ -186,13 +202,16 @@ const PhoneController = {
       let devices = await runAdb('devices');
       let lines = devices.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('*'));
       
-      // Auto-reconnect to last known IP if no physical device attached and not manually disconnected
+      // Auto-reconnect to last known IP if physical device is reachable on network and not manually disconnected
       if (lines.length <= 1 && PhoneController.lastKnownIp && !PhoneController.manualDisconnected) {
         try {
-          console.log(`[PhoneController] Attempting auto-reconnect to ${PhoneController.lastKnownIp}...`);
-          await runAdb(`connect ${PhoneController.lastKnownIp}`);
-          devices = await runAdb('devices');
-          lines = devices.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('*'));
+          const isReachable = await probeHostPort(PhoneController.lastKnownIp, 600);
+          if (isReachable) {
+            console.log(`[PhoneController] Attempting auto-reconnect to ${PhoneController.lastKnownIp}...`);
+            await runAdb(`connect ${PhoneController.lastKnownIp}`);
+            devices = await runAdb('devices');
+            lines = devices.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('*'));
+          }
         } catch (e) {}
       }
       
@@ -618,6 +637,10 @@ const PhoneController = {
   },
 
   screenshot: async () => {
+    if (!isPhysicalConnected()) {
+      return null;
+    }
+
     // 1. If local ADB is available, capture screenshot directly
     const hasAdb = await checkAdbAvailable();
     if (hasAdb) {
@@ -655,11 +678,6 @@ const PhoneController = {
       } catch (e) {
         console.warn('[PhoneController] Satellite screenshot relay error:', e.message);
       }
-    }
-
-    // 3. Fallback to Virtual Phone preview if virtualMode is enabled
-    if (PhoneController.virtualMode) {
-      return generateVirtualPhoneScreenshot();
     }
 
     // No physical device connected; return null so frontend displays authentic Setup Required state
@@ -1222,13 +1240,10 @@ const PhoneController = {
     }
 
     return {
-      success: true,
-      simulated: true,
-      method: 'queued_cloud_dispatch',
+      success: false,
+      error: 'No active WhatsApp channel: Connect Android device via ADB or link WhatsApp Web in Settings.',
       recipient: resolvedName,
-      phone: cleanNumber,
-      message,
-      note: 'Message queued and logged for delivery'
+      phone: cleanNumber
     };
   },
 
@@ -1247,10 +1262,9 @@ const PhoneController = {
       } catch (err) {}
     }
     return {
-      success: true,
-      simulated: true,
-      handle,
-      message
+      success: false,
+      error: 'Instagram dispatch requires connected Android device or Meta Graph API credentials.',
+      handle
     };
   },
 
@@ -1280,8 +1294,5 @@ const PhoneController = {
     };
   }
 };
-
-// Auto-check phone status immediately on module load
-PhoneController.status().catch(() => {});
 
 module.exports = PhoneController;

@@ -25,7 +25,7 @@ class KnowledgeEngine {
   }
 
   hasValidGeminiKey() {
-    return Boolean(this.geminiApiKey && this.geminiApiKey.startsWith('AIzaSy') && this.geminiApiKey.length > 25);
+    return Boolean(this.geminiApiKey && typeof this.geminiApiKey === 'string' && this.geminiApiKey.trim().length >= 20 && !/\s/.test(this.geminiApiKey.trim()));
   }
 
   /**
@@ -39,7 +39,7 @@ class KnowledgeEngine {
 
     // ── Tier 0: Direct Gemini Cloud execution if valid key is registered ──
     const activeKey = options.apiKey || this.geminiApiKey;
-    if (activeKey && activeKey.startsWith('AIzaSy') && activeKey.length > 25) {
+    if (activeKey && typeof activeKey === 'string' && activeKey.trim().length >= 20 && !/\s/.test(activeKey.trim())) {
       try {
         const geminiResult = await this.queryGeminiCloud(raw, activeKey, options);
         if (geminiResult && geminiResult.trim()) {

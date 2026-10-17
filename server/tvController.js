@@ -160,11 +160,14 @@ class TvController {
     }
   }
 
-  saveConfig() {
+  saveConfig(newConfig = {}) {
     try {
+      this.config = { ...this.config, ...newConfig };
       fs.writeFileSync(CONFIG_PATH, JSON.stringify(this.config, null, 2), 'utf8');
+      return this.config;
     } catch (err) {
       console.error('[TV Controller] Error saving config:', err.message);
+      return this.config;
     }
   }
 
@@ -195,24 +198,20 @@ class TvController {
     const port = this.config.jioStbPort || 5555;
     const target = `${stbIp}:${port}`;
 
+    const portOpen = await this.checkPort(port, stbIp, 600);
+    if (!portOpen) {
+      this.jioConnected = false;
+      throw new Error(`Jio STB target ${target} is unreachable on LAN (Port ${port} closed)`);
+    }
+
     try {
       const fullCommand = `${adbBin} -s ${target} ${command}`;
-      const { stdout } = await execPromise(fullCommand, { timeout: 8000 });
+      const { stdout } = await execPromise(fullCommand, { timeout: 4000 });
       this.jioConnected = true;
       this.jioLastSeen = new Date().toISOString();
       return stdout.trim();
     } catch (err) {
-      // If failed, try reconnecting once
-      try {
-        await execPromise(`${adbBin} connect ${target}`, { timeout: 4000 });
-        const retryCmd = `${adbBin} -s ${target} ${command}`;
-        const { stdout } = await execPromise(retryCmd, { timeout: 8000 });
-        this.jioConnected = true;
-        this.jioLastSeen = new Date().toISOString();
-        return stdout.trim();
-      } catch (retryErr) {
-        throw new Error(`Jio STB ADB Error (${target}): ${err.message}`);
-      }
+      throw new Error(`Jio STB ADB Error (${target}): ${err.message}`);
     }
   }
 
@@ -273,10 +272,13 @@ class TvController {
 
     // 2. Fallback to TV HDMI-CEC bridge (transmits to TV which relays via HDMI to Jio STB)
     try {
-      await this.sendSmartTvKey(norm);
-      return { success: true, method: 'tv_hdmi_cec_bridge', key: norm };
+      const tvRes = await this.sendSmartTvKey(norm);
+      if (tvRes && tvRes.success) {
+        return { success: true, method: 'tv_hdmi_cec_bridge', key: norm };
+      }
+      return { success: false, error: 'Jio STB and TV are offline or unreachable on LAN', status: 'offline', key: norm };
     } catch (tvErr) {
-      return { success: true, method: 'simulated_remote', key: norm };
+      return { success: false, error: tvErr.message, status: 'offline', key: norm };
     }
   }
 
@@ -389,12 +391,18 @@ class TvController {
     }
 
     // Samsung TV protocol
+    const tvPort = this.config.tvPort || 55000;
+    const isTvPortOpen = await this.checkPort(tvPort, this.config.tvIp, 600);
+    if (!isTvPortOpen) {
+      return { success: false, error: `Samsung TV unreachable at ${this.config.tvIp}:${tvPort}`, status: 'offline', brand: 'samsung' };
+    }
+
     if (Samsung) {
       try {
         const tv = new Samsung({
           ip: this.config.tvIp || '192.168.29.229',
           mac: this.config.tvMac || '14:49:e0:20:f0:81',
-          port: 55000,
+          port: tvPort,
           nameApp: 'JASPER Assistant',
           saveToken: false
         });
@@ -403,13 +411,13 @@ class TvController {
     }
 
     // Legacy Socket Fallback
-    await this.sendLegacySamsungPacket(keyName);
-    return { success: true, brand: 'samsung', key: keyName };
+    const res = await this.sendLegacySamsungPacket(keyName);
+    return res;
   }
 
   sendLegacySamsungPacket(keyName) {
     return new Promise((resolve) => {
-      if (!this.config.tvIp) return resolve({ success: true });
+      if (!this.config.tvIp) return resolve({ success: false, error: 'No TV IP configured', status: 'offline' });
       const localInfo = getLocalNetworkInfo();
 
       function packString(str) {
@@ -439,11 +447,11 @@ class TvController {
         client.write(packet1);
         setTimeout(() => {
           client.write(packet2);
-          setTimeout(() => { client.end(); resolve({ success: true }); }, 100);
+          setTimeout(() => { client.end(); resolve({ success: true, brand: 'samsung', key: keyName }); }, 100);
         }, 120);
       });
-      client.on('error', () => resolve({ success: true }));
-      client.setTimeout(1200, () => { client.destroy(); resolve({ success: true }); });
+      client.on('error', (err) => resolve({ success: false, error: `Samsung TV unreachable: ${err.message}`, status: 'offline' }));
+      client.setTimeout(800, () => { client.destroy(); resolve({ success: false, error: 'Connection to Samsung TV port 55000 timed out', status: 'offline' }); });
     });
   }
 
@@ -601,4 +609,6 @@ class TvController {
   }
 }
 
-module.exports = new TvController();
+const tvInstance = new TvController();
+tvInstance.ADB_KEY_MAP = ADB_KEY_MAP;
+module.exports = tvInstance;

@@ -96,8 +96,8 @@ function createDefaultUserData(userId = 'jwalant', name = 'Jwalant', role = 'own
       whatsapp: {
         senderNumber: '',
         countryCode: '+91',
-        status: 'connected',
-        lastLinked: new Date().toISOString()
+        status: 'unlinked',
+        lastLinked: null
       }
     },
     social_auto_reply: {
@@ -472,7 +472,14 @@ class DatabaseManager {
       notes: user.notes || [],
       tasks: user.tasks || [],
       health_vitals: user.health_vitals || [],
-      social_accounts: user.social_accounts,
+      social_accounts: (() => {
+        const safe = JSON.parse(JSON.stringify(user.social_accounts || {}));
+        if (safe.instagram) {
+          delete safe.instagram.password;
+          delete safe.instagram.sessionCookie;
+        }
+        return safe;
+      })(),
       social_auto_reply: user.social_auto_reply,
       social_contacts: user.social_contacts || [],
       social_logs: user.social_logs || [],

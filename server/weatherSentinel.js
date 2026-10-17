@@ -204,5 +204,6 @@ module.exports = {
   updateSentinelLocation,
   performWeatherCheck,
   sendPushToPhone,
+  sanitizeHeader,
   getSentinelStatus
 };

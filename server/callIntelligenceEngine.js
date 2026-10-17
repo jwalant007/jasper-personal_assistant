@@ -513,7 +513,7 @@ Return JSON with:
     let confirmationType = 'none'; // 'none' | 'tentative' | 'definite' | 'rejection'
     let commitmentNote = null;
 
-    if (speaker === 'user' || speaker === 'me') {
+    if (speaker === 'user' || speaker === 'me' || speaker === 'jwalant') {
       // Check for Tentative Confirmation
       const isTentative = /(?:yeah|yes|yep|sure|ok|okay)?\s*(?:i think (?:i can|so)|maybe|probably|should be able to|might be able to|let me check|i'll try|possibly|tentatively|i suppose)/i.test(lower);
       

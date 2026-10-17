@@ -33,6 +33,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 client/vite.config.js.timestamp-*.mjs
+scratch/
 
 # Compiled binary packages & executables
 *.exe

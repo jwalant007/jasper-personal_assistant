@@ -1645,7 +1645,7 @@ Key Directives:
       } else {
         // Universal Knowledge & Task Solver (Gemini 2.0 Cloud, Math, Conversions, Task Drafting, Coding, Wikipedia Knowledge, DuckDuckGo)
         try {
-          const effectiveKey = (userKey && userKey.startsWith('AIzaSy')) ? userKey : (process.env.GEMINI_API_KEY || '');
+          const effectiveKey = (userKey && typeof userKey === 'string' && userKey.trim().length >= 20) ? userKey.trim() : (process.env.GEMINI_API_KEY || '');
           const knowledgeAns = await knowledgeEngine.resolveUniversalQuery(query, {
             userName,
             apiKey: effectiveKey,

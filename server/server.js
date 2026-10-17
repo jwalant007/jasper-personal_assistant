@@ -271,10 +271,12 @@ function initWhatsAppWebClient(isManual = false) {
   }
 }
 
-// Auto-start WhatsApp Web client when server launches (if library exists)
-setTimeout(() => {
-  try { initWhatsAppWebClient(); } catch(e) {}
-}, 3000);
+// Auto-start WhatsApp Web client when server launches as main process (if library exists)
+if (require.main === module) {
+  setTimeout(() => {
+    try { initWhatsAppWebClient(); } catch(e) {}
+  }, 3000);
+}
 
 // Helper to resolve PowerShell script paths correctly in production (from unpacked extraResources)
 function getScriptPath(scriptName) {
@@ -377,6 +379,10 @@ app.get('/api/satellite/status', (req, res) => {
     connected: isSatelliteConnected(),
     mode: process.env.RENDER ? 'cloud_relay' : 'local_host'
   });
+});
+
+app.get('/api/ping', (req, res) => {
+  res.json({ pong: true, timestamp: Date.now() });
 });
 
 // Auth Guard Middleware
@@ -1085,9 +1091,33 @@ function formatFsBytes(bytes) {
 
 const WORKSPACE_ROOT = path.resolve(__dirname, '..');
 
+const BLOCKED_FILE_PATTERNS = [
+  /^\.env/i,
+  /\.env(\..+)?$/i,
+  /\.pem$/i,
+  /\.key$/i,
+  /id_rsa/i,
+  /\.wwebjs_auth/i,
+  /\.wwebjs_cache/i
+];
+
+function isSafeFsPath(targetPath) {
+  if (!targetPath || typeof targetPath !== 'string') return false;
+  const resolved = path.resolve(targetPath);
+  const base = path.basename(resolved);
+  for (const pat of BLOCKED_FILE_PATTERNS) {
+    if (pat.test(base) || pat.test(resolved)) return false;
+  }
+  return true;
+}
+
 app.get('/api/fs/list', (req, res) => {
   try {
     let targetDir = req.query.dir ? path.resolve(req.query.dir) : WORKSPACE_ROOT;
+
+    if (!isSafeFsPath(targetDir)) {
+      return res.status(403).json({ success: false, error: 'Access Denied: Protected security path.' });
+    }
 
     if (!fs.existsSync(targetDir)) {
       return res.status(404).json({ success: false, error: 'Directory not found: ' + targetDir });
@@ -1098,7 +1128,8 @@ app.get('/api/fs/list', (req, res) => {
       return res.status(400).json({ success: false, error: 'Path is not a directory' });
     }
 
-    const dirents = fs.readdirSync(targetDir, { withFileTypes: true });
+    const dirents = fs.readdirSync(targetDir, { withFileTypes: true })
+      .filter(dirent => isSafeFsPath(dirent.name));
     const items = dirents.map(dirent => {
       const fullPath = path.join(targetDir, dirent.name);
       let size = 'DIR';
@@ -1141,7 +1172,15 @@ app.get('/api/fs/list', (req, res) => {
 app.get('/api/fs/read', (req, res) => {
   try {
     const filePath = req.query.file ? path.resolve(req.query.file) : null;
-    if (!filePath || !fs.existsSync(filePath)) {
+    if (!filePath) {
+      return res.status(400).json({ success: false, error: 'File path parameter required' });
+    }
+
+    if (!isSafeFsPath(filePath)) {
+      return res.status(403).json({ success: false, error: 'Access Denied: Protected security file cannot be read.' });
+    }
+
+    if (!fs.existsSync(filePath)) {
       return res.status(404).json({ success: false, error: 'File not found' });
     }
 
@@ -1225,14 +1264,15 @@ app.post('/api/code/execute', async (req, res) => {
   try {
     fs.writeFileSync(tempFile, code, 'utf8');
 
-    let binary = 'node.exe';
+    const isWin = process.platform === 'win32';
+    let binary = isWin ? 'node.exe' : 'node';
     let args = [tempFile];
 
     if (language === 'python') {
-      binary = 'python.exe';
+      binary = isWin ? 'python.exe' : 'python3';
       args = [tempFile];
     } else if (language === 'powershell') {
-      binary = 'powershell.exe';
+      binary = isWin ? 'powershell.exe' : 'pwsh';
       args = ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', tempFile];
     }
 
@@ -1866,21 +1906,26 @@ app.use('/api/phone', phoneRoutes);
 
 // System Power Endpoint (Shutdown / Restart / Abort)
 app.post('/api/system/power', (req, res) => {
-  const { action, timeout = 30 } = req.body;
+  const { action, timeout = 30 } = req.body || {};
   console.log(`[API] System Power Command: ${action}`);
 
+  const safeTimeout = Math.max(0, Math.min(3600, parseInt(timeout, 10) || 30));
+
   if (action === 'shutdown') {
-    exec(`shutdown /s /t ${timeout} /c "JASPER initiated system shutdown"`, (err) => {
+    const { execFile: runExecFile } = require('child_process');
+    runExecFile('shutdown', ['/s', '/t', String(safeTimeout), '/c', 'JASPER initiated system shutdown'], (err) => {
       if (err) return res.status(500).json({ error: err.message });
-      res.json({ success: true, message: `System will shutdown in ${timeout} seconds` });
+      res.json({ success: true, message: `System will shutdown in ${safeTimeout} seconds` });
     });
   } else if (action === 'restart') {
-    exec(`shutdown /r /t ${timeout} /c "JASPER initiated system restart"`, (err) => {
+    const { execFile: runExecFile } = require('child_process');
+    runExecFile('shutdown', ['/r', '/t', String(safeTimeout), '/c', 'JASPER initiated system restart'], (err) => {
       if (err) return res.status(500).json({ error: err.message });
-      res.json({ success: true, message: `System will restart in ${timeout} seconds` });
+      res.json({ success: true, message: `System will restart in ${safeTimeout} seconds` });
     });
   } else if (action === 'cancel') {
-    exec(`shutdown /a`, (err) => {
+    const { execFile: runExecFile } = require('child_process');
+    runExecFile('shutdown', ['/a'], (err) => {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ success: true, message: 'System shutdown/restart canceled' });
     });
@@ -2063,9 +2108,14 @@ app.post('/api/social/sync-contacts', async (req, res) => {
   }
 });
 
-// --- PERMANENT AUTOMATED BACKGROUND SYNC DAEMON ---
-// Syncs Call App (Call logs & Contacts), WhatsApp and Instagram every 45s continuously
-setInterval(async () => {
+// --- PERMANENT AUTOMATED BACKGROUND SYNC & NOTIFICATION DAEMONS ---
+let backgroundDaemonsStarted = false;
+function startBackgroundDaemons() {
+  if (backgroundDaemonsStarted) return;
+  backgroundDaemonsStarted = true;
+
+  // Syncs Call App (Call logs & Contacts), WhatsApp and Instagram every 45s continuously
+  setInterval(async () => {
   try {
     if (phoneController.virtualMode || (phoneController.isPhysicalConnected && !phoneController.isPhysicalConnected())) return;
     const synced = await phoneController.syncPhoneContacts();
@@ -2187,6 +2237,7 @@ setInterval(async () => {
     }
   } catch(e) {}
 }, 6000);
+}
 
 // --- WhatsApp Web Client Routes ---
 
@@ -3845,7 +3896,7 @@ app.post('/api/config/apikey', (req, res) => {
 });
 
 app.get('/api/config/apikey', (req, res) => {
-  const hasKey = Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.startsWith('AIzaSy'));
+  const hasKey = Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim().length >= 20);
   res.json({ configured: hasKey });
 });
 
@@ -4615,41 +4666,53 @@ app.get('*', (req, res, next) => {
 // INITIALIZATION & CLEAN SHUTDOWN
 // -------------------------------------------------------------
 
-server.listen(PORT, '0.0.0.0', () => {
-  const nets = os.networkInterfaces();
-  const lanIP = Object.values(nets).flat().find(n => n.family === 'IPv4' && !n.internal)?.address || 'localhost';
-  console.log(`[JASPER Core] Server listening on http://localhost:${PORT}`);
-  console.log(`[JASPER Core] LAN access: http://${lanIP}:${PORT}`);
-  
-  // Start autonomous Weather Sentinel daemon
-  weatherSentinel.startWeatherSentinel({ channelTopic: 'jasper-jwalant-alerts' });
+function startServer(port = PORT) {
+  return new Promise((resolve) => {
+    server.listen(port, '0.0.0.0', () => {
+      const nets = os.networkInterfaces();
+      const lanIP = Object.values(nets).flat().find(n => n.family === 'IPv4' && !n.internal)?.address || 'localhost';
+      console.log(`[JASPER Core] Server listening on http://localhost:${port}`);
+      console.log(`[JASPER Core] LAN access: http://${lanIP}:${port}`);
+      
+      // Start autonomous Weather Sentinel daemon
+      weatherSentinel.startWeatherSentinel({ channelTopic: 'jasper-jwalant-alerts' });
 
-  // Autonomous Keep-Alive Self-Ping for Render Cloud (prevents 15m idle spin-down during daytime)
-  if (process.env.RENDER) {
-    const RENDER_APP_URL = process.env.RENDER_EXTERNAL_URL || 'https://jasper-personal-assistant.onrender.com';
-    console.log(`[JASPER Cloud] Keep-alive worker initialized for ${RENDER_APP_URL}`);
-    setInterval(async () => {
-      try {
-        const nowUtc = new Date();
-        const istHour = (nowUtc.getUTCHours() + 5.5) % 24;
-        // Ping during active hours (7 AM to 1 AM IST)
-        if (istHour >= 7 || istHour <= 1) {
-          await fetch(`${RENDER_APP_URL}/api/satellite/status`, {
-            headers: { 'User-Agent': 'JASPER-KeepAlive-Daemon' },
-            signal: AbortSignal.timeout(6000)
-          });
-        }
-      } catch (_) {}
-    }, 12 * 60 * 1000); // Every 12 minutes
-  }
+      // Start autonomous background phone & social sync daemons
+      startBackgroundDaemons();
 
-  // Start native Windows background speech trigger (Windows only)
-  if (process.platform === 'win32') {
-    startBackgroundVoiceListener();
-  } else {
-    console.log('[JASPER Core] Non-Windows OS detected — background PowerShell voice listener skipped.');
-  }
-});
+      // Autonomous Keep-Alive Self-Ping for Render Cloud (prevents 15m idle spin-down during daytime)
+      if (process.env.RENDER) {
+        const RENDER_APP_URL = process.env.RENDER_EXTERNAL_URL || 'https://jasper-personal-assistant.onrender.com';
+        console.log(`[JASPER Cloud] Keep-alive worker initialized for ${RENDER_APP_URL}`);
+        setInterval(async () => {
+          try {
+            const nowUtc = new Date();
+            const istHour = (nowUtc.getUTCHours() + 5.5) % 24;
+            // Ping during active hours (7 AM to 1 AM IST)
+            if (istHour >= 7 || istHour <= 1) {
+              await fetch(`${RENDER_APP_URL}/api/satellite/status`, {
+                headers: { 'User-Agent': 'JASPER-KeepAlive-Daemon' },
+                signal: AbortSignal.timeout(6000)
+              });
+            }
+          } catch (_) {}
+        }, 12 * 60 * 1000); // Every 12 minutes
+      }
+
+      // Start native Windows background speech trigger (Windows only)
+      if (process.platform === 'win32') {
+        startBackgroundVoiceListener();
+      } else {
+        console.log('[JASPER Core] Non-Windows OS detected — background PowerShell voice listener skipped.');
+      }
+      resolve(server);
+    });
+  });
+}
+
+if (require.main === module) {
+  startServer();
+}
 
 // Graceful exit handler to kill the background PowerShell voice listener
 const shutdown = () => {
@@ -4666,3 +4729,5 @@ const shutdown = () => {
 
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
+
+module.exports = { app, server, startServer };

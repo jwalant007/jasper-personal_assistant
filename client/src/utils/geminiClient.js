@@ -621,7 +621,7 @@ class GeminiClient {
   }
 
   hasValidGeminiKey() {
-    return typeof this.apiKey === 'string' && this.apiKey.trim().startsWith('AIzaSy');
+    return typeof this.apiKey === 'string' && this.apiKey.trim().length >= 20 && !/\s/.test(this.apiKey.trim());
   }
 
   hasKey() {
@@ -1608,7 +1608,7 @@ class GeminiClient {
     }
 
     if (!this.hasValidGeminiKey()) {
-      throw new Error("Gemini API key is not in Google AI Studio format (expected prefix 'AIzaSy').");
+      throw new Error("Gemini API key is missing or invalid. Please configure a valid key in Settings.");
     }
 
     // Try dynamic auto-updated model list first, or fallback to curated list

@@ -158,6 +158,8 @@ function vectorCosineSimilarity(a, b) {
 class VectorMemoryEngine {
   constructor() {
     this.memories = [];
+    this.computeDenseEmbedding = computeLocalDenseEmbedding;
+    this.cosineSimilarity = vectorCosineSimilarity;
     this.loadStore();
   }
 

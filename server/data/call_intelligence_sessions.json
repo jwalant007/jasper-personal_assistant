@@ -1,1 +1,2008 @@
-[]
+[
+  {
+    "callId": "test-call-nuance-1792247884646",
+    "caller": "Partner",
+    "phone": "",
+    "contact": null,
+    "isVip": false,
+    "status": "active_live",
+    "createdAt": "2026-10-17T14:38:04.647Z",
+    "displayTime": "8:08:04 pm",
+    "initialReason": "General Inquiry",
+    "screeningSummary": "The caller wants to Can you deliver the build by Thursday?.",
+    "screeningHistory": [
+      {
+        "speaker": "jasper",
+        "text": "Good day. You have reached Jwalant's private office. I am J.A.S.P.E.R., his personal AI assistant. May I ask who is calling and the reason for your call?",
+        "timestamp": "8:08:04 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "Can you deliver the build by Thursday?",
+        "timestamp": "8:08:04 pm"
+      },
+      {
+        "speaker": "jasper",
+        "text": "Connecting you to Jwalant right now. Please hold for one second.",
+        "timestamp": "8:08:04 pm"
+      }
+    ],
+    "userDecision": "accepted",
+    "contextMemory": {
+      "caller": "Partner",
+      "initialReason": "General Inquiry",
+      "currentTopic": "General Inquiry",
+      "importantDetails": [
+        "Initial inquiry logged",
+        "Time: 3 PM"
+      ],
+      "commitments": [
+        {
+          "topic": "Practice tomorrow at 6 PM",
+          "status": "definite",
+          "history": [
+            "tentative",
+            "definite"
+          ],
+          "lastUpdated": "8:08:04 pm",
+          "note": "Confirmed: Jwalant agreed to attend at 6 PM."
+        }
+      ],
+      "decisions": [
+        "Jwalant confirmed attendance for tomorrow at 6 PM."
+      ],
+      "openQuestions": [],
+      "detectedChanges": [],
+      "isConcluded": false,
+      "conclusionSummary": null
+    },
+    "transcript": [
+      {
+        "id": "turn-0",
+        "speaker": "caller",
+        "text": "Can you deliver the build by Thursday?",
+        "timestamp": "8:08:04 pm",
+        "analysis": {
+          "intent": "General Inquiry",
+          "isQuestion": false,
+          "confirmationType": "none",
+          "keyDetailsFound": [
+            "Initial inquiry logged",
+            "Time: 3 PM"
+          ],
+          "silentSuggestion": "Caller is screening. Awaiting your decision to Accept, Reject, or Ask JASPER to continue."
+        }
+      },
+      {
+        "id": "turn-1792247884668-qges",
+        "speaker": "jwalant",
+        "text": "Yeah, I think I can finish the QA testing by Thursday.",
+        "timestamp": "8:08:04 pm",
+        "analysis": {
+          "isQuestion": false,
+          "questionText": null,
+          "confirmationType": "tentative",
+          "commitmentNote": "Tentative confirmation: Jwalant indicated probable availability, NOT an absolute confirmation.",
+          "foundDetails": [],
+          "changeDetected": null,
+          "decisionMade": null,
+          "isConclusion": false,
+          "silentSuggestion": "⚡ Status: Tentative confirmation registered. Caller is likely to request a definite commitment."
+        }
+      },
+      {
+        "id": "turn-1792247884684-3mzz",
+        "speaker": "jwalant",
+        "text": "Yes, definitely. I guarantee the build will be ready Thursday at 3 PM.",
+        "timestamp": "8:08:04 pm",
+        "analysis": {
+          "isQuestion": false,
+          "questionText": null,
+          "confirmationType": "definite",
+          "commitmentNote": "Confirmed: Jwalant agreed to attend at 6 PM.",
+          "foundDetails": [
+            "Time: 3 PM"
+          ],
+          "changeDetected": null,
+          "decisionMade": "Jwalant confirmed attendance for tomorrow at 6 PM.",
+          "isConclusion": false,
+          "silentSuggestion": "✅ Decision locked: Attendance confirmed. Added to your priority context."
+        }
+      }
+    ],
+    "silentSuggestions": [
+      "✅ Decision locked: Attendance confirmed. Added to your priority context.",
+      "⚡ Status: Tentative confirmation registered. Caller is likely to request a definite commitment.",
+      "Call connected. Live Call Intelligence active: monitoring context silently.",
+      "Summary: The caller wants to Can you deliver the build by Thursday?.",
+      "Ready for your decision: Accept call, Reject, or instruct JASPER to ask follow-up questions."
+    ],
+    "metrics": {
+      "startTime": 1792247884647,
+      "durationSeconds": 0,
+      "totalTurns": 3,
+      "activeDurationFormatted": "00:00",
+      "callConnectedAt": 1792247884654
+    }
+  },
+  {
+    "callId": "test-call-acc-1792247884627",
+    "caller": "Sarah",
+    "phone": "+919888877777",
+    "contact": null,
+    "isVip": false,
+    "status": "active_live",
+    "createdAt": "2026-10-17T14:38:04.628Z",
+    "displayTime": "8:08:04 pm",
+    "initialReason": "Schedule a meeting",
+    "screeningSummary": "The caller wants to coordinate an upcoming meeting with you.",
+    "screeningHistory": [
+      {
+        "speaker": "jasper",
+        "text": "Good day. You have reached Jwalant's private office. I am J.A.S.P.E.R., his personal AI assistant. May I ask who is calling and the reason for your call?",
+        "timestamp": "8:08:04 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "Calling about our design project deadline.",
+        "timestamp": "8:08:04 pm"
+      },
+      {
+        "speaker": "jasper",
+        "text": "Connecting you to Jwalant right now. Please hold for one second.",
+        "timestamp": "8:08:04 pm"
+      }
+    ],
+    "userDecision": "accepted",
+    "contextMemory": {
+      "caller": "Sarah",
+      "initialReason": "Schedule a meeting",
+      "currentTopic": "Schedule a meeting",
+      "importantDetails": [
+        "Initial inquiry logged"
+      ],
+      "commitments": [],
+      "decisions": [],
+      "openQuestions": [],
+      "detectedChanges": [],
+      "isConcluded": false,
+      "conclusionSummary": null
+    },
+    "transcript": [
+      {
+        "id": "turn-0",
+        "speaker": "caller",
+        "text": "Calling about our design project deadline.",
+        "timestamp": "8:08:04 pm",
+        "analysis": {
+          "intent": "Schedule a meeting",
+          "isQuestion": false,
+          "confirmationType": "none",
+          "keyDetailsFound": [
+            "Initial inquiry logged"
+          ],
+          "silentSuggestion": "Caller is screening. Awaiting your decision to Accept, Reject, or Ask JASPER to continue."
+        }
+      }
+    ],
+    "silentSuggestions": [
+      "Call connected. Live Call Intelligence active: monitoring context silently.",
+      "Summary: The caller wants to coordinate an upcoming meeting with you.",
+      "Ready for your decision: Accept call, Reject, or instruct JASPER to ask follow-up questions."
+    ],
+    "metrics": {
+      "startTime": 1792247884628,
+      "durationSeconds": 0,
+      "totalTurns": 1,
+      "activeDurationFormatted": "00:00",
+      "callConnectedAt": 1792247884639
+    }
+  },
+  {
+    "callId": "test-call-cont-1792247884609",
+    "caller": "Coach Kumar",
+    "phone": "+919999988888",
+    "contact": null,
+    "isVip": false,
+    "status": "waiting_decision",
+    "createdAt": "2026-10-17T14:38:04.612Z",
+    "displayTime": "8:08:04 pm",
+    "initialReason": "General Inquiry",
+    "screeningSummary": "The caller confirmed football practice tomorrow at 6 PM at the Training ground.",
+    "screeningHistory": [
+      {
+        "speaker": "jasper",
+        "text": "Good day. You have reached Jwalant's private office. I am J.A.S.P.E.R., his personal AI assistant. May I ask who is calling and the reason for your call?",
+        "timestamp": "8:08:04 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "We need to confirm jersey numbers for the championship.",
+        "timestamp": "8:08:04 pm"
+      },
+      {
+        "speaker": "jasper",
+        "text": "What sizes are currently available?",
+        "timestamp": "8:08:04 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "Sure, practice is tomorrow at 6 PM at the Training ground. Coach asked everyone to be there.",
+        "timestamp": "8:08:04 pm"
+      }
+    ],
+    "userDecision": null,
+    "contextMemory": {
+      "caller": "Coach Kumar",
+      "initialReason": "General Inquiry",
+      "currentTopic": "General Inquiry",
+      "importantDetails": [
+        "Initial inquiry logged",
+        "Practice tomorrow",
+        "Time: 6 PM",
+        "Location: Training ground"
+      ],
+      "commitments": [],
+      "decisions": [],
+      "openQuestions": [],
+      "detectedChanges": [],
+      "isConcluded": false,
+      "conclusionSummary": null
+    },
+    "transcript": [
+      {
+        "id": "turn-0",
+        "speaker": "caller",
+        "text": "We need to confirm jersey numbers for the championship.",
+        "timestamp": "8:08:04 pm",
+        "analysis": {
+          "intent": "General Inquiry",
+          "isQuestion": false,
+          "confirmationType": "none",
+          "keyDetailsFound": [
+            "Initial inquiry logged",
+            "Practice tomorrow",
+            "Time: 6 PM",
+            "Location: Training ground"
+          ],
+          "silentSuggestion": "Caller is screening. Awaiting your decision to Accept, Reject, or Ask JASPER to continue."
+        }
+      }
+    ],
+    "silentSuggestions": [
+      "Updated details received: 6 PM at Training ground.",
+      "Summary: The caller wants to We need to confirm jersey numbers for the championship..",
+      "Ready for your decision: Accept call, Reject, or instruct JASPER to ask follow-up questions."
+    ],
+    "metrics": {
+      "startTime": 1792247884612,
+      "durationSeconds": 0,
+      "totalTurns": 1,
+      "activeDurationFormatted": "00:00"
+    }
+  },
+  {
+    "callId": "test-call-1792247884514",
+    "caller": "Alex",
+    "phone": "+13055551234",
+    "contact": null,
+    "isVip": false,
+    "status": "waiting_decision",
+    "createdAt": "2026-10-17T14:38:04.516Z",
+    "displayTime": "8:08:04 pm",
+    "initialReason": "General Inquiry",
+    "screeningSummary": "The caller wants to Jwalant, this is Alex from Miami enterprise regarding the signing tonight..",
+    "screeningHistory": [
+      {
+        "speaker": "jasper",
+        "text": "Good day. You have reached Jwalant's private office. I am J.A.S.P.E.R., his personal AI assistant. May I ask who is calling and the reason for your call?",
+        "timestamp": "8:08:04 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "Hi Jwalant, this is Alex from Miami enterprise regarding the signing tonight.",
+        "timestamp": "8:08:04 pm"
+      }
+    ],
+    "userDecision": null,
+    "contextMemory": {
+      "caller": "Alex",
+      "initialReason": "General Inquiry",
+      "currentTopic": "General Inquiry",
+      "importantDetails": [
+        "Discussion tonight"
+      ],
+      "commitments": [],
+      "decisions": [],
+      "openQuestions": [],
+      "detectedChanges": [],
+      "isConcluded": false,
+      "conclusionSummary": null
+    },
+    "transcript": [
+      {
+        "id": "turn-0",
+        "speaker": "caller",
+        "text": "Hi Jwalant, this is Alex from Miami enterprise regarding the signing tonight.",
+        "timestamp": "8:08:04 pm",
+        "analysis": {
+          "intent": "General Inquiry",
+          "isQuestion": false,
+          "confirmationType": "none",
+          "keyDetailsFound": [
+            "Discussion tonight"
+          ],
+          "silentSuggestion": "Caller is screening. Awaiting your decision to Accept, Reject, or Ask JASPER to continue."
+        }
+      }
+    ],
+    "silentSuggestions": [
+      "Summary: The caller wants to Jwalant, this is Alex from Miami enterprise regarding the signing tonight..",
+      "Ready for your decision: Accept call, Reject, or instruct JASPER to ask follow-up questions."
+    ],
+    "metrics": {
+      "startTime": 1792247884601,
+      "durationSeconds": 0,
+      "totalTurns": 1,
+      "activeDurationFormatted": "00:00"
+    }
+  },
+  {
+    "callId": "test-call-nuance-1792247854497",
+    "caller": "Partner",
+    "phone": "",
+    "contact": null,
+    "isVip": false,
+    "status": "active_live",
+    "createdAt": "2026-10-17T14:37:34.498Z",
+    "displayTime": "8:07:34 pm",
+    "initialReason": "General Inquiry",
+    "screeningSummary": "The caller wants to Can you deliver the build by Thursday?.",
+    "screeningHistory": [
+      {
+        "speaker": "jasper",
+        "text": "Good day. You have reached Jwalant's private office. I am J.A.S.P.E.R., his personal AI assistant. May I ask who is calling and the reason for your call?",
+        "timestamp": "8:07:34 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "Can you deliver the build by Thursday?",
+        "timestamp": "8:07:34 pm"
+      },
+      {
+        "speaker": "jasper",
+        "text": "Connecting you to Jwalant right now. Please hold for one second.",
+        "timestamp": "8:07:34 pm"
+      }
+    ],
+    "userDecision": "accepted",
+    "contextMemory": {
+      "caller": "Partner",
+      "initialReason": "General Inquiry",
+      "currentTopic": "General Inquiry",
+      "importantDetails": [
+        "Initial inquiry logged",
+        "Time: 3 PM"
+      ],
+      "commitments": [
+        {
+          "topic": "Practice tomorrow at 6 PM",
+          "status": "definite",
+          "history": [
+            "tentative",
+            "definite"
+          ],
+          "lastUpdated": "8:07:34 pm",
+          "note": "Confirmed: Jwalant agreed to attend at 6 PM."
+        }
+      ],
+      "decisions": [
+        "Jwalant confirmed attendance for tomorrow at 6 PM."
+      ],
+      "openQuestions": [],
+      "detectedChanges": [],
+      "isConcluded": false,
+      "conclusionSummary": null
+    },
+    "transcript": [
+      {
+        "id": "turn-0",
+        "speaker": "caller",
+        "text": "Can you deliver the build by Thursday?",
+        "timestamp": "8:07:34 pm",
+        "analysis": {
+          "intent": "General Inquiry",
+          "isQuestion": false,
+          "confirmationType": "none",
+          "keyDetailsFound": [
+            "Initial inquiry logged",
+            "Time: 3 PM"
+          ],
+          "silentSuggestion": "Caller is screening. Awaiting your decision to Accept, Reject, or Ask JASPER to continue."
+        }
+      },
+      {
+        "id": "turn-1792247854529-fi5u",
+        "speaker": "jwalant",
+        "text": "Yeah, I think I can finish the QA testing by Thursday.",
+        "timestamp": "8:07:34 pm",
+        "analysis": {
+          "isQuestion": false,
+          "questionText": null,
+          "confirmationType": "tentative",
+          "commitmentNote": "Tentative confirmation: Jwalant indicated probable availability, NOT an absolute confirmation.",
+          "foundDetails": [],
+          "changeDetected": null,
+          "decisionMade": null,
+          "isConclusion": false,
+          "silentSuggestion": "⚡ Status: Tentative confirmation registered. Caller is likely to request a definite commitment."
+        }
+      },
+      {
+        "id": "turn-1792247854543-jww0",
+        "speaker": "jwalant",
+        "text": "Yes, definitely. I guarantee the build will be ready Thursday at 3 PM.",
+        "timestamp": "8:07:34 pm",
+        "analysis": {
+          "isQuestion": false,
+          "questionText": null,
+          "confirmationType": "definite",
+          "commitmentNote": "Confirmed: Jwalant agreed to attend at 6 PM.",
+          "foundDetails": [
+            "Time: 3 PM"
+          ],
+          "changeDetected": null,
+          "decisionMade": "Jwalant confirmed attendance for tomorrow at 6 PM.",
+          "isConclusion": false,
+          "silentSuggestion": "✅ Decision locked: Attendance confirmed. Added to your priority context."
+        }
+      }
+    ],
+    "silentSuggestions": [
+      "✅ Decision locked: Attendance confirmed. Added to your priority context.",
+      "⚡ Status: Tentative confirmation registered. Caller is likely to request a definite commitment.",
+      "Call connected. Live Call Intelligence active: monitoring context silently.",
+      "Summary: The caller wants to Can you deliver the build by Thursday?.",
+      "Ready for your decision: Accept call, Reject, or instruct JASPER to ask follow-up questions."
+    ],
+    "metrics": {
+      "startTime": 1792247854498,
+      "durationSeconds": 0,
+      "totalTurns": 3,
+      "activeDurationFormatted": "00:00",
+      "callConnectedAt": 1792247854515
+    }
+  },
+  {
+    "callId": "test-call-acc-1792247854438",
+    "caller": "Sarah",
+    "phone": "+919888877777",
+    "contact": null,
+    "isVip": false,
+    "status": "active_live",
+    "createdAt": "2026-10-17T14:37:34.439Z",
+    "displayTime": "8:07:34 pm",
+    "initialReason": "Schedule a meeting",
+    "screeningSummary": "The caller wants to coordinate an upcoming meeting with you.",
+    "screeningHistory": [
+      {
+        "speaker": "jasper",
+        "text": "Good day. You have reached Jwalant's private office. I am J.A.S.P.E.R., his personal AI assistant. May I ask who is calling and the reason for your call?",
+        "timestamp": "8:07:34 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "Calling about our design project deadline.",
+        "timestamp": "8:07:34 pm"
+      },
+      {
+        "speaker": "jasper",
+        "text": "Connecting you to Jwalant right now. Please hold for one second.",
+        "timestamp": "8:07:34 pm"
+      }
+    ],
+    "userDecision": "accepted",
+    "contextMemory": {
+      "caller": "Sarah",
+      "initialReason": "Schedule a meeting",
+      "currentTopic": "Schedule a meeting",
+      "importantDetails": [
+        "Initial inquiry logged"
+      ],
+      "commitments": [],
+      "decisions": [],
+      "openQuestions": [],
+      "detectedChanges": [],
+      "isConcluded": false,
+      "conclusionSummary": null
+    },
+    "transcript": [
+      {
+        "id": "turn-0",
+        "speaker": "caller",
+        "text": "Calling about our design project deadline.",
+        "timestamp": "8:07:34 pm",
+        "analysis": {
+          "intent": "Schedule a meeting",
+          "isQuestion": false,
+          "confirmationType": "none",
+          "keyDetailsFound": [
+            "Initial inquiry logged"
+          ],
+          "silentSuggestion": "Caller is screening. Awaiting your decision to Accept, Reject, or Ask JASPER to continue."
+        }
+      }
+    ],
+    "silentSuggestions": [
+      "Call connected. Live Call Intelligence active: monitoring context silently.",
+      "Summary: The caller wants to coordinate an upcoming meeting with you.",
+      "Ready for your decision: Accept call, Reject, or instruct JASPER to ask follow-up questions."
+    ],
+    "metrics": {
+      "startTime": 1792247854439,
+      "durationSeconds": 0,
+      "totalTurns": 1,
+      "activeDurationFormatted": "00:00",
+      "callConnectedAt": 1792247854486
+    }
+  },
+  {
+    "callId": "test-call-cont-1792247854420",
+    "caller": "Coach Kumar",
+    "phone": "+919999988888",
+    "contact": null,
+    "isVip": false,
+    "status": "waiting_decision",
+    "createdAt": "2026-10-17T14:37:34.421Z",
+    "displayTime": "8:07:34 pm",
+    "initialReason": "General Inquiry",
+    "screeningSummary": "The caller confirmed football practice tomorrow at 6 PM at the Training ground.",
+    "screeningHistory": [
+      {
+        "speaker": "jasper",
+        "text": "Good day. You have reached Jwalant's private office. I am J.A.S.P.E.R., his personal AI assistant. May I ask who is calling and the reason for your call?",
+        "timestamp": "8:07:34 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "We need to confirm jersey numbers for the championship.",
+        "timestamp": "8:07:34 pm"
+      },
+      {
+        "speaker": "jasper",
+        "text": "What sizes are currently available?",
+        "timestamp": "8:07:34 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "Sure, practice is tomorrow at 6 PM at the Training ground. Coach asked everyone to be there.",
+        "timestamp": "8:07:34 pm"
+      }
+    ],
+    "userDecision": null,
+    "contextMemory": {
+      "caller": "Coach Kumar",
+      "initialReason": "General Inquiry",
+      "currentTopic": "General Inquiry",
+      "importantDetails": [
+        "Initial inquiry logged",
+        "Practice tomorrow",
+        "Time: 6 PM",
+        "Location: Training ground"
+      ],
+      "commitments": [],
+      "decisions": [],
+      "openQuestions": [],
+      "detectedChanges": [],
+      "isConcluded": false,
+      "conclusionSummary": null
+    },
+    "transcript": [
+      {
+        "id": "turn-0",
+        "speaker": "caller",
+        "text": "We need to confirm jersey numbers for the championship.",
+        "timestamp": "8:07:34 pm",
+        "analysis": {
+          "intent": "General Inquiry",
+          "isQuestion": false,
+          "confirmationType": "none",
+          "keyDetailsFound": [
+            "Initial inquiry logged",
+            "Practice tomorrow",
+            "Time: 6 PM",
+            "Location: Training ground"
+          ],
+          "silentSuggestion": "Caller is screening. Awaiting your decision to Accept, Reject, or Ask JASPER to continue."
+        }
+      }
+    ],
+    "silentSuggestions": [
+      "Updated details received: 6 PM at Training ground.",
+      "Summary: The caller wants to We need to confirm jersey numbers for the championship..",
+      "Ready for your decision: Accept call, Reject, or instruct JASPER to ask follow-up questions."
+    ],
+    "metrics": {
+      "startTime": 1792247854421,
+      "durationSeconds": 0,
+      "totalTurns": 1,
+      "activeDurationFormatted": "00:00"
+    }
+  },
+  {
+    "callId": "test-call-1792247854138",
+    "caller": "Alex",
+    "phone": "+13055551234",
+    "contact": null,
+    "isVip": false,
+    "status": "waiting_decision",
+    "createdAt": "2026-10-17T14:37:34.140Z",
+    "displayTime": "8:07:34 pm",
+    "initialReason": "General Inquiry",
+    "screeningSummary": "The caller wants to Jwalant, this is Alex from Miami enterprise regarding the signing tonight..",
+    "screeningHistory": [
+      {
+        "speaker": "jasper",
+        "text": "Good day. You have reached Jwalant's private office. I am J.A.S.P.E.R., his personal AI assistant. May I ask who is calling and the reason for your call?",
+        "timestamp": "8:07:34 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "Hi Jwalant, this is Alex from Miami enterprise regarding the signing tonight.",
+        "timestamp": "8:07:34 pm"
+      }
+    ],
+    "userDecision": null,
+    "contextMemory": {
+      "caller": "Alex",
+      "initialReason": "General Inquiry",
+      "currentTopic": "General Inquiry",
+      "importantDetails": [
+        "Discussion tonight"
+      ],
+      "commitments": [],
+      "decisions": [],
+      "openQuestions": [],
+      "detectedChanges": [],
+      "isConcluded": false,
+      "conclusionSummary": null
+    },
+    "transcript": [
+      {
+        "id": "turn-0",
+        "speaker": "caller",
+        "text": "Hi Jwalant, this is Alex from Miami enterprise regarding the signing tonight.",
+        "timestamp": "8:07:34 pm",
+        "analysis": {
+          "intent": "General Inquiry",
+          "isQuestion": false,
+          "confirmationType": "none",
+          "keyDetailsFound": [
+            "Discussion tonight"
+          ],
+          "silentSuggestion": "Caller is screening. Awaiting your decision to Accept, Reject, or Ask JASPER to continue."
+        }
+      }
+    ],
+    "silentSuggestions": [
+      "Summary: The caller wants to Jwalant, this is Alex from Miami enterprise regarding the signing tonight..",
+      "Ready for your decision: Accept call, Reject, or instruct JASPER to ask follow-up questions."
+    ],
+    "metrics": {
+      "startTime": 1792247854401,
+      "durationSeconds": 0,
+      "totalTurns": 1,
+      "activeDurationFormatted": "00:00"
+    }
+  },
+  {
+    "callId": "test-call-nuance-1792247759716",
+    "caller": "Partner",
+    "phone": "",
+    "contact": null,
+    "isVip": false,
+    "status": "active_live",
+    "createdAt": "2026-10-17T14:35:59.717Z",
+    "displayTime": "8:05:59 pm",
+    "initialReason": "General Inquiry",
+    "screeningSummary": "The caller wants to Can you deliver the build by Thursday?.",
+    "screeningHistory": [
+      {
+        "speaker": "jasper",
+        "text": "Good day. You have reached Jwalant's private office. I am J.A.S.P.E.R., his personal AI assistant. May I ask who is calling and the reason for your call?",
+        "timestamp": "8:05:59 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "Can you deliver the build by Thursday?",
+        "timestamp": "8:05:59 pm"
+      },
+      {
+        "speaker": "jasper",
+        "text": "Connecting you to Jwalant right now. Please hold for one second.",
+        "timestamp": "8:05:59 pm"
+      }
+    ],
+    "userDecision": "accepted",
+    "contextMemory": {
+      "caller": "Partner",
+      "initialReason": "General Inquiry",
+      "currentTopic": "General Inquiry",
+      "importantDetails": [
+        "Initial inquiry logged",
+        "Time: 3 PM"
+      ],
+      "commitments": [
+        {
+          "topic": "Practice tomorrow at 6 PM",
+          "status": "definite",
+          "history": [
+            "tentative",
+            "definite"
+          ],
+          "lastUpdated": "8:05:59 pm",
+          "note": "Confirmed: Jwalant agreed to attend at 6 PM."
+        }
+      ],
+      "decisions": [
+        "Jwalant confirmed attendance for tomorrow at 6 PM."
+      ],
+      "openQuestions": [],
+      "detectedChanges": [],
+      "isConcluded": false,
+      "conclusionSummary": null
+    },
+    "transcript": [
+      {
+        "id": "turn-0",
+        "speaker": "caller",
+        "text": "Can you deliver the build by Thursday?",
+        "timestamp": "8:05:59 pm",
+        "analysis": {
+          "intent": "General Inquiry",
+          "isQuestion": false,
+          "confirmationType": "none",
+          "keyDetailsFound": [
+            "Initial inquiry logged",
+            "Time: 3 PM"
+          ],
+          "silentSuggestion": "Caller is screening. Awaiting your decision to Accept, Reject, or Ask JASPER to continue."
+        }
+      },
+      {
+        "id": "turn-1792247759731-kpny",
+        "speaker": "jwalant",
+        "text": "Yeah, I think I can finish the QA testing by Thursday.",
+        "timestamp": "8:05:59 pm",
+        "analysis": {
+          "isQuestion": false,
+          "questionText": null,
+          "confirmationType": "tentative",
+          "commitmentNote": "Tentative confirmation: Jwalant indicated probable availability, NOT an absolute confirmation.",
+          "foundDetails": [],
+          "changeDetected": null,
+          "decisionMade": null,
+          "isConclusion": false,
+          "silentSuggestion": "⚡ Status: Tentative confirmation registered. Caller is likely to request a definite commitment."
+        }
+      },
+      {
+        "id": "turn-1792247759735-jiwb",
+        "speaker": "jwalant",
+        "text": "Yes, definitely. I guarantee the build will be ready Thursday at 3 PM.",
+        "timestamp": "8:05:59 pm",
+        "analysis": {
+          "isQuestion": false,
+          "questionText": null,
+          "confirmationType": "definite",
+          "commitmentNote": "Confirmed: Jwalant agreed to attend at 6 PM.",
+          "foundDetails": [
+            "Time: 3 PM"
+          ],
+          "changeDetected": null,
+          "decisionMade": "Jwalant confirmed attendance for tomorrow at 6 PM.",
+          "isConclusion": false,
+          "silentSuggestion": "✅ Decision locked: Attendance confirmed. Added to your priority context."
+        }
+      }
+    ],
+    "silentSuggestions": [
+      "✅ Decision locked: Attendance confirmed. Added to your priority context.",
+      "⚡ Status: Tentative confirmation registered. Caller is likely to request a definite commitment.",
+      "Call connected. Live Call Intelligence active: monitoring context silently.",
+      "Summary: The caller wants to Can you deliver the build by Thursday?.",
+      "Ready for your decision: Accept call, Reject, or instruct JASPER to ask follow-up questions."
+    ],
+    "metrics": {
+      "startTime": 1792247759717,
+      "durationSeconds": 0,
+      "totalTurns": 3,
+      "activeDurationFormatted": "00:00",
+      "callConnectedAt": 1792247759722
+    }
+  },
+  {
+    "callId": "test-call-acc-1792247759705",
+    "caller": "Sarah",
+    "phone": "+919888877777",
+    "contact": null,
+    "isVip": false,
+    "status": "active_live",
+    "createdAt": "2026-10-17T14:35:59.705Z",
+    "displayTime": "8:05:59 pm",
+    "initialReason": "Schedule a meeting",
+    "screeningSummary": "The caller wants to coordinate an upcoming meeting with you.",
+    "screeningHistory": [
+      {
+        "speaker": "jasper",
+        "text": "Good day. You have reached Jwalant's private office. I am J.A.S.P.E.R., his personal AI assistant. May I ask who is calling and the reason for your call?",
+        "timestamp": "8:05:59 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "Calling about our design project deadline.",
+        "timestamp": "8:05:59 pm"
+      },
+      {
+        "speaker": "jasper",
+        "text": "Connecting you to Jwalant right now. Please hold for one second.",
+        "timestamp": "8:05:59 pm"
+      }
+    ],
+    "userDecision": "accepted",
+    "contextMemory": {
+      "caller": "Sarah",
+      "initialReason": "Schedule a meeting",
+      "currentTopic": "Schedule a meeting",
+      "importantDetails": [
+        "Initial inquiry logged"
+      ],
+      "commitments": [],
+      "decisions": [],
+      "openQuestions": [],
+      "detectedChanges": [],
+      "isConcluded": false,
+      "conclusionSummary": null
+    },
+    "transcript": [
+      {
+        "id": "turn-0",
+        "speaker": "caller",
+        "text": "Calling about our design project deadline.",
+        "timestamp": "8:05:59 pm",
+        "analysis": {
+          "intent": "Schedule a meeting",
+          "isQuestion": false,
+          "confirmationType": "none",
+          "keyDetailsFound": [
+            "Initial inquiry logged"
+          ],
+          "silentSuggestion": "Caller is screening. Awaiting your decision to Accept, Reject, or Ask JASPER to continue."
+        }
+      }
+    ],
+    "silentSuggestions": [
+      "Call connected. Live Call Intelligence active: monitoring context silently.",
+      "Summary: The caller wants to coordinate an upcoming meeting with you.",
+      "Ready for your decision: Accept call, Reject, or instruct JASPER to ask follow-up questions."
+    ],
+    "metrics": {
+      "startTime": 1792247759706,
+      "durationSeconds": 0,
+      "totalTurns": 1,
+      "activeDurationFormatted": "00:00",
+      "callConnectedAt": 1792247759710
+    }
+  },
+  {
+    "callId": "test-call-cont-1792247759695",
+    "caller": "Coach Kumar",
+    "phone": "+919999988888",
+    "contact": null,
+    "isVip": false,
+    "status": "waiting_decision",
+    "createdAt": "2026-10-17T14:35:59.695Z",
+    "displayTime": "8:05:59 pm",
+    "initialReason": "General Inquiry",
+    "screeningSummary": "The caller confirmed football practice tomorrow at 6 PM at the Training ground.",
+    "screeningHistory": [
+      {
+        "speaker": "jasper",
+        "text": "Good day. You have reached Jwalant's private office. I am J.A.S.P.E.R., his personal AI assistant. May I ask who is calling and the reason for your call?",
+        "timestamp": "8:05:59 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "We need to confirm jersey numbers for the championship.",
+        "timestamp": "8:05:59 pm"
+      },
+      {
+        "speaker": "jasper",
+        "text": "What sizes are currently available?",
+        "timestamp": "8:05:59 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "Sure, practice is tomorrow at 6 PM at the Training ground. Coach asked everyone to be there.",
+        "timestamp": "8:05:59 pm"
+      }
+    ],
+    "userDecision": null,
+    "contextMemory": {
+      "caller": "Coach Kumar",
+      "initialReason": "General Inquiry",
+      "currentTopic": "General Inquiry",
+      "importantDetails": [
+        "Initial inquiry logged",
+        "Practice tomorrow",
+        "Time: 6 PM",
+        "Location: Training ground"
+      ],
+      "commitments": [],
+      "decisions": [],
+      "openQuestions": [],
+      "detectedChanges": [],
+      "isConcluded": false,
+      "conclusionSummary": null
+    },
+    "transcript": [
+      {
+        "id": "turn-0",
+        "speaker": "caller",
+        "text": "We need to confirm jersey numbers for the championship.",
+        "timestamp": "8:05:59 pm",
+        "analysis": {
+          "intent": "General Inquiry",
+          "isQuestion": false,
+          "confirmationType": "none",
+          "keyDetailsFound": [
+            "Initial inquiry logged",
+            "Practice tomorrow",
+            "Time: 6 PM",
+            "Location: Training ground"
+          ],
+          "silentSuggestion": "Caller is screening. Awaiting your decision to Accept, Reject, or Ask JASPER to continue."
+        }
+      }
+    ],
+    "silentSuggestions": [
+      "Updated details received: 6 PM at Training ground.",
+      "Summary: The caller wants to We need to confirm jersey numbers for the championship..",
+      "Ready for your decision: Accept call, Reject, or instruct JASPER to ask follow-up questions."
+    ],
+    "metrics": {
+      "startTime": 1792247759695,
+      "durationSeconds": 0,
+      "totalTurns": 1,
+      "activeDurationFormatted": "00:00"
+    }
+  },
+  {
+    "callId": "test-call-1792247759639",
+    "caller": "Alex",
+    "phone": "+13055551234",
+    "contact": null,
+    "isVip": false,
+    "status": "waiting_decision",
+    "createdAt": "2026-10-17T14:35:59.640Z",
+    "displayTime": "8:05:59 pm",
+    "initialReason": "General Inquiry",
+    "screeningSummary": "The caller wants to Jwalant, this is Alex from Miami enterprise regarding the signing tonight..",
+    "screeningHistory": [
+      {
+        "speaker": "jasper",
+        "text": "Good day. You have reached Jwalant's private office. I am J.A.S.P.E.R., his personal AI assistant. May I ask who is calling and the reason for your call?",
+        "timestamp": "8:05:59 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "Hi Jwalant, this is Alex from Miami enterprise regarding the signing tonight.",
+        "timestamp": "8:05:59 pm"
+      }
+    ],
+    "userDecision": null,
+    "contextMemory": {
+      "caller": "Alex",
+      "initialReason": "General Inquiry",
+      "currentTopic": "General Inquiry",
+      "importantDetails": [
+        "Discussion tonight"
+      ],
+      "commitments": [],
+      "decisions": [],
+      "openQuestions": [],
+      "detectedChanges": [],
+      "isConcluded": false,
+      "conclusionSummary": null
+    },
+    "transcript": [
+      {
+        "id": "turn-0",
+        "speaker": "caller",
+        "text": "Hi Jwalant, this is Alex from Miami enterprise regarding the signing tonight.",
+        "timestamp": "8:05:59 pm",
+        "analysis": {
+          "intent": "General Inquiry",
+          "isQuestion": false,
+          "confirmationType": "none",
+          "keyDetailsFound": [
+            "Discussion tonight"
+          ],
+          "silentSuggestion": "Caller is screening. Awaiting your decision to Accept, Reject, or Ask JASPER to continue."
+        }
+      }
+    ],
+    "silentSuggestions": [
+      "Summary: The caller wants to Jwalant, this is Alex from Miami enterprise regarding the signing tonight..",
+      "Ready for your decision: Accept call, Reject, or instruct JASPER to ask follow-up questions."
+    ],
+    "metrics": {
+      "startTime": 1792247759683,
+      "durationSeconds": 0,
+      "totalTurns": 1,
+      "activeDurationFormatted": "00:00"
+    }
+  },
+  {
+    "callId": "test-call-nuance-1792240290277",
+    "caller": "Partner",
+    "phone": "",
+    "contact": null,
+    "isVip": false,
+    "status": "active_live",
+    "createdAt": "2026-10-17T12:31:30.277Z",
+    "displayTime": "6:01:30 pm",
+    "initialReason": "General Inquiry",
+    "screeningSummary": "The caller wants to Can you deliver the build by Thursday?.",
+    "screeningHistory": [
+      {
+        "speaker": "jasper",
+        "text": "Good day. You have reached Jwalant's private office. I am J.A.S.P.E.R., his personal AI assistant. May I ask who is calling and the reason for your call?",
+        "timestamp": "6:01:30 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "Can you deliver the build by Thursday?",
+        "timestamp": "6:01:30 pm"
+      },
+      {
+        "speaker": "jasper",
+        "text": "Connecting you to Jwalant right now. Please hold for one second.",
+        "timestamp": "6:01:30 pm"
+      }
+    ],
+    "userDecision": "accepted",
+    "contextMemory": {
+      "caller": "Partner",
+      "initialReason": "General Inquiry",
+      "currentTopic": "General Inquiry",
+      "importantDetails": [
+        "Initial inquiry logged",
+        "Time: 3 PM"
+      ],
+      "commitments": [
+        {
+          "topic": "Practice tomorrow at 6 PM",
+          "status": "definite",
+          "history": [
+            "tentative",
+            "definite"
+          ],
+          "lastUpdated": "6:01:30 pm",
+          "note": "Confirmed: Jwalant agreed to attend at 6 PM."
+        }
+      ],
+      "decisions": [
+        "Jwalant confirmed attendance for tomorrow at 6 PM."
+      ],
+      "openQuestions": [],
+      "detectedChanges": [],
+      "isConcluded": false,
+      "conclusionSummary": null
+    },
+    "transcript": [
+      {
+        "id": "turn-0",
+        "speaker": "caller",
+        "text": "Can you deliver the build by Thursday?",
+        "timestamp": "6:01:30 pm",
+        "analysis": {
+          "intent": "General Inquiry",
+          "isQuestion": false,
+          "confirmationType": "none",
+          "keyDetailsFound": [
+            "Initial inquiry logged",
+            "Time: 3 PM"
+          ],
+          "silentSuggestion": "Caller is screening. Awaiting your decision to Accept, Reject, or Ask JASPER to continue."
+        }
+      },
+      {
+        "id": "turn-1792240290291-0lsx",
+        "speaker": "jwalant",
+        "text": "Yeah, I think I can finish the QA testing by Thursday.",
+        "timestamp": "6:01:30 pm",
+        "analysis": {
+          "isQuestion": false,
+          "questionText": null,
+          "confirmationType": "tentative",
+          "commitmentNote": "Tentative confirmation: Jwalant indicated probable availability, NOT an absolute confirmation.",
+          "foundDetails": [],
+          "changeDetected": null,
+          "decisionMade": null,
+          "isConclusion": false,
+          "silentSuggestion": "⚡ Status: Tentative confirmation registered. Caller is likely to request a definite commitment."
+        }
+      },
+      {
+        "id": "turn-1792240290297-l9v2",
+        "speaker": "jwalant",
+        "text": "Yes, definitely. I guarantee the build will be ready Thursday at 3 PM.",
+        "timestamp": "6:01:30 pm",
+        "analysis": {
+          "isQuestion": false,
+          "questionText": null,
+          "confirmationType": "definite",
+          "commitmentNote": "Confirmed: Jwalant agreed to attend at 6 PM.",
+          "foundDetails": [
+            "Time: 3 PM"
+          ],
+          "changeDetected": null,
+          "decisionMade": "Jwalant confirmed attendance for tomorrow at 6 PM.",
+          "isConclusion": false,
+          "silentSuggestion": "✅ Decision locked: Attendance confirmed. Added to your priority context."
+        }
+      }
+    ],
+    "silentSuggestions": [
+      "✅ Decision locked: Attendance confirmed. Added to your priority context.",
+      "⚡ Status: Tentative confirmation registered. Caller is likely to request a definite commitment.",
+      "Call connected. Live Call Intelligence active: monitoring context silently.",
+      "Summary: The caller wants to Can you deliver the build by Thursday?.",
+      "Ready for your decision: Accept call, Reject, or instruct JASPER to ask follow-up questions."
+    ],
+    "metrics": {
+      "startTime": 1792240290277,
+      "durationSeconds": 0,
+      "totalTurns": 3,
+      "activeDurationFormatted": "00:00",
+      "callConnectedAt": 1792240290283
+    }
+  },
+  {
+    "callId": "test-call-acc-1792240290265",
+    "caller": "Sarah",
+    "phone": "+919888877777",
+    "contact": null,
+    "isVip": false,
+    "status": "active_live",
+    "createdAt": "2026-10-17T12:31:30.266Z",
+    "displayTime": "6:01:30 pm",
+    "initialReason": "Schedule a meeting",
+    "screeningSummary": "The caller wants to coordinate an upcoming meeting with you.",
+    "screeningHistory": [
+      {
+        "speaker": "jasper",
+        "text": "Good day. You have reached Jwalant's private office. I am J.A.S.P.E.R., his personal AI assistant. May I ask who is calling and the reason for your call?",
+        "timestamp": "6:01:30 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "Calling about our design project deadline.",
+        "timestamp": "6:01:30 pm"
+      },
+      {
+        "speaker": "jasper",
+        "text": "Connecting you to Jwalant right now. Please hold for one second.",
+        "timestamp": "6:01:30 pm"
+      }
+    ],
+    "userDecision": "accepted",
+    "contextMemory": {
+      "caller": "Sarah",
+      "initialReason": "Schedule a meeting",
+      "currentTopic": "Schedule a meeting",
+      "importantDetails": [
+        "Initial inquiry logged"
+      ],
+      "commitments": [],
+      "decisions": [],
+      "openQuestions": [],
+      "detectedChanges": [],
+      "isConcluded": false,
+      "conclusionSummary": null
+    },
+    "transcript": [
+      {
+        "id": "turn-0",
+        "speaker": "caller",
+        "text": "Calling about our design project deadline.",
+        "timestamp": "6:01:30 pm",
+        "analysis": {
+          "intent": "Schedule a meeting",
+          "isQuestion": false,
+          "confirmationType": "none",
+          "keyDetailsFound": [
+            "Initial inquiry logged"
+          ],
+          "silentSuggestion": "Caller is screening. Awaiting your decision to Accept, Reject, or Ask JASPER to continue."
+        }
+      }
+    ],
+    "silentSuggestions": [
+      "Call connected. Live Call Intelligence active: monitoring context silently.",
+      "Summary: The caller wants to coordinate an upcoming meeting with you.",
+      "Ready for your decision: Accept call, Reject, or instruct JASPER to ask follow-up questions."
+    ],
+    "metrics": {
+      "startTime": 1792240290266,
+      "durationSeconds": 0,
+      "totalTurns": 1,
+      "activeDurationFormatted": "00:00",
+      "callConnectedAt": 1792240290271
+    }
+  },
+  {
+    "callId": "test-call-cont-1792240290254",
+    "caller": "Coach Kumar",
+    "phone": "+919999988888",
+    "contact": null,
+    "isVip": false,
+    "status": "waiting_decision",
+    "createdAt": "2026-10-17T12:31:30.255Z",
+    "displayTime": "6:01:30 pm",
+    "initialReason": "General Inquiry",
+    "screeningSummary": "The caller confirmed football practice tomorrow at 6 PM at the Training ground.",
+    "screeningHistory": [
+      {
+        "speaker": "jasper",
+        "text": "Good day. You have reached Jwalant's private office. I am J.A.S.P.E.R., his personal AI assistant. May I ask who is calling and the reason for your call?",
+        "timestamp": "6:01:30 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "We need to confirm jersey numbers for the championship.",
+        "timestamp": "6:01:30 pm"
+      },
+      {
+        "speaker": "jasper",
+        "text": "What sizes are currently available?",
+        "timestamp": "6:01:30 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "Sure, practice is tomorrow at 6 PM at the Training ground. Coach asked everyone to be there.",
+        "timestamp": "6:01:30 pm"
+      }
+    ],
+    "userDecision": null,
+    "contextMemory": {
+      "caller": "Coach Kumar",
+      "initialReason": "General Inquiry",
+      "currentTopic": "General Inquiry",
+      "importantDetails": [
+        "Initial inquiry logged",
+        "Practice tomorrow",
+        "Time: 6 PM",
+        "Location: Training ground"
+      ],
+      "commitments": [],
+      "decisions": [],
+      "openQuestions": [],
+      "detectedChanges": [],
+      "isConcluded": false,
+      "conclusionSummary": null
+    },
+    "transcript": [
+      {
+        "id": "turn-0",
+        "speaker": "caller",
+        "text": "We need to confirm jersey numbers for the championship.",
+        "timestamp": "6:01:30 pm",
+        "analysis": {
+          "intent": "General Inquiry",
+          "isQuestion": false,
+          "confirmationType": "none",
+          "keyDetailsFound": [
+            "Initial inquiry logged",
+            "Practice tomorrow",
+            "Time: 6 PM",
+            "Location: Training ground"
+          ],
+          "silentSuggestion": "Caller is screening. Awaiting your decision to Accept, Reject, or Ask JASPER to continue."
+        }
+      }
+    ],
+    "silentSuggestions": [
+      "Updated details received: 6 PM at Training ground.",
+      "Summary: The caller wants to We need to confirm jersey numbers for the championship..",
+      "Ready for your decision: Accept call, Reject, or instruct JASPER to ask follow-up questions."
+    ],
+    "metrics": {
+      "startTime": 1792240290255,
+      "durationSeconds": 0,
+      "totalTurns": 1,
+      "activeDurationFormatted": "00:00"
+    }
+  },
+  {
+    "callId": "test-call-1792240290095",
+    "caller": "Alex",
+    "phone": "+13055551234",
+    "contact": null,
+    "isVip": false,
+    "status": "waiting_decision",
+    "createdAt": "2026-10-17T12:31:30.096Z",
+    "displayTime": "6:01:30 pm",
+    "initialReason": "General Inquiry",
+    "screeningSummary": "The caller wants to Jwalant, this is Alex from Miami enterprise regarding the signing tonight..",
+    "screeningHistory": [
+      {
+        "speaker": "jasper",
+        "text": "Good day. You have reached Jwalant's private office. I am J.A.S.P.E.R., his personal AI assistant. May I ask who is calling and the reason for your call?",
+        "timestamp": "6:01:30 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "Hi Jwalant, this is Alex from Miami enterprise regarding the signing tonight.",
+        "timestamp": "6:01:30 pm"
+      }
+    ],
+    "userDecision": null,
+    "contextMemory": {
+      "caller": "Alex",
+      "initialReason": "General Inquiry",
+      "currentTopic": "General Inquiry",
+      "importantDetails": [
+        "Discussion tonight"
+      ],
+      "commitments": [],
+      "decisions": [],
+      "openQuestions": [],
+      "detectedChanges": [],
+      "isConcluded": false,
+      "conclusionSummary": null
+    },
+    "transcript": [
+      {
+        "id": "turn-0",
+        "speaker": "caller",
+        "text": "Hi Jwalant, this is Alex from Miami enterprise regarding the signing tonight.",
+        "timestamp": "6:01:30 pm",
+        "analysis": {
+          "intent": "General Inquiry",
+          "isQuestion": false,
+          "confirmationType": "none",
+          "keyDetailsFound": [
+            "Discussion tonight"
+          ],
+          "silentSuggestion": "Caller is screening. Awaiting your decision to Accept, Reject, or Ask JASPER to continue."
+        }
+      }
+    ],
+    "silentSuggestions": [
+      "Summary: The caller wants to Jwalant, this is Alex from Miami enterprise regarding the signing tonight..",
+      "Ready for your decision: Accept call, Reject, or instruct JASPER to ask follow-up questions."
+    ],
+    "metrics": {
+      "startTime": 1792240290246,
+      "durationSeconds": 0,
+      "totalTurns": 1,
+      "activeDurationFormatted": "00:00"
+    }
+  },
+  {
+    "callId": "test-call-nuance-1792240263835",
+    "caller": "Partner",
+    "phone": "",
+    "contact": null,
+    "isVip": false,
+    "status": "active_live",
+    "createdAt": "2026-10-17T12:31:03.835Z",
+    "displayTime": "6:01:03 pm",
+    "initialReason": "General Inquiry",
+    "screeningSummary": "The caller wants to Can you deliver the build by Thursday?.",
+    "screeningHistory": [
+      {
+        "speaker": "jasper",
+        "text": "Good day. You have reached Jwalant's private office. I am J.A.S.P.E.R., his personal AI assistant. May I ask who is calling and the reason for your call?",
+        "timestamp": "6:01:03 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "Can you deliver the build by Thursday?",
+        "timestamp": "6:01:03 pm"
+      },
+      {
+        "speaker": "jasper",
+        "text": "Connecting you to Jwalant right now. Please hold for one second.",
+        "timestamp": "6:01:03 pm"
+      }
+    ],
+    "userDecision": "accepted",
+    "contextMemory": {
+      "caller": "Partner",
+      "initialReason": "General Inquiry",
+      "currentTopic": "General Inquiry",
+      "importantDetails": [
+        "Initial inquiry logged",
+        "Time: 3 PM"
+      ],
+      "commitments": [],
+      "decisions": [],
+      "openQuestions": [],
+      "detectedChanges": [],
+      "isConcluded": false,
+      "conclusionSummary": null
+    },
+    "transcript": [
+      {
+        "id": "turn-0",
+        "speaker": "caller",
+        "text": "Can you deliver the build by Thursday?",
+        "timestamp": "6:01:03 pm",
+        "analysis": {
+          "intent": "General Inquiry",
+          "isQuestion": false,
+          "confirmationType": "none",
+          "keyDetailsFound": [
+            "Initial inquiry logged",
+            "Time: 3 PM"
+          ],
+          "silentSuggestion": "Caller is screening. Awaiting your decision to Accept, Reject, or Ask JASPER to continue."
+        }
+      },
+      {
+        "id": "turn-1792240263848-7qg1",
+        "speaker": "jwalant",
+        "text": "Yeah, I think I can finish the QA testing by Thursday.",
+        "timestamp": "6:01:03 pm",
+        "analysis": {
+          "isQuestion": false,
+          "questionText": null,
+          "confirmationType": "none",
+          "commitmentNote": null,
+          "foundDetails": [],
+          "changeDetected": null,
+          "decisionMade": null,
+          "isConclusion": false,
+          "silentSuggestion": null
+        }
+      },
+      {
+        "id": "turn-1792240263853-ecjk",
+        "speaker": "jwalant",
+        "text": "Yes, definitely. I guarantee the build will be ready Thursday at 3 PM.",
+        "timestamp": "6:01:03 pm",
+        "analysis": {
+          "isQuestion": false,
+          "questionText": null,
+          "confirmationType": "none",
+          "commitmentNote": null,
+          "foundDetails": [
+            "Time: 3 PM"
+          ],
+          "changeDetected": null,
+          "decisionMade": null,
+          "isConclusion": false,
+          "silentSuggestion": null
+        }
+      }
+    ],
+    "silentSuggestions": [
+      "Call connected. Live Call Intelligence active: monitoring context silently.",
+      "Summary: The caller wants to Can you deliver the build by Thursday?.",
+      "Ready for your decision: Accept call, Reject, or instruct JASPER to ask follow-up questions."
+    ],
+    "metrics": {
+      "startTime": 1792240263836,
+      "durationSeconds": 0,
+      "totalTurns": 3,
+      "activeDurationFormatted": "00:00",
+      "callConnectedAt": 1792240263840
+    }
+  },
+  {
+    "callId": "test-call-acc-1792240263824",
+    "caller": "Sarah",
+    "phone": "+919888877777",
+    "contact": null,
+    "isVip": false,
+    "status": "active_live",
+    "createdAt": "2026-10-17T12:31:03.825Z",
+    "displayTime": "6:01:03 pm",
+    "initialReason": "Schedule a meeting",
+    "screeningSummary": "The caller wants to coordinate an upcoming meeting with you.",
+    "screeningHistory": [
+      {
+        "speaker": "jasper",
+        "text": "Good day. You have reached Jwalant's private office. I am J.A.S.P.E.R., his personal AI assistant. May I ask who is calling and the reason for your call?",
+        "timestamp": "6:01:03 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "Calling about our design project deadline.",
+        "timestamp": "6:01:03 pm"
+      },
+      {
+        "speaker": "jasper",
+        "text": "Connecting you to Jwalant right now. Please hold for one second.",
+        "timestamp": "6:01:03 pm"
+      }
+    ],
+    "userDecision": "accepted",
+    "contextMemory": {
+      "caller": "Sarah",
+      "initialReason": "Schedule a meeting",
+      "currentTopic": "Schedule a meeting",
+      "importantDetails": [
+        "Initial inquiry logged"
+      ],
+      "commitments": [],
+      "decisions": [],
+      "openQuestions": [],
+      "detectedChanges": [],
+      "isConcluded": false,
+      "conclusionSummary": null
+    },
+    "transcript": [
+      {
+        "id": "turn-0",
+        "speaker": "caller",
+        "text": "Calling about our design project deadline.",
+        "timestamp": "6:01:03 pm",
+        "analysis": {
+          "intent": "Schedule a meeting",
+          "isQuestion": false,
+          "confirmationType": "none",
+          "keyDetailsFound": [
+            "Initial inquiry logged"
+          ],
+          "silentSuggestion": "Caller is screening. Awaiting your decision to Accept, Reject, or Ask JASPER to continue."
+        }
+      }
+    ],
+    "silentSuggestions": [
+      "Call connected. Live Call Intelligence active: monitoring context silently.",
+      "Summary: The caller wants to coordinate an upcoming meeting with you.",
+      "Ready for your decision: Accept call, Reject, or instruct JASPER to ask follow-up questions."
+    ],
+    "metrics": {
+      "startTime": 1792240263825,
+      "durationSeconds": 0,
+      "totalTurns": 1,
+      "activeDurationFormatted": "00:00",
+      "callConnectedAt": 1792240263830
+    }
+  },
+  {
+    "callId": "test-call-cont-1792240263813",
+    "caller": "Coach Kumar",
+    "phone": "+919999988888",
+    "contact": null,
+    "isVip": false,
+    "status": "waiting_decision",
+    "createdAt": "2026-10-17T12:31:03.814Z",
+    "displayTime": "6:01:03 pm",
+    "initialReason": "General Inquiry",
+    "screeningSummary": "The caller confirmed football practice tomorrow at 6 PM at the Training ground.",
+    "screeningHistory": [
+      {
+        "speaker": "jasper",
+        "text": "Good day. You have reached Jwalant's private office. I am J.A.S.P.E.R., his personal AI assistant. May I ask who is calling and the reason for your call?",
+        "timestamp": "6:01:03 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "We need to confirm jersey numbers for the championship.",
+        "timestamp": "6:01:03 pm"
+      },
+      {
+        "speaker": "jasper",
+        "text": "What sizes are currently available?",
+        "timestamp": "6:01:03 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "Sure, practice is tomorrow at 6 PM at the Training ground. Coach asked everyone to be there.",
+        "timestamp": "6:01:03 pm"
+      }
+    ],
+    "userDecision": null,
+    "contextMemory": {
+      "caller": "Coach Kumar",
+      "initialReason": "General Inquiry",
+      "currentTopic": "General Inquiry",
+      "importantDetails": [
+        "Initial inquiry logged",
+        "Practice tomorrow",
+        "Time: 6 PM",
+        "Location: Training ground"
+      ],
+      "commitments": [],
+      "decisions": [],
+      "openQuestions": [],
+      "detectedChanges": [],
+      "isConcluded": false,
+      "conclusionSummary": null
+    },
+    "transcript": [
+      {
+        "id": "turn-0",
+        "speaker": "caller",
+        "text": "We need to confirm jersey numbers for the championship.",
+        "timestamp": "6:01:03 pm",
+        "analysis": {
+          "intent": "General Inquiry",
+          "isQuestion": false,
+          "confirmationType": "none",
+          "keyDetailsFound": [
+            "Initial inquiry logged",
+            "Practice tomorrow",
+            "Time: 6 PM",
+            "Location: Training ground"
+          ],
+          "silentSuggestion": "Caller is screening. Awaiting your decision to Accept, Reject, or Ask JASPER to continue."
+        }
+      }
+    ],
+    "silentSuggestions": [
+      "Updated details received: 6 PM at Training ground.",
+      "Summary: The caller wants to We need to confirm jersey numbers for the championship..",
+      "Ready for your decision: Accept call, Reject, or instruct JASPER to ask follow-up questions."
+    ],
+    "metrics": {
+      "startTime": 1792240263814,
+      "durationSeconds": 0,
+      "totalTurns": 1,
+      "activeDurationFormatted": "00:00"
+    }
+  },
+  {
+    "callId": "test-call-1792240263754",
+    "caller": "Alex",
+    "phone": "+13055551234",
+    "contact": null,
+    "isVip": false,
+    "status": "waiting_decision",
+    "createdAt": "2026-10-17T12:31:03.755Z",
+    "displayTime": "6:01:03 pm",
+    "initialReason": "General Inquiry",
+    "screeningSummary": "The caller wants to Jwalant, this is Alex from Miami enterprise regarding the signing tonight..",
+    "screeningHistory": [
+      {
+        "speaker": "jasper",
+        "text": "Good day. You have reached Jwalant's private office. I am J.A.S.P.E.R., his personal AI assistant. May I ask who is calling and the reason for your call?",
+        "timestamp": "6:01:03 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "Hi Jwalant, this is Alex from Miami enterprise regarding the signing tonight.",
+        "timestamp": "6:01:03 pm"
+      }
+    ],
+    "userDecision": null,
+    "contextMemory": {
+      "caller": "Alex",
+      "initialReason": "General Inquiry",
+      "currentTopic": "General Inquiry",
+      "importantDetails": [
+        "Discussion tonight"
+      ],
+      "commitments": [],
+      "decisions": [],
+      "openQuestions": [],
+      "detectedChanges": [],
+      "isConcluded": false,
+      "conclusionSummary": null
+    },
+    "transcript": [
+      {
+        "id": "turn-0",
+        "speaker": "caller",
+        "text": "Hi Jwalant, this is Alex from Miami enterprise regarding the signing tonight.",
+        "timestamp": "6:01:03 pm",
+        "analysis": {
+          "intent": "General Inquiry",
+          "isQuestion": false,
+          "confirmationType": "none",
+          "keyDetailsFound": [
+            "Discussion tonight"
+          ],
+          "silentSuggestion": "Caller is screening. Awaiting your decision to Accept, Reject, or Ask JASPER to continue."
+        }
+      }
+    ],
+    "silentSuggestions": [
+      "Summary: The caller wants to Jwalant, this is Alex from Miami enterprise regarding the signing tonight..",
+      "Ready for your decision: Accept call, Reject, or instruct JASPER to ask follow-up questions."
+    ],
+    "metrics": {
+      "startTime": 1792240263806,
+      "durationSeconds": 0,
+      "totalTurns": 1,
+      "activeDurationFormatted": "00:00"
+    }
+  },
+  {
+    "callId": "test-call-nuance-1792240231907",
+    "caller": "Partner",
+    "phone": "",
+    "contact": null,
+    "isVip": false,
+    "status": "waiting_decision",
+    "createdAt": "2026-10-17T12:30:31.907Z",
+    "displayTime": "6:00:31 pm",
+    "initialReason": "General Inquiry",
+    "screeningSummary": "The caller wants to Can you deliver the build by Thursday?.",
+    "screeningHistory": [
+      {
+        "speaker": "jasper",
+        "text": "Good day. You have reached Jwalant's private office. I am J.A.S.P.E.R., his personal AI assistant. May I ask who is calling and the reason for your call?",
+        "timestamp": "6:00:31 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "Can you deliver the build by Thursday?",
+        "timestamp": "6:00:31 pm"
+      }
+    ],
+    "userDecision": null,
+    "contextMemory": {
+      "caller": "Partner",
+      "initialReason": "General Inquiry",
+      "currentTopic": "General Inquiry",
+      "importantDetails": [
+        "Initial inquiry logged"
+      ],
+      "commitments": [],
+      "decisions": [],
+      "openQuestions": [],
+      "detectedChanges": [],
+      "isConcluded": false,
+      "conclusionSummary": null
+    },
+    "transcript": [
+      {
+        "id": "turn-0",
+        "speaker": "caller",
+        "text": "Can you deliver the build by Thursday?",
+        "timestamp": "6:00:31 pm",
+        "analysis": {
+          "intent": "General Inquiry",
+          "isQuestion": false,
+          "confirmationType": "none",
+          "keyDetailsFound": [
+            "Initial inquiry logged"
+          ],
+          "silentSuggestion": "Caller is screening. Awaiting your decision to Accept, Reject, or Ask JASPER to continue."
+        }
+      }
+    ],
+    "silentSuggestions": [
+      "Summary: The caller wants to Can you deliver the build by Thursday?.",
+      "Ready for your decision: Accept call, Reject, or instruct JASPER to ask follow-up questions."
+    ],
+    "metrics": {
+      "startTime": 1792240231907,
+      "durationSeconds": 0,
+      "totalTurns": 1,
+      "activeDurationFormatted": "00:00"
+    }
+  },
+  {
+    "callId": "test-call-acc-1792240231902",
+    "caller": "Sarah",
+    "phone": "+919888877777",
+    "contact": null,
+    "isVip": false,
+    "status": "waiting_decision",
+    "createdAt": "2026-10-17T12:30:31.903Z",
+    "displayTime": "6:00:31 pm",
+    "initialReason": "Schedule a meeting",
+    "screeningSummary": "The caller wants to coordinate an upcoming meeting with you.",
+    "screeningHistory": [
+      {
+        "speaker": "jasper",
+        "text": "Good day. You have reached Jwalant's private office. I am J.A.S.P.E.R., his personal AI assistant. May I ask who is calling and the reason for your call?",
+        "timestamp": "6:00:31 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "Calling about our design project deadline.",
+        "timestamp": "6:00:31 pm"
+      }
+    ],
+    "userDecision": null,
+    "contextMemory": {
+      "caller": "Sarah",
+      "initialReason": "Schedule a meeting",
+      "currentTopic": "Schedule a meeting",
+      "importantDetails": [
+        "Initial inquiry logged"
+      ],
+      "commitments": [],
+      "decisions": [],
+      "openQuestions": [],
+      "detectedChanges": [],
+      "isConcluded": false,
+      "conclusionSummary": null
+    },
+    "transcript": [
+      {
+        "id": "turn-0",
+        "speaker": "caller",
+        "text": "Calling about our design project deadline.",
+        "timestamp": "6:00:31 pm",
+        "analysis": {
+          "intent": "Schedule a meeting",
+          "isQuestion": false,
+          "confirmationType": "none",
+          "keyDetailsFound": [
+            "Initial inquiry logged"
+          ],
+          "silentSuggestion": "Caller is screening. Awaiting your decision to Accept, Reject, or Ask JASPER to continue."
+        }
+      }
+    ],
+    "silentSuggestions": [
+      "Summary: The caller wants to coordinate an upcoming meeting with you.",
+      "Ready for your decision: Accept call, Reject, or instruct JASPER to ask follow-up questions."
+    ],
+    "metrics": {
+      "startTime": 1792240231903,
+      "durationSeconds": 0,
+      "totalTurns": 1,
+      "activeDurationFormatted": "00:00"
+    }
+  },
+  {
+    "callId": "test-call-cont-1792240231893",
+    "caller": "Coach Kumar",
+    "phone": "+919999988888",
+    "contact": null,
+    "isVip": false,
+    "status": "waiting_decision",
+    "createdAt": "2026-10-17T12:30:31.894Z",
+    "displayTime": "6:00:31 pm",
+    "initialReason": "General Inquiry",
+    "screeningSummary": "The caller confirmed football practice tomorrow at 6 PM at the Training ground.",
+    "screeningHistory": [
+      {
+        "speaker": "jasper",
+        "text": "Good day. You have reached Jwalant's private office. I am J.A.S.P.E.R., his personal AI assistant. May I ask who is calling and the reason for your call?",
+        "timestamp": "6:00:31 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "We need to confirm jersey numbers for the championship.",
+        "timestamp": "6:00:31 pm"
+      },
+      {
+        "speaker": "jasper",
+        "text": "What sizes are currently available?",
+        "timestamp": "6:00:31 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "Sure, practice is tomorrow at 6 PM at the Training ground. Coach asked everyone to be there.",
+        "timestamp": "6:00:31 pm"
+      }
+    ],
+    "userDecision": null,
+    "contextMemory": {
+      "caller": "Coach Kumar",
+      "initialReason": "General Inquiry",
+      "currentTopic": "General Inquiry",
+      "importantDetails": [
+        "Initial inquiry logged",
+        "Practice tomorrow",
+        "Time: 6 PM",
+        "Location: Training ground"
+      ],
+      "commitments": [],
+      "decisions": [],
+      "openQuestions": [],
+      "detectedChanges": [],
+      "isConcluded": false,
+      "conclusionSummary": null
+    },
+    "transcript": [
+      {
+        "id": "turn-0",
+        "speaker": "caller",
+        "text": "We need to confirm jersey numbers for the championship.",
+        "timestamp": "6:00:31 pm",
+        "analysis": {
+          "intent": "General Inquiry",
+          "isQuestion": false,
+          "confirmationType": "none",
+          "keyDetailsFound": [
+            "Initial inquiry logged",
+            "Practice tomorrow",
+            "Time: 6 PM",
+            "Location: Training ground"
+          ],
+          "silentSuggestion": "Caller is screening. Awaiting your decision to Accept, Reject, or Ask JASPER to continue."
+        }
+      }
+    ],
+    "silentSuggestions": [
+      "Updated details received: 6 PM at Training ground.",
+      "Summary: The caller wants to We need to confirm jersey numbers for the championship..",
+      "Ready for your decision: Accept call, Reject, or instruct JASPER to ask follow-up questions."
+    ],
+    "metrics": {
+      "startTime": 1792240231894,
+      "durationSeconds": 0,
+      "totalTurns": 1,
+      "activeDurationFormatted": "00:00"
+    }
+  },
+  {
+    "callId": "test-call-1792240231832",
+    "caller": "Alex",
+    "phone": "+13055551234",
+    "contact": null,
+    "isVip": false,
+    "status": "waiting_decision",
+    "createdAt": "2026-10-17T12:30:31.833Z",
+    "displayTime": "6:00:31 pm",
+    "initialReason": "General Inquiry",
+    "screeningSummary": "The caller wants to Jwalant, this is Alex from Miami enterprise regarding the signing tonight..",
+    "screeningHistory": [
+      {
+        "speaker": "jasper",
+        "text": "Good day. You have reached Jwalant's private office. I am J.A.S.P.E.R., his personal AI assistant. May I ask who is calling and the reason for your call?",
+        "timestamp": "6:00:31 pm"
+      },
+      {
+        "speaker": "caller",
+        "text": "Hi Jwalant, this is Alex from Miami enterprise regarding the signing tonight.",
+        "timestamp": "6:00:31 pm"
+      }
+    ],
+    "userDecision": null,
+    "contextMemory": {
+      "caller": "Alex",
+      "initialReason": "General Inquiry",
+      "currentTopic": "General Inquiry",
+      "importantDetails": [
+        "Discussion tonight"
+      ],
+      "commitments": [],
+      "decisions": [],
+      "openQuestions": [],
+      "detectedChanges": [],
+      "isConcluded": false,
+      "conclusionSummary": null
+    },
+    "transcript": [
+      {
+        "id": "turn-0",
+        "speaker": "caller",
+        "text": "Hi Jwalant, this is Alex from Miami enterprise regarding the signing tonight.",
+        "timestamp": "6:00:31 pm",
+        "analysis": {
+          "intent": "General Inquiry",
+          "isQuestion": false,
+          "confirmationType": "none",
+          "keyDetailsFound": [
+            "Discussion tonight"
+          ],
+          "silentSuggestion": "Caller is screening. Awaiting your decision to Accept, Reject, or Ask JASPER to continue."
+        }
+      }
+    ],
+    "silentSuggestions": [
+      "Summary: The caller wants to Jwalant, this is Alex from Miami enterprise regarding the signing tonight..",
+      "Ready for your decision: Accept call, Reject, or instruct JASPER to ask follow-up questions."
+    ],
+    "metrics": {
+      "startTime": 1792240231886,
+      "durationSeconds": 0,
+      "totalTurns": 1,
+      "activeDurationFormatted": "00:00"
+    }
+  }
+]
