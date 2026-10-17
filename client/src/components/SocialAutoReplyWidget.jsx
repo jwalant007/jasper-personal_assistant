@@ -1966,16 +1966,25 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
                   ⚡ Purge Session &amp; Retry Fresh QR
                 </button>
               </div>
+            ) : waWebStatus === 'downloading_browser' ? (
+              <div className="flex flex-col items-center gap-4 py-8">
+                <div className="w-12 h-12 border-4 border-amber-500/30 border-t-amber-400 rounded-full animate-spin"></div>
+                <div className="text-center space-y-1.5">
+                  <p className="text-sm font-bold text-amber-300">Setting up Chrome on Cloud Server</p>
+                  <p className="text-xs text-slate-300 font-mono">Downloading Chromium for WhatsApp Web... (~15–30 seconds on first run)</p>
+                  <p className="text-[10px] text-emerald-400 font-mono">The QR code will appear automatically once complete!</p>
+                </div>
+              </div>
             ) : waWebStatus === 'no_browser_available' ? (
               <div className="flex flex-col items-center gap-3 py-4 text-center">
                 <div className="w-12 h-12 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-2xl">💻</div>
                 <div className="space-y-1">
                   <p className="text-sm font-bold text-amber-300">
-                    {isCloudMode() ? 'Connected to Cloud Server (Render)' : 'Local Browser Not Found'}
+                    {isCloudMode() ? 'Render Cloud: Chrome Initializing' : 'Local Browser Not Found'}
                   </p>
                   <p className="text-xs text-slate-300 font-mono leading-relaxed max-w-xs">
                     {isCloudMode() 
-                      ? 'WhatsApp Web requires a local PC browser (Chrome). The Render Cloud container does not run a desktop browser.'
+                      ? 'WhatsApp Web requires a headless Chromium browser binary on Render. Trigger automatic setup below to generate your QR code.'
                       : 'Chrome or Chromium was not detected on this host. Run the server on your PC where Chrome is installed.'}
                   </p>
                 </div>
@@ -1983,23 +1992,33 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
                 <div className="flex flex-col gap-2 w-full pt-1">
                   <button
                     type="button"
-                    onClick={() => {
-                      setServerToLocalhost();
-                      window.location.reload();
-                    }}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-xs font-mono shadow-lg flex items-center justify-center gap-2"
+                    onClick={() => handleWaWebConnect(true)}
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-600 hover:from-amber-400 hover:to-emerald-500 text-white font-bold text-xs font-mono shadow-lg flex items-center justify-center gap-2"
                   >
-                    💻 Switch to Local PC Server (localhost:3001)
+                    ⚡ Install Chrome &amp; Generate QR on Cloud
                   </button>
+
+                  {isCloudMode() && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setServerToLocalhost();
+                        window.location.reload();
+                      }}
+                      className="px-4 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-mono border border-slate-600 flex items-center justify-center gap-2"
+                    >
+                      💻 Switch to Local PC Server (localhost:3001)
+                    </button>
+                  )}
                   <p className="text-[10px] text-slate-400 font-mono">
-                    Target host: <span className="text-amber-300 font-bold">{getServerIp()}</span>
+                    Host: <span className="text-amber-300 font-bold">{getServerIp()}</span>
                   </p>
                 </div>
 
                 <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-700/60 text-[10px] text-slate-400 font-mono text-left w-full space-y-1.5 mt-1">
-                  <div className="font-bold text-slate-300">💡 How to use WhatsApp Auto-Reply:</div>
-                  <div>• <strong className="text-emerald-300">WhatsApp Web:</strong> Connect using your laptop server where Chrome is installed to scan the QR code.</div>
-                  <div>• <strong className="text-cyan-300">Phone Link (ADB):</strong> When away from PC or in Cloud mode, JASPER auto-sends messages directly through your connected Android phone!</div>
+                  <div className="font-bold text-slate-300">💡 24/7 Cloud Auto-Reply:</div>
+                  <div>• Once connected on Render, your WhatsApp Web session runs 24/7 in the cloud even when your phone or PC is turned off!</div>
+                  <div>• Or use <strong className="text-cyan-300">Phone Link (ADB)</strong> to auto-reply via your connected Android phone.</div>
                 </div>
               </div>
             ) : (

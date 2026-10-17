@@ -125,18 +125,46 @@ function findBrowserExecutable() {
     } catch(e) {}
   }
 
-  // 4. Linux / Cloud / Docker / VPS paths
+  // 4. Linux / Cloud / Docker / VPS / Render paths
   const linuxPaths = [
     '/usr/bin/google-chrome-stable',
     '/usr/bin/google-chrome',
     '/usr/bin/chromium',
     '/usr/bin/chromium-browser',
     '/snap/bin/chromium',
-    '/usr/bin/microsoft-edge-stable'
-  ];
+    '/usr/bin/microsoft-edge-stable',
+    process.env.PUPPETEER_CACHE_DIR,
+    '/opt/render/project/src/.cache/puppeteer',
+    path.join(__dirname, '..', '.cache', 'puppeteer'),
+    path.join(__dirname, '.cache', 'puppeteer')
+  ].filter(Boolean);
+
   for (const p of linuxPaths) {
     try {
-      if (fs.existsSync(p)) return p;
+      if (fs.existsSync(p)) {
+        if (fs.statSync(p).isDirectory()) {
+          const findLinuxBin = (dir) => {
+            const items = fs.readdirSync(dir);
+            for (const item of items) {
+              const full = path.join(dir, item);
+              try {
+                const s = fs.statSync(full);
+                if (s.isDirectory()) {
+                  const res = findLinuxBin(full);
+                  if (res) return res;
+                } else if (item === 'chrome' || item === 'chromium' || item === 'chrome-headless-shell') {
+                  return full;
+                }
+              } catch(e) {}
+            }
+            return null;
+          };
+          const found = findLinuxBin(p);
+          if (found) return found;
+        } else {
+          return p;
+        }
+      }
     } catch(e) {}
   }
 
@@ -156,7 +184,53 @@ function findBrowserExecutable() {
   return null;
 }
 
-function initWhatsAppWebClient(isManual = false, forceReset = false) {
+// Automatic On-Demand Chrome Installer for Render Cloud & Headless Environments
+async function ensureBrowserExecutable() {
+  let executable = findBrowserExecutable();
+  if (executable) return executable;
+
+  console.log('[WhatsApp Web] No system browser found. Checking Puppeteer browser cache or attempting on-demand setup...');
+  try {
+    const { getInstalledBrowsers, install, Browser, resolveBuildId, detectBrowserPlatform } = require('@puppeteer/browsers');
+    const cacheDirs = [
+      process.env.PUPPETEER_CACHE_DIR,
+      path.join(__dirname, '..', '.cache', 'puppeteer'),
+      path.join(__dirname, '.cache', 'puppeteer'),
+      '/opt/render/project/src/.cache/puppeteer',
+      path.join(process.env.HOME || '/root', '.cache', 'puppeteer')
+    ].filter(Boolean);
+
+    for (const c of cacheDirs) {
+      try {
+        if (fs.existsSync(c)) {
+          const list = await getInstalledBrowsers({ cacheDir: c });
+          if (list && list.length > 0 && fs.existsSync(list[0].executablePath)) {
+            console.log(`[WhatsApp Web] Found Chrome in cache: ${list[0].executablePath}`);
+            return list[0].executablePath;
+          }
+        }
+      } catch(e) {}
+    }
+
+    // Attempt on-demand download if allowed
+    const platform = detectBrowserPlatform();
+    const buildId = await resolveBuildId(Browser.CHROME, platform, 'stable');
+    const targetCache = process.env.PUPPETEER_CACHE_DIR || path.join(__dirname, '..', '.cache', 'puppeteer');
+    console.log(`[WhatsApp Web] Downloading Chrome ${buildId} (${platform}) to ${targetCache}...`);
+    const installed = await install({
+      browser: Browser.CHROME,
+      buildId,
+      cacheDir: targetCache
+    });
+    console.log(`[WhatsApp Web] Chrome successfully installed at: ${installed.executablePath}`);
+    return installed.executablePath;
+  } catch (err) {
+    console.warn('[WhatsApp Web] Automatic browser setup notice:', err.message);
+    return null;
+  }
+}
+
+async function initWhatsAppWebClient(isManual = false, forceReset = false) {
   if (!Client) return { success: false, reason: 'LIBRARY_NOT_INSTALLED' };
 
   if (forceReset) {
@@ -198,9 +272,9 @@ function initWhatsAppWebClient(isManual = false, forceReset = false) {
     }
   }
 
-  const executablePath = findBrowserExecutable();
+  const executablePath = await ensureBrowserExecutable();
 
-  // If no Chrome/Chromium browser binary exists on the host (e.g. headless Render Cloud)
+  // If no Chrome/Chromium browser binary exists on the host
   if (!executablePath) {
     waClientStatus = 'no_browser_available';
     if (isManual) {
@@ -403,8 +477,8 @@ function initWhatsAppWebClient(isManual = false, forceReset = false) {
 
 // Auto-start WhatsApp Web client when server launches as main process (if library exists)
 if (require.main === module) {
-  setTimeout(() => {
-    try { initWhatsAppWebClient(); } catch(e) {}
+  setTimeout(async () => {
+    try { await initWhatsAppWebClient(); } catch(e) {}
   }, 3000);
 }
 
@@ -2420,7 +2494,7 @@ app.post('/api/social/wa-connect', async (req, res) => {
       });
     }
 
-    const initRes = initWhatsAppWebClient(true, forceReset);
+    const initRes = await initWhatsAppWebClient(true, forceReset);
     if (!initRes.success && initRes.reason === 'NO_BROWSER') {
       return res.json({ 
         success: false, 

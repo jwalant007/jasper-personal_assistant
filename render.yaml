@@ -4,12 +4,12 @@ services:
     runtime: node
     plan: free
     region: oregon
-    buildCommand: npm run install-all && npm run build
+    buildCommand: ./render-build.sh
     startCommand: npm run start:prod
     envVars:
       - key: NODE_VERSION
         value: 20.18.0
       - key: NODE_ENV
         value: production
-      - key: PUPPETEER_SKIP_DOWNLOAD
-        value: "true"
+      - key: PUPPETEER_CACHE_DIR
+        value: /opt/render/project/src/.cache/puppeteer
