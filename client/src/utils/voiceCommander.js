@@ -192,8 +192,29 @@ export class HolographicVoiceCommander {
       };
 
       this.recognition.onerror = (err) => {
-        if (err.error !== 'no-speech') {
-          console.warn('[VoiceCommander] Notice:', err.error);
+        if (err.error === 'not-allowed' || err.error === 'service-not-allowed') {
+          console.warn('[VoiceCommander] Microphone permission denied:', err.error);
+          this.isListening = false;
+          this.callbacks.onStatusChange({ 
+            status: 'PERMISSION_DENIED', 
+            error: 'Microphone access denied. Please grant microphone permissions in browser settings.' 
+          });
+        } else if (err.error === 'audio-capture') {
+          console.warn('[VoiceCommander] No microphone hardware detected:', err.error);
+          this.isListening = false;
+          this.callbacks.onStatusChange({ 
+            status: 'NO_MICROPHONE', 
+            error: 'No audio capture device found. Please plug in or enable a microphone.' 
+          });
+        } else if (err.error === 'network') {
+          console.warn('[VoiceCommander] Speech service network error:', err.error);
+          this.callbacks.onStatusChange({ 
+            status: 'NETWORK_ERROR', 
+            error: 'Network connectivity lost during speech recognition.' 
+          });
+        } else if (err.error !== 'no-speech') {
+          console.warn('[VoiceCommander] Speech error:', err.error);
+          this.callbacks.onStatusChange({ status: 'ERROR', error: err.error });
         }
       };
 
@@ -201,7 +222,10 @@ export class HolographicVoiceCommander {
         if (this.isListening) {
           try {
             this.recognition.start();
-          } catch (e) {}
+          } catch (e) {
+            this.isListening = false;
+            this.callbacks.onStatusChange({ status: 'STOPPED' });
+          }
         } else {
           this.callbacks.onStatusChange({ status: 'STOPPED' });
         }

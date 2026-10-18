@@ -2349,6 +2349,23 @@ input, textarea, select {
 }
 
 /* -------------------------------------------------------------
+   ACCESSIBILITY & REDUCED MOTION SUPPORT
+   ------------------------------------------------------------- */
+:focus-visible {
+  outline: 2px solid #00f0ff !important;
+  outline-offset: 2px !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* -------------------------------------------------------------
    MOBILE DISPLAY & RESPONSIVE LAYOUT STYLING (<= 768px)
    ------------------------------------------------------------- */
 @media (max-width: 768px) {
@@ -2366,7 +2383,7 @@ input, textarea, select {
   }
 
   .btn-control, .btn-sidebar, .btn-hdr-action {
-    min-height: 36px;
+    min-height: 40px;
     font-size: 11px;
     touch-action: manipulation;
   }
@@ -2381,8 +2398,8 @@ input, textarea, select {
 
   /* Force modals and dialog cards to stay cleanly within mobile screen viewport */
   .glass-card-jarvis, .modal-card, .draggable-modal-card, [role="dialog"], .draggable-modal-container {
-    max-width: calc(100vw - 16px) !important;
-    max-height: calc(100dvh - 20px) !important;
+    max-width: calc(100vw - 12px) !important;
+    max-height: calc(100dvh - 16px) !important;
     box-sizing: border-box;
   }
 
@@ -2393,6 +2410,53 @@ input, textarea, select {
 
   .activity-stats-grid {
     grid-template-columns: 1fr 1fr !important;
+  }
+
+  .health-hub-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .health-hub-actions {
+    flex-wrap: wrap;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .health-status-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+}
+
+/* Extra small mobile screens (320px - 480px) */
+@media (max-width: 480px) {
+  .btn-control, .btn-sidebar, .btn-hdr-action, button {
+    touch-action: manipulation;
+  }
+
+  .health-hub-title {
+    font-size: 14px !important;
+  }
+
+  .health-hub-subtitle {
+    font-size: 10px !important;
+  }
+
+  .mode-btn {
+    padding: 5px 8px !important;
+    font-size: 10px !important;
+  }
+
+  .bpm-number {
+    font-size: 34px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .activity-stats-grid {
+    grid-template-columns: 1fr !important;
   }
 }
 
@@ -2578,6 +2642,18 @@ input, textarea, select {
   padding: 2px 6px;
   border-radius: 4px;
   letter-spacing: 1px;
+}
+
+.live-badge.simulated {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.live-badge.disconnected {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+  border-color: rgba(148, 163, 184, 0.3);
 }
 
 .bpm-display-group {

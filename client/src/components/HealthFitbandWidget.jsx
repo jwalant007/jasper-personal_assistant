@@ -19,19 +19,19 @@ import {
 } from 'lucide-react';
 
 export default function HealthFitbandWidget({ onClose, onAskJasper }) {
-  const [connectionMode, setConnectionMode] = useState('simulated'); // 'disconnected', 'ble', 'simulated'
-  const [deviceName, setDeviceName] = useState('Virtual Fitband Pro');
+  const [connectionMode, setConnectionMode] = useState('disconnected'); // 'disconnected', 'ble', 'simulated'
+  const [deviceName, setDeviceName] = useState('No BLE Device Connected');
   const [macAddress, setMacAddress] = useState(() => {
     return localStorage.getItem('jasper_fitband_mac') || 'F4:67:F4:16:7C:53';
   });
   const [showMacInput, setShowMacInput] = useState(false);
-  const [heartRate, setHeartRate] = useState(74);
-  const [spO2, setSpO2] = useState(98);
-  const [steps, setSteps] = useState(6480);
-  const [calories, setCalories] = useState(320);
-  const [activeMinutes, setActiveMinutes] = useState(45);
-  const [stressLevel, setStressLevel] = useState(22); // 0 - 100
-  const [hrv, setHrv] = useState(65); // ms
+  const [heartRate, setHeartRate] = useState(null);
+  const [spO2, setSpO2] = useState(null);
+  const [steps, setSteps] = useState(0);
+  const [calories, setCalories] = useState(0);
+  const [activeMinutes, setActiveMinutes] = useState(0);
+  const [stressLevel, setStressLevel] = useState(null); // 0 - 100
+  const [hrv, setHrv] = useState(null); // ms
   const [vitalLogs, setVitalLogs] = useState([]);
   const [isAlerting, setIsAlerting] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
@@ -53,8 +53,10 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
     }
   };
 
-  // Sync current vitals to localStorage so Gemini tool calls can query them instantly
+  // Sync current vitals to localStorage so Gemini tool calls can query them accurately
   useEffect(() => {
+    const isConnected = connectionMode !== 'disconnected';
+    const isSimulated = connectionMode === 'simulated';
     const vitalsData = {
       bpm: heartRate,
       spO2: spO2,
@@ -63,14 +65,27 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
       stress: stressLevel,
       hrv: hrv,
       device: deviceName,
-      status: heartRate > 120 ? 'Elevated HR' : spO2 < 95 ? 'Low SpO2' : 'Normal',
+      connectionMode: connectionMode,
+      isSimulated: isSimulated,
+      connected: isConnected,
+      status: !isConnected 
+        ? 'Disconnected (No BLE Sensor Paired)' 
+        : (heartRate && heartRate > 120) 
+          ? 'Elevated HR' 
+          : (spO2 && spO2 < 95) 
+            ? 'Low SpO2' 
+            : isSimulated 
+              ? 'Normal (Simulated Demo)' 
+              : 'Normal (Live Hardware)',
       lastUpdated: new Date().toLocaleTimeString()
     };
     localStorage.setItem('jasper_health_vitals', JSON.stringify(vitalsData));
-  }, [heartRate, spO2, steps, calories, stressLevel, hrv, deviceName]);
+  }, [heartRate, spO2, steps, calories, stressLevel, hrv, deviceName, connectionMode]);
 
-  // Telemetry log updater
+  // Telemetry log updater - only active when sensor or simulator is running
   useEffect(() => {
+    if (connectionMode === 'disconnected' || heartRate === null) return;
+
     const interval = setInterval(() => {
       const timestamp = new Date().toLocaleTimeString();
       const newEntry = {
@@ -78,7 +93,7 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
         time: timestamp,
         bpm: heartRate,
         spO2: spO2,
-        mode: connectionMode === 'ble' ? 'BLE Hardware' : 'Virtual Simulator'
+        mode: connectionMode === 'ble' ? 'BLE Hardware' : 'Virtual Simulator (Demo)'
       };
       setVitalLogs(prev => [newEntry, ...prev.slice(0, 19)]);
     }, 4000);
@@ -92,17 +107,19 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
     const interval = setInterval(() => {
       // Natural slight fluctuations in heart rate and SpO2
       setHeartRate(prev => {
+        const base = prev || 72;
         const delta = Math.floor(Math.random() * 5) - 2; // -2 to +2
-        const next = Math.max(58, Math.min(115, prev + delta));
+        const next = Math.max(58, Math.min(115, base + delta));
         return next;
       });
 
       setSpO2(prev => {
+        const base = prev || 98;
         if (Math.random() > 0.8) {
           const delta = Math.floor(Math.random() * 3) - 1;
-          return Math.max(94, Math.min(100, prev + delta));
+          return Math.max(94, Math.min(100, base + delta));
         }
-        return prev;
+        return base;
       });
 
       setSteps(prev => prev + Math.floor(Math.random() * 3));
@@ -114,6 +131,12 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
 
   // Safety threshold checking
   useEffect(() => {
+    if (connectionMode === 'disconnected' || heartRate === null) {
+      setIsAlerting(false);
+      setAlertMessage('');
+      return;
+    }
+
     if (heartRate > 120) {
       setIsAlerting(true);
       setAlertMessage(`HIGH HEART RATE WARNING: ${heartRate} BPM detected!`);
@@ -124,7 +147,7 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
       setIsAlerting(false);
       setAlertMessage('');
     }
-  }, [heartRate, spO2]);
+  }, [heartRate, spO2, connectionMode]);
 
   // Live Pulse Canvas Animation
   useEffect(() => {
@@ -157,53 +180,61 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
         ctx.stroke();
       }
 
-      // Update ECG waveform simulation based on heart rate
-      pulsePhaseRef.current += (heartRate / 60) * 0.15;
-      const phase = pulsePhaseRef.current % (Math.PI * 2);
+      if (connectionMode === 'disconnected') {
+        const currentY = (height / 2) + (Math.random() - 0.5) * 1.5;
+        points.shift();
+        points.push(currentY);
+      } else {
+        // Update ECG waveform simulation based on heart rate
+        pulsePhaseRef.current += ((heartRate || 72) / 60) * 0.15;
+        const phase = pulsePhaseRef.current % (Math.PI * 2);
 
-      let pulseVal = 0;
-      // Simulate P-Q-R-S-T wave peak
-      if (phase > 1.2 && phase < 1.4) {
-        pulseVal = -8; // P wave
-      } else if (phase >= 1.4 && phase < 1.5) {
-        pulseVal = 6; // Q wave
-      } else if (phase >= 1.5 && phase < 1.7) {
-        pulseVal = -32; // R wave (sharp pulse)
-      } else if (phase >= 1.7 && phase < 1.85) {
-        pulseVal = 14; // S wave
-      } else if (phase >= 2.1 && phase < 2.5) {
-        pulseVal = -10; // T wave
+        let pulseVal = 0;
+        // Simulate P-Q-R-S-T wave peak
+        if (phase > 1.2 && phase < 1.4) {
+          pulseVal = -8; // P wave
+        } else if (phase >= 1.4 && phase < 1.5) {
+          pulseVal = 6; // Q wave
+        } else if (phase >= 1.5 && phase < 1.7) {
+          pulseVal = -32; // R wave (sharp pulse)
+        } else if (phase >= 1.7 && phase < 1.85) {
+          pulseVal = 14; // S wave
+        } else if (phase >= 2.1 && phase < 2.5) {
+          pulseVal = -10; // T wave
+        }
+
+        // Smooth noise
+        const noise = (Math.random() - 0.5) * 2;
+        const currentY = (height / 2) + pulseVal + noise;
+
+        points.shift();
+        points.push(currentY);
       }
 
-      // Smooth noise
-      const noise = (Math.random() - 0.5) * 2;
-      const currentY = (height / 2) + pulseVal + noise;
-
-      points.shift();
-      points.push(currentY);
-
       const strokeColor = connectionMode === 'disconnected' 
-        ? '#78716c' 
+        ? '#64748b' 
         : isAlerting ? '#ef4444' : '#ffd700';
 
       const dx = width / (points.length - 1);
 
       // Outer glow pass (GPU fast stroke)
-      ctx.beginPath();
-      ctx.strokeStyle = isAlerting ? 'rgba(239, 68, 68, 0.25)' : 'rgba(255, 215, 0, 0.25)';
-      ctx.lineWidth = 5;
-      for (let i = 0; i < points.length; i++) {
-        const x = i * dx;
-        const y = points[i];
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
+      if (connectionMode !== 'disconnected') {
+        ctx.beginPath();
+        ctx.strokeStyle = isAlerting ? 'rgba(239, 68, 68, 0.25)' : 'rgba(255, 215, 0, 0.25)';
+        ctx.lineWidth = 5;
+        for (let i = 0; i < points.length; i++) {
+          const x = i * dx;
+          const y = points[i];
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
       }
-      ctx.stroke();
 
       // Main crisp ECG stroke
       ctx.beginPath();
       ctx.strokeStyle = strokeColor;
-      ctx.lineWidth = 2;
+      ctx.lineWidth = connectionMode === 'disconnected' ? 1.5 : 2;
       for (let i = 0; i < points.length; i++) {
         const x = i * dx;
         const y = points[i];
@@ -212,13 +243,21 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
       }
       ctx.stroke();
 
-      // Pulse leading point
-      const lastX = width - dx;
-      const lastY = points[points.length - 1];
-      ctx.beginPath();
-      ctx.arc(lastX, lastY, 3.5, 0, Math.PI * 2);
-      ctx.fillStyle = isAlerting ? '#ef4444' : '#fffdf5';
-      ctx.fill();
+      // Standby watermark when disconnected
+      if (connectionMode === 'disconnected') {
+        ctx.font = '10px "Share Tech Mono", monospace';
+        ctx.fillStyle = '#64748b';
+        ctx.textAlign = 'center';
+        ctx.fillText('STANDBY • NO ACTIVE BLE SENSOR', width / 2, height / 2 - 12);
+      } else {
+        // Pulse leading point
+        const lastX = width - dx;
+        const lastY = points[points.length - 1];
+        ctx.beginPath();
+        ctx.arc(lastX, lastY, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = isAlerting ? '#ef4444' : '#fffdf5';
+        ctx.fill();
+      }
 
       animationFrameRef.current = requestAnimationFrame(render);
     };
@@ -329,6 +368,7 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
   };
 
   const getBpmZone = (bpm) => {
+    if (bpm === null || bpm === undefined) return { label: 'Sensor Offline', color: '#94a3b8' };
     if (bpm < 60) return { label: 'Resting / Low', color: '#38bdf8' };
     if (bpm <= 85) return { label: 'Normal / Optimal', color: '#10b981' };
     if (bpm <= 115) return { label: 'Active / Aerobic', color: '#f59e0b' };
@@ -355,11 +395,30 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
           <button 
             className={`mode-btn ${connectionMode === 'simulated' ? 'active' : ''}`}
             onClick={() => {
-              setConnectionMode('simulated');
-              setDeviceName('Virtual Fitband Pro');
+              if (connectionMode === 'simulated') {
+                setConnectionMode('disconnected');
+                setDeviceName('No BLE Device Connected');
+                setHeartRate(null);
+                setSpO2(null);
+                setSteps(0);
+                setCalories(0);
+                setActiveMinutes(0);
+                setStressLevel(null);
+                setHrv(null);
+              } else {
+                setConnectionMode('simulated');
+                setDeviceName('Virtual Fitband Pro (Simulator)');
+                setHeartRate(74);
+                setSpO2(98);
+                setSteps(6480);
+                setCalories(320);
+                setActiveMinutes(45);
+                setStressLevel(22);
+                setHrv(65);
+              }
             }}
           >
-            <Radio size={14} /> Virtual Simulator
+            <Radio size={14} /> {connectionMode === 'simulated' ? 'Stop Demo' : 'Demo Simulator'}
           </button>
 
           <button 
@@ -369,6 +428,29 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
           >
             <Bluetooth size={14} /> {isBleConnecting ? 'Pairing...' : 'Pair BLE Fitband'}
           </button>
+
+          {connectionMode !== 'disconnected' && (
+            <button 
+              className="mode-btn"
+              onClick={() => {
+                if (gattDeviceRef.current && gattDeviceRef.current.gatt && gattDeviceRef.current.gatt.connected) {
+                  try { gattDeviceRef.current.gatt.disconnect(); } catch (_) {}
+                }
+                setConnectionMode('disconnected');
+                setDeviceName('No BLE Device Connected');
+                setHeartRate(null);
+                setSpO2(null);
+                setSteps(0);
+                setCalories(0);
+                setActiveMinutes(0);
+                setStressLevel(null);
+                setHrv(null);
+              }}
+              title="Disconnect sensor or stop simulation"
+            >
+              <X size={14} /> Disconnect
+            </button>
+          )}
 
           <button 
             className={`mode-btn ${showMacInput ? 'active' : ''}`}
@@ -459,8 +541,14 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
       <div className="health-status-bar">
         <div className="status-item">
           <span className="status-label">Device Status:</span>
-          <span className="status-value highlight">
-            <CheckCircle2 size={14} color="#10b981" /> {deviceName} ({connectionMode.toUpperCase()})
+          <span className="status-value highlight flex items-center gap-1.5">
+            {connectionMode === 'ble' ? (
+              <><CheckCircle2 size={14} color="#10b981" /> {deviceName} (BLE HARDWARE)</>
+            ) : connectionMode === 'simulated' ? (
+              <><Radio size={14} color="#f59e0b" /> {deviceName} (SIMULATED DATA)</>
+            ) : (
+              <><AlertTriangle size={14} color="#94a3b8" /> No Fitband Paired (OFFLINE)</>
+            )}
           </span>
         </div>
         <div className="status-item">
@@ -471,7 +559,9 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
         </div>
         <div className="status-item">
           <span className="status-label">Signal Uplink:</span>
-          <span className="status-value">100% Active</span>
+          <span className="status-value">
+            {connectionMode === 'ble' ? '100% Active (BLE)' : connectionMode === 'simulated' ? 'Simulated Loopback' : '0% / Inactive'}
+          </span>
         </div>
       </div>
 
@@ -480,12 +570,19 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
         {/* Heart Rate Card */}
         <div className="health-card heart-rate-card">
           <div className="card-header">
-            <span className="card-title"><Heart size={16} color="#ef4444" className="icon-pulse" /> Heart Rate (BPM)</span>
-            <span className="live-badge">LIVE</span>
+            <span className="card-title">
+              <Heart size={16} color={connectionMode === 'disconnected' ? "#94a3b8" : "#ef4444"} className={connectionMode !== 'disconnected' ? "icon-pulse" : ""} /> 
+              Heart Rate (BPM)
+            </span>
+            <span className={`live-badge ${connectionMode === 'ble' ? '' : connectionMode === 'simulated' ? 'simulated' : 'disconnected'}`}>
+              {connectionMode === 'ble' ? 'LIVE BLE' : connectionMode === 'simulated' ? 'DEMO SIMULATOR' : 'OFFLINE'}
+            </span>
           </div>
 
           <div className="bpm-display-group">
-            <div className="bpm-number">{heartRate}</div>
+            <div className="bpm-number" style={{ color: connectionMode === 'disconnected' ? '#64748b' : undefined }}>
+              {heartRate !== null ? heartRate : '--'}
+            </div>
             <div className="bpm-unit-group">
               <span className="bpm-unit">BPM</span>
               <span className="bpm-subtext" style={{ color: bpmZone.color }}>{bpmZone.label}</span>
@@ -501,8 +598,10 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
         {/* Oxygen Saturation Card (SpO2) */}
         <div className="health-card spo2-card">
           <div className="card-header">
-            <span className="card-title"><Activity size={16} color="#00f0ff" /> Oxygen Saturation (SpO2 / O2)</span>
-            <span className="live-badge">LIVE</span>
+            <span className="card-title"><Activity size={16} color={connectionMode === 'disconnected' ? "#94a3b8" : "#00f0ff"} /> Oxygen Saturation (SpO2 / O2)</span>
+            <span className={`live-badge ${connectionMode === 'ble' ? '' : connectionMode === 'simulated' ? 'simulated' : 'disconnected'}`}>
+              {connectionMode === 'ble' ? 'LIVE BLE' : connectionMode === 'simulated' ? 'DEMO SIMULATOR' : 'OFFLINE'}
+            </span>
           </div>
 
           <div className="spo2-gauge-wrapper">
@@ -513,17 +612,19 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
                   cx="50" 
                   cy="50" 
                   r="42" 
-                  stroke="#00f0ff" 
+                  stroke={connectionMode === 'disconnected' ? '#475569' : '#00f0ff'} 
                   strokeWidth="8" 
                   fill="none" 
                   strokeDasharray="264"
-                  strokeDashoffset={264 - (264 * spO2) / 100}
+                  strokeDashoffset={spO2 !== null ? 264 - (264 * spO2) / 100 : 264}
                   strokeLinecap="round"
                   style={{ transition: 'stroke-dashoffset 0.8s ease-in-out' }}
                 />
               </svg>
               <div className="spo2-value">
-                <span>{spO2}%</span>
+                <span style={{ color: connectionMode === 'disconnected' ? '#94a3b8' : undefined }}>
+                  {spO2 !== null ? `${spO2}%` : '--'}
+                </span>
                 <small>SpO2</small>
               </div>
             </div>
@@ -531,13 +632,13 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
             <div className="spo2-info">
               <div className="spo2-stat">
                 <span className="stat-label">Blood Oxygen Status</span>
-                <span className="stat-value" style={{ color: spO2 >= 95 ? '#10b981' : '#ef4444' }}>
-                  {spO2 >= 95 ? 'Normal Saturation' : 'Hypoxia Alert'}
+                <span className="stat-value" style={{ color: spO2 !== null ? (spO2 >= 95 ? '#10b981' : '#ef4444') : '#94a3b8' }}>
+                  {spO2 !== null ? (spO2 >= 95 ? 'Normal Saturation' : 'Hypoxia Alert') : 'Sensor Inactive'}
                 </span>
               </div>
               <div className="spo2-stat">
                 <span className="stat-label">Heart Rate Var. (HRV)</span>
-                <span className="stat-value">{hrv} ms</span>
+                <span className="stat-value">{hrv !== null ? `${hrv} ms` : '--'}</span>
               </div>
             </div>
           </div>
@@ -546,15 +647,17 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
         {/* Activity & Vitals Metrics Card */}
         <div className="health-card activity-card">
           <div className="card-header">
-            <span className="card-title"><Footprints size={16} color="#f59e0b" /> Daily Activity & Energy</span>
-            <span className="live-badge">TODAY</span>
+            <span className="card-title"><Footprints size={16} color={connectionMode === 'disconnected' ? "#94a3b8" : "#f59e0b"} /> Daily Activity & Energy</span>
+            <span className={`live-badge ${connectionMode === 'ble' ? '' : connectionMode === 'simulated' ? 'simulated' : 'disconnected'}`}>
+              {connectionMode === 'disconnected' ? 'NO SENSOR' : connectionMode === 'simulated' ? 'SIMULATED DATA' : 'TODAY'}
+            </span>
           </div>
 
           <div className="activity-stats-grid">
             <div className="act-stat-item">
               <Footprints size={18} color="#38bdf8" />
               <div>
-                <div className="act-val">{steps.toLocaleString()}</div>
+                <div className="act-val">{connectionMode === 'disconnected' ? '--' : steps.toLocaleString()}</div>
                 <div className="act-lbl">Steps</div>
               </div>
             </div>
@@ -562,7 +665,7 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
             <div className="act-stat-item">
               <Flame size={18} color="#ef4444" />
               <div>
-                <div className="act-val">{calories}</div>
+                <div className="act-val">{connectionMode === 'disconnected' ? '--' : calories}</div>
                 <div className="act-lbl">Kcal Burned</div>
               </div>
             </div>
@@ -570,7 +673,7 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
             <div className="act-stat-item">
               <Clock size={18} color="#10b981" />
               <div>
-                <div className="act-val">{activeMinutes}m</div>
+                <div className="act-val">{connectionMode === 'disconnected' ? '--' : `${activeMinutes}m`}</div>
                 <div className="act-lbl">Active Time</div>
               </div>
             </div>
@@ -578,7 +681,7 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
             <div className="act-stat-item">
               <Zap size={18} color="#a855f7" />
               <div>
-                <div className="act-val">{stressLevel}/100</div>
+                <div className="act-val">{stressLevel !== null ? `${stressLevel}/100` : '--'}</div>
                 <div className="act-lbl">Stress Index</div>
               </div>
             </div>
@@ -594,7 +697,11 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
 
           <div className="vital-logs-list">
             {vitalLogs.length === 0 ? (
-              <div className="empty-logs">Initialising telemetry stream...</div>
+              <div className="empty-logs">
+                {connectionMode === 'disconnected' 
+                  ? 'No active sensor telemetry. Pair a BLE Fitband or launch Demo Simulator to monitor vitals.' 
+                  : 'Initialising telemetry stream...'}
+              </div>
             ) : (
               vitalLogs.map(log => (
                 <div key={log.id} className="log-row">

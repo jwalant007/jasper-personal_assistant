@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { HardDrive, Folder, File as FileIcon, Search, RefreshCw, Eye, ArrowUp, X, FileText, Image as ImageIcon, Code, Film, AlertCircle } from 'lucide-react';
+import { getApiBase } from '../utils/apiConfig.js';
 
 export default function JasperFileManagerApp() {
   const [currentPath, setCurrentPath] = useState('');
@@ -7,7 +8,7 @@ export default function JasperFileManagerApp() {
   const [files, setFiles] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [searchFilter, setSearchFilter] = useState('');
-  const [diskInfo, setDiskInfo] = useState({ drive: 'C:', totalGB: 512, freeGB: 256, usedGB: 256, usedPercent: 50 });
+  const [diskInfo, setDiskInfo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   
@@ -20,7 +21,8 @@ export default function JasperFileManagerApp() {
     setLoading(true);
     setError(null);
     try {
-      const url = dirPath ? `/api/fs/list?dir=${encodeURIComponent(dirPath)}` : '/api/fs/list';
+      const apiBase = getApiBase();
+      const url = dirPath ? `${apiBase}/api/fs/list?dir=${encodeURIComponent(dirPath)}` : `${apiBase}/api/fs/list`;
       const res = await fetch(url);
       const data = await res.json();
       if (data.success) {
@@ -39,12 +41,17 @@ export default function JasperFileManagerApp() {
 
   const fetchDisk = async () => {
     try {
-      const res = await fetch('/api/fs/disk');
+      const apiBase = getApiBase();
+      const res = await fetch(`${apiBase}/api/fs/disk`);
       const data = await res.json();
       if (data.success) {
         setDiskInfo(data);
+      } else {
+        setDiskInfo(null);
       }
-    } catch (_) {}
+    } catch (_) {
+      setDiskInfo(null);
+    }
   };
 
   useEffect(() => {
@@ -65,7 +72,8 @@ export default function JasperFileManagerApp() {
     setPreviewLoading(true);
     setPreviewContent('');
     try {
-      const res = await fetch(`/api/fs/read?file=${encodeURIComponent(file.path)}`);
+      const apiBase = getApiBase();
+      const res = await fetch(`${apiBase}/api/fs/read?file=${encodeURIComponent(file.path)}`);
       const data = await res.json();
       if (data.success) {
         setPreviewContent(data.content);
@@ -99,10 +107,12 @@ export default function JasperFileManagerApp() {
           </div>
           <div>
             <div className="text-xs font-mono font-bold text-cyan-200">
-              HOST SYSTEM DISK ({diskInfo.drive || 'C:'})
+              HOST SYSTEM DISK ({diskInfo?.drive || 'C:'})
             </div>
             <div className="text-[10px] font-mono text-slate-400">
-              {diskInfo.freeGB} GB Free of {diskInfo.totalGB} GB ({diskInfo.usedPercent || 0}% used)
+              {diskInfo 
+                ? `${diskInfo.freeGB} GB Free of ${diskInfo.totalGB} GB (${diskInfo.usedPercent || 0}% used)`
+                : 'Host Disk Telemetry: Standby / Protected'}
             </div>
           </div>
         </div>
@@ -111,7 +121,7 @@ export default function JasperFileManagerApp() {
           <div className="w-40 bg-slate-900 h-2.5 rounded-full border border-cyan-500/30 overflow-hidden">
             <div
               className="bg-gradient-to-r from-cyan-400 to-blue-500 h-full transition-all duration-500"
-              style={{ width: `${Math.min(100, Math.max(0, diskInfo.usedPercent || 0))}%` }}
+              style={{ width: `${diskInfo ? Math.min(100, Math.max(0, diskInfo.usedPercent || 0)) : 0}%` }}
             />
           </div>
           <button

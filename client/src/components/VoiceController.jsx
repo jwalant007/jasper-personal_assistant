@@ -351,6 +351,13 @@ const VoiceController = forwardRef(({
       if (recognition) recognition.abort();
       setIsListening(false);
     },
+    cancelSpeaking: () => {
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        try { window.speechSynthesis.cancel(); } catch (_) {}
+      }
+      onStateChange('idle');
+      onSpeakingComplete();
+    },
     isListening,
     playSuccess: () => playChime('success'),
     playError: () => playChime('sleep')

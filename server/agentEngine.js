@@ -508,18 +508,29 @@ const TOOL_REGISTRY = {
     async handler({ appName, url }) {
       const validApps = {
         notepad: 'notepad.exe', calc: 'calc.exe', calculator: 'calc.exe',
-        chrome: 'chrome.exe', paint: 'mspaint.exe', taskmgr: 'taskmgr.exe',
-        explorer: 'explorer.exe', spotify: 'start spotify:'
+        chrome: 'chrome.exe', paint: 'mspaint.exe', mspaint: 'mspaint.exe',
+        taskmgr: 'taskmgr.exe', explorer: 'explorer.exe', spotify: 'spotify.exe',
+        edge: 'msedge.exe', code: 'code.cmd'
       };
-      if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
-        exec(`start "" "${url.replace(/&/g, '^&')}"`);
-        return { success: true, launched: url };
+      if (url) {
+        try {
+          const parsed = new URL(url);
+          if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+            const { execFile: runExecFile } = require('child_process');
+            runExecFile('cmd.exe', ['/c', 'start', '', parsed.href], () => {});
+            return { success: true, launched: parsed.href };
+          }
+        } catch (_) {}
+        return { success: false, error: 'Invalid URL format (must start with http:// or https://)' };
       }
       if (appName) {
-        const target = validApps[appName.toLowerCase()] || (/^[a-zA-Z0-9_\-\.]+$/.test(appName) ? `${appName}.exe` : null);
-        if (!target) return { success: false, error: `App '${appName}' not in approved list` };
-        exec(`start ${target}`);
-        return { success: true, launched: appName };
+        const cleanName = String(appName).toLowerCase().trim();
+        const target = validApps[cleanName];
+        if (!target) return { success: false, error: `App '${appName}' is not in approved list` };
+        const { spawn } = require('child_process');
+        const proc = spawn(target, [], { detached: true, stdio: 'ignore' });
+        proc.unref();
+        return { success: true, launched: cleanName };
       }
       return { success: false, error: 'Provide appName or url' };
     }
@@ -534,7 +545,8 @@ const TOOL_REGISTRY = {
       const actionMapping = { 'playpause': 179, 'next': 176, 'prev': 177 };
       const keyChar = actionMapping[action] || 179;
       return new Promise((resolve) => {
-        exec(`powershell.exe -Command "$w=New-Object -ComObject WScript.Shell;$w.SendKeys([char]${keyChar})"`, (err) => {
+        const { execFile: runExecFile } = require('child_process');
+        runExecFile('powershell.exe', ['-NoProfile', '-Command', `$w=New-Object -ComObject WScript.Shell;$w.SendKeys([char]${keyChar})`], (err) => {
           resolve({ success: !err, action });
         });
       });

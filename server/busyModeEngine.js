@@ -315,6 +315,10 @@ Reply in 1-2 sentences. Be polite and concise. Do NOT impersonate Jwalant direct
     }
   }
 
+  logActivity(entry) {
+    return this.appendActivityLog(entry);
+  }
+
   getActivityLog(limit = 100) {
     try {
       const log = JSON.parse(fs.readFileSync(ACTIVITY_LOG_FILE, 'utf8'));

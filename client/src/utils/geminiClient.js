@@ -2031,7 +2031,7 @@ class GeminiClient {
     }
 
     // App launches
-    const apps = ['notepad', 'calc', 'calculator', 'chrome', 'paint', 'taskmgr', 'explorer', 'cmd'];
+    const apps = ['notepad', 'calc', 'calculator', 'chrome', 'paint', 'taskmgr', 'explorer', 'spotify', 'edge'];
     for (const app of apps) {
       if (raw.includes(`open ${app}`) || raw.includes(`launch ${app}`)) {
         await this.executeTool('launch_pc_app', { appName: app }, onLog);

@@ -1183,8 +1183,13 @@ Generate between 4 to 6 scenes tailored to the topic.`;
 
       if (res.ok) {
         const data = await res.json();
-        setUploadedVideoId(data.videoId || 'dQw4w9WgXcQ');
-        setUploadStatus('success');
+        if (data.method === 'direct_api' && data.videoId && !data.videoId.startsWith('dQw4')) {
+          setUploadedVideoId(data.videoId);
+          setUploadStatus('success');
+        } else {
+          setUploadStatus('copied');
+          window.open('https://studio.youtube.com/channel/upload', '_blank');
+        }
       } else {
         setUploadStatus('copied');
         window.open('https://studio.youtube.com/channel/upload', '_blank');
@@ -2283,10 +2288,10 @@ Generate between 4 to 6 scenes tailored to the topic.`;
                 ) : uploadStatus === 'copied' ? (
                   <div className="p-3 bg-cyan-950/60 border border-cyan-500/40 rounded-xl text-center flex flex-col gap-1.5">
                     <span className="text-xs font-mono font-bold text-cyan-300">
-                      ✓ Metadata Copied &amp; YouTube Studio Opened!
+                      ✓ Metadata Copied &amp; YouTube Studio Staged
                     </span>
-                    <span className="text-[10px] text-slate-300">
-                      Drop your exported video into the opened YouTube Studio tab. All title, tags, and description are in your clipboard!
+                    <span className="text-[10px] text-slate-300 leading-relaxed">
+                      Drop your exported video into the opened YouTube Studio tab. Title, tags, and description are copied to your clipboard. (For direct 1-click API publish, configure <code className="text-cyan-400">YOUTUBE_OAUTH_TOKEN</code> in <code className="text-cyan-400">server/.env</code>).
                     </span>
                   </div>
                 ) : (

@@ -478,22 +478,7 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
         showBanner(data.error || 'Failed to dispatch message.', 'error');
       }
     } catch (e) {
-      // Local simulated dispatch
-      const newLog = {
-        id: `LOG-${Date.now()}`,
-        platform,
-        type: 'direct_send',
-        recipient,
-        recipientName: recipientName || recipient,
-        incomingTextOrCall: `Direct Dispatch (from ${platform === 'instagram' ? accountConfig.igUsername : accountConfig.senderNumber})`,
-        actionTaken: `Automated ${platform.toUpperCase()} Message Dispatched`,
-        messageSent: directMessage,
-        status: 'Delivered',
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      setLogs(prev => [newLog, ...prev]);
-      setDirectMessage('');
-      showBanner(`Dispatched via ${platform.toUpperCase()}!`, 'success');
+      showBanner(`Network Error: Could not dispatch ${platform.toUpperCase()} message (${e.message || 'Server unreachable'}).`, 'error');
     } finally {
       setIsSending(false);
     }

@@ -119,16 +119,20 @@ class PcRemoteController {
 
   _fallbackClick(xPercent, yPercent, type = 'left') {
     return new Promise((resolve) => {
+      const cleanX = Math.max(0, Math.min(100, parseFloat(xPercent) || 0));
+      const cleanY = Math.max(0, Math.min(100, parseFloat(yPercent) || 0));
+      const cleanType = type === 'right' ? 'right' : 'left';
+
       const script = `
         Add-Type -AssemblyName System.Windows.Forms;
         $code = '[DllImport("user32.dll")] public static extern void mouse_event(int dwFlags, int dx, int dy, int dwData, int dwExtraInfo);';
         $type = Add-Type -MemberDefinition $code -Name 'Win32Mouse' -Namespace 'Win32' -PassThru;
         $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds;
-        $targetX = [int]($bounds.Width * ${xPercent} / 100);
-        $targetY = [int]($bounds.Height * ${yPercent} / 100);
+        $targetX = [int]($bounds.Width * ${cleanX} / 100);
+        $targetY = [int]($bounds.Height * ${cleanY} / 100);
         [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point($targetX, $targetY);
         Start-Sleep -Milliseconds 20;
-        if ('${type}' -eq 'right') {
+        if ('${cleanType}' -eq 'right') {
           [Win32.Win32Mouse]::mouse_event(0x08, 0, 0, 0, 0);
           [Win32.Win32Mouse]::mouse_event(0x10, 0, 0, 0, 0);
         } else {
@@ -137,8 +141,8 @@ class PcRemoteController {
         }
         [Console]::Out.Write('CLICKED:' + $targetX + ':' + $targetY);
       `;
-      const cmd = `powershell -NoProfile -ExecutionPolicy Bypass -Command "${script.replace(/\r?\n/g, ' ')}"`;
-      exec(cmd, (err, stdout) => {
+      const { execFile: runExecFile } = require('child_process');
+      runExecFile('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', script.replace(/\r?\n/g, ' ')], (err, stdout) => {
         resolve({ success: !err, output: stdout ? stdout.trim() : '', bridge: 'powershell' });
       });
     });
@@ -169,13 +173,13 @@ class PcRemoteController {
   _fallbackType(text) {
     return new Promise((resolve) => {
       // Escape single quotes and SendKeys control characters
-      const sanitized = text.replace(/'/g, "''").replace(/[{}+^%~()\[\]]/g, '{$&}');
+      const sanitized = String(text || '').replace(/'/g, "''").replace(/[{}+^%~()\[\]]/g, '{$&}');
       const script = `
         Add-Type -AssemblyName System.Windows.Forms;
         [System.Windows.Forms.SendKeys]::SendWait('${sanitized}');
       `;
-      const cmd = `powershell -NoProfile -ExecutionPolicy Bypass -Command "${script.replace(/\r?\n/g, ' ')}"`;
-      exec(cmd, (err) => {
+      const { execFile: runExecFile } = require('child_process');
+      runExecFile('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', script.replace(/\r?\n/g, ' ')], (err) => {
         resolve({ success: !err, bridge: 'powershell' });
       });
     });
@@ -202,35 +206,44 @@ class PcRemoteController {
 
   _fallbackHotkey(keyName) {
     return new Promise((resolve) => {
+      const cleanKey = String(keyName || '').toLowerCase().trim();
       let sendKey = '';
-      if (keyName === 'win_d') {
+      if (cleanKey === 'win_d') {
         sendKey = '(New-Object -ComObject Shell.Application).ToggleDesktop();';
-      } else if (keyName === 'alt_tab') {
+      } else if (cleanKey === 'alt_tab') {
         sendKey = '[System.Windows.Forms.SendKeys]::SendWait("%{TAB}");';
-      } else if (keyName === 'enter') {
+      } else if (cleanKey === 'enter') {
         sendKey = '[System.Windows.Forms.SendKeys]::SendWait("{ENTER}");';
-      } else if (keyName === 'backspace') {
+      } else if (cleanKey === 'backspace') {
         sendKey = '[System.Windows.Forms.SendKeys]::SendWait("{BACKSPACE}");';
-      } else if (keyName === 'esc') {
+      } else if (cleanKey === 'esc') {
         sendKey = '[System.Windows.Forms.SendKeys]::SendWait("{ESC}");';
-      } else if (keyName === 'ctrl_c') {
+      } else if (cleanKey === 'ctrl_c') {
         sendKey = '[System.Windows.Forms.SendKeys]::SendWait("^c");';
-      } else if (keyName === 'ctrl_v') {
+      } else if (cleanKey === 'ctrl_v') {
         sendKey = '[System.Windows.Forms.SendKeys]::SendWait("^v");';
-      } else if (keyName === 'lock') {
+      } else if (cleanKey === 'lock') {
         sendKey = 'rundll32.exe user32.dll,LockWorkStation;';
-      } else if (keyName === 'taskmgr') {
+      } else if (cleanKey === 'taskmgr') {
         sendKey = 'Start-Process taskmgr;';
+      } else if (cleanKey === 'key_volumeup' || cleanKey === 'volup') {
+        sendKey = '[System.Windows.Forms.SendKeys]::SendWait("{PGUP}");';
+      } else if (cleanKey === 'key_volumedown' || cleanKey === 'voldown') {
+        sendKey = '[System.Windows.Forms.SendKeys]::SendWait("{PGDN}");';
+      } else if (cleanKey === 'key_mute') {
+        sendKey = '';
+      } else if (/^[a-z0-9]$/.test(cleanKey)) {
+        sendKey = `[System.Windows.Forms.SendKeys]::SendWait('${cleanKey}');`;
       } else {
-        sendKey = `[System.Windows.Forms.SendKeys]::SendWait('${keyName}');`;
+        return resolve({ success: false, error: `Invalid or unapproved hotkey: ${keyName}`, bridge: 'powershell' });
       }
 
       const script = `
         Add-Type -AssemblyName System.Windows.Forms;
         ${sendKey}
       `;
-      const cmd = `powershell -NoProfile -ExecutionPolicy Bypass -Command "${script.replace(/\r?\n/g, ' ')}"`;
-      exec(cmd, (err) => {
+      const { execFile: runExecFile } = require('child_process');
+      runExecFile('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', script.replace(/\r?\n/g, ' ')], (err) => {
         resolve({ success: !err, bridge: 'powershell' });
       });
     });

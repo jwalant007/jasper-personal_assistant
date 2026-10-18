@@ -3,7 +3,7 @@ const compression = require('compression');
 const cors = require('cors');
 const http = require('http');
 const WebSocket = require('ws');
-const { spawn, exec } = require('child_process');
+const { spawn, exec, execFile } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -541,12 +541,31 @@ app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
 
-    const isAllowed = 
+    let isAllowed = 
       allowedOrigins.includes(origin) ||
       origin.startsWith('capacitor://') ||
-      origin.startsWith('file://') ||
-      /^https?:\/\/(192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})(:\d+)?$/.test(origin) ||
-      (process.env.JASPER_TRUSTED_DOMAIN && origin.endsWith(process.env.JASPER_TRUSTED_DOMAIN));
+      origin.startsWith('file://');
+
+    if (!isAllowed) {
+      try {
+        const parsed = new URL(origin);
+        const host = parsed.hostname.toLowerCase();
+        
+        // Private LAN IP checks
+        const isLan = /^(192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|127\.0\.0\.1|localhost)$/.test(host);
+        if (isLan) {
+          isAllowed = true;
+        }
+
+        // Domain verification with strict hostname and sub-domain matching
+        if (!isAllowed && process.env.JASPER_TRUSTED_DOMAIN) {
+          const trusted = process.env.JASPER_TRUSTED_DOMAIN.toLowerCase().trim();
+          if (host === trusted || host.endsWith('.' + trusted)) {
+            isAllowed = true;
+          }
+        }
+      } catch (_) {}
+    }
 
     if (isAllowed) {
       callback(null, true);
@@ -562,15 +581,50 @@ app.use(express.urlencoded({ extended: true }));
 // -------------------------------------------------------------
 // SECURE AUTHENTICATION & ACCESS CONTROL
 // -------------------------------------------------------------
-const JASPER_AUTH_SECRET = (process.env.JASPER_AUTH_TOKEN || 'jasper').trim();
-if (JASPER_AUTH_SECRET === 'jasper') {
-  console.warn('⚠️  [SECURITY NOTICE] Using default JASPER_AUTH_TOKEN ("jasper"). Set a strong custom token in server/.env for production environments.');
+const isProductionEnv = process.env.NODE_ENV === 'production' || !!process.env.RENDER;
+const configuredToken = (process.env.JASPER_AUTH_TOKEN || '').trim();
+
+let JASPER_AUTH_SECRET = configuredToken;
+if (!JASPER_AUTH_SECRET) {
+  if (isProductionEnv) {
+    console.error('🚨 [CRITICAL SECURITY ERROR] JASPER_AUTH_TOKEN is NOT configured in production environment! Failing closed.');
+    JASPER_AUTH_SECRET = '';
+  } else {
+    JASPER_AUTH_SECRET = 'jasper';
+    console.warn('⚠️  [SECURITY NOTICE] Using default JASPER_AUTH_TOKEN ("jasper") for development/test mode. Set a strong custom token in server/.env for production environments.');
+  }
+} else if (isProductionEnv && JASPER_AUTH_SECRET === 'jasper') {
+  console.error('🚨 [CRITICAL SECURITY ERROR] Insecure default token "jasper" detected in production environment! Failing closed.');
+  JASPER_AUTH_SECRET = '';
+}
+
+// In-Memory Sliding-Window Rate Limiter for Authentication & Sensitive Operations
+const authAttemptTracker = new Map(); // ip -> [timestamps]
+
+function checkRateLimit(ip, limit = 15, windowMs = 60000) {
+  const cleanIp = String(ip || 'unknown');
+  const now = Date.now();
+  const history = (authAttemptTracker.get(cleanIp) || []).filter(t => now - t < windowMs);
+  if (history.length >= limit) {
+    return false;
+  }
+  history.push(now);
+  authAttemptTracker.set(cleanIp, history);
+  return true;
 }
 
 // Token Verification Endpoint
 app.post('/api/auth/verify', (req, res) => {
+  if (!checkRateLimit(req.ip, 15, 60000)) {
+    return res.status(429).json({ success: false, error: 'Too many authentication attempts. Please wait 1 minute.' });
+  }
+
   const { token } = req.body || {};
-  if (token === JASPER_AUTH_SECRET) {
+  if (!JASPER_AUTH_SECRET) {
+    return res.status(503).json({ success: false, error: 'Production authentication configuration missing. Access denied.' });
+  }
+
+  if (token && token === JASPER_AUTH_SECRET) {
     return res.json({ success: true, message: 'Authenticated to JASPER Core' });
   }
   return res.status(401).json({ success: false, error: 'Invalid Authorization Passcode' });
@@ -617,13 +671,13 @@ app.use((req, res, next) => {
                       req.headers['authorization']?.replace(/^Bearer\s+/i, '') || 
                       req.query.token;
 
-  if (clientToken === JASPER_AUTH_SECRET) {
+  if (JASPER_AUTH_SECRET && clientToken === JASPER_AUTH_SECRET) {
     return next();
   }
 
-  // Local loopback grace (for local development without token enforcement unless STRICT_AUTH=true)
+  // Local loopback grace ONLY allowed in non-production development without STRICT_AUTH
   const isLoopback = req.ip === '127.0.0.1' || req.ip === '::1' || req.ip === '::ffff:127.0.0.1';
-  if (isLoopback && !process.env.STRICT_AUTH) {
+  if (isLoopback && !process.env.STRICT_AUTH && !isProductionEnv) {
     return next();
   }
 
@@ -660,6 +714,9 @@ app.get('/api/users', (req, res) => {
 // User login endpoint
 app.post('/api/auth/login', (req, res) => {
   try {
+    if (!checkRateLimit(req.ip, 15, 60000)) {
+      return res.status(429).json({ success: false, error: 'Too many authentication attempts. Please wait 1 minute.' });
+    }
     const { userId, pin } = req.body || {};
     if (!userId) return res.status(400).json({ success: false, error: 'User ID is required' });
     const cleanId = String(userId).trim().toLowerCase();
@@ -669,8 +726,12 @@ app.post('/api/auth/login', (req, res) => {
       user = dbManager.ensureUser(cleanId, cleanId);
     }
 
-    if (user.pin && user.pin.trim() && pin !== undefined && String(pin).trim() !== '') {
-      if (user.pin !== String(pin).trim() && String(pin).trim() !== JASPER_AUTH_SECRET && String(pin).trim() !== 'master-override') {
+    // Strict PIN enforcement: if account has a PIN set, it must be provided and must match
+    if (user.pin && user.pin.trim()) {
+      const providedPin = pin !== undefined && pin !== null ? String(pin).trim() : '';
+      const pinMatches = providedPin === user.pin;
+      const secretMatches = JASPER_AUTH_SECRET && providedPin === JASPER_AUTH_SECRET;
+      if (!providedPin || (!pinMatches && !secretMatches)) {
         return res.status(401).json({ success: false, error: 'Invalid Passcode / PIN for this User ID' });
       }
     }
@@ -688,7 +749,7 @@ app.post('/api/auth/login', (req, res) => {
         hasPin: !!user.pin,
         hasFaceProfile: !!user.settings?.ownerFaceProfile
       },
-      token: JASPER_AUTH_SECRET
+      token: JASPER_AUTH_SECRET || undefined
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -698,6 +759,9 @@ app.post('/api/auth/login', (req, res) => {
 // User registration endpoint
 app.post('/api/auth/register', (req, res) => {
   try {
+    if (!checkRateLimit(req.ip, 10, 60000)) {
+      return res.status(429).json({ success: false, error: 'Too many registration attempts. Please wait 1 minute.' });
+    }
     const { userId, name, pin, avatar, role } = req.body || {};
     if (!userId) return res.status(400).json({ success: false, error: 'User ID is required' });
     const result = dbManager.createUser({ userId, name, pin, avatar, role });
@@ -714,7 +778,7 @@ app.post('/api/auth/register', (req, res) => {
         hasPin: !!result.user.pin,
         hasFaceProfile: !!result.user.settings?.ownerFaceProfile
       },
-      token: JASPER_AUTH_SECRET
+      token: JASPER_AUTH_SECRET || undefined
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -742,14 +806,21 @@ app.get('/api/auth/me', (req, res) => {
 
 // Fast User Switch endpoint
 app.post('/api/auth/switch', (req, res) => {
+  if (!checkRateLimit(req.ip, 15, 60000)) {
+    return res.status(429).json({ success: false, error: 'Too many switch attempts. Please wait 1 minute.' });
+  }
   const { userId, pin } = req.body || {};
   if (!userId) return res.status(400).json({ success: false, error: 'User ID is required' });
   const cleanId = String(userId).trim().toLowerCase();
   const user = dbManager.getUser(cleanId);
   if (!user) return res.status(404).json({ success: false, error: 'User profile not found' });
 
-  if (user.pin && user.pin.trim() && pin !== undefined && String(pin).trim() !== '') {
-    if (user.pin !== String(pin).trim() && String(pin).trim() !== JASPER_AUTH_SECRET && String(pin).trim() !== 'master-override') {
+  // Strict PIN check: if target profile has a PIN, require match
+  if (user.pin && user.pin.trim()) {
+    const providedPin = pin !== undefined && pin !== null ? String(pin).trim() : '';
+    const pinMatches = providedPin === user.pin;
+    const secretMatches = JASPER_AUTH_SECRET && providedPin === JASPER_AUTH_SECRET;
+    if (!providedPin || (!pinMatches && !secretMatches)) {
       return res.status(401).json({ success: false, error: 'Incorrect PIN for profile switch' });
     }
   }
@@ -1055,9 +1126,9 @@ app.post('/api/system/volume', (req, res) => {
   }
 });
 
-// Windows Application launcher endpoint (Parameterized, safe from shell injection)
+// Windows Application launcher endpoint (Parameterized, strictly allowlisted, safe from injection)
 app.post('/api/system/launch', (req, res) => {
-  const { appName, url } = req.body;
+  const { appName, url } = req.body || {};
   console.log('[API] App/Link launch requested:', { appName, url });
 
   const appMapping = {
@@ -1065,15 +1136,18 @@ app.post('/api/system/launch', (req, res) => {
     'calc': 'calc.exe',
     'calculator': 'calc.exe',
     'explorer': 'explorer.exe',
-    'cmd': 'cmd.exe',
-    'chrome': 'chrome.exe',
     'paint': 'mspaint.exe',
-    'taskmgr': 'taskmgr.exe'
+    'mspaint': 'mspaint.exe',
+    'taskmgr': 'taskmgr.exe',
+    'spotify': 'spotify.exe',
+    'chrome': 'chrome.exe',
+    'edge': 'msedge.exe',
+    'code': 'code.cmd'
   };
 
   if (appName) {
-    const key = appName.toLowerCase().trim();
-    const targetExe = appMapping[key] || (key === 'spotify' ? 'spotify.exe' : null);
+    const key = String(appName).toLowerCase().trim();
+    const targetExe = appMapping[key];
     if (targetExe) {
       try {
         const proc = spawn(targetExe, [], { detached: true, stdio: 'ignore' });
@@ -1083,29 +1157,15 @@ app.post('/api/system/launch', (req, res) => {
         return res.status(500).json({ error: 'Failed to launch application', details: err.message });
       }
     }
-
-    // Strict alphanumeric whitelist for safety
-    if (/^[a-zA-Z0-9_\-]+$/.test(appName)) {
-      const safeExe = `${appName}.exe`;
-      try {
-        const proc = spawn(safeExe, [], { detached: true, stdio: 'ignore' });
-        proc.on('error', (err) => {
-          return res.status(500).json({ error: 'Failed to launch application', details: err.message });
-        });
-        proc.unref();
-        return res.json({ success: true, launched: safeExe });
-      } catch (err) {
-        return res.status(500).json({ error: 'Failed to launch application', details: err.message });
-      }
-    }
-    return res.status(400).json({ error: `Application name '${appName}' is not in approved list` });
+    return res.status(400).json({ error: `Application '${appName}' is not in the approved desktop applications allowlist.` });
   } else if (url) {
     try {
       const parsedUrl = new URL(url);
       if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
         return res.status(400).json({ error: 'URL must start with http:// or https://' });
       }
-      execFile('cmd.exe', ['/c', 'start', '', parsedUrl.href], (err) => {
+      const { execFile: runExecFile } = require('child_process');
+      runExecFile('cmd.exe', ['/c', 'start', '', parsedUrl.href], (err) => {
         if (err) {
           console.error('[Launch API Error]:', err);
           return res.status(500).json({ error: 'Failed to launch URL', details: err.message });
@@ -1158,7 +1218,8 @@ app.post('/api/system/media', (req, res) => {
     return res.status(400).json({ error: `Invalid media action '${action}'` });
   }
 
-  exec(`powershell.exe -Command "$w=New-Object -ComObject WScript.Shell;$w.SendKeys([char]${keyChar})"`, (err) => {
+  const { execFile: runExecFile } = require('child_process');
+  runExecFile('powershell.exe', ['-NoProfile', '-Command', `$w=New-Object -ComObject WScript.Shell;$w.SendKeys([char]${keyChar})`], (err) => {
     if (err) {
       console.error('[Media API Error]:', err);
       return res.status(500).json({ error: 'Failed to execute media command', details: err.message });
@@ -1179,9 +1240,10 @@ function formatDuration(ms) {
 // PC Media Now Playing endpoint (Queries Windows System Media Transport Controls)
 app.get('/api/system/media/now-playing', (req, res) => {
   const getMediaExePath = getScriptPath('GetMedia.exe');
+  const { execFile: runExecFile } = require('child_process');
   
   if (fs.existsSync(getMediaExePath)) {
-    exec(`"${getMediaExePath}"`, { timeout: 3000 }, (err, stdout) => {
+    runExecFile(getMediaExePath, [], { timeout: 3000 }, (err, stdout) => {
       if (!err && stdout && stdout.trim()) {
         try {
           const data = JSON.parse(stdout.trim());
@@ -1221,7 +1283,8 @@ async function fallbackNowPlaying(req, res) {
 
   const psPath = getScriptPath('nowplaying.ps1');
   if (fs.existsSync(psPath)) {
-    exec(`powershell.exe -NoProfile -ExecutionPolicy Bypass -File "${psPath}"`, { timeout: 4000 }, (err, stdout) => {
+    const { execFile: runExecFile } = require('child_process');
+    runExecFile('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', psPath], { timeout: 4000 }, (err, stdout) => {
       if (!err && stdout && stdout.trim()) {
         try {
           const data = JSON.parse(stdout.trim());
@@ -1308,7 +1371,39 @@ const BLOCKED_FILE_PATTERNS = [
 
 function isSafeFsPath(targetPath) {
   if (!targetPath || typeof targetPath !== 'string') return false;
+  // Disallow null bytes or invalid control characters
+  if (targetPath.includes('\0')) return false;
+
   const resolved = path.resolve(targetPath);
+  const allowedRoot = process.env.JASPER_FS_ROOT ? path.resolve(process.env.JASPER_FS_ROOT) : WORKSPACE_ROOT;
+
+  // Boundary check: must reside within permitted workspace directory
+  const isWithinBoundary = resolved === allowedRoot || resolved.startsWith(allowedRoot + path.sep);
+  if (!isWithinBoundary) {
+    return false;
+  }
+
+  // Symlink check: if file or directory exists on disk, ensure realpath does not point outside permitted root
+  try {
+    if (fs.existsSync(resolved)) {
+      const real = fs.realpathSync(resolved);
+      if (real !== allowedRoot && !real.startsWith(allowedRoot + path.sep)) {
+        return false;
+      }
+    }
+  } catch (_) {
+    return false;
+  }
+
+  // Check each relative path segment against blocked patterns (.env, keys, etc.)
+  const rel = path.relative(allowedRoot, resolved);
+  const segments = rel.split(path.sep);
+  for (const segment of segments) {
+    for (const pat of BLOCKED_FILE_PATTERNS) {
+      if (pat.test(segment)) return false;
+    }
+  }
+
   const base = path.basename(resolved);
   for (const pat of BLOCKED_FILE_PATTERNS) {
     if (pat.test(base) || pat.test(resolved)) return false;
@@ -1414,37 +1509,48 @@ app.get('/api/fs/read', (req, res) => {
 
 app.get('/api/fs/disk', (req, res) => {
   if (process.platform === 'win32') {
-    exec('powershell.exe -NoProfile -Command "Get-PSDrive C | Select-Object Used, Free | ConvertTo-Json"', { timeout: 4000 }, (err, stdout) => {
+    execFile('powershell.exe', ['-NoProfile', '-Command', 'Get-PSDrive C | Select-Object Used, Free | ConvertTo-Json'], { timeout: 4000 }, (err, stdout) => {
       if (!err && stdout) {
         try {
           const parsed = JSON.parse(stdout.trim());
-          const usedGB = Math.round(parsed.Used / (1024 * 1024 * 1024));
-          const freeGB = Math.round(parsed.Free / (1024 * 1024 * 1024));
-          const totalGB = usedGB + freeGB;
-          return res.json({
-            success: true,
-            drive: 'C:',
-            totalGB,
-            freeGB,
-            usedGB,
-            usedPercent: Math.round((usedGB / totalGB) * 100)
-          });
+          if (parsed && typeof parsed.Used === 'number' && typeof parsed.Free === 'number') {
+            const usedGB = Math.round(parsed.Used / (1024 * 1024 * 1024));
+            const freeGB = Math.round(parsed.Free / (1024 * 1024 * 1024));
+            const totalGB = usedGB + freeGB;
+            return res.json({
+              success: true,
+              drive: 'C:',
+              totalGB,
+              freeGB,
+              usedGB,
+              usedPercent: totalGB > 0 ? Math.round((usedGB / totalGB) * 100) : 0
+            });
+          }
         } catch (_) {}
       }
-      res.json({ success: true, drive: 'C:', totalGB: 512, freeGB: 256, usedGB: 256, usedPercent: 50 });
+      res.status(503).json({ success: false, error: 'Host disk measurements unavailable', drive: 'C:' });
     });
   } else {
-    exec('df -k / | tail -1', { timeout: 3000 }, (err, stdout) => {
+    execFile('df', ['-k', '/'], { timeout: 3000 }, (err, stdout) => {
       if (!err && stdout) {
-        const parts = stdout.trim().split(/\s+/);
+        const lines = stdout.trim().split('\n');
+        const lastLine = lines[lines.length - 1];
+        const parts = lastLine.trim().split(/\s+/);
         if (parts.length >= 4) {
           const totalGB = Math.round(parseInt(parts[1], 10) / (1024 * 1024));
           const usedGB = Math.round(parseInt(parts[2], 10) / (1024 * 1024));
           const freeGB = Math.round(parseInt(parts[3], 10) / (1024 * 1024));
-          return res.json({ success: true, drive: '/', totalGB, freeGB, usedGB, usedPercent: Math.round((usedGB / totalGB) * 100) });
+          return res.json({ 
+            success: true, 
+            drive: '/', 
+            totalGB, 
+            freeGB, 
+            usedGB, 
+            usedPercent: totalGB > 0 ? Math.round((usedGB / totalGB) * 100) : 0 
+          });
         }
       }
-      res.json({ success: true, drive: '/', totalGB: 100, freeGB: 50, usedGB: 50, usedPercent: 50 });
+      res.status(503).json({ success: false, error: 'Host disk measurements unavailable', drive: '/' });
     });
   }
 });
@@ -1458,12 +1564,65 @@ app.post('/api/code/execute', async (req, res) => {
     return res.status(400).json({ success: false, error: 'No code provided for execution' });
   }
 
+  if (!checkRateLimit(req.ip, 10, 60000)) {
+    return res.status(429).json({ success: false, error: 'Too many code execution requests. Please wait 1 minute.' });
+  }
+
+  // In production / cloud environments, disable host code execution by default
+  if (isProductionEnv && process.env.ALLOW_HOST_CODE_EXECUTION !== 'true') {
+    console.warn(`[Security Alert] Blocked host code execution attempt in production from IP ${req.ip}`);
+    return res.status(403).json({
+      success: false,
+      error: 'Host code execution is disabled in production environment for security. Configure ALLOW_HOST_CODE_EXECUTION=true to permit execution.',
+      language
+    });
+  }
+
+  const validLangs = ['javascript', 'python', 'powershell'];
+  const cleanLang = String(language).toLowerCase().trim();
+  if (!validLangs.includes(cleanLang)) {
+    return res.status(400).json({
+      success: false,
+      error: `Invalid language '${language}'. Supported languages: javascript, python, powershell.`,
+      language
+    });
+  }
+
+  // Destructive command inspection filter
+  const dangerousPatterns = [
+    /\bformat\s+[a-z]:/i,
+    /\brmdir\s+[\/\\][sq]/i,
+    /\brm\s+-rf\s+[\/\\]/i,
+    /\bdel\s+[\/\\][sqf]\s+[c-z]:[\/\\]windows/i,
+    /\bRemove-Item\s+.*-Recurse\s+.*[C-Z]:[\/\\]/i,
+    /\bDrop-Database\b/i,
+    /\bnet\s+user\s+.*\/add\b/i,
+    /\bnet\s+localgroup\s+administrators\s+.*\/add\b/i
+  ];
+  for (const pat of dangerousPatterns) {
+    if (pat.test(code)) {
+      console.warn(`[Security Alert] Blocked destructive code pattern (${pat}) from IP ${req.ip}`);
+      busyModeEngine.logActivity({
+        type: 'CODE_EXECUTION_BLOCKED',
+        language: cleanLang,
+        reason: 'Destructive command pattern detected',
+        ip: req.ip,
+        timestamp: new Date().toISOString()
+      });
+      return res.status(403).json({
+        success: false,
+        error: 'Execution blocked: Destructive command pattern detected.',
+        language: cleanLang
+      });
+    }
+  }
+
   const scratchDir = path.join(__dirname, '..', 'scratch');
   if (!fs.existsSync(scratchDir)) {
     try { fs.mkdirSync(scratchDir, { recursive: true }); } catch (_) {}
   }
 
-  const fileExt = language === 'python' ? 'py' : language === 'powershell' ? 'ps1' : 'js';
+  const fileExt = cleanLang === 'python' ? 'py' : cleanLang === 'powershell' ? 'ps1' : 'js';
   const tempFile = path.join(scratchDir, `exec_${Date.now()}_${Math.random().toString(36).slice(2, 6)}.${fileExt}`);
 
   try {
@@ -1473,10 +1632,10 @@ app.post('/api/code/execute', async (req, res) => {
     let binary = isWin ? 'node.exe' : 'node';
     let args = [tempFile];
 
-    if (language === 'python') {
+    if (cleanLang === 'python') {
       binary = isWin ? 'python.exe' : 'python3';
       args = [tempFile];
-    } else if (language === 'powershell') {
+    } else if (cleanLang === 'powershell') {
       binary = isWin ? 'powershell.exe' : 'pwsh';
       args = ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', tempFile];
     }
@@ -1485,12 +1644,22 @@ app.post('/api/code/execute', async (req, res) => {
     runExecFile(binary, args, { timeout: 10000, maxBuffer: 10 * 1024 * 1024 }, (err, stdout, stderr) => {
       try { if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile); } catch (_) {}
 
+      // Record in audit log
+      busyModeEngine.logActivity({
+        type: 'CODE_EXECUTED',
+        language: cleanLang,
+        success: !err,
+        exitCode: err ? (err.code || 1) : 0,
+        userId: req.userId || 'system',
+        timestamp: new Date().toISOString()
+      });
+
       if (err && err.killed) {
         return res.json({
           success: false,
           error: 'Execution timed out (10s threshold exceeded)',
           output: (stdout || '') + '\n[TIMEOUT KILLED: Process exceeded 10-second limit]',
-          language
+          language: cleanLang
         });
       }
 
@@ -1500,12 +1669,12 @@ app.post('/api/code/execute', async (req, res) => {
         stderr: stderr ? stderr.trim() : '',
         output: (stdout ? stdout.trim() : '') + (stderr ? (stdout ? '\n' : '') + '[STDERR]: ' + stderr.trim() : '') || '(Script executed cleanly with zero console output)',
         exitCode: err ? (err.code || 1) : 0,
-        language
+        language: cleanLang
       });
     });
   } catch (err) {
     try { if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile); } catch (_) {}
-    res.status(500).json({ success: false, error: err.message, language });
+    res.status(500).json({ success: false, error: err.message, language: cleanLang });
   }
 });
 

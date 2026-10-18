@@ -20,9 +20,15 @@ build/
 
 # Environment and secrets
 .env
+**/.env
 .env.local
-.env.*.local
+**/.env.local
+.env.*
+**/.env.*
 *.pem
+**/*.pem
+*.key
+**/*.key
 
 # Private data exports
 contacts_export.json
