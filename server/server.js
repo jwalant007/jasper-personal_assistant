@@ -17,6 +17,7 @@ const sportsEngine = require('./sportsEngine');
 const pcRemoteController = require('./pcRemoteController');
 const permissionLayer = require('./permissionLayer');
 const busyModeEngine = require('./busyModeEngine');
+const codeSandboxEngine = require('./codeSandboxEngine');
 const blenderController = require('./blenderController');
 const notificationManager = require('./notificationManager');
 const weatherSentinel = require('./weatherSentinel');
@@ -654,6 +655,7 @@ app.use((req, res, next) => {
     '/api/ping',
     '/api/auth/verify',
     '/api/satellite/status',
+    '/api/code/status',
     '/api/users',
     '/api/auth/login',
     '/api/auth/register',
@@ -1556,39 +1558,75 @@ app.get('/api/fs/disk', (req, res) => {
 });
 
 // -------------------------------------------------------------
-// REAL HOST CODE STUDIO EXECUTION API (JavaScript, PowerShell, Python)
+// SECURE CODE EXECUTION & ISOLATED SANDBOX APIS
 // -------------------------------------------------------------
+
+// Sandbox Capability & Status Endpoint
+app.get('/api/code/status', (req, res) => {
+  const status = codeSandboxEngine.getStatus();
+  res.json({
+    success: true,
+    ...status
+  });
+});
+
+// Active Sandbox Execution Cancellation Endpoint
+app.post('/api/code/cancel', async (req, res) => {
+  // Reject query-string authentication explicitly (headers only)
+  if (req.query && req.query.token) {
+    return res.status(401).json({ success: false, error: 'Query string authentication is prohibited. Please use approved request headers.' });
+  }
+
+  const clientToken = req.headers['x-jasper-token'] || 
+                      req.headers['authorization']?.replace(/^Bearer\s+/i, '');
+  if (!JASPER_AUTH_SECRET) {
+    return res.status(503).json({ success: false, error: 'Authentication configuration missing. Action denied.' });
+  }
+  if (!clientToken || clientToken !== JASPER_AUTH_SECRET) {
+    return res.status(401).json({ success: false, error: 'Access Denied: Valid authentication token required to cancel execution.' });
+  }
+
+  const { executionId } = req.body || {};
+  if (!executionId || typeof executionId !== 'string') {
+    return res.status(400).json({ success: false, error: 'Valid executionId required.' });
+  }
+
+  const authenticatedUserId = req.userId || dbManager.getActiveUserId() || 'jwalant';
+  const result = await codeSandboxEngine.cancelExecution(executionId, authenticatedUserId);
+  busyModeEngine.logActivity({
+    type: 'CODE_EXECUTION_CANCELLED',
+    executionId,
+    userId: authenticatedUserId,
+    timestamp: new Date().toISOString()
+  });
+
+  res.status(result.success ? 200 : (result.status || 404)).json(result);
+});
+
+// Secure Isolated Code Execution Endpoint
 app.post('/api/code/execute', async (req, res) => {
-  const { code, language = 'javascript' } = req.body || {};
-  if (!code || typeof code !== 'string') {
-    return res.status(400).json({ success: false, error: 'No code provided for execution' });
+  // Reject query-string authentication explicitly (headers only)
+  if (req.query && req.query.token) {
+    return res.status(401).json({ success: false, error: 'Query string authentication is prohibited. Please use approved request headers.' });
+  }
+
+  const clientToken = req.headers['x-jasper-token'] || 
+                      req.headers['authorization']?.replace(/^Bearer\s+/i, '');
+
+  if (!JASPER_AUTH_SECRET) {
+    return res.status(503).json({ success: false, error: 'Production authentication configuration missing. Code execution denied.' });
+  }
+  if (!clientToken || clientToken !== JASPER_AUTH_SECRET) {
+    return res.status(401).json({ success: false, error: 'Access Denied: Code execution requires valid authentication token.' });
   }
 
   if (!checkRateLimit(req.ip, 10, 60000)) {
     return res.status(429).json({ success: false, error: 'Too many code execution requests. Please wait 1 minute.' });
   }
 
-  // In production / cloud environments, disable host code execution by default
-  if (isProductionEnv && process.env.ALLOW_HOST_CODE_EXECUTION !== 'true') {
-    console.warn(`[Security Alert] Blocked host code execution attempt in production from IP ${req.ip}`);
-    return res.status(403).json({
-      success: false,
-      error: 'Host code execution is disabled in production environment for security. Configure ALLOW_HOST_CODE_EXECUTION=true to permit execution.',
-      language
-    });
-  }
+  const { code, language = 'javascript' } = req.body || {};
 
-  const validLangs = ['javascript', 'python', 'powershell'];
-  const cleanLang = String(language).toLowerCase().trim();
-  if (!validLangs.includes(cleanLang)) {
-    return res.status(400).json({
-      success: false,
-      error: `Invalid language '${language}'. Supported languages: javascript, python, powershell.`,
-      language
-    });
-  }
-
-  // Destructive command inspection filter
+  // Defense-in-depth: Block known destructive command patterns immediately
   const dangerousPatterns = [
     /\bformat\s+[a-z]:/i,
     /\brmdir\s+[\/\\][sq]/i,
@@ -1599,82 +1637,76 @@ app.post('/api/code/execute', async (req, res) => {
     /\bnet\s+user\s+.*\/add\b/i,
     /\bnet\s+localgroup\s+administrators\s+.*\/add\b/i
   ];
-  for (const pat of dangerousPatterns) {
-    if (pat.test(code)) {
-      console.warn(`[Security Alert] Blocked destructive code pattern (${pat}) from IP ${req.ip}`);
-      busyModeEngine.logActivity({
-        type: 'CODE_EXECUTION_BLOCKED',
-        language: cleanLang,
-        reason: 'Destructive command pattern detected',
-        ip: req.ip,
-        timestamp: new Date().toISOString()
-      });
-      return res.status(403).json({
-        success: false,
-        error: 'Execution blocked: Destructive command pattern detected.',
-        language: cleanLang
-      });
-    }
-  }
-
-  const scratchDir = path.join(__dirname, '..', 'scratch');
-  if (!fs.existsSync(scratchDir)) {
-    try { fs.mkdirSync(scratchDir, { recursive: true }); } catch (_) {}
-  }
-
-  const fileExt = cleanLang === 'python' ? 'py' : cleanLang === 'powershell' ? 'ps1' : 'js';
-  const tempFile = path.join(scratchDir, `exec_${Date.now()}_${Math.random().toString(36).slice(2, 6)}.${fileExt}`);
-
-  try {
-    fs.writeFileSync(tempFile, code, 'utf8');
-
-    const isWin = process.platform === 'win32';
-    let binary = isWin ? 'node.exe' : 'node';
-    let args = [tempFile];
-
-    if (cleanLang === 'python') {
-      binary = isWin ? 'python.exe' : 'python3';
-      args = [tempFile];
-    } else if (cleanLang === 'powershell') {
-      binary = isWin ? 'powershell.exe' : 'pwsh';
-      args = ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', tempFile];
-    }
-
-    const { execFile: runExecFile } = require('child_process');
-    runExecFile(binary, args, { timeout: 10000, maxBuffer: 10 * 1024 * 1024 }, (err, stdout, stderr) => {
-      try { if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile); } catch (_) {}
-
-      // Record in audit log
-      busyModeEngine.logActivity({
-        type: 'CODE_EXECUTED',
-        language: cleanLang,
-        success: !err,
-        exitCode: err ? (err.code || 1) : 0,
-        userId: req.userId || 'system',
-        timestamp: new Date().toISOString()
-      });
-
-      if (err && err.killed) {
-        return res.json({
+  if (typeof code === 'string') {
+    for (const pat of dangerousPatterns) {
+      if (pat.test(code)) {
+        console.warn(`[Security Alert] Blocked destructive code pattern (${pat}) from IP ${req.ip}`);
+        busyModeEngine.logActivity({
+          type: 'CODE_EXECUTION_BLOCKED',
+          language,
+          reason: 'Destructive command pattern detected',
+          ip: req.ip,
+          timestamp: new Date().toISOString()
+        });
+        return res.status(403).json({
           success: false,
-          error: 'Execution timed out (10s threshold exceeded)',
-          output: (stdout || '') + '\n[TIMEOUT KILLED: Process exceeded 10-second limit]',
-          language: cleanLang
+          error: 'Execution blocked: Destructive command pattern detected.',
+          language
         });
       }
+    }
+  }
 
-      res.json({
-        success: !err,
-        stdout: stdout ? stdout.trim() : '',
-        stderr: stderr ? stderr.trim() : '',
-        output: (stdout ? stdout.trim() : '') + (stderr ? (stdout ? '\n' : '') + '[STDERR]: ' + stderr.trim() : '') || '(Script executed cleanly with zero console output)',
-        exitCode: err ? (err.code || 1) : 0,
-        language: cleanLang
-      });
+  // Strict input schema validation & language allowlist
+  const validation = codeSandboxEngine.validateRequest(req.body);
+  if (!validation.valid) {
+    return res.status(validation.status || 400).json({
+      success: false,
+      error: validation.error,
+      language: validation.language || language
     });
+  }
+
+  // Sandbox policy evaluation (Fail-closed in production without external runner)
+  const status = codeSandboxEngine.getStatus();
+  if (!status.enabled) {
+    console.warn(`[Security Policy] Blocked code execution (mode: ${status.mode}) from IP ${req.ip}: ${status.message}`);
+    return res.status(403).json({
+      success: false,
+      error: status.message,
+      sandboxMode: status.mode,
+      language: validation.cleanLang
+    });
+  }
+
+  try {
+    const authenticatedUserId = req.userId || dbManager.getActiveUserId() || 'jwalant';
+    const result = await codeSandboxEngine.execute(validation, {
+      userId: authenticatedUserId,
+      ip: req.ip
+    });
+
+    // Record in audit log
+    busyModeEngine.logActivity({
+      type: result.success ? 'CODE_EXECUTED_ISOLATED' : 'CODE_EXECUTION_FAILED',
+      language: validation.cleanLang,
+      success: result.success,
+      exitCode: result.exitCode,
+      durationMs: result.durationMs,
+      timedOut: Boolean(result.timedOut),
+      cancelled: Boolean(result.cancelled),
+      executionId: result.executionId,
+      userId: authenticatedUserId,
+      timestamp: new Date().toISOString()
+    });
+
+    return res.json(result);
   } catch (err) {
-    try { if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile); } catch (_) {}
-    res.status(500).json({ success: false, error: err.message, language: cleanLang });
+    return res.status(500).json({
+      success: false,
+      error: 'An internal error occurred during isolated execution.',
+      language: validation.cleanLang
+    });
   }
 });
 
@@ -5189,4 +5221,4 @@ const shutdown = () => {
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
 
-module.exports = { app, server, startServer };
+module.exports = { app, server, startServer, authAttemptTracker };

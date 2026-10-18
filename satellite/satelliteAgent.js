@@ -167,23 +167,44 @@ async function handleToolExecution(tool, args) {
     }
 
     case 'open_application': {
-      const { appName, url } = args;
-      if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
-        exec(`start "" "${url.replace(/&/g, '^&')}"`);
-        return { success: true, launched: url };
+      const { appName, url } = args || {};
+      if (url) {
+        try {
+          const parsed = new URL(url);
+          if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+            return { success: false, error: 'URL must start with http:// or https://' };
+          }
+          execFile('cmd.exe', ['/c', 'start', '', parsed.href], (err) => {
+            if (err) console.error('[Satellite] Launch URL error:', err.message);
+          });
+          return { success: true, launched: parsed.href };
+        } catch (_) {
+          return { success: false, error: 'Invalid URL format' };
+        }
       }
       if (appName) {
         const validApps = {
-          notepad: 'notepad.exe', calc: 'calc.exe', calculator: 'calc.exe',
-          chrome: 'chrome.exe', paint: 'mspaint.exe', taskmgr: 'taskmgr.exe',
-          explorer: 'explorer.exe', spotify: 'start spotify:',
-          cmd: 'cmd.exe', powershell: 'powershell.exe'
+          notepad: 'notepad.exe',
+          calc: 'calc.exe',
+          calculator: 'calc.exe',
+          chrome: 'chrome.exe',
+          paint: 'mspaint.exe',
+          mspaint: 'mspaint.exe',
+          taskmgr: 'taskmgr.exe',
+          explorer: 'explorer.exe',
+          edge: 'msedge.exe'
         };
-        const target = validApps[appName.toLowerCase()] || `${appName}.exe`;
-        exec(`start ${target}`, (err) => {
+        const target = validApps[String(appName).toLowerCase().trim()];
+        if (!target) {
+          return {
+            success: false,
+            error: `Application '${appName}' is not in the approved satellite launch allowlist.`
+          };
+        }
+        execFile(target, [], (err) => {
           if (err) console.error('[Satellite] Launch app error:', err.message);
         });
-        return { success: true, launched: appName };
+        return { success: true, launched: target };
       }
       return { success: false, error: 'Provide appName or url' };
     }
