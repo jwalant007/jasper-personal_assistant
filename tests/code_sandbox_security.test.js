@@ -134,6 +134,14 @@ test('Architecture Remediation: Legacy direct host execution code MUST be comple
     'codeSandboxEngine.js must NOT contain SANDBOX_BASE_DIR');
 });
 
+test('Architecture Remediation: runner/sandboxRunnerService.js must NOT use shell: true', () => {
+  const runnerSourcePath = path.join(__dirname, '..', 'runner', 'sandboxRunnerService.js');
+  const runnerSource = fs.readFileSync(runnerSourcePath, 'utf8');
+
+  assert.strictEqual(runnerSource.includes('shell: true'), false, 
+    'sandboxRunnerService.js must NOT contain shell: true');
+});
+
 test('Sandbox Policy: System MUST fail closed and refuse host execution when no runner is configured', async () => {
   clearLimiter();
   const oldRunner = process.env.JASPER_SANDBOX_RUNNER_URL;
@@ -285,10 +293,10 @@ test('Sandbox Security: /api/code/execute MUST reject destructive command patter
 });
 
 // ---------------------------------------------------------------------------
-// 3. RUNNER CONTROLLER AUTHENTICATION & CONTAINER ENGINE SPECIFICATION TESTS
+// 3. RUNNER CONTROLLER AUTHENTICATION, ENGINE PROBING & SPECIFICATION TESTS
 // ---------------------------------------------------------------------------
 
-test('Runner Controller: Direct access MUST reject unauthenticated requests and leak zero secrets', async (t) => {
+test('[UNIT / MOCKED DOCKER] Runner Controller: Direct access MUST reject unauthenticated requests and leak zero secrets', async (t) => {
   const oldKey = process.env.JASPER_SANDBOX_RUNNER_KEY;
   process.env.JASPER_SANDBOX_RUNNER_KEY = TEST_RUNNER_SECRET;
 
@@ -331,7 +339,7 @@ test('Runner Controller: Direct access MUST reject unauthenticated requests and 
   assert.strictEqual(runBadAuth.statusCode, 401);
 });
 
-test('Runner Controller: MUST fail closed with 503 when container engine (Docker/Podman) is unavailable', async (t) => {
+test('[UNIT / MOCKED DOCKER] Runner Controller: MUST fail closed with 503 when container engine (Docker/Podman) is unavailable', async (t) => {
   const oldKey = process.env.JASPER_SANDBOX_RUNNER_KEY;
   process.env.JASPER_SANDBOX_RUNNER_KEY = TEST_RUNNER_SECRET;
 
@@ -371,7 +379,7 @@ test('Runner Controller: MUST fail closed with 503 when container engine (Docker
   assert.ok(res.body.error.includes('disabled fail-closed'));
 });
 
-test('Runner Controller: Per-job container launch arguments MUST strictly enforce kernel isolation boundaries', () => {
+test('[UNIT / MOCKED DOCKER] Runner Controller: Per-job container launch arguments MUST strictly enforce kernel isolation boundaries', () => {
   const driver = runnerService.defaultContainerDriver;
   const args = driver.buildRunArgs({
     containerName: 'jasper_job_run_test_123',
@@ -405,6 +413,152 @@ test('Runner Controller: Per-job container launch arguments MUST strictly enforc
   // Verify entrypoint executes via stdin
   assert.ok(args.includes('node') && args[args.indexOf('node') + 1] === '-', 
     'JavaScript execution must read pure code from stdin (-)');
+});
+
+test('[UNIT / MOCKED DOCKER] probeContainerEngine executes --version with shell: false and returns status correctly', () => {
+  let executedCmd = null;
+  let executedArgs = null;
+  let executedOpts = null;
+
+  const mockSpawnSync = (cmd, args, opts) => {
+    executedCmd = cmd;
+    executedArgs = args;
+    executedOpts = opts;
+    return { status: 0, error: null };
+  };
+
+  // 1. Success case: exits 0
+  const isOk = runnerService.probeContainerEngine('docker', mockSpawnSync);
+  assert.strictEqual(isOk, true);
+  assert.strictEqual(executedCmd, 'docker');
+  assert.deepStrictEqual(executedArgs, ['--version']);
+  assert.strictEqual(executedOpts.shell, false, 'Must enforce shell: false');
+  assert.strictEqual(executedOpts.encoding, 'utf8');
+
+  // 2. Error case (e.g. ENOENT when Docker is not installed)
+  const mockSpawnSyncError = () => ({ status: null, error: new Error('ENOENT') });
+  assert.strictEqual(runnerService.probeContainerEngine('docker', mockSpawnSyncError), false);
+
+  // 3. Non-zero exit code
+  const mockSpawnSyncFail = () => ({ status: 1, error: null });
+  assert.strictEqual(runnerService.probeContainerEngine('docker', mockSpawnSyncFail), false);
+
+  // 4. Invalid engine identifier
+  assert.strictEqual(runnerService.probeContainerEngine('docker; malicious', mockSpawnSync), false);
+});
+
+test('[UNIT / MOCKED DOCKER] purgeOrphanedContainers lists and removes containers with shell: false and validates container IDs', () => {
+  const calls = [];
+  const mockSpawnSync = (cmd, args, opts) => {
+    calls.push({ cmd, args, opts });
+    if (args[0] === 'ps') {
+      return {
+        status: 0,
+        stdout: 'cid123456789\njasper_job_run_123_abc\n;rm -rf /\n../bad_traversal\nvalid_cid_9999\n'
+      };
+    }
+    return { status: 0, error: null };
+  };
+
+  const result = runnerService.purgeOrphanedContainers('docker', mockSpawnSync);
+  assert.strictEqual(result.cleaned, 3, 'Must only clean the 3 valid container identifiers');
+
+  // Verify ps call uses shell: false
+  assert.strictEqual(calls[0].opts.shell, false, 'ps must use shell: false');
+  assert.deepStrictEqual(calls[0].args, ['ps', '-aq', '--filter', 'name=jasper_job_']);
+
+  // Verify subsequent rm calls
+  const rmCalls = calls.slice(1);
+  assert.strictEqual(rmCalls.length, 3);
+  for (const call of rmCalls) {
+    assert.strictEqual(call.opts.shell, false, 'rm must use shell: false');
+    assert.strictEqual(call.args[0], 'rm');
+    assert.strictEqual(call.args[1], '-f');
+    assert.ok(runnerService.isValidContainerIdentifier(call.args[2]), 'Container ID must be validated');
+  }
+
+  // Ensure invalid tokens were NEVER passed to rm
+  const rmTargets = rmCalls.map(c => c.args[2]);
+  assert.ok(!rmTargets.includes(';rm -rf /'), 'Must NOT execute rm on shell injection string');
+  assert.ok(!rmTargets.includes('../bad_traversal'), 'Must NOT execute rm on path traversal string');
+});
+
+test('[UNIT / MOCKED DOCKER] isValidContainerIdentifier validates safe IDs and rejects metacharacters and path traversal', () => {
+  // Valid
+  assert.strictEqual(runnerService.isValidContainerIdentifier('a1234567890b'), true);
+  assert.strictEqual(runnerService.isValidContainerIdentifier('jasper_job_run_1792345678_abcd1234'), true);
+  assert.strictEqual(runnerService.isValidContainerIdentifier('container-name.123_v1'), true);
+  assert.strictEqual(runnerService.isValidContainerIdentifier('sha256-abc'), true);
+
+  // Invalid
+  assert.strictEqual(runnerService.isValidContainerIdentifier(''), false);
+  assert.strictEqual(runnerService.isValidContainerIdentifier('   '), false);
+  assert.strictEqual(runnerService.isValidContainerIdentifier('; rm -rf /'), false);
+  assert.strictEqual(runnerService.isValidContainerIdentifier('container$(whoami)'), false);
+  assert.strictEqual(runnerService.isValidContainerIdentifier('a|b'), false);
+  assert.strictEqual(runnerService.isValidContainerIdentifier('a&b'), false);
+  assert.strictEqual(runnerService.isValidContainerIdentifier('../path/traversal'), false);
+  assert.strictEqual(runnerService.isValidContainerIdentifier('foo\nbar'), false);
+  assert.strictEqual(runnerService.isValidContainerIdentifier('a'.repeat(129)), false);
+});
+
+test('[UNIT / MOCKED DOCKER] Configurable image reference validation supports tags, repositories, and immutable SHA-256 digests', () => {
+  // Valid tagged references
+  assert.strictEqual(runnerService.isValidImageReference('node:20-alpine'), true);
+  assert.strictEqual(runnerService.isValidImageReference('python:3.11-alpine'), true);
+  assert.strictEqual(runnerService.isValidImageReference('docker.io/library/node:20-alpine'), true);
+
+  // Valid immutable SHA-256 digests
+  const nodeWithDigest = 'node:20-alpine@sha256:afdf98210b07b586eb71fa22ba2e432e058e4cd1304d31ed60888755b8c865fb';
+  assert.strictEqual(runnerService.isValidImageReference(nodeWithDigest), true);
+  assert.strictEqual(runnerService.isImmutableImageDigest(nodeWithDigest), true);
+
+  // Reference without digest is not immutable
+  assert.strictEqual(runnerService.isImmutableImageDigest('node:20-alpine'), false);
+
+  // Malformed or dangerous image strings MUST be rejected
+  assert.strictEqual(runnerService.isValidImageReference('node:latest; cat /etc/passwd'), false);
+  assert.strictEqual(runnerService.isValidImageReference('evil image with spaces'), false);
+  assert.strictEqual(runnerService.isValidImageReference('node$(whoami)'), false);
+  assert.strictEqual(runnerService.isValidImageReference(''), false);
+  assert.strictEqual(runnerService.isValidImageReference('a'.repeat(256)), false);
+
+  // getRuntimeImage fallbacks safely
+  const oldNodeEnv = process.env.SANDBOX_NODE_IMAGE;
+  process.env.SANDBOX_NODE_IMAGE = 'evil; injection';
+  assert.strictEqual(runnerService.getRuntimeImage('javascript'), runnerService.DEFAULT_NODE_IMAGE);
+  if (oldNodeEnv !== undefined) process.env.SANDBOX_NODE_IMAGE = oldNodeEnv;
+  else delete process.env.SANDBOX_NODE_IMAGE;
+});
+
+test('[UNIT / MOCKED DOCKER] defaultContainerDriver argument validation and safe execution with shell: false', () => {
+  const driver = runnerService.defaultContainerDriver;
+
+  // buildRunArgs rejects malformed container name
+  assert.throws(() => {
+    driver.buildRunArgs({
+      containerName: '; rm -rf /',
+      cleanLang: 'javascript',
+      runtimeImage: 'node:20-alpine'
+    });
+  }, /Invalid container name/);
+
+  // buildRunArgs rejects malformed image reference
+  assert.throws(() => {
+    driver.buildRunArgs({
+      containerName: 'valid_container_name',
+      cleanLang: 'javascript',
+      runtimeImage: 'evil; image'
+    });
+  }, /Invalid runtime image reference/);
+
+  // killJob rejects malformed container name without executing
+  let callbackErr = null;
+  driver.killJob('; malicious_name', (err) => {
+    callbackErr = err;
+  });
+  assert.ok(callbackErr instanceof Error);
+  assert.ok(callbackErr.message.includes('Invalid container name'));
 });
 
 // ---------------------------------------------------------------------------
@@ -471,7 +625,7 @@ function createMockContainerDriver() {
   };
 }
 
-test('Per-Job Container Isolation: Each job receives a distinct container and cleans up on completion', async (t) => {
+test('[UNIT / MOCKED DOCKER] Per-Job Container Isolation: Each job receives a distinct container and cleans up on completion', async (t) => {
   const oldKey = process.env.JASPER_SANDBOX_RUNNER_KEY;
   process.env.JASPER_SANDBOX_RUNNER_KEY = TEST_RUNNER_SECRET;
 
@@ -519,7 +673,7 @@ test('Per-Job Container Isolation: Each job receives a distinct container and cl
   assert.notStrictEqual(name1, name2, 'Each job must receive a distinct disposable container name');
 });
 
-test('Job Cancellation: Cancellation strictly verifies owner and terminates container', async (t) => {
+test('[UNIT / MOCKED DOCKER] Job Cancellation: Cancellation strictly verifies owner and terminates container', async (t) => {
   const oldKey = process.env.JASPER_SANDBOX_RUNNER_KEY;
   process.env.JASPER_SANDBOX_RUNNER_KEY = TEST_RUNNER_SECRET;
 
@@ -599,7 +753,75 @@ test('Job Cancellation: Cancellation strictly verifies owner and terminates cont
   assert.strictEqual(launchResult.body.cancelled, true);
 });
 
-test('Runner Security: Request payload exceeding 128 KB MUST return 413', async (t) => {
+test('[UNIT / MOCKED DOCKER] Timeout cleanup terminates container with killJob and returns exit code 124', async (t) => {
+  const oldKey = process.env.JASPER_SANDBOX_RUNNER_KEY;
+  process.env.JASPER_SANDBOX_RUNNER_KEY = TEST_RUNNER_SECRET;
+
+  const mockDriver = createMockContainerDriver();
+  const runnerServer = runnerService.createServer({ containerDriver: mockDriver });
+  const testPort = 5078;
+
+  await new Promise((resolve, reject) => {
+    runnerServer.listen(testPort, '127.0.0.1', resolve);
+    runnerServer.on('error', reject);
+  });
+
+  t.after(() => {
+    if (oldKey !== undefined) process.env.JASPER_SANDBOX_RUNNER_KEY = oldKey;
+    else delete process.env.JASPER_SANDBOX_RUNNER_KEY;
+    return new Promise(resolve => runnerServer.close(resolve));
+  });
+
+  // Execute job with 1000ms timeout simulating a hung process
+  const res = await makeDirectRequest(testPort, 'POST', '/run', {
+    'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
+  }, {
+    code: 'SLEEP_SIMULATION',
+    language: 'javascript',
+    timeoutMs: 1000
+  });
+
+  assert.strictEqual(res.statusCode, 200);
+  assert.strictEqual(res.body.timedOut, true);
+  assert.strictEqual(res.body.exitCode, 124);
+  assert.ok(res.body.error.includes('Execution timed out'));
+
+  // Verify killJob was called for the timed-out container
+  assert.ok(mockDriver.killedContainers.length > 0);
+  assert.ok(mockDriver.killedContainers.some(name => name.startsWith('jasper_job_run_')));
+});
+
+test('[UNIT / MOCKED DOCKER] Direct cancel endpoint strictly rejects malformed executionId with 400', async (t) => {
+  const oldKey = process.env.JASPER_SANDBOX_RUNNER_KEY;
+  process.env.JASPER_SANDBOX_RUNNER_KEY = TEST_RUNNER_SECRET;
+
+  const runnerServer = runnerService.createServer();
+  const testPort = 5079;
+
+  await new Promise((resolve, reject) => {
+    runnerServer.listen(testPort, '127.0.0.1', resolve);
+    runnerServer.on('error', reject);
+  });
+
+  t.after(() => {
+    if (oldKey !== undefined) process.env.JASPER_SANDBOX_RUNNER_KEY = oldKey;
+    else delete process.env.JASPER_SANDBOX_RUNNER_KEY;
+    return new Promise(resolve => runnerServer.close(resolve));
+  });
+
+  const res = await makeDirectRequest(testPort, 'POST', '/cancel', {
+    'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
+  }, {
+    executionId: '; rm -rf /',
+    requesterId: 'alice'
+  });
+
+  assert.strictEqual(res.statusCode, 400);
+  assert.strictEqual(res.body.success, false);
+  assert.ok(res.body.error.includes('Valid executionId required'));
+});
+
+test('[UNIT / MOCKED DOCKER] Runner Security: Request payload exceeding 128 KB MUST return 413', async (t) => {
   const oldKey = process.env.JASPER_SANDBOX_RUNNER_KEY;
   process.env.JASPER_SANDBOX_RUNNER_KEY = TEST_RUNNER_SECRET;
 
@@ -634,7 +856,7 @@ test('Runner Security: Request payload exceeding 128 KB MUST return 413', async 
 // 5. FULL END-TO-END BACKEND INTEGRATION TESTS WITH RUNNER CONTROLLER
 // ---------------------------------------------------------------------------
 
-test('Isolated Runner Integration: End-to-end execution through main J.A.S.P.E.R. backend', async (t) => {
+test('[UNIT / MOCKED DOCKER] Isolated Runner Integration: End-to-end execution through main J.A.S.P.E.R. backend', async (t) => {
   clearLimiter();
   const oldRunnerUrl = process.env.JASPER_SANDBOX_RUNNER_URL;
   const oldRunnerKey = process.env.JASPER_SANDBOX_RUNNER_KEY;
@@ -725,7 +947,7 @@ test('Isolated Runner Integration: End-to-end execution through main J.A.S.P.E.R
 // 6. PHYSICAL CONTAINER ENVIRONMENT AUDIT (HOST DETECTION)
 // ---------------------------------------------------------------------------
 
-test('Container Infrastructure Detection: Host container environment boundary check', () => {
+test('[INTEGRATION / REAL DOCKER CHECK] Container Infrastructure Detection: Host container environment boundary check', () => {
   const isDockerAvailable = runnerService.defaultContainerDriver.isAvailable();
   console.log(`[Container Engine Audit] Host container runtime available: ${isDockerAvailable}`);
 

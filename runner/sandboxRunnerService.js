@@ -5,7 +5,7 @@
  * Enforces per-job container isolation:
  * - The controller NEVER executes submitted code directly in its own process or container.
  * - Every job is executed inside a fresh, disposable container with:
- *     • Pinned runtime images (node:20-alpine or python:3.11-alpine)
+ *     • Configurable runtime images supporting immutable SHA-256 digests
  *     • Unprivileged user (UID 10001:10001)
  *     • Complete network isolation (--network none)
  *     • Read-only root filesystem (--read-only)
@@ -16,6 +16,8 @@
  *     • Cgroups memory ceiling (64MB), CPU ceiling (0.5), PID limit (32)
  *     • Ephemeral in-memory tmpfs workspace (--tmpfs /tmp:rw,nosuid,size=16m)
  *     • Code streamed directly via stdin (never touches host disk)
+ * - Safe command execution: ZERO shell invocation usage, strict argument array passing.
+ * - Container identifier validation: Prevents command injection or argument smuggling.
  * - If the container runtime (Docker/Podman) is unavailable, it FAILS CLOSED (HTTP 503).
  * - Mandatory constant-time Bearer token authentication.
  * - Strict request payload size capping (128 KB max to prevent DoS).
@@ -30,10 +32,74 @@ const { spawn, spawnSync, execFile } = require('child_process');
 
 const PORT = parseInt(process.env.RUNNER_PORT || '5055', 10);
 const HOST = process.env.RUNNER_HOST || '127.0.0.1'; // Loopback/private network by default
-const CONTAINER_ENGINE = process.env.CONTAINER_ENGINE || 'docker';
+const CONTAINER_ENGINE = (process.env.CONTAINER_ENGINE || 'docker').trim();
 
-const PINNED_NODE_IMAGE = process.env.SANDBOX_NODE_IMAGE || 'node:20-alpine';
-const PINNED_PYTHON_IMAGE = process.env.SANDBOX_PYTHON_IMAGE || 'python:3.11-alpine';
+// Pinned official images with immutable SHA-256 digests (fallbacks and defaults)
+const DEFAULT_NODE_IMAGE = 'node:20-alpine@sha256:afdf98210b07b586eb71fa22ba2e432e058e4cd1304d31ed60888755b8c865fb';
+const DEFAULT_PYTHON_IMAGE = 'python:3.11-alpine@sha256:bfebb8e11b53c46715fe3634e3b7bc5afb33b21ec82521539af1467c81ad3aed';
+
+/**
+ * Validates that an ID or container name adheres strictly to Docker naming conventions:
+ * - 1 to 128 characters
+ * - Starts with an alphanumeric character [a-zA-Z0-9]
+ * - Contains only alphanumeric, underscore, hyphen, or dot: [a-zA-Z0-9_.-]
+ * - Strictly prohibits spaces, shell metacharacters, control characters, and path separators.
+ */
+function isValidContainerIdentifier(idOrName) {
+  if (!idOrName || typeof idOrName !== 'string') return false;
+  const trimmed = idOrName.trim();
+  if (trimmed.length < 1 || trimmed.length > 128) return false;
+  return /^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127}$/.test(trimmed);
+}
+
+/**
+ * Validates an OCI / Docker container image reference.
+ * Allows repository names, optional namespaces, optional tags, and optional immutable SHA-256 digests.
+ * Example: node:20-alpine@sha256:afdf98210b07b586eb71fa22ba2e432e058e4cd1304d31ed60888755b8c865fb
+ */
+function isValidImageReference(imageRef) {
+  if (!imageRef || typeof imageRef !== 'string') return false;
+  const trimmed = imageRef.trim();
+  if (trimmed.length < 1 || trimmed.length > 255) return false;
+  // Regex validates standard OCI/Docker image references:
+  // [domain[:port]/][namespace/]repository[:tag][@sha256:<64 hex>]
+  // Disallows any shell metacharacters, whitespace, control chars
+  const pattern = /^(?:[a-zA-Z0-9_.-]+(?::[0-9]+)?\/)?[a-z0-9_.-]+(?:\/[a-z0-9_.-]+)*(?::[a-zA-Z0-9_.-]+)?(?:@sha256:[a-fA-F0-9]{64})?$/;
+  return pattern.test(trimmed);
+}
+
+/**
+ * Checks if the image reference includes an immutable SHA-256 digest (@sha256:<64 hex chars>).
+ */
+function isImmutableImageDigest(imageRef) {
+  if (!isValidImageReference(imageRef)) return false;
+  return /@sha256:[a-fA-F0-9]{64}$/.test(imageRef.trim());
+}
+
+/**
+ * Resolves the active runtime image for the given language.
+ * Validates configured environment variables against safe image reference patterns.
+ */
+function getRuntimeImage(lang) {
+  const configuredNode = (process.env.SANDBOX_NODE_IMAGE || '').trim();
+  const configuredPython = (process.env.SANDBOX_PYTHON_IMAGE || '').trim();
+
+  if (lang === 'javascript') {
+    if (configuredNode && isValidImageReference(configuredNode)) {
+      return configuredNode;
+    }
+    return DEFAULT_NODE_IMAGE;
+  } else if (lang === 'python') {
+    if (configuredPython && isValidImageReference(configuredPython)) {
+      return configuredPython;
+    }
+    return DEFAULT_PYTHON_IMAGE;
+  }
+  return null;
+}
+
+const PINNED_NODE_IMAGE = getRuntimeImage('javascript');
+const PINNED_PYTHON_IMAGE = getRuntimeImage('python');
 
 function getRunnerAuthKey() {
   return (process.env.JASPER_SANDBOX_RUNNER_KEY || '').trim();
@@ -49,11 +115,20 @@ const MAX_RATE_PER_MINUTE = 60;
 
 /**
  * Probes whether the host has a functioning container engine (Docker/Podman).
+ * Strictly uses argument arrays and shell: false.
  */
-function probeContainerEngine(engine = CONTAINER_ENGINE) {
+function probeContainerEngine(engine = CONTAINER_ENGINE, spawnSyncFn = spawnSync) {
+  if (!isValidContainerIdentifier(engine)) {
+    return false;
+  }
   try {
-    const res = spawnSync(engine, ['--version'], { encoding: 'utf8', shell: true });
-    return !res.error && res.status === 0;
+    const res = spawnSyncFn(engine, ['--version'], { 
+      encoding: 'utf8', 
+      shell: false, 
+      windowsHide: true,
+      timeout: 3000
+    });
+    return Boolean(!res.error && res.status === 0);
   } catch (_) {
     return false;
   }
@@ -61,20 +136,44 @@ function probeContainerEngine(engine = CONTAINER_ENGINE) {
 
 /**
  * Startup cleanup: Removes any orphaned job containers from previous crashes.
+ * Strictly uses argument arrays and shell: false.
+ * Validates container IDs/names to prevent argument smuggling.
  */
-function purgeOrphanedContainers(engine = CONTAINER_ENGINE) {
+function purgeOrphanedContainers(engine = CONTAINER_ENGINE, spawnSyncFn = spawnSync) {
+  if (!isValidContainerIdentifier(engine)) {
+    return { cleaned: 0, error: 'Invalid engine identifier' };
+  }
+  let cleaned = 0;
   try {
-    const res = spawnSync(engine, ['ps', '-aq', '--filter', 'name=jasper_job_'], { encoding: 'utf8', shell: true });
+    const res = spawnSyncFn(engine, ['ps', '-aq', '--filter', 'name=jasper_job_'], { 
+      encoding: 'utf8', 
+      shell: false, 
+      windowsHide: true,
+      timeout: 5000
+    });
     if (!res.error && res.stdout && res.stdout.trim()) {
       const containerIds = res.stdout.trim().split(/\s+/).filter(Boolean);
       for (const cid of containerIds) {
-        try { spawnSync(engine, ['rm', '-f', cid], { shell: true }); } catch (_) {}
+        if (isValidContainerIdentifier(cid)) {
+          try { 
+            const rmRes = spawnSyncFn(engine, ['rm', '-f', cid], { 
+              shell: false, 
+              windowsHide: true,
+              timeout: 3000
+            });
+            if (!rmRes.error && rmRes.status === 0) cleaned++;
+          } catch (_) {}
+        }
       }
     }
   } catch (_) {}
+  return { cleaned };
 }
 
-purgeOrphanedContainers();
+// Initial purge on module load
+if (isValidContainerIdentifier(CONTAINER_ENGINE)) {
+  purgeOrphanedContainers();
+}
 
 /**
  * Default container driver: invokes real Docker/Podman CLI.
@@ -87,6 +186,12 @@ const defaultContainerDriver = {
     return CONTAINER_ENGINE;
   },
   buildRunArgs({ containerName, cleanLang, runtimeImage }) {
+    if (!isValidContainerIdentifier(containerName)) {
+      throw new Error(`Invalid container name: ${containerName}`);
+    }
+    if (!isValidImageReference(runtimeImage)) {
+      throw new Error(`Invalid runtime image reference: ${runtimeImage}`);
+    }
     const guestCmd = cleanLang === 'javascript' 
       ? ['node', '-'] 
       : ['python3', '-I', '-s', '-'];
@@ -111,17 +216,25 @@ const defaultContainerDriver = {
     ];
   },
   spawnJob({ containerName, cleanLang, runtimeImage }) {
+    if (!isValidContainerIdentifier(CONTAINER_ENGINE)) {
+      throw new Error(`Invalid container engine identifier: ${CONTAINER_ENGINE}`);
+    }
     const args = this.buildRunArgs({ containerName, cleanLang, runtimeImage });
     return spawn(CONTAINER_ENGINE, args, {
       stdio: ['pipe', 'pipe', 'pipe'],
       windowsHide: true,
+      shell: false,
       env: {} // ZERO host environment secrets passed
     });
   },
   killJob(containerName, callback) {
-    execFile(CONTAINER_ENGINE, ['kill', containerName], () => {
-      execFile(CONTAINER_ENGINE, ['rm', '-f', containerName], () => {
-        if (callback) callback();
+    if (!isValidContainerIdentifier(CONTAINER_ENGINE) || !isValidContainerIdentifier(containerName)) {
+      if (callback) callback(new Error('Invalid container name or engine identifier'));
+      return;
+    }
+    execFile(CONTAINER_ENGINE, ['kill', containerName], { shell: false, windowsHide: true }, () => {
+      execFile(CONTAINER_ENGINE, ['rm', '-f', containerName], { shell: false, windowsHide: true }, (err) => {
+        if (callback) callback(err);
       });
     });
   }
@@ -239,7 +352,25 @@ function createServer(options = {}) {
     const cleanTimeout = Math.max(1000, Math.min(MAX_TIMEOUT_MS, parseInt(timeoutMs, 10) || DEFAULT_TIMEOUT_MS));
     const executionId = `run_${Date.now()}_${crypto.randomBytes(8).toString('hex')}`;
     const containerName = `jasper_job_${executionId}`;
-    const runtimeImage = cleanLang === 'javascript' ? PINNED_NODE_IMAGE : PINNED_PYTHON_IMAGE;
+
+    if (!isValidContainerIdentifier(containerName)) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ 
+        success: false, 
+        error: 'Generated container identifier is invalid.', 
+        executionId 
+      }));
+    }
+
+    const runtimeImage = getRuntimeImage(cleanLang);
+    if (!runtimeImage || !isValidImageReference(runtimeImage)) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ 
+        success: false, 
+        error: `Runtime image for ${cleanLang} is invalid or not configured.`, 
+        executionId 
+      }));
+    }
 
     const startTime = Date.now();
     let stdoutBuf = '';
@@ -267,7 +398,9 @@ function createServer(options = {}) {
     const timer = setTimeout(() => {
       isTimedOut = true;
       try {
-        driver.killJob(containerName);
+        if (isValidContainerIdentifier(containerName)) {
+          driver.killJob(containerName);
+        }
       } catch (_) {}
       try { child.kill('SIGKILL'); } catch (_) {}
     }, cleanTimeout);
@@ -302,7 +435,11 @@ function createServer(options = {}) {
     child.on('error', (err) => {
       clearTimeout(timer);
       activeJobs.delete(executionId);
-      try { driver.killJob(containerName); } catch (_) {}
+      try { 
+        if (isValidContainerIdentifier(containerName)) {
+          driver.killJob(containerName); 
+        }
+      } catch (_) {}
 
       res.writeHead(500, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({
@@ -326,7 +463,11 @@ function createServer(options = {}) {
       });
 
       // Ensure container cleanup on daemon
-      try { driver.killJob(containerName); } catch (_) {}
+      try { 
+        if (isValidContainerIdentifier(containerName)) {
+          driver.killJob(containerName); 
+        }
+      } catch (_) {}
 
       res.writeHead(200, { 'Content-Type': 'application/json' });
 
@@ -376,7 +517,7 @@ function createServer(options = {}) {
   function handleCancel(req, res, body) {
     const { executionId, requesterId } = body || {};
 
-    if (!executionId || typeof executionId !== 'string' || !/^[a-zA-Z0-9_\-]+$/.test(executionId)) {
+    if (!executionId || typeof executionId !== 'string' || !isValidContainerIdentifier(executionId)) {
       res.writeHead(400, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ success: false, error: 'Valid executionId required.' }));
     }
@@ -428,7 +569,9 @@ function createServer(options = {}) {
     job.cancelled = true;
     if (job.timer) clearTimeout(job.timer);
     try {
-      driver.killJob(job.containerName);
+      if (isValidContainerIdentifier(job.containerName)) {
+        driver.killJob(job.containerName);
+      }
     } catch (_) {}
     try { job.child.kill('SIGKILL'); } catch (_) {}
 
@@ -463,6 +606,8 @@ function createServer(options = {}) {
         activeJobs: activeJobs.size,
         capacity: MAX_CONCURRENT_JOBS,
         authRequired: true,
+        nodeImageImmutable: isImmutableImageDigest(getRuntimeImage('javascript')),
+        pythonImageImmutable: isImmutableImageDigest(getRuntimeImage('python')),
         timestamp: Date.now()
       }));
     }
@@ -534,6 +679,12 @@ module.exports = {
   purgeOrphanedContainers,
   verifyAuth,
   getRunnerAuthKey,
+  isValidContainerIdentifier,
+  isValidImageReference,
+  isImmutableImageDigest,
+  getRuntimeImage,
+  DEFAULT_NODE_IMAGE,
+  DEFAULT_PYTHON_IMAGE,
   PINNED_NODE_IMAGE,
   PINNED_PYTHON_IMAGE
 };
