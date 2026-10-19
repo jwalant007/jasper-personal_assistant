@@ -1,0 +1,46 @@
+# =============================================================================
+# J.A.S.P.E.R. Dedicated Runner Controller HTTPS Reverse Proxy (Caddy)
+# =============================================================================
+# Replace {$RUNNER_DOMAIN} with your actual domain name (e.g. runner.jasper-ai.org)
+# Ensure DNS A/AAAA record points to this runner host before starting Caddy.
+
+{$RUNNER_DOMAIN:localhost} {
+    # Automatic HTTPS via Let's Encrypt / ZeroSSL
+    encode gzip zstd
+
+    # Security Headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+    }
+
+    # Request body limit matching runner limit (128 KB + overhead = 256 KB)
+    request_body {
+        max_size 256KB
+    }
+
+    # Reverse proxy to local sandbox controller
+    reverse_proxy 127.0.0.1:5055 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+
+        # Health check configuration
+        health_uri /health
+        health_interval 30s
+        health_timeout 5s
+    }
+
+    # Logging
+    log {
+        output file /var/log/caddy/jasper_runner_access.log {
+            roll_size 10mb
+            roll_keep 5
+        }
+        format json
+    }
+}
