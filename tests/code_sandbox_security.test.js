@@ -26,10 +26,20 @@ const assert = require('node:assert');
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
+const { execFile } = require('child_process');
 const { EventEmitter } = require('node:events');
 const { app, authAttemptTracker } = require('../server/server');
 const codeSandboxEngine = require('../server/codeSandboxEngine');
 const runnerService = require('../runner/sandboxRunnerService');
+
+// Ensure Docker Desktop binary directory is included in PATH if installed on Windows
+if (process.platform === 'win32') {
+  const dockerDesktopBin = path.join(process.env.LOCALAPPDATA || '', 'Programs', 'DockerDesktop', 'resources', 'bin');
+  if (fs.existsSync(dockerDesktopBin) && !process.env.PATH.includes(dockerDesktopBin)) {
+    process.env.PATH = dockerDesktopBin + path.delimiter + process.env.PATH;
+  }
+}
 
 const TEST_RUNNER_SECRET = 'jasper-test-runner-secret-key-32chars!';
 
@@ -368,7 +378,8 @@ test('[UNIT / MOCKED DOCKER] Runner Controller: MUST fail closed with 503 when c
     'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
   }, {
     code: 'console.log("probe");',
-    language: 'javascript'
+    language: 'javascript',
+    ownerId: 'test_user'
   });
 
   // MUST return 503 Service Unavailable and NEVER fall back to host execution
@@ -384,7 +395,7 @@ test('[UNIT / MOCKED DOCKER] Runner Controller: Per-job container launch argumen
   const args = driver.buildRunArgs({
     containerName: 'jasper_job_run_test_123',
     cleanLang: 'javascript',
-    runtimeImage: 'node:20-alpine'
+    runtimeImage: runnerService.DEFAULT_NODE_IMAGE
   });
 
   // Verify mandatory flags for disposable per-job container isolation:
@@ -523,12 +534,114 @@ test('[UNIT / MOCKED DOCKER] Configurable image reference validation supports ta
   assert.strictEqual(runnerService.isValidImageReference(''), false);
   assert.strictEqual(runnerService.isValidImageReference('a'.repeat(256)), false);
 
-  // getRuntimeImage fallbacks safely
+  // getRuntimeImage fails closed on invalid or mutable overrides (never silently falls back)
   const oldNodeEnv = process.env.SANDBOX_NODE_IMAGE;
   process.env.SANDBOX_NODE_IMAGE = 'evil; injection';
-  assert.strictEqual(runnerService.getRuntimeImage('javascript'), runnerService.DEFAULT_NODE_IMAGE);
+  assert.strictEqual(runnerService.getRuntimeImage('javascript'), null, 'Invalid override must fail closed and return null');
   if (oldNodeEnv !== undefined) process.env.SANDBOX_NODE_IMAGE = oldNodeEnv;
   else delete process.env.SANDBOX_NODE_IMAGE;
+});
+
+test('[UNIT / MOCKED DOCKER] Runtime Image Security: Immutable SHA-256 digest enforcement, mutable tag rejection, and fail-closed overrides', async (t) => {
+  const oldNodeImage = process.env.SANDBOX_NODE_IMAGE;
+  const oldPythonImage = process.env.SANDBOX_PYTHON_IMAGE;
+  const oldKey = process.env.JASPER_SANDBOX_RUNNER_KEY;
+
+  try {
+    // 1. Missing overrides: safely resolve to default verified pinned digests
+    delete process.env.SANDBOX_NODE_IMAGE;
+    delete process.env.SANDBOX_PYTHON_IMAGE;
+
+    const defaultNode = runnerService.getRuntimeImage('javascript');
+    const defaultPython = runnerService.getRuntimeImage('python');
+
+    assert.strictEqual(defaultNode, runnerService.DEFAULT_NODE_IMAGE);
+    assert.strictEqual(defaultPython, runnerService.DEFAULT_PYTHON_IMAGE);
+    assert.strictEqual(runnerService.isImmutableImageDigest(defaultNode), true, 'Default Node image must be an immutable SHA-256 digest');
+    assert.strictEqual(runnerService.isImmutableImageDigest(defaultPython), true, 'Default Python image must be an immutable SHA-256 digest');
+    assert.ok(defaultNode.includes('@sha256:afdf98210b07b586eb71fa22ba2e432e058e4cd1304d31ed60888755b8c865fb'));
+    assert.ok(defaultPython.includes('@sha256:bfebb8e11b53c46715fe3634e3b7bc5afb33b21ec82521539af1467c81ad3aed'));
+
+    // 2. Mutable tags: MUST be rejected and fail closed (return null, never fall back)
+    const mutableNodeTags = ['node:20-alpine', 'node:latest', 'node:alpine', 'myrepo/node:test'];
+    for (const tag of mutableNodeTags) {
+      process.env.SANDBOX_NODE_IMAGE = tag;
+      assert.strictEqual(runnerService.getRuntimeImage('javascript'), null, `Mutable tag '${tag}' must fail closed and return null`);
+    }
+
+    const mutablePythonTags = ['python:3.11-alpine', 'python:latest', 'python:3-slim'];
+    for (const tag of mutablePythonTags) {
+      process.env.SANDBOX_PYTHON_IMAGE = tag;
+      assert.strictEqual(runnerService.getRuntimeImage('python'), null, `Mutable tag '${tag}' must fail closed and return null`);
+    }
+
+    // 3. Malformed digests: MUST be rejected and fail closed (return null)
+    const malformedDigests = [
+      'node:20-alpine@sha256:tooshort', // Truncated hash (< 64 hex)
+      'node:20-alpine@sha256:afdf98210b07b586eb71fa22ba2e432e058e4cd1304d31ed60888755b8c865f', // 63 chars
+      'node:20-alpine@sha256:afdf98210b07b586eb71fa22ba2e432e058e4cd1304d31ed60888755b8c865fbaa', // 65 chars
+      'node:20-alpine@sha256:zzzz98210b07b586eb71fa22ba2e432e058e4cd1304d31ed60888755b8c865fb', // Non-hex characters
+      'node:20-alpine@md5:afdf98210b07b586eb71fa22ba2e432e', // Non-SHA256 algorithm
+      'node:20-alpine@sha512:afdf98210b07b586eb71fa22ba2e432e058e4cd1304d31ed60888755b8c865fb', // Non-SHA256
+      'node:20-alpine@sha256:afdf98210b07b586eb71fa22ba2e432e058e4cd1304d31ed60888755b8c865fb; whoami' // Metacharacters
+    ];
+
+    for (const malformed of malformedDigests) {
+      process.env.SANDBOX_NODE_IMAGE = malformed;
+      assert.strictEqual(runnerService.getRuntimeImage('javascript'), null, `Malformed digest '${malformed}' must fail closed and return null`);
+    }
+
+    // 4. Valid custom pinned immutable digests: MUST be accepted
+    const customNodePinned = 'registry.corp.internal:5000/secured/node:20@sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+    process.env.SANDBOX_NODE_IMAGE = customNodePinned;
+    assert.strictEqual(runnerService.getRuntimeImage('javascript'), customNodePinned, 'Valid custom pinned Node image must be accepted');
+
+    const customPythonPinned = 'myregistry.io/python:3.11@sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210';
+    process.env.SANDBOX_PYTHON_IMAGE = customPythonPinned;
+    assert.strictEqual(runnerService.getRuntimeImage('python'), customPythonPinned, 'Valid custom pinned Python image must be accepted');
+
+    // 5. Unsupported language: returns null
+    assert.strictEqual(runnerService.getRuntimeImage('ruby'), null);
+    assert.strictEqual(runnerService.getRuntimeImage('powershell'), null);
+
+    // 6. Fail-closed HTTP execution: POST /run MUST return HTTP 500 when configured with mutable tag or malformed image
+    process.env.JASPER_SANDBOX_RUNNER_KEY = TEST_RUNNER_SECRET;
+    process.env.SANDBOX_NODE_IMAGE = 'node:latest'; // Mutable tag configured
+
+    const mockDriver = createMockContainerDriver();
+    const runnerServer = runnerService.createServer({ containerDriver: mockDriver });
+
+    await new Promise((resolve, reject) => {
+      runnerServer.listen(0, '127.0.0.1', resolve);
+      runnerServer.on('error', reject);
+    });
+
+    const testPort = runnerServer.address().port;
+
+    try {
+      const runRes = await makeDirectRequest(testPort, 'POST', '/run', {
+        'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
+      }, {
+        code: 'console.log("probe");',
+        language: 'javascript',
+        ownerId: 'test_user'
+      });
+
+      assert.strictEqual(runRes.statusCode, 500, 'POST /run must return HTTP 500 when image is mutable or invalid');
+      assert.strictEqual(runRes.body.success, false);
+      assert.ok(runRes.body.error.includes('immutable SHA-256 digest'), 'Error message must cite immutable SHA-256 digest requirement');
+      assert.strictEqual(mockDriver.spawnedContainers.length, 0, 'No container must ever be spawned when image is mutable or invalid');
+    } finally {
+      await new Promise(resolve => runnerServer.close(resolve));
+    }
+  } finally {
+    if (oldNodeImage !== undefined) process.env.SANDBOX_NODE_IMAGE = oldNodeImage;
+    else delete process.env.SANDBOX_NODE_IMAGE;
+    if (oldPythonImage !== undefined) process.env.SANDBOX_PYTHON_IMAGE = oldPythonImage;
+    else delete process.env.SANDBOX_PYTHON_IMAGE;
+    if (oldKey !== undefined) process.env.JASPER_SANDBOX_RUNNER_KEY = oldKey;
+    else delete process.env.JASPER_SANDBOX_RUNNER_KEY;
+  }
 });
 
 test('[UNIT / MOCKED DOCKER] defaultContainerDriver argument validation and safe execution with shell: false', () => {
@@ -539,18 +652,39 @@ test('[UNIT / MOCKED DOCKER] defaultContainerDriver argument validation and safe
     driver.buildRunArgs({
       containerName: '; rm -rf /',
       cleanLang: 'javascript',
-      runtimeImage: 'node:20-alpine'
+      runtimeImage: runnerService.DEFAULT_NODE_IMAGE
     });
   }, /Invalid container name/);
 
-  // buildRunArgs rejects malformed image reference
+  // buildRunArgs rejects malformed or dangerous image reference
   assert.throws(() => {
     driver.buildRunArgs({
       containerName: 'valid_container_name',
       cleanLang: 'javascript',
       runtimeImage: 'evil; image'
     });
-  }, /Invalid runtime image reference/);
+  }, /Invalid or mutable runtime image reference/);
+
+  // buildRunArgs rejects mutable tagged image reference (must be pinned digest)
+  assert.throws(() => {
+    driver.buildRunArgs({
+      containerName: 'valid_container_name',
+      cleanLang: 'javascript',
+      runtimeImage: 'node:20-alpine'
+    });
+  }, /Invalid or mutable runtime image reference/);
+
+  // buildRunArgs accepts valid immutable SHA-256 pinned digest
+  assert.doesNotThrow(() => {
+    const args = driver.buildRunArgs({
+      containerName: 'valid_container_name',
+      cleanLang: 'javascript',
+      runtimeImage: runnerService.DEFAULT_NODE_IMAGE
+    });
+    assert.ok(args.includes(runnerService.DEFAULT_NODE_IMAGE));
+    assert.ok(args.includes('--network'));
+    assert.ok(args.includes('none'));
+  });
 
   // killJob rejects malformed container name without executing
   let callbackErr = null;
@@ -649,7 +783,8 @@ test('[UNIT / MOCKED DOCKER] Per-Job Container Isolation: Each job receives a di
     'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
   }, {
     code: 'console.log("job1");',
-    language: 'javascript'
+    language: 'javascript',
+    ownerId: 'test_user_1'
   });
   assert.strictEqual(res1.statusCode, 200);
   assert.strictEqual(res1.body.isolation, 'container_per_job');
@@ -659,7 +794,8 @@ test('[UNIT / MOCKED DOCKER] Per-Job Container Isolation: Each job receives a di
     'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
   }, {
     code: 'print("job2")',
-    language: 'python'
+    language: 'python',
+    ownerId: 'test_user_2'
   });
   assert.strictEqual(res2.statusCode, 200);
 
@@ -778,7 +914,8 @@ test('[UNIT / MOCKED DOCKER] Timeout cleanup terminates container with killJob a
   }, {
     code: 'SLEEP_SIMULATION',
     language: 'javascript',
-    timeoutMs: 1000
+    timeoutMs: 1000,
+    ownerId: 'test_timeout_user'
   });
 
   assert.strictEqual(res.statusCode, 200);
@@ -842,6 +979,7 @@ test('[UNIT / MOCKED DOCKER] Runner Security: Request payload exceeding 128 KB M
   const oversizedData = {
     code: 'console.log("ok");',
     language: 'javascript',
+    ownerId: 'test_user',
     padding: 'X'.repeat(140 * 1024)
   };
 
@@ -957,4 +1095,473 @@ test('[INTEGRATION / REAL DOCKER CHECK] Container Infrastructure Detection: Host
   }
 
   assert.ok(true, 'Host boundary detection completed.');
+});
+
+// ---------------------------------------------------------------------------
+// 7. REAL DOCKER INTEGRATION: ACTIVE CANCELLATION & CONTAINER CLEANUP
+// ---------------------------------------------------------------------------
+
+test('[INTEGRATION / REAL DOCKER EXECUTION] Active Job Cancellation: Real Docker container termination, authorization, and cleanup', async (t) => {
+  if (!runnerService.defaultContainerDriver.isAvailable()) {
+    t.skip('Docker container engine is unavailable on this host. Skipping real Docker integration test.');
+    return;
+  }
+
+  const oldKey = process.env.JASPER_SANDBOX_RUNNER_KEY;
+  process.env.JASPER_SANDBOX_RUNNER_KEY = TEST_RUNNER_SECRET;
+
+  // Use the REAL defaultContainerDriver invoking the real local Docker engine with 30s timeout ceiling
+  const runnerServer = runnerService.createServer({
+    containerDriver: runnerService.defaultContainerDriver,
+    maxTimeoutMs: 30000
+  });
+  await new Promise((resolve, reject) => {
+    runnerServer.listen(0, '127.0.0.1', resolve);
+    runnerServer.on('error', reject);
+  });
+  const testPort = runnerServer.address().port;
+
+  const uniqueSuffix = `${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+  const legitimateOwner = `owner_alice_${uniqueSuffix}`;
+  const unauthorizedOwner = `attacker_bob_${uniqueSuffix}`;
+  let capturedContainerName = null;
+  let capturedExecutionId = null;
+
+  t.after(async () => {
+    if (oldKey !== undefined) process.env.JASPER_SANDBOX_RUNNER_KEY = oldKey;
+    else delete process.env.JASPER_SANDBOX_RUNNER_KEY;
+
+    // Reliable fallback container cleanup in finally
+    if (capturedContainerName && runnerService.isValidContainerIdentifier(capturedContainerName)) {
+      try {
+        const engine = runnerService.defaultContainerDriver.getEngineName();
+        if (runnerService.isValidContainerIdentifier(engine)) {
+          execFile(engine, ['rm', '-f', capturedContainerName], { shell: false, windowsHide: true }, () => {});
+        }
+      } catch (_) {}
+    }
+
+    await new Promise(resolve => runnerServer.close(resolve));
+  });
+
+  // Launch harmless long-running JavaScript job with legitimate owner
+  const longRunningCode = 'setTimeout(() => { console.log("harmless_job_done"); }, 30000);';
+  const runPromise = makeDirectRequest(testPort, 'POST', '/run', {
+    'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
+  }, {
+    code: longRunningCode,
+    language: 'javascript',
+    timeoutMs: 30000,
+    ownerId: legitimateOwner
+  });
+
+  // Safe in-memory test hook: Bounded polling to safely obtain execution ID while active
+  const pollStart = Date.now();
+  while (Date.now() - pollStart < 8000) {
+    for (const [id, job] of runnerServer.activeJobs.entries()) {
+      if (job.ownerId === legitimateOwner && !job.cancelled) {
+        capturedExecutionId = id;
+        capturedContainerName = job.containerName;
+        break;
+      }
+    }
+    if (capturedExecutionId) break;
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
+
+  assert.ok(capturedExecutionId, 'Job must be actively registered in runnerServer.activeJobs');
+  assert.ok(capturedContainerName, 'Job must have a valid container name assigned');
+  assert.ok(runnerService.isValidContainerIdentifier(capturedContainerName), 'Container name must be a valid identifier');
+
+  // Verify real Docker container is actively running (bounded wait for container startup)
+  const engine = runnerService.defaultContainerDriver.getEngineName();
+  let isRunning = false;
+  let lastInspect = null;
+  const inspectPollStart = Date.now();
+  while (Date.now() - inspectPollStart < 15000) {
+    const inspectRes = await new Promise((resolve) => {
+      execFile(engine, ['inspect', '--format', '{{.State.Running}}', capturedContainerName], {
+        shell: false,
+        windowsHide: true
+      }, (err, stdout, stderr) => {
+        resolve({ err, stdout: (stdout || '').trim(), stderr: (stderr || '').trim() });
+      });
+    });
+    if (inspectRes.stdout === 'true') {
+      isRunning = true;
+      break;
+    }
+    lastInspect = inspectRes;
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  assert.strictEqual(isRunning, true, 'Docker container must be actively running in Docker engine');
+
+  // 1. Unauthorized cancellation attempt by a different owner MUST return HTTP 403
+  const unauthorizedCancelRes = await makeDirectRequest(testPort, 'POST', '/cancel', {
+    'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
+  }, {
+    executionId: capturedExecutionId,
+    requesterId: unauthorizedOwner
+  });
+
+  assert.strictEqual(unauthorizedCancelRes.statusCode, 403, 'Cross-user cancellation must be forbidden (HTTP 403)');
+  assert.strictEqual(unauthorizedCancelRes.body.success, false);
+  assert.ok(unauthorizedCancelRes.body.error.includes('permission'), 'Error response must indicate permission denied');
+
+  // 2. Legitimate cancellation by legitimate owner MUST succeed (HTTP 200)
+  const authorizedCancelRes = await makeDirectRequest(testPort, 'POST', '/cancel', {
+    'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
+  }, {
+    executionId: capturedExecutionId,
+    requesterId: legitimateOwner
+  });
+
+  assert.strictEqual(authorizedCancelRes.statusCode, 200, 'Legitimate cancellation must return HTTP 200 OK');
+  assert.strictEqual(authorizedCancelRes.body.success, true);
+  assert.strictEqual(authorizedCancelRes.body.executionId, capturedExecutionId);
+
+  // 3. Assert original run response reports cancelled: true, not timedOut: true
+  const runRes = await runPromise;
+  assert.strictEqual(runRes.statusCode, 200, 'Original run response must return HTTP 200');
+  assert.strictEqual(runRes.body.cancelled, true, 'Original run response must report cancelled: true');
+  assert.strictEqual(Boolean(runRes.body.timedOut), false, 'Original run response must NOT report timedOut: true');
+  assert.strictEqual(runRes.body.executionId, capturedExecutionId);
+  assert.strictEqual(runRes.body.exitCode, 130, 'Cancelled job must exit with code 130');
+
+  // 4. Verify corresponding Docker container is removed from Docker engine
+  let containerRemoved = false;
+  const removalPollStart = Date.now();
+  while (Date.now() - removalPollStart < 5000) {
+    const checkRes = await new Promise((resolve) => {
+      execFile(engine, ['ps', '-a', '--filter', `name=${capturedContainerName}`, '--format', '{{.Names}}'], {
+        shell: false,
+        windowsHide: true
+      }, (err, stdout) => {
+        resolve({ err, stdout: (stdout || '').trim() });
+      });
+    });
+    const foundNames = (checkRes.stdout || '').split(/\r?\n/).filter(Boolean);
+    if (!foundNames.includes(capturedContainerName)) {
+      containerRemoved = true;
+      break;
+    }
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+
+  assert.strictEqual(containerRemoved, true, 'Docker container must be removed from the host Docker engine');
+});
+
+// ---------------------------------------------------------------------------
+// 8. STRICT OWNERSHIP & TIMEOUT BOUNDS SECURITY TESTS
+// ---------------------------------------------------------------------------
+
+test('[UNIT / MOCKED DOCKER] Owner Identity Security: Missing, invalid, and malformed ownerId on /run MUST fail closed with 400', async (t) => {
+  const oldKey = process.env.JASPER_SANDBOX_RUNNER_KEY;
+  process.env.JASPER_SANDBOX_RUNNER_KEY = TEST_RUNNER_SECRET;
+
+  const mockDriver = createMockContainerDriver();
+  const runnerServer = runnerService.createServer({ containerDriver: mockDriver });
+  const testPort = 5085;
+
+  await new Promise((resolve, reject) => {
+    runnerServer.listen(testPort, '127.0.0.1', resolve);
+    runnerServer.on('error', reject);
+  });
+
+  t.after(() => {
+    if (oldKey !== undefined) process.env.JASPER_SANDBOX_RUNNER_KEY = oldKey;
+    else delete process.env.JASPER_SANDBOX_RUNNER_KEY;
+    return new Promise(resolve => runnerServer.close(resolve));
+  });
+
+  const basePayload = {
+    code: 'console.log("identity_test");',
+    language: 'javascript'
+  };
+
+  // 1. Missing ownerId entirely MUST return 400
+  const resMissing = await makeDirectRequest(testPort, 'POST', '/run', {
+    'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
+  }, basePayload);
+  assert.strictEqual(resMissing.statusCode, 400);
+  assert.strictEqual(resMissing.body.success, false);
+  assert.ok(resMissing.body.error.includes('Valid ownerId required'));
+
+  // 2. Empty string ownerId MUST return 400
+  const resEmpty = await makeDirectRequest(testPort, 'POST', '/run', {
+    'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
+  }, { ...basePayload, ownerId: '' });
+  assert.strictEqual(resEmpty.statusCode, 400);
+  assert.strictEqual(resEmpty.body.success, false);
+
+  // 3. Whitespace-only ownerId MUST return 400
+  const resWhitespace = await makeDirectRequest(testPort, 'POST', '/run', {
+    'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
+  }, { ...basePayload, ownerId: '   ' });
+  assert.strictEqual(resWhitespace.statusCode, 400);
+
+  // 4. Non-string ownerId MUST return 400
+  for (const invalidOwner of [12345, { user: 'alice' }, true, null]) {
+    const res = await makeDirectRequest(testPort, 'POST', '/run', {
+      'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
+    }, { ...basePayload, ownerId: invalidOwner });
+    assert.strictEqual(res.statusCode, 400);
+  }
+
+  // 5. Excessively long ownerId (> 128 chars) MUST return 400
+  const resLong = await makeDirectRequest(testPort, 'POST', '/run', {
+    'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
+  }, { ...basePayload, ownerId: 'a'.repeat(129) });
+  assert.strictEqual(resLong.statusCode, 400);
+
+  // 6. Injection metacharacters / traversal MUST return 400
+  for (const injection of ['; rm -rf /', '../../etc/passwd', 'user$(whoami)', 'alice`id`', 'user with spaces', 'user\nnewline']) {
+    const res = await makeDirectRequest(testPort, 'POST', '/run', {
+      'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
+    }, { ...basePayload, ownerId: injection });
+    assert.strictEqual(res.statusCode, 400);
+  }
+
+  // 7. Valid ownerId succeeds with 200
+  const resValid = await makeDirectRequest(testPort, 'POST', '/run', {
+    'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
+  }, { ...basePayload, ownerId: 'valid_user-1.0' });
+  assert.strictEqual(resValid.statusCode, 200);
+  assert.strictEqual(resValid.body.success, true);
+});
+
+test('[UNIT / MOCKED DOCKER] Ownership Authorization: Matching and mismatching owners for active and terminated jobs fail closed', async (t) => {
+  const oldKey = process.env.JASPER_SANDBOX_RUNNER_KEY;
+  process.env.JASPER_SANDBOX_RUNNER_KEY = TEST_RUNNER_SECRET;
+
+  const mockDriver = createMockContainerDriver();
+  const runnerServer = runnerService.createServer({ containerDriver: mockDriver });
+  const testPort = 5086;
+
+  await new Promise((resolve, reject) => {
+    runnerServer.listen(testPort, '127.0.0.1', resolve);
+    runnerServer.on('error', reject);
+  });
+
+  t.after(() => {
+    if (oldKey !== undefined) process.env.JASPER_SANDBOX_RUNNER_KEY = oldKey;
+    else delete process.env.JASPER_SANDBOX_RUNNER_KEY;
+    return new Promise(resolve => runnerServer.close(resolve));
+  });
+
+  // Launch job with legitimate owner 'user_alice'
+  const launchPromise = makeDirectRequest(testPort, 'POST', '/run', {
+    'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
+  }, {
+    code: 'SLEEP_SIMULATION',
+    language: 'javascript',
+    timeoutMs: 8000,
+    ownerId: 'user_alice'
+  });
+
+  await new Promise(r => setTimeout(r, 100));
+  const activeJobId = Array.from(runnerServer.activeJobs.keys())[0];
+  assert.ok(activeJobId, 'Job must be registered in activeJobs');
+
+  // --- Active Job Tests ---
+  // 1. Mismatching owner on active job MUST return 403 Forbidden
+  const activeMismatchRes = await makeDirectRequest(testPort, 'POST', '/cancel', {
+    'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
+  }, {
+    executionId: activeJobId,
+    requesterId: 'user_bob'
+  });
+  assert.strictEqual(activeMismatchRes.statusCode, 403);
+  assert.strictEqual(activeMismatchRes.body.success, false);
+  assert.ok(activeMismatchRes.body.error.includes('permission'));
+
+  // 2. Missing requesterId on active job MUST return 401
+  const activeNoReqRes = await makeDirectRequest(testPort, 'POST', '/cancel', {
+    'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
+  }, {
+    executionId: activeJobId
+  });
+  assert.strictEqual(activeNoReqRes.statusCode, 401);
+
+  // 3. Malformed requesterId on active job MUST return 401
+  const activeBadReqRes = await makeDirectRequest(testPort, 'POST', '/cancel', {
+    'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
+  }, {
+    executionId: activeJobId,
+    requesterId: '; rm -rf /'
+  });
+  assert.strictEqual(activeBadReqRes.statusCode, 401);
+
+  // 4. Matching owner on active job succeeds with 200 and terminates job
+  const activeMatchRes = await makeDirectRequest(testPort, 'POST', '/cancel', {
+    'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
+  }, {
+    executionId: activeJobId,
+    requesterId: 'user_alice'
+  });
+  assert.strictEqual(activeMatchRes.statusCode, 200);
+  assert.strictEqual(activeMatchRes.body.success, true);
+
+  await launchPromise;
+
+  // --- Terminated Job Tests ---
+  assert.ok(runnerServer.recentlyTerminatedJobs.has(activeJobId), 'Job must now be in recentlyTerminatedJobs');
+  const termData = runnerServer.recentlyTerminatedJobs.get(activeJobId);
+  assert.strictEqual(termData.ownerId, 'user_alice', 'Terminated job record must retain validated ownerId');
+
+  // 5. Mismatching owner on terminated job MUST return 403 Forbidden
+  const termMismatchRes = await makeDirectRequest(testPort, 'POST', '/cancel', {
+    'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
+  }, {
+    executionId: activeJobId,
+    requesterId: 'user_bob'
+  });
+  assert.strictEqual(termMismatchRes.statusCode, 403);
+  assert.strictEqual(termMismatchRes.body.success, false);
+  assert.ok(termMismatchRes.body.error.includes('permission'));
+
+  // 6. Missing requesterId on terminated job MUST return 401
+  const termNoReqRes = await makeDirectRequest(testPort, 'POST', '/cancel', {
+    'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
+  }, {
+    executionId: activeJobId
+  });
+  assert.strictEqual(termNoReqRes.statusCode, 401);
+
+  // 7. Matching owner on terminated job returns 200 with idempotent: true
+  const termMatchRes = await makeDirectRequest(testPort, 'POST', '/cancel', {
+    'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
+  }, {
+    executionId: activeJobId,
+    requesterId: 'user_alice'
+  });
+  assert.strictEqual(termMatchRes.statusCode, 200);
+  assert.strictEqual(termMatchRes.body.idempotent, true);
+
+  // 8. Corrupted / missing stored ownerId on terminated job MUST fail closed with 403, never grant access
+  termData.ownerId = null;
+  const termCorruptRes = await makeDirectRequest(testPort, 'POST', '/cancel', {
+    'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
+  }, {
+    executionId: activeJobId,
+    requesterId: 'user_alice'
+  });
+  assert.strictEqual(termCorruptRes.statusCode, 403, 'Missing stored ownership must fail closed');
+});
+
+test('[UNIT / MOCKED DOCKER] Timeout Configuration & Request Clamping: Safe bounds and fallbacks', async (t) => {
+  // 1. parseMaxTimeoutMs validation unit tests
+  assert.strictEqual(runnerService.parseMaxTimeoutMs(undefined), 10000);
+  assert.strictEqual(runnerService.parseMaxTimeoutMs(''), 10000);
+  assert.strictEqual(runnerService.parseMaxTimeoutMs('10000'), 10000);
+  assert.strictEqual(runnerService.parseMaxTimeoutMs('30000'), 30000);
+  assert.strictEqual(runnerService.parseMaxTimeoutMs('1000'), 1000);
+  assert.strictEqual(runnerService.parseMaxTimeoutMs('15000'), 15000);
+
+  // Invalid values fall back to safe default (10000 ms)
+  assert.strictEqual(runnerService.parseMaxTimeoutMs('60000'), 10000); // Exceeds ABSOLUTE_MAX_TIMEOUT_MS
+  assert.strictEqual(runnerService.parseMaxTimeoutMs('500'), 10000);   // Below MIN_TIMEOUT_MS
+  assert.strictEqual(runnerService.parseMaxTimeoutMs('0'), 10000);
+  assert.strictEqual(runnerService.parseMaxTimeoutMs('-1000'), 10000);
+  assert.strictEqual(runnerService.parseMaxTimeoutMs('NaN'), 10000);
+  assert.strictEqual(runnerService.parseMaxTimeoutMs('Infinity'), 10000);
+  assert.strictEqual(runnerService.parseMaxTimeoutMs('12000.5'), 10000); // Non-integer
+  assert.strictEqual(runnerService.parseMaxTimeoutMs('invalid'), 10000);
+
+  // 2. Request timeout clamping on createServer
+  const oldKey = process.env.JASPER_SANDBOX_RUNNER_KEY;
+  process.env.JASPER_SANDBOX_RUNNER_KEY = TEST_RUNNER_SECRET;
+
+  const mockDriver = createMockContainerDriver();
+  // Server configured with default max timeout (10000 ms)
+  const runnerServer = runnerService.createServer({ containerDriver: mockDriver, maxTimeoutMs: 10000 });
+  const testPort = 5087;
+
+  await new Promise((resolve, reject) => {
+    runnerServer.listen(testPort, '127.0.0.1', resolve);
+    runnerServer.on('error', reject);
+  });
+
+  t.after(() => {
+    if (oldKey !== undefined) process.env.JASPER_SANDBOX_RUNNER_KEY = oldKey;
+    else delete process.env.JASPER_SANDBOX_RUNNER_KEY;
+    return new Promise(resolve => runnerServer.close(resolve));
+  });
+
+  // Request timeout higher than max limit (60000ms requested, clamped to 10000ms)
+  const resHigh = await makeDirectRequest(testPort, 'POST', '/run', {
+    'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
+  }, {
+    code: 'console.log("ok");',
+    language: 'javascript',
+    timeoutMs: 60000,
+    ownerId: 'test_user'
+  });
+  assert.strictEqual(resHigh.statusCode, 200);
+
+  // Request timeout below min limit (100ms requested, clamped to 1000ms minimum)
+  const resLow = await makeDirectRequest(testPort, 'POST', '/run', {
+    'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
+  }, {
+    code: 'console.log("ok");',
+    language: 'javascript',
+    timeoutMs: 100,
+    ownerId: 'test_user'
+  });
+  assert.strictEqual(resLow.statusCode, 200);
+
+  // Invalid / negative request timeout falls back safely
+  const resNegative = await makeDirectRequest(testPort, 'POST', '/run', {
+    'Authorization': `Bearer ${TEST_RUNNER_SECRET}`
+  }, {
+    code: 'console.log("ok");',
+    language: 'javascript',
+    timeoutMs: -5000,
+    ownerId: 'test_user'
+  });
+  assert.strictEqual(resNegative.statusCode, 200);
+});
+
+test('[UNIT / MOCKED DOCKER] Timeout Configuration Regression: Explicit options.maxTimeoutMs = 0 falls back to DEFAULT_MAX_TIMEOUT_MS when RUNNER_MAX_TIMEOUT_MS is non-default', async (t) => {
+  const oldEnvTimeout = process.env.RUNNER_MAX_TIMEOUT_MS;
+  const oldKey = process.env.JASPER_SANDBOX_RUNNER_KEY;
+
+  // Set RUNNER_MAX_TIMEOUT_MS to a valid non-default value (e.g. 25000)
+  process.env.RUNNER_MAX_TIMEOUT_MS = '25000';
+  process.env.JASPER_SANDBOX_RUNNER_KEY = TEST_RUNNER_SECRET;
+
+  const mockDriver = createMockContainerDriver();
+
+  // options.maxTimeoutMs is explicitly passed as 0 (not undefined or null)
+  const runnerServer = runnerService.createServer({
+    containerDriver: mockDriver,
+    maxTimeoutMs: 0
+  });
+
+  t.after(() => {
+    if (oldEnvTimeout !== undefined) process.env.RUNNER_MAX_TIMEOUT_MS = oldEnvTimeout;
+    else delete process.env.RUNNER_MAX_TIMEOUT_MS;
+    if (oldKey !== undefined) process.env.JASPER_SANDBOX_RUNNER_KEY = oldKey;
+    else delete process.env.JASPER_SANDBOX_RUNNER_KEY;
+    return new Promise(resolve => runnerServer.close(resolve));
+  });
+
+  // Explicit options.maxTimeoutMs = 0 must go through parseMaxTimeoutMs(0)
+  // and fall back to DEFAULT_MAX_TIMEOUT_MS (10000ms), NOT the environment value (25000ms)
+  assert.strictEqual(
+    runnerServer.configuredMaxTimeout,
+    runnerService.DEFAULT_MAX_TIMEOUT_MS,
+    `Explicit 0 options.maxTimeoutMs must follow documented fallback (${runnerService.DEFAULT_MAX_TIMEOUT_MS}ms), not env value (25000ms)`
+  );
+  assert.strictEqual(runnerServer.configuredMaxTimeout, 10000);
+
+  // Also verify NaN and out-of-range values passed as options.maxTimeoutMs follow documented fallback
+  const serverNaN = runnerService.createServer({ containerDriver: mockDriver, maxTimeoutMs: NaN });
+  assert.strictEqual(serverNaN.configuredMaxTimeout, 10000);
+
+  const serverOutOfRange = runnerService.createServer({ containerDriver: mockDriver, maxTimeoutMs: 60000 });
+  assert.strictEqual(serverOutOfRange.configuredMaxTimeout, 10000);
+
+  const serverFractional = runnerService.createServer({ containerDriver: mockDriver, maxTimeoutMs: 15000.5 });
+  assert.strictEqual(serverFractional.configuredMaxTimeout, 10000);
 });

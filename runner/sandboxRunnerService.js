@@ -53,6 +53,20 @@ function isValidContainerIdentifier(idOrName) {
 }
 
 /**
+ * Validates a user / requester / owner identity string:
+ * - 1 to 128 characters
+ * - Starts with an alphanumeric character [a-zA-Z0-9]
+ * - Contains only alphanumeric, underscore, hyphen, or dot: [a-zA-Z0-9_.-]
+ * - Strictly prohibits spaces, shell metacharacters, control characters, and path separators.
+ */
+function isValidUserIdentifier(id) {
+  if (!id || typeof id !== 'string') return false;
+  const trimmed = id.trim();
+  if (trimmed.length < 1 || trimmed.length > 128) return false;
+  return /^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127}$/.test(trimmed);
+}
+
+/**
  * Validates an OCI / Docker container image reference.
  * Allows repository names, optional namespaces, optional tags, and optional immutable SHA-256 digests.
  * Example: node:20-alpine@sha256:afdf98210b07b586eb71fa22ba2e432e058e4cd1304d31ed60888755b8c865fb
@@ -78,28 +92,43 @@ function isImmutableImageDigest(imageRef) {
 
 /**
  * Resolves the active runtime image for the given language.
- * Validates configured environment variables against safe image reference patterns.
+ * Strictly enforces immutable SHA-256 digests (@sha256:<64 hex>):
+ * - Mutable tags (e.g., node:latest, node:20-alpine) are strictly rejected.
+ * - Malformed digests or invalid overrides fail closed and return null (never silently fall back).
+ * - When an override is omitted, uses the verified pinned default digest.
  */
 function getRuntimeImage(lang) {
-  const configuredNode = (process.env.SANDBOX_NODE_IMAGE || '').trim();
-  const configuredPython = (process.env.SANDBOX_PYTHON_IMAGE || '').trim();
+  let configured = '';
+  let defaultImage = '';
 
   if (lang === 'javascript') {
-    if (configuredNode && isValidImageReference(configuredNode)) {
-      return configuredNode;
-    }
-    return DEFAULT_NODE_IMAGE;
+    configured = (process.env.SANDBOX_NODE_IMAGE || '').trim();
+    defaultImage = DEFAULT_NODE_IMAGE;
   } else if (lang === 'python') {
-    if (configuredPython && isValidImageReference(configuredPython)) {
-      return configuredPython;
+    configured = (process.env.SANDBOX_PYTHON_IMAGE || '').trim();
+    defaultImage = DEFAULT_PYTHON_IMAGE;
+  } else {
+    return null;
+  }
+
+  // If an override is explicitly configured:
+  if (configured) {
+    // Must strictly be a valid immutable SHA-256 digest; reject mutable tags and invalid references fail-closed
+    if (isImmutableImageDigest(configured)) {
+      return configured;
     }
-    return DEFAULT_PYTHON_IMAGE;
+    return null; // Fails closed on mutable or malformed override
+  }
+
+  // Default fallback when override is omitted: verify default is an immutable digest
+  if (isImmutableImageDigest(defaultImage)) {
+    return defaultImage;
   }
   return null;
 }
 
-const PINNED_NODE_IMAGE = getRuntimeImage('javascript');
-const PINNED_PYTHON_IMAGE = getRuntimeImage('python');
+const PINNED_NODE_IMAGE = DEFAULT_NODE_IMAGE;
+const PINNED_PYTHON_IMAGE = DEFAULT_PYTHON_IMAGE;
 
 function getRunnerAuthKey() {
   return (process.env.JASPER_SANDBOX_RUNNER_KEY || '').trim();
@@ -108,8 +137,29 @@ function getRunnerAuthKey() {
 const MAX_BODY_BYTES = 128 * 1024; // 128 KB
 const MAX_CODE_LENGTH = 65536; // 64 KB
 const MAX_OUTPUT_BYTES = 32 * 1024; // 32 KB per stream
-const DEFAULT_TIMEOUT_MS = 5000;
-const MAX_TIMEOUT_MS = 10000;
+// Execution timeout configuration & approved bounds
+const MIN_TIMEOUT_MS = 1000;           // Hard minimum timeout (1 second)
+const DEFAULT_TIMEOUT_MS = 5000;       // Default job timeout (5 seconds)
+const DEFAULT_MAX_TIMEOUT_MS = 10000;  // Safe default ceiling (10 seconds)
+const ABSOLUTE_MAX_TIMEOUT_MS = 30000; // Approved absolute ceiling (30 seconds) for heavy container runtimes
+
+/**
+ * Validates and parses RUNNER_MAX_TIMEOUT_MS from environment.
+ * Must be a finite safe integer within [MIN_TIMEOUT_MS, ABSOLUTE_MAX_TIMEOUT_MS].
+ * Rejects NaN, Infinity, negative values, floats, or out-of-range bounds, safely falling back to DEFAULT_MAX_TIMEOUT_MS.
+ */
+function parseMaxTimeoutMs(envVal) {
+  if (envVal === undefined || envVal === null || String(envVal).trim() === '') {
+    return DEFAULT_MAX_TIMEOUT_MS;
+  }
+  const num = Number(String(envVal).trim());
+  if (!Number.isSafeInteger(num) || num < MIN_TIMEOUT_MS || num > ABSOLUTE_MAX_TIMEOUT_MS) {
+    return DEFAULT_MAX_TIMEOUT_MS;
+  }
+  return num;
+}
+
+const MAX_TIMEOUT_MS = parseMaxTimeoutMs(process.env.RUNNER_MAX_TIMEOUT_MS);
 const MAX_CONCURRENT_JOBS = 4;
 const MAX_RATE_PER_MINUTE = 60;
 
@@ -122,11 +172,17 @@ function probeContainerEngine(engine = CONTAINER_ENGINE, spawnSyncFn = spawnSync
     return false;
   }
   try {
+    const cleanEnv = {
+      PATH: process.env.PATH || '',
+      ...(process.platform === 'win32' ? { SystemRoot: process.env.SystemRoot || 'C:\\Windows' } : {}),
+      ...(process.env.DOCKER_HOST ? { DOCKER_HOST: process.env.DOCKER_HOST } : {})
+    };
     const res = spawnSyncFn(engine, ['--version'], { 
       encoding: 'utf8', 
       shell: false, 
       windowsHide: true,
-      timeout: 3000
+      env: cleanEnv,
+      timeout: 5000
     });
     return Boolean(!res.error && res.status === 0);
   } catch (_) {
@@ -189,8 +245,8 @@ const defaultContainerDriver = {
     if (!isValidContainerIdentifier(containerName)) {
       throw new Error(`Invalid container name: ${containerName}`);
     }
-    if (!isValidImageReference(runtimeImage)) {
-      throw new Error(`Invalid runtime image reference: ${runtimeImage}`);
+    if (!runtimeImage || !isImmutableImageDigest(runtimeImage)) {
+      throw new Error(`Invalid or mutable runtime image reference: ${runtimeImage}. Runtime images must be pinned to immutable @sha256 digests.`);
     }
     const guestCmd = cleanLang === 'javascript' 
       ? ['node', '-'] 
@@ -220,11 +276,16 @@ const defaultContainerDriver = {
       throw new Error(`Invalid container engine identifier: ${CONTAINER_ENGINE}`);
     }
     const args = this.buildRunArgs({ containerName, cleanLang, runtimeImage });
+    const cleanEnv = {
+      PATH: process.env.PATH || '',
+      ...(process.platform === 'win32' ? { SystemRoot: process.env.SystemRoot || 'C:\\Windows' } : {}),
+      ...(process.env.DOCKER_HOST ? { DOCKER_HOST: process.env.DOCKER_HOST } : {})
+    };
     return spawn(CONTAINER_ENGINE, args, {
       stdio: ['pipe', 'pipe', 'pipe'],
       windowsHide: true,
       shell: false,
-      env: {} // ZERO host environment secrets passed
+      env: cleanEnv // ZERO host environment secrets passed; only sanitized system paths required to run the CLI
     });
   },
   killJob(containerName, callback) {
@@ -277,9 +338,12 @@ function verifyAuth(req) {
  */
 function createServer(options = {}) {
   const driver = options.containerDriver || defaultContainerDriver;
+  const configuredMaxTimeout = (options.maxTimeoutMs !== undefined && options.maxTimeoutMs !== null)
+    ? parseMaxTimeoutMs(options.maxTimeoutMs)
+    : parseMaxTimeoutMs(process.env.RUNNER_MAX_TIMEOUT_MS);
 
   const activeJobs = new Map(); // executionId -> { child, containerName, timer, ownerId, cancelled, startTime }
-  const recentlyTerminatedJobs = new Map(); // executionId -> { timestamp, exitCode, cancelled }
+  const recentlyTerminatedJobs = new Map(); // executionId -> { timestamp, exitCode, cancelled, ownerId }
   const rateLimitMap = new Map(); // ip -> { count, resetTime }
 
   function pruneState() {
@@ -305,7 +369,7 @@ function createServer(options = {}) {
   }
 
   function handleRun(req, res, body) {
-    const { code, language = 'javascript', timeoutMs = DEFAULT_TIMEOUT_MS, ownerId = 'anonymous' } = body || {};
+    const { code, language = 'javascript', timeoutMs, ownerId } = body || {};
 
     if (!code || typeof code !== 'string') {
       res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -329,6 +393,15 @@ function createServer(options = {}) {
       }));
     }
 
+    if (!ownerId || typeof ownerId !== 'string' || !isValidUserIdentifier(ownerId)) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({
+        success: false,
+        error: 'Valid ownerId required for code execution job.'
+      }));
+    }
+    const cleanOwnerId = ownerId.trim();
+
     if (activeJobs.size >= MAX_CONCURRENT_JOBS) {
       res.writeHead(429, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ 
@@ -349,7 +422,8 @@ function createServer(options = {}) {
       }));
     }
 
-    const cleanTimeout = Math.max(1000, Math.min(MAX_TIMEOUT_MS, parseInt(timeoutMs, 10) || DEFAULT_TIMEOUT_MS));
+    const parsedTimeout = parseInt(timeoutMs, 10);
+    const cleanTimeout = Math.max(MIN_TIMEOUT_MS, Math.min(configuredMaxTimeout, Number.isFinite(parsedTimeout) ? parsedTimeout : DEFAULT_TIMEOUT_MS));
     const executionId = `run_${Date.now()}_${crypto.randomBytes(8).toString('hex')}`;
     const containerName = `jasper_job_${executionId}`;
 
@@ -363,11 +437,11 @@ function createServer(options = {}) {
     }
 
     const runtimeImage = getRuntimeImage(cleanLang);
-    if (!runtimeImage || !isValidImageReference(runtimeImage)) {
+    if (!runtimeImage || !isImmutableImageDigest(runtimeImage)) {
       res.writeHead(500, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ 
         success: false, 
-        error: `Runtime image for ${cleanLang} is invalid or not configured.`, 
+        error: `Runtime image for ${cleanLang} is invalid, mutable, or not pinned to an immutable SHA-256 digest. Execution blocked fail-closed.`,
         executionId 
       }));
     }
@@ -409,7 +483,7 @@ function createServer(options = {}) {
       child,
       containerName,
       timer,
-      ownerId: String(ownerId),
+      ownerId: cleanOwnerId,
       cancelled: false,
       startTime
     });
@@ -435,6 +509,12 @@ function createServer(options = {}) {
     child.on('error', (err) => {
       clearTimeout(timer);
       activeJobs.delete(executionId);
+      recentlyTerminatedJobs.set(executionId, {
+        timestamp: Date.now(),
+        exitCode: 1,
+        cancelled: false,
+        ownerId: cleanOwnerId
+      });
       try { 
         if (isValidContainerIdentifier(containerName)) {
           driver.killJob(containerName); 
@@ -459,7 +539,8 @@ function createServer(options = {}) {
       recentlyTerminatedJobs.set(executionId, {
         timestamp: Date.now(),
         exitCode: exitCode || 0,
-        cancelled: wasCancelled
+        cancelled: wasCancelled,
+        ownerId: cleanOwnerId
       });
 
       // Ensure container cleanup on daemon
@@ -522,14 +603,23 @@ function createServer(options = {}) {
       return res.end(JSON.stringify({ success: false, error: 'Valid executionId required.' }));
     }
 
-    if (!requesterId || typeof requesterId !== 'string') {
+    if (!requesterId || typeof requesterId !== 'string' || !isValidUserIdentifier(requesterId)) {
       res.writeHead(401, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ success: false, error: 'Requester user identity required for cancellation.' }));
+      return res.end(JSON.stringify({ success: false, error: 'Valid requester user identity required for cancellation.' }));
     }
+    const cleanRequesterId = requesterId.trim();
 
     // Idempotency: If job was already terminated
     if (recentlyTerminatedJobs.has(executionId)) {
       const termData = recentlyTerminatedJobs.get(executionId);
+      // Strict ownership enforcement: stored ownerId must exist, be valid, and match requesterId exactly
+      if (!termData || !isValidUserIdentifier(termData.ownerId) || termData.ownerId !== cleanRequesterId) {
+        res.writeHead(403, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({
+          success: false,
+          error: "Access denied: You do not have permission to cancel another user's execution job."
+        }));
+      }
       res.writeHead(200, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ 
         success: true, 
@@ -546,8 +636,8 @@ function createServer(options = {}) {
       return res.end(JSON.stringify({ success: false, error: 'Job not found or already completed.' }));
     }
 
-    // Strict ownership verification: no generic system bypass for callers
-    if (job.ownerId && job.ownerId !== requesterId) {
+    // Strict ownership enforcement: stored ownerId must exist, be valid, and match requesterId exactly
+    if (!isValidUserIdentifier(job.ownerId) || job.ownerId !== cleanRequesterId) {
       res.writeHead(403, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ 
         success: false, 
@@ -661,6 +751,7 @@ function createServer(options = {}) {
 
   server.activeJobs = activeJobs;
   server.recentlyTerminatedJobs = recentlyTerminatedJobs;
+  server.configuredMaxTimeout = configuredMaxTimeout;
 
   return server;
 }
@@ -680,9 +771,16 @@ module.exports = {
   verifyAuth,
   getRunnerAuthKey,
   isValidContainerIdentifier,
+  isValidUserIdentifier,
   isValidImageReference,
   isImmutableImageDigest,
   getRuntimeImage,
+  parseMaxTimeoutMs,
+  MIN_TIMEOUT_MS,
+  DEFAULT_TIMEOUT_MS,
+  DEFAULT_MAX_TIMEOUT_MS,
+  ABSOLUTE_MAX_TIMEOUT_MS,
+  MAX_TIMEOUT_MS,
   DEFAULT_NODE_IMAGE,
   DEFAULT_PYTHON_IMAGE,
   PINNED_NODE_IMAGE,
