@@ -1919,6 +1919,14 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
                     ⚡ Force Reset Session
                   </button>
                 </div>
+
+                <div className="p-2.5 rounded-xl bg-amber-950/40 border border-amber-500/30 text-[10px] text-amber-200/90 font-mono text-left w-full space-y-1 mt-1">
+                  <div className="font-bold text-amber-300">⚠️ Getting &quot;Couldn&apos;t link device&quot;?</div>
+                  <div>• Tap <strong>⚡ Force Reset Session</strong> above to purge corrupted session cache.</div>
+                  <div>• On your phone: Go to <strong>Settings → Linked Devices</strong> and log out of old devices (max 4).</div>
+                  <div>• Ensure your phone is not on a VPN/proxy and has a stable internet connection.</div>
+                  <div>• Or use <strong className="text-cyan-300">Phone Link (ADB)</strong> to auto-reply via your connected Android phone without QR codes!</div>
+                </div>
               </div>
             ) : waWebStatus === 'initializing' ? (
               <div className="flex flex-col items-center gap-4 py-8">

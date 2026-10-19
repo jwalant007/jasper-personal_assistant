@@ -34,6 +34,7 @@ let waClient = null;
 let waClientStatus = 'not_initialized'; // 'not_initialized' | 'initializing' | 'qr_pending' | 'authenticated' | 'ready' | 'error'
 let waQrCode = null;
 let waQrDataUrl = null;
+let waQrTimestamp = 0;
 const waReplyCooldowns = new Map();
 
 try {
@@ -238,16 +239,19 @@ async function initWhatsAppWebClient(isManual = false, forceReset = false) {
     console.log('[WhatsApp Web] Force reset requested: destroying client and purging auth cache...');
     if (waClient) {
       try {
-        waClient.destroy();
+        await waClient.destroy();
       } catch (e) {}
       waClient = null;
+      // Allow Windows OS process handles to release file locks
+      await new Promise(r => setTimeout(r, 600));
     }
     waQrCode = null;
     waQrDataUrl = null;
+    waQrTimestamp = 0;
     waClientStatus = 'initializing';
     global.jasperWAClientReady = false;
 
-    // Purge session directories
+    // Purge session directories with retry for Windows process locks
     const pathsToClean = [
       WA_AUTH_PATH,
       path.join(__dirname, '.wwebjs_auth'),
@@ -255,20 +259,29 @@ async function initWhatsAppWebClient(isManual = false, forceReset = false) {
       path.join(process.cwd(), '.wwebjs_cache')
     ];
     for (const p of pathsToClean) {
-      try {
-        if (fs.existsSync(p)) {
-          fs.rmSync(p, { recursive: true, force: true });
-          console.log(`[WhatsApp Web] Cleaned stale auth dir: ${p}`);
+      if (fs.existsSync(p)) {
+        for (let attempt = 0; attempt < 3; attempt++) {
+          try {
+            fs.rmSync(p, { recursive: true, force: true, maxRetries: 3, retryDelay: 200 });
+            console.log(`[WhatsApp Web] Cleaned stale auth dir: ${p}`);
+            break;
+          } catch (err) {
+            if (attempt === 2) {
+              console.warn(`[WhatsApp Web] Could not remove ${p}: ${err.message}`);
+            } else {
+              await new Promise(r => setTimeout(r, 300));
+            }
+          }
         }
-      } catch (err) {
-        console.warn(`[WhatsApp Web] Could not remove ${p}: ${err.message}`);
       }
     }
   }
 
   if (waClient) {
     if (waClientStatus === 'ready') return { success: true, reason: 'ALREADY_RUNNING', status: 'ready' };
-    if (waClientStatus === 'qr_pending' && waQrCode) {
+    const QR_TTL_MS = 25000;
+    const isQrFresh = waQrCode && waQrTimestamp && (Date.now() - waQrTimestamp < QR_TTL_MS);
+    if (waClientStatus === 'qr_pending' && isQrFresh) {
       return { success: true, reason: 'QR_READY', status: 'qr_pending', qr: waQrCode, qrDataUrl: waQrDataUrl };
     }
   }
@@ -302,11 +315,14 @@ async function initWhatsAppWebClient(isManual = false, forceReset = false) {
       }
     } catch (e) {}
 
+    const modernUserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
+
     waClient = new Client({
       authStrategy: new LocalAuth({
         clientId: 'jasper-assistant',
         dataPath: WA_AUTH_PATH
       }),
+      userAgent: modernUserAgent,
       puppeteer: {
         headless: true,
         executablePath,
@@ -316,13 +332,21 @@ async function initWhatsAppWebClient(isManual = false, forceReset = false) {
           '--disable-gpu',
           '--disable-dev-shm-usage',
           '--no-first-run',
-          '--disable-accelerated-2d-canvas'
+          '--disable-accelerated-2d-canvas',
+          '--disable-blink-features=AutomationControlled',
+          '--no-default-browser-check'
         ]
+      },
+      webVersionCache: {
+        type: 'remote',
+        remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/{version}.html',
+        strict: false
       }
     });
 
     waClient.on('qr', async (qr) => {
       waQrCode = qr;
+      waQrTimestamp = Date.now();
       waClientStatus = 'qr_pending';
       if (QRCode) {
         try {
@@ -339,6 +363,7 @@ async function initWhatsAppWebClient(isManual = false, forceReset = false) {
       waClientStatus = 'authenticated';
       waQrCode = null;
       waQrDataUrl = null;
+      waQrTimestamp = 0;
       console.log('[WhatsApp Web] Authenticated successfully!');
       broadcastToClients({ type: 'WA_STATUS', status: 'authenticated' });
     });
@@ -347,6 +372,7 @@ async function initWhatsAppWebClient(isManual = false, forceReset = false) {
       waClientStatus = 'auth_failed';
       waQrCode = null;
       waQrDataUrl = null;
+      waQrTimestamp = 0;
       global.jasperWAClientReady = false;
       console.error('[WhatsApp Web] Authentication failure:', msg);
       broadcastToClients({ type: 'WA_STATUS', status: 'auth_failed', error: msg });
@@ -356,6 +382,7 @@ async function initWhatsAppWebClient(isManual = false, forceReset = false) {
       waClientStatus = 'ready';
       waQrCode = null;
       waQrDataUrl = null;
+      waQrTimestamp = 0;
       global.jasperWAClient = waClient;
       global.jasperWAClientReady = true;
       console.log('[WhatsApp Web] Client READY! Auto-send active via WhatsApp Web.');
@@ -2684,8 +2711,10 @@ app.post('/api/social/wa-connect', async (req, res) => {
       return res.json({ success: true, status: 'ready', message: 'WhatsApp Web already connected!' });
     }
 
-    // If QR code is already active and valid, return it immediately
-    if (!forceReset && waClient && waClientStatus === 'qr_pending' && waQrCode) {
+    // If QR code is already active and still fresh, return it immediately
+    const QR_TTL_MS = 25000;
+    const isQrFresh = waQrCode && waQrTimestamp && (Date.now() - waQrTimestamp < QR_TTL_MS);
+    if (!forceReset && waClient && waClientStatus === 'qr_pending' && isQrFresh) {
       return res.json({
         success: true,
         status: 'qr_pending',
@@ -2726,6 +2755,7 @@ app.post('/api/social/wa-disconnect', async (req, res) => {
       waClientStatus = 'not_initialized';
       waQrCode = null;
       waQrDataUrl = null;
+      waQrTimestamp = 0;
       global.jasperWAClientReady = false;
     }
     res.json({ success: true, message: 'WhatsApp Web disconnected' });
