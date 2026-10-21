@@ -59,15 +59,29 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
   const [waWebQr, setWaWebQr] = useState(null);
   const [waWebQrDataUrl, setWaWebQrDataUrl] = useState(null);
   const [showWaQrModal, setShowWaQrModal] = useState(false);
+  const [waPairingTab, setWaPairingTab] = useState('qr'); // 'qr' | 'code'
+  const [waPairingPhone, setWaPairingPhone] = useState('+917984173128');
+  const [waPairingCode, setWaPairingCode] = useState('');
+  const [isRequestingPairingCode, setIsRequestingPairingCode] = useState(false);
+  const [pairingCodeCopied, setPairingCodeCopied] = useState(false);
+
+  const getAuthHeaders = () => {
+    const token = (typeof window !== 'undefined' && (localStorage.getItem('jasper_auth_token') || localStorage.getItem('jasper_token'))) || 'jasper';
+    return {
+      'Content-Type': 'application/json',
+      'x-jasper-token': token
+    };
+  };
 
   const handleWaWebConnect = async (forceReset = false) => {
     setWaWebStatus('initializing');
+    setWaPairingCode('');
     showBanner(forceReset ? '🔄 Purging session and generating a fresh WhatsApp QR...' : 'Starting WhatsApp Web connection... Generating QR Code...', 'info');
     setShowWaQrModal(true);
     try {
       const res = await fetch(`${getApiBase()}/api/social/wa-connect`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ forceReset })
       });
       const data = await res.json();
@@ -81,11 +95,40 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
           showBanner('QR Code generated — scan it with your WhatsApp camera!', 'info');
         }
       } else {
-        showBanner(`WhatsApp Web: ${data.error}`, 'error');
-        setWaWebStatus('error');
+        showBanner(`WhatsApp Web: ${data.error || 'Connection failed'}`, 'error');
+        setWaWebStatus(data.status || 'error');
       }
     } catch (e) {
-      showBanner('Connecting to WhatsApp Web...', 'info');
+      showBanner('Connecting to WhatsApp Web... checking status', 'info');
+    }
+  };
+
+  const handleRequestPairingCode = async () => {
+    const rawNumber = waPairingPhone || accountConfig.senderNumber || '';
+    const cleanNumber = rawNumber.replace(/[^0-9]/g, '');
+    if (cleanNumber.length < 10) {
+      showBanner('Please enter a valid phone number with country code (e.g. 917984173128).', 'error');
+      return;
+    }
+    setIsRequestingPairingCode(true);
+    showBanner('Requesting 8-character pairing code from WhatsApp...', 'info');
+    try {
+      const res = await fetch(`${getApiBase()}/api/social/wa-pairing-code`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ phoneNumber: cleanNumber })
+      });
+      const data = await res.json();
+      if (data.success && data.pairingCode) {
+        setWaPairingCode(data.pairingCode);
+        showBanner(`Pairing code generated: ${data.pairingCode}`, 'success');
+      } else {
+        showBanner(data.error || 'Pairing code generation failed. Try scanning the QR code.', 'error');
+      }
+    } catch (e) {
+      showBanner('Failed to request pairing code: ' + e.message, 'error');
+    } finally {
+      setIsRequestingPairingCode(false);
     }
   };
 
@@ -94,7 +137,9 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
     let isMounted = true;
     const pollWaStatus = async () => {
       try {
-        const res = await fetch(`${getApiBase()}/api/social/wa-status`);
+        const res = await fetch(`${getApiBase()}/api/social/wa-status`, {
+          headers: getAuthHeaders()
+        });
         const data = await res.json();
         if (!isMounted) return;
         setWaWebStatus(data.status);
@@ -115,6 +160,8 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
         if (data.qr) setWaWebQr(data.qr);
         if (data.qrDataUrl) setWaWebQrDataUrl(data.qrDataUrl);
         setWaWebStatus('qr_pending');
+      } else if (data.type === 'WA_PAIRING_CODE') {
+        if (data.pairingCode) setWaPairingCode(data.pairingCode);
       } else if (data.type === 'WA_STATUS') {
         setWaWebStatus(data.status);
         if (data.status === 'ready') {
@@ -139,10 +186,14 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
 
   const handleWaWebDisconnect = async () => {
     try {
-      await fetch(`${getApiBase()}/api/social/wa-disconnect`, { method: 'POST' });
+      await fetch(`${getApiBase()}/api/social/wa-disconnect`, { 
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
       setWaWebStatus('not_initialized');
       setWaWebQr(null);
       setWaWebQrDataUrl(null);
+      setWaPairingCode('');
       setShowWaQrModal(false);
       showBanner('WhatsApp Web disconnected.', 'info');
     } catch(e) {}
@@ -1859,180 +1910,320 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
           </div>
         </div>
       )}
-      {/* WhatsApp Web QR Code Connection Modal */}
+      {/* WhatsApp Web QR Code & Pairing Code Connection Modal */}
       {showWaQrModal && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-950 border border-emerald-500/50 rounded-2xl p-6 max-w-sm w-full shadow-[0_0_60px_rgba(16,185,129,0.3)] flex flex-col gap-4 font-sans">
+          <div className="bg-slate-950 border border-emerald-500/50 rounded-2xl p-6 max-w-md w-full shadow-[0_0_60px_rgba(16,185,129,0.3)] flex flex-col gap-4 font-sans max-h-[92vh] overflow-y-auto">
             
             <div className="flex items-center justify-between border-b border-emerald-500/30 pb-3">
               <div>
                 <h3 className="font-orbitron font-bold text-sm text-emerald-200 uppercase tracking-wider flex items-center gap-2">
                   <span>🌐</span> Connect WhatsApp Web
                 </h3>
-                <p className="text-[10px] text-slate-400 font-mono mt-0.5">Auto-send messages from your WhatsApp Web account</p>
+                <p className="text-[10px] text-slate-400 font-mono mt-0.5">Link WhatsApp for instant, automated 1-click message dispatch</p>
               </div>
-              <button type="button" onClick={() => setShowWaQrModal(false)} className="text-slate-400 hover:text-white">✕</button>
+              <button 
+                type="button" 
+                onClick={() => setShowWaQrModal(false)} 
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+              >
+                ✕
+              </button>
             </div>
 
             {waWebStatus === 'ready' ? (
-              <div className="flex flex-col items-center gap-3 py-4">
-                <div className="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center text-3xl">✅</div>
+              <div className="flex flex-col items-center gap-3 py-6">
+                <div className="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center text-3xl shadow-[0_0_25px_rgba(16,185,129,0.4)]">
+                  ✅
+                </div>
                 <div className="text-center">
-                  <p className="text-sm font-bold text-emerald-300">WhatsApp Web Connected!</p>
-                  <p className="text-xs text-slate-400 font-mono mt-1">All messages will auto-send instantly without any clicks.</p>
-                </div>
-                <button type="button" onClick={handleWaWebDisconnect} className="px-4 py-1.5 rounded-xl bg-red-900/40 text-red-300 text-xs font-mono border border-red-500/40 hover:bg-red-800/60 transition-colors">
-                  Disconnect
-                </button>
-              </div>
-            ) : (waWebQrDataUrl || waWebQr) ? (
-              <div className="flex flex-col items-center gap-3">
-                <div className="p-3 rounded-2xl bg-white shadow-[0_0_25px_rgba(255,255,255,0.2)] border border-slate-200">
-                  <img
-                    src={waWebQrDataUrl || `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(waWebQr)}`}
-                    alt="WhatsApp Web QR Code"
-                    className="w-56 h-56 rounded-xl object-contain"
-                  />
-                </div>
-                <div className="text-center space-y-1">
-                  <p className="text-sm font-bold text-amber-300">📱 Open WhatsApp on your phone</p>
-                  <p className="text-xs text-slate-300 font-mono">Tap <strong className="text-white">⋮ Menu</strong> → <strong className="text-white">Linked Devices</strong> → <strong className="text-white">Link a Device</strong></p>
-                  <p className="text-xs text-slate-400 font-mono">Point your phone camera at this QR code</p>
-                </div>
-                <div className="flex items-center gap-1.5 text-[10px] text-amber-400 font-mono animate-pulse">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                  <span>Waiting for scan... (updates automatically)</span>
-                </div>
-                <div className="flex items-center gap-2 pt-1 w-full justify-center">
-                  <button
-                    type="button"
-                    onClick={() => handleWaWebConnect(false)}
-                    className="px-3 py-1 rounded-lg bg-emerald-900/40 border border-emerald-500/40 text-emerald-300 text-[11px] font-mono hover:bg-emerald-800/50 transition-colors"
-                  >
-                    🔄 Refresh
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleWaWebConnect(true)}
-                    className="px-3 py-1 rounded-lg bg-amber-900/40 border border-amber-500/40 text-amber-300 text-[11px] font-mono hover:bg-amber-800/50 transition-colors"
-                  >
-                    ⚡ Force Reset Session
-                  </button>
-                </div>
-
-                <div className="p-2.5 rounded-xl bg-amber-950/40 border border-amber-500/30 text-[10px] text-amber-200/90 font-mono text-left w-full space-y-1 mt-1">
-                  <div className="font-bold text-amber-300">⚠️ Getting &quot;Couldn&apos;t link device&quot;?</div>
-                  <div>• Tap <strong>⚡ Force Reset Session</strong> above to purge corrupted session cache.</div>
-                  <div>• On your phone: Go to <strong>Settings → Linked Devices</strong> and log out of old devices (max 4).</div>
-                  <div>• Ensure your phone is not on a VPN/proxy and has a stable internet connection.</div>
-                  <div>• Or use <strong className="text-cyan-300">Phone Link (ADB)</strong> to auto-reply via your connected Android phone without QR codes!</div>
-                </div>
-              </div>
-            ) : waWebStatus === 'initializing' ? (
-              <div className="flex flex-col items-center gap-4 py-8">
-                <div className="w-12 h-12 border-4 border-emerald-500/30 border-t-emerald-400 rounded-full animate-spin"></div>
-                <div className="text-center space-y-1.5">
-                  <p className="text-sm font-bold text-emerald-300">Initializing WhatsApp Web Engine</p>
-                  <p className="text-xs text-slate-300 font-mono">Launching background Chromium &amp; generating your QR code...</p>
-                  <p className="text-[10px] text-amber-400 font-mono">Takes ~3–5 seconds. Stand by...</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleWaWebConnect(true)}
-                  className="mt-2 px-3 py-1 rounded-lg bg-slate-800 border border-slate-600 text-slate-300 text-[11px] font-mono hover:bg-slate-700"
-                >
-                  ⚡ Force Fresh Restart
-                </button>
-              </div>
-            ) : (waWebStatus === 'error' || waWebStatus === 'auth_failed') ? (
-              <div className="flex flex-col items-center gap-4 py-6">
-                <div className="w-12 h-12 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center text-2xl">⚠️</div>
-                <div className="text-center space-y-1">
-                  <p className="text-sm font-bold text-red-300">Connection Failed</p>
-                  <p className="text-xs text-slate-400 font-mono">Stale session data or browser handshake error detected.</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleWaWebConnect(true)}
-                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-bold text-xs font-mono shadow-lg flex items-center gap-2"
-                >
-                  ⚡ Purge Session &amp; Retry Fresh QR
-                </button>
-              </div>
-            ) : waWebStatus === 'downloading_browser' ? (
-              <div className="flex flex-col items-center gap-4 py-8">
-                <div className="w-12 h-12 border-4 border-amber-500/30 border-t-amber-400 rounded-full animate-spin"></div>
-                <div className="text-center space-y-1.5">
-                  <p className="text-sm font-bold text-amber-300">Setting up Chrome on Cloud Server</p>
-                  <p className="text-xs text-slate-300 font-mono">Downloading Chromium for WhatsApp Web... (~15–30 seconds on first run)</p>
-                  <p className="text-[10px] text-emerald-400 font-mono">The QR code will appear automatically once complete!</p>
-                </div>
-              </div>
-            ) : waWebStatus === 'no_browser_available' ? (
-              <div className="flex flex-col items-center gap-3 py-4 text-center">
-                <div className="w-12 h-12 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-2xl">💻</div>
-                <div className="space-y-1">
-                  <p className="text-sm font-bold text-amber-300">
-                    {isCloudMode() ? 'Render Cloud: Chrome Initializing' : 'Local Browser Not Found'}
-                  </p>
-                  <p className="text-xs text-slate-300 font-mono leading-relaxed max-w-xs">
-                    {isCloudMode() 
-                      ? 'WhatsApp Web requires a headless Chromium browser binary on Render. Trigger automatic setup below to generate your QR code.'
-                      : 'Chrome or Chromium was not detected on this host. Run the server on your PC where Chrome is installed.'}
+                  <p className="text-base font-bold text-emerald-300">WhatsApp Web Connected!</p>
+                  <p className="text-xs text-slate-400 font-mono mt-1 max-w-xs">
+                    All incoming and scheduled messages will auto-send instantly via this account without manual interaction.
                   </p>
                 </div>
-
-                <div className="flex flex-col gap-2 w-full pt-1">
-                  <button
-                    type="button"
-                    onClick={() => handleWaWebConnect(true)}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-600 hover:from-amber-400 hover:to-emerald-500 text-white font-bold text-xs font-mono shadow-lg flex items-center justify-center gap-2"
+                <div className="flex items-center gap-2 pt-2">
+                  <button 
+                    type="button" 
+                    onClick={handleWaWebDisconnect} 
+                    className="px-4 py-1.5 rounded-xl bg-red-900/40 text-red-300 text-xs font-mono border border-red-500/40 hover:bg-red-800/60 transition-colors"
                   >
-                    ⚡ Install Chrome &amp; Generate QR on Cloud
+                    Disconnect Session
                   </button>
-
-                  {isCloudMode() && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setServerToLocalhost();
-                        window.location.reload();
-                      }}
-                      className="px-4 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-mono border border-slate-600 flex items-center justify-center gap-2"
-                    >
-                      💻 Switch to Local PC Server (localhost:3001)
-                    </button>
-                  )}
-                  <p className="text-[10px] text-slate-400 font-mono">
-                    Host: <span className="text-amber-300 font-bold">{getServerIp()}</span>
-                  </p>
-                </div>
-
-                <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-700/60 text-[10px] text-slate-400 font-mono text-left w-full space-y-1.5 mt-1">
-                  <div className="font-bold text-slate-300">💡 24/7 Cloud Auto-Reply:</div>
-                  <div>• Once connected on Render, your WhatsApp Web session runs 24/7 in the cloud even when your phone or PC is turned off!</div>
-                  <div>• Or use <strong className="text-cyan-300">Phone Link (ADB)</strong> to auto-reply via your connected Android phone.</div>
+                  <button 
+                    type="button" 
+                    onClick={() => setShowWaQrModal(false)} 
+                    className="px-4 py-1.5 rounded-xl bg-slate-800 text-slate-300 text-xs font-mono hover:bg-slate-700 transition-colors"
+                  >
+                    Done
+                  </button>
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col items-center gap-4 py-4">
-                <div className="text-4xl animate-bounce">📱</div>
-                <div className="text-center space-y-1">
-                  <p className="text-sm font-bold text-emerald-300">Connect WhatsApp Web</p>
-                  <p className="text-xs text-slate-400 font-mono">Click below to generate a QR code. Scan it with WhatsApp on your phone to enable <strong className="text-white">full auto-send</strong> without tapping anything!</p>
+              <>
+                {/* Method Switcher Tabs */}
+                <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-900/90 border border-slate-700/60 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setWaPairingTab('qr')}
+                    className={`py-1.5 px-3 rounded-lg text-xs font-mono font-bold transition-all flex items-center justify-center gap-1.5 ${
+                      waPairingTab === 'qr'
+                        ? 'bg-emerald-600 text-white shadow-md'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                    }`}
+                  >
+                    <span>📱</span>
+                    <span>Scan QR Code</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setWaPairingTab('code')}
+                    className={`py-1.5 px-3 rounded-lg text-xs font-mono font-bold transition-all flex items-center justify-center gap-1.5 ${
+                      waPairingTab === 'code'
+                        ? 'bg-emerald-600 text-white shadow-md'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                    }`}
+                  >
+                    <span>🔢</span>
+                    <span>Pair with Phone No.</span>
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleWaWebConnect(false)}
-                  className="px-6 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-sm font-mono shadow-lg flex items-center gap-2"
-                >
-                  🌐 Generate QR Code
-                </button>
-              </div>
+
+                {/* TAB 1: QR CODE */}
+                {waPairingTab === 'qr' && (
+                  <div className="flex flex-col items-center gap-3">
+                    {(waWebQrDataUrl || waWebQr) ? (
+                      <div className="flex flex-col items-center gap-3 w-full">
+                        <div className="p-3.5 rounded-2xl bg-white shadow-[0_0_30px_rgba(16,185,129,0.3)] border-2 border-emerald-400">
+                          <img
+                            src={waWebQrDataUrl || `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(waWebQr)}`}
+                            alt="WhatsApp Web QR Code"
+                            className="w-56 h-56 rounded-xl object-contain block mx-auto select-none"
+                          />
+                        </div>
+
+                        <div className="text-center space-y-1">
+                          <p className="text-xs font-bold text-amber-300">📱 Open WhatsApp on your phone:</p>
+                          <p className="text-[11px] text-slate-300 font-mono">
+                            Tap <strong className="text-white">⋮ Menu</strong> (or Settings on iPhone) → <strong className="text-white">Linked Devices</strong> → <strong className="text-white">Link a Device</strong>
+                          </p>
+                          <p className="text-[10px] text-slate-400 font-mono">Point camera at the QR code above</p>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 text-[10px] text-emerald-400 font-mono animate-pulse">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                          <span>Waiting for scan... (updates automatically upon scanning)</span>
+                        </div>
+
+                        <div className="flex items-center gap-2 pt-1 w-full justify-center">
+                          <button
+                            type="button"
+                            onClick={() => handleWaWebConnect(false)}
+                            className="px-3 py-1.5 rounded-lg bg-emerald-950/60 border border-emerald-500/50 text-emerald-300 text-xs font-mono hover:bg-emerald-800/50 transition-colors flex items-center gap-1.5"
+                          >
+                            <RefreshCw className="w-3.5 h-3.5" />
+                            <span>Refresh QR</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleWaWebConnect(true)}
+                            className="px-3 py-1.5 rounded-lg bg-amber-950/60 border border-amber-500/50 text-amber-300 text-xs font-mono hover:bg-amber-800/50 transition-colors flex items-center gap-1.5"
+                            title="Purges any stale auth cache and starts a brand new browser session"
+                          >
+                            <Zap className="w-3.5 h-3.5" />
+                            <span>Force Reset Session</span>
+                          </button>
+                        </div>
+
+                        <div className="p-3 rounded-xl bg-amber-950/40 border border-amber-500/30 text-[10px] text-amber-200/90 font-mono text-left w-full space-y-1 mt-1">
+                          <div className="font-bold text-amber-300 flex items-center gap-1.5">
+                            <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                            <span>Cannot scan or phone says &quot;Couldn&apos;t link device&quot;?</span>
+                          </div>
+                          <div>• Click <strong className="text-white">⚡ Force Reset Session</strong> to clean corrupted session files.</div>
+                          <div>• On your phone: Check <strong>Linked Devices</strong> and remove old devices (WhatsApp limits to 4).</div>
+                          <div>• Or click the <strong className="text-emerald-300 font-bold">&quot;Pair with Phone No.&quot;</strong> tab above to link via an 8-digit code without scanning!</div>
+                        </div>
+                      </div>
+                    ) : waWebStatus === 'initializing' ? (
+                      <div className="flex flex-col items-center gap-4 py-8">
+                        <div className="w-12 h-12 border-4 border-emerald-500/30 border-t-emerald-400 rounded-full animate-spin"></div>
+                        <div className="text-center space-y-1.5">
+                          <p className="text-sm font-bold text-emerald-300">Initializing WhatsApp Web Engine</p>
+                          <p className="text-xs text-slate-300 font-mono">Launching background browser &amp; generating your live QR code...</p>
+                          <p className="text-[10px] text-amber-400 font-mono">Takes ~3–5 seconds. Stand by...</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleWaWebConnect(true)}
+                          className="mt-2 px-3 py-1 rounded-lg bg-slate-800 border border-slate-600 text-slate-300 text-[11px] font-mono hover:bg-slate-700"
+                        >
+                          ⚡ Force Fresh Restart
+                        </button>
+                      </div>
+                    ) : (waWebStatus === 'error' || waWebStatus === 'auth_failed') ? (
+                      <div className="flex flex-col items-center gap-4 py-6 text-center">
+                        <div className="w-12 h-12 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center text-2xl">⚠️</div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-bold text-red-300">Connection Failed</p>
+                          <p className="text-xs text-slate-400 font-mono max-w-xs">
+                            Stale session cache or browser handshake error detected.
+                          </p>
+                        </div>
+                        <div className="flex flex-col gap-2 w-full pt-2">
+                          <button
+                            type="button"
+                            onClick={() => handleWaWebConnect(true)}
+                            className="px-5 py-2 rounded-xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-bold text-xs font-mono shadow-lg flex items-center justify-center gap-2"
+                          >
+                            <Zap className="w-4 h-4" />
+                            <span>Purge Session &amp; Generate Fresh QR</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setWaPairingTab('code')}
+                            className="px-4 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-300 text-xs font-mono border border-slate-600"
+                          >
+                            🔢 Try Phone Number Pairing Code Instead
+                          </button>
+                        </div>
+                      </div>
+                    ) : waWebStatus === 'no_browser_available' ? (
+                      <div className="flex flex-col items-center gap-3 py-4 text-center">
+                        <div className="w-12 h-12 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-2xl">💻</div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-bold text-amber-300">
+                            {isCloudMode() ? 'Cloud Host: Browser Initializing' : 'Chrome Browser Not Found'}
+                          </p>
+                          <p className="text-xs text-slate-300 font-mono leading-relaxed max-w-xs">
+                            {isCloudMode() 
+                              ? 'WhatsApp Web requires a headless Chromium binary. Click below to install or switch to local server.'
+                              : 'Ensure Google Chrome or Microsoft Edge is installed on this PC.'}
+                          </p>
+                        </div>
+
+                        <div className="flex flex-col gap-2 w-full pt-1">
+                          <button
+                            type="button"
+                            onClick={() => handleWaWebConnect(true)}
+                            className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-600 hover:from-amber-400 hover:to-emerald-500 text-white font-bold text-xs font-mono shadow-lg flex items-center justify-center gap-2"
+                          >
+                            ⚡ Setup Browser &amp; Generate QR
+                          </button>
+                          {isCloudMode() && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setServerToLocalhost();
+                                window.location.reload();
+                              }}
+                              className="px-4 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-mono border border-slate-600 flex items-center justify-center gap-2"
+                            >
+                              💻 Switch to Local PC Server (localhost:3001)
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-4 py-6 text-center">
+                        <div className="text-4xl animate-bounce">📱</div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-bold text-emerald-300">Ready to Connect</p>
+                          <p className="text-xs text-slate-400 font-mono max-w-xs">
+                            Click below to generate a QR code for your WhatsApp Web session.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleWaWebConnect(false)}
+                          className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-sm font-mono shadow-lg flex items-center gap-2"
+                        >
+                          🌐 Generate WhatsApp QR Code
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* TAB 2: PAIR WITH PHONE NUMBER (8-DIGIT CODE) */}
+                {waPairingTab === 'code' && (
+                  <div className="flex flex-col gap-3 py-1">
+                    <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+                      <label className="text-xs font-bold text-slate-300 font-mono flex items-center gap-1.5">
+                        <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Your WhatsApp Phone Number:</span>
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={waPairingPhone}
+                          onChange={(e) => setWaPairingPhone(e.target.value)}
+                          placeholder="+91 98765 43210"
+                          className="flex-1 bg-black/60 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs font-mono focus:border-emerald-500 focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          disabled={isRequestingPairingCode}
+                          onClick={handleRequestPairingCode}
+                          className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-md shrink-0"
+                        >
+                          {isRequestingPairingCode ? (
+                            <>
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                              <span>Generating...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Key className="w-3.5 h-3.5" />
+                              <span>Get Code</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-slate-500 font-mono">Include country code (e.g. +91 for India, +1 for US).</p>
+                    </div>
+
+                    {waPairingCode ? (
+                      <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-950/80 to-slate-900 border-2 border-emerald-400 flex flex-col items-center gap-2 text-center animate-in zoom-in-95 duration-200">
+                        <p className="text-xs font-bold text-emerald-300 uppercase tracking-wider font-mono">Your WhatsApp Pairing Code</p>
+                        <div className="text-3xl font-extrabold text-white font-mono tracking-widest bg-black/70 px-6 py-2.5 rounded-xl border border-emerald-500/50 select-all shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+                          {waPairingCode.length === 8 ? `${waPairingCode.slice(0, 4)} - ${waPairingCode.slice(4)}` : waPairingCode}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(waPairingCode);
+                            setPairingCodeCopied(true);
+                            setTimeout(() => setPairingCodeCopied(false), 3000);
+                          }}
+                          className="text-[11px] font-mono text-emerald-400 hover:text-emerald-300 flex items-center gap-1 mt-0.5"
+                        >
+                          {pairingCodeCopied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Link2 className="w-3.5 h-3.5" />}
+                          <span>{pairingCodeCopied ? 'Copied to Clipboard!' : 'Copy Code'}</span>
+                        </button>
+
+                        <div className="text-left w-full p-2.5 rounded-lg bg-black/40 border border-emerald-500/20 text-[10px] text-slate-300 font-mono space-y-1 mt-1">
+                          <p className="font-bold text-emerald-300">How to enter this code on your phone:</p>
+                          <p>1. Open WhatsApp on your mobile phone</p>
+                          <p>2. Tap <strong className="text-white">⋮ Menu</strong> (or Settings) → <strong className="text-white">Linked Devices</strong> → <strong className="text-white">Link a Device</strong></p>
+                          <p>3. Tap <strong className="text-emerald-300">&quot;Link with phone number instead&quot;</strong> at the bottom of the screen</p>
+                          <p>4. Type in the 8-digit code above!</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-[10px] text-slate-400 font-mono space-y-1">
+                        <p className="font-bold text-slate-300">💡 No Camera Required:</p>
+                        <p>Link your WhatsApp account using WhatsApp&apos;s official 8-digit alphanumeric pairing code instead of scanning a QR code.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
             )}
 
-            <div className="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/30 text-[10px] text-slate-400 font-mono leading-relaxed">
-              <strong className="text-emerald-300">How it works:</strong> Once connected, JASPER uses your WhatsApp Web session to automatically send messages — no clicking required. Works even when your phone screen is off!
+            <div className="p-2.5 rounded-xl bg-emerald-950/20 border border-emerald-500/20 text-[10px] text-slate-400 font-mono flex items-center justify-between">
+              <span>Host: <strong className="text-amber-300">{getServerIp()}</strong></span>
+              <span>Status: <strong className="text-emerald-300">{waWebStatus}</strong></span>
             </div>
 
           </div>

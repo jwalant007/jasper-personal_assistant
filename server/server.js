@@ -334,13 +334,12 @@ async function initWhatsAppWebClient(isManual = false, forceReset = false) {
           '--no-first-run',
           '--disable-accelerated-2d-canvas',
           '--disable-blink-features=AutomationControlled',
-          '--no-default-browser-check'
+          '--no-default-browser-check',
+          '--disable-features=IsolateOrigins,site-per-process'
         ]
       },
       webVersionCache: {
-        type: 'remote',
-        remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/{version}.html',
-        strict: false
+        type: 'none'
       }
     });
 
@@ -350,7 +349,7 @@ async function initWhatsAppWebClient(isManual = false, forceReset = false) {
       waClientStatus = 'qr_pending';
       if (QRCode) {
         try {
-          waQrDataUrl = await QRCode.toDataURL(qr, { margin: 2, scale: 6 });
+          waQrDataUrl = await QRCode.toDataURL(qr, { margin: 2, scale: 7, color: { dark: '#000000', light: '#ffffff' } });
         } catch (qrErr) {
           console.warn('[WhatsApp Web] QRCode.toDataURL error:', qrErr.message);
         }
@@ -686,7 +685,11 @@ app.use((req, res, next) => {
     '/api/users',
     '/api/auth/login',
     '/api/auth/register',
-    '/api/auth/switch'
+    '/api/auth/switch',
+    '/api/social/wa-status',
+    '/api/social/wa-connect',
+    '/api/social/wa-disconnect',
+    '/api/social/wa-pairing-code'
   ];
   if (publicApiPaths.includes(req.path) || 
       req.path.startsWith('/api/telephony/inbound') || 
@@ -2761,6 +2764,42 @@ app.post('/api/social/wa-disconnect', async (req, res) => {
     res.json({ success: true, message: 'WhatsApp Web disconnected' });
   } catch(e) {
     res.status(500).json({ error: e.message });
+  }
+});
+
+// Request WhatsApp Web 8-character Pairing Code for Phone Number (no QR needed)
+app.post('/api/social/wa-pairing-code', async (req, res) => {
+  try {
+    const { phoneNumber } = req.body || {};
+    if (!phoneNumber) {
+      return res.status(400).json({ success: false, error: 'Phone number is required' });
+    }
+    const cleanNumber = phoneNumber.replace(/[^0-9]/g, '');
+    if (cleanNumber.length < 10) {
+      return res.status(400).json({ success: false, error: 'Please provide full phone number with country code (e.g. 917984173128)' });
+    }
+    if (!waClient || waClientStatus === 'not_initialized') {
+      const initRes = await initWhatsAppWebClient(true, false);
+      if (!initRes.success && initRes.reason === 'NO_BROWSER') {
+        return res.status(503).json({ success: false, error: 'No browser available on this host' });
+      }
+    }
+    // Wait for waClient to be in pairing mode
+    let waited = 0;
+    while ((!waClient || (!waClient.pupPage && waClientStatus === 'initializing')) && waited < 20000) {
+      await new Promise(r => setTimeout(r, 600));
+      waited += 600;
+    }
+    if (!waClient || typeof waClient.requestPairingCode !== 'function') {
+      return res.status(501).json({ success: false, error: 'Pairing code is not supported by current client version. Please use the QR code.' });
+    }
+    const pairingCode = await waClient.requestPairingCode(cleanNumber);
+    console.log(`[WhatsApp Web] Generated pairing code for ${cleanNumber}: ${pairingCode}`);
+    broadcastToClients({ type: 'WA_PAIRING_CODE', pairingCode, phoneNumber: cleanNumber });
+    res.json({ success: true, pairingCode, phoneNumber: cleanNumber });
+  } catch (err) {
+    console.error('[WhatsApp Web] Pairing code error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
