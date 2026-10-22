@@ -1,5 +1,20 @@
 const { spawn } = require('child_process');
 const path = require('path');
+const fs = require('fs');
+
+// Automatically load environment variables from server/.env or root .env
+try {
+  const dotenv = require('dotenv');
+  const serverEnv = path.join(__dirname, '.env');
+  const rootEnv = path.join(__dirname, '..', '.env');
+  if (fs.existsSync(serverEnv)) {
+    dotenv.config({ path: serverEnv });
+  } else if (fs.existsSync(rootEnv)) {
+    dotenv.config({ path: rootEnv });
+  } else {
+    dotenv.config();
+  }
+} catch (_) {}
 
 // Automatically detect cloud environment (Render, Railway, Heroku, Docker) vs local development
 const isCloud = Boolean(process.env.PORT || process.env.RENDER || process.env.RAILWAY_STATIC_URL || process.env.NODE_ENV === 'production');

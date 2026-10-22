@@ -21,7 +21,7 @@ git push origin master
 1. Go to [https://render.com](https://render.com) and click **Sign Up** (choose **Continue with GitHub**).
 2. On your Render dashboard, click **New +** → **Web Service**.
 3. Select your repository: `jwalant007/jasper-personal_assistant`.
-4. Configure the settings:
+4. Configure the service settings:
    - **Name**: `jasper-assistant` *(or any name you like)*
    - **Region**: Choose the closest region (e.g., *Singapore* or *Frankfurt*)
    - **Branch**: `master` (or your active branch)
@@ -29,13 +29,30 @@ git push origin master
    - **Build Command**: `npm run install-all && npm run build`
    - **Start Command**: `npm run start:prod`
    - **Instance Type**: **Free**
-5. Click **Create Web Service**.
+
+5. **Configure Environment Variables (REQUIRED)**:
+   Scroll down to the **Environment Variables** section (or open the **Environment** tab on your web service dashboard) and add the following keys:
+   
+   | Variable | Value | Description |
+   | :--- | :--- | :--- |
+   | **`JASPER_AUTH_TOKEN`** | `<your-strong-secret>` *(e.g. `jasper_sec_prod_9f83a1b4`)* | **MANDATORY in production**. Protects APIs, code execution, and system control. Without this, JASPER fails closed to prevent unauthorized internet intrusion. |
+   | **`GEMINI_API_KEY`** | `<your-google-gemini-key>` | Enables Google Gemini 2.0 / 3.x Flash multi-modal AI intelligence. |
+   | **`NODE_ENV`** | `production` | Enables production optimizations, caching, and rate limiting. |
+
+> [!IMPORTANT]
+> **Why is `JASPER_AUTH_TOKEN` required?**
+> If `JASPER_AUTH_TOKEN` is unset or left as `"jasper"` in production (`NODE_ENV=production` or `RENDER=true`), the backend logs:
+> `🚨 [CRITICAL SECURITY ERROR] JASPER_AUTH_TOKEN is NOT configured in production environment! Failing closed.`
+> and shuts off protected API access to prevent public internet abuse.
+
+6. Click **Create Web Service**.
 
 ### Step 3: Access your Permanent URL!
 Within 2-3 minutes, Render will build and deploy your app. You will receive a permanent HTTPS URL like:
 > **`https://jasper-assistant.onrender.com`**
 
 You can open this link on your phone anywhere in the world on 4G/5G, save it to your phone's home screen as an app, and it will stay online forever!
+When prompted on first login, enter your user passcode/PIN. JASPER automatically handles session authentication using your configured `JASPER_AUTH_TOKEN`.
 
 ---
 
@@ -45,8 +62,9 @@ You can open this link on your phone anywhere in the world on 4G/5G, save it to 
 2. Click **New Project** → **Deploy from GitHub repo**.
 3. Select `jwalant007/jasper-personal_assistant`.
 4. Railway automatically detects the included `Dockerfile` and builds the production container.
-5. In **Settings** → **Networking**, click **Generate Domain**.
-6. You get a permanent high-speed domain like:
+5. In **Variables**, add `JASPER_AUTH_TOKEN` (strong secret) and `GEMINI_API_KEY`.
+6. In **Settings** → **Networking**, click **Generate Domain**.
+7. You get a permanent high-speed domain like:
    > **`https://jasper-assistant-production.up.railway.app`**
 
 ---
@@ -58,7 +76,11 @@ If you have a Linux server or VPS, run with Docker:
 git clone https://github.com/jwalant007/jasper-personal_assistant.git
 cd jasper-personal_assistant
 docker build -t jasper-assistant .
-docker run -d -p 80:3001 --restart always --name jasper jasper-assistant
+docker run -d -p 80:3001 \
+  -e JASPER_AUTH_TOKEN="your_strong_secret_token" \
+  -e GEMINI_API_KEY="your_gemini_api_key" \
+  -e NODE_ENV="production" \
+  --restart always --name jasper jasper-assistant
 ```
 
 ---

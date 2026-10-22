@@ -1,11 +1,26 @@
+const path = require('path');
+const fs = require('fs');
+
+// Automatically load environment variables from server/.env or root .env
+try {
+  const dotenv = require('dotenv');
+  const serverEnv = path.join(__dirname, '.env');
+  const rootEnv = path.join(__dirname, '..', '.env');
+  if (fs.existsSync(serverEnv)) {
+    dotenv.config({ path: serverEnv });
+  } else if (fs.existsSync(rootEnv)) {
+    dotenv.config({ path: rootEnv });
+  } else {
+    dotenv.config();
+  }
+} catch (_) {}
+
 const express = require('express');
 const compression = require('compression');
 const cors = require('cors');
 const http = require('http');
 const WebSocket = require('ws');
 const { spawn, exec, execFile } = require('child_process');
-const path = require('path');
-const fs = require('fs');
 const os = require('os');
 const tvController = require('./tvController');
 const phoneController = require('./phoneController');
@@ -615,6 +630,10 @@ let JASPER_AUTH_SECRET = configuredToken;
 if (!JASPER_AUTH_SECRET) {
   if (isProductionEnv) {
     console.error('🚨 [CRITICAL SECURITY ERROR] JASPER_AUTH_TOKEN is NOT configured in production environment! Failing closed.');
+    console.error('👉 ACTION REQUIRED: Define the "JASPER_AUTH_TOKEN" environment variable:');
+    console.error('   • Render.com: Go to Dashboard -> Your Service -> Environment -> Add "JASPER_AUTH_TOKEN" with a strong secret.');
+    console.error('   • Docker/VPS: Pass "-e JASPER_AUTH_TOKEN=<secret>" or add to server/.env.');
+    console.error('   • Local Dev:  Unset NODE_ENV/RENDER or set NODE_ENV=development.');
     JASPER_AUTH_SECRET = '';
   } else {
     JASPER_AUTH_SECRET = 'jasper';
@@ -622,6 +641,7 @@ if (!JASPER_AUTH_SECRET) {
   }
 } else if (isProductionEnv && JASPER_AUTH_SECRET === 'jasper') {
   console.error('🚨 [CRITICAL SECURITY ERROR] Insecure default token "jasper" detected in production environment! Failing closed.');
+  console.error('👉 ACTION REQUIRED: Change JASPER_AUTH_TOKEN to a secure non-default secret in your production environment settings.');
   JASPER_AUTH_SECRET = '';
 }
 

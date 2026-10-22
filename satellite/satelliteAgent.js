@@ -53,6 +53,23 @@ async function compressScreenshotBuffer(buffer) {
   }
 }
 
+// Automatically load environment variables from server/.env or root .env
+try {
+  let dotenv;
+  try {
+    dotenv = require('dotenv');
+  } catch (_) {
+    dotenv = require(path.join(__dirname, '..', 'server', 'node_modules', 'dotenv'));
+  }
+  const serverEnv = path.join(__dirname, '..', 'server', '.env');
+  const rootEnv = path.join(__dirname, '..', '.env');
+  if (fs.existsSync(serverEnv)) {
+    dotenv.config({ path: serverEnv });
+  } else if (fs.existsSync(rootEnv)) {
+    dotenv.config({ path: rootEnv });
+  }
+} catch (_) {}
+
 // Configuration
 const CLOUD_URL = process.env.JASPER_SERVER_URL || 'https://jasper-personal-assistant.onrender.com';
 const AUTH_TOKEN = process.env.JASPER_AUTH_TOKEN || 'jasper';
