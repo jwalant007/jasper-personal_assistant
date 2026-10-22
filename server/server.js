@@ -403,6 +403,25 @@ async function initWhatsAppWebClient(isManual = false, forceReset = false) {
       broadcastToClients({ type: 'WA_STATUS', status: 'ready', message: 'WhatsApp Web connected! Auto-send active.' });
     });
 
+    waClient.on('loading_screen', (percent, message) => {
+      waClientStatus = 'loading';
+      console.log(`[WhatsApp Web] Loading Screen: ${percent}% - ${message}`);
+      broadcastToClients({ type: 'WA_STATUS', status: 'loading', percent, message });
+    });
+
+    waClient.on('change_state', (state) => {
+      console.log(`[WhatsApp Web] State Changed: ${state}`);
+      if (state === 'CONNECTED') {
+        waClientStatus = 'ready';
+        global.jasperWAClient = waClient;
+        global.jasperWAClientReady = true;
+        waQrCode = null;
+        waQrDataUrl = null;
+        waQrTimestamp = 0;
+      }
+      broadcastToClients({ type: 'WA_STATUS', status: waClientStatus, liveState: state });
+    });
+
     // Automated WhatsApp Message Responder
     waClient.on('message', async (msg) => {
       try {
@@ -2711,6 +2730,15 @@ app.get('/api/social/wa-status', async (req, res) => {
       ]);
     } catch (e) {
       liveState = 'unresponsive: ' + e.message;
+    }
+    // Auto-reconcile connected state if Puppeteer is connected but status lag occurred
+    if ((liveState === 'CONNECTED' || liveState === 'OPEN') && waClientStatus !== 'ready') {
+      waClientStatus = 'ready';
+      global.jasperWAClient = waClient;
+      global.jasperWAClientReady = true;
+      waQrCode = null;
+      waQrDataUrl = null;
+      waQrTimestamp = 0;
     }
   }
   res.json({

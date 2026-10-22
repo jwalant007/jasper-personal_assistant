@@ -145,10 +145,15 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
         setWaWebStatus(data.status);
         if (data.qr) setWaWebQr(data.qr);
         if (data.qrDataUrl) setWaWebQrDataUrl(data.qrDataUrl);
-        if (data.status === 'ready') {
+        if (data.status === 'ready' || data.liveState === 'CONNECTED' || data.liveState === 'OPEN') {
           setWaWebQr(null);
           setWaWebQrDataUrl(null);
           setShowWaQrModal(false);
+          setWaWebStatus('ready');
+        } else if (data.status === 'loading') {
+          setWaWebStatus('loading');
+        } else if (data.status === 'authenticated') {
+          setWaWebStatus('authenticated');
         }
       } catch(e) {}
     };
@@ -164,10 +169,16 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
         if (data.pairingCode) setWaPairingCode(data.pairingCode);
       } else if (data.type === 'WA_STATUS') {
         setWaWebStatus(data.status);
-        if (data.status === 'ready') {
+        if (data.status === 'ready' || data.liveState === 'CONNECTED' || data.liveState === 'OPEN') {
           setWaWebQr(null);
           setWaWebQrDataUrl(null);
           setShowWaQrModal(false);
+          setWaWebStatus('ready');
+          showBanner('✅ WhatsApp Web connected! Auto-reply and direct send are ready.', 'success');
+        } else if (data.status === 'loading') {
+          showBanner(`⏳ WhatsApp Web syncing chats... ${data.percent ? data.percent + '%' : ''}`, 'info');
+        } else if (data.status === 'authenticated') {
+          showBanner('🔐 Phone linked! Syncing messages with WhatsApp Web...', 'info');
         }
       }
     };
@@ -2208,6 +2219,39 @@ export default function SocialAutoReplyWidget({ onClose, onLog }) {
                           <p>2. Tap <strong className="text-white">⋮ Menu</strong> (or Settings) → <strong className="text-white">Linked Devices</strong> → <strong className="text-white">Link a Device</strong></p>
                           <p>3. Tap <strong className="text-emerald-300">&quot;Link with phone number instead&quot;</strong> at the bottom of the screen</p>
                           <p>4. Type in the 8-digit code above!</p>
+                        </div>
+
+                        {/* Live Sync Progress Indicator */}
+                        {(waWebStatus === 'loading' || waWebStatus === 'authenticated') && (
+                          <div className="w-full p-2.5 rounded-lg bg-emerald-950/60 border border-emerald-500/40 text-center animate-pulse space-y-1 mt-1">
+                            <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-emerald-300">
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                              <span>Phone Recognized Code! Syncing Chats...</span>
+                            </div>
+                            <p className="text-[10px] text-slate-300 font-mono">
+                              WhatsApp Web is downloading and decrypting your recent messages. Please wait 10–30 seconds...
+                            </p>
+                          </div>
+                        )}
+
+                        <div className="flex items-center gap-2 w-full pt-1 justify-center">
+                          <button
+                            type="button"
+                            onClick={pollWaStatus}
+                            className="px-3 py-1.5 rounded-lg bg-emerald-950/70 border border-emerald-500/50 text-emerald-300 text-xs font-mono hover:bg-emerald-800/60 transition-colors flex items-center gap-1.5"
+                          >
+                            <RefreshCw className="w-3.5 h-3.5" />
+                            <span>Check Connection Status</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleWaWebConnect(true)}
+                            className="px-3 py-1.5 rounded-lg bg-amber-950/70 border border-amber-500/50 text-amber-300 text-xs font-mono hover:bg-amber-800/60 transition-colors flex items-center gap-1.5"
+                            title="If phone desynced, purge and start a clean session"
+                          >
+                            <Zap className="w-3.5 h-3.5" />
+                            <span>Reset Session</span>
+                          </button>
                         </div>
                       </div>
                     ) : (
