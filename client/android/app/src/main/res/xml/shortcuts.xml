@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="jasper_voice"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_voice_short"
+        android:shortcutLongLabel="@string/shortcut_voice_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.antigravity.jasper"
+            android:targetClass="com.antigravity.jasper.MainActivity">
+            <extra android:name="mode" android:value="mobile_assistant" />
+            <extra android:name="auto_wake" android:value="true" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="jasper_tools"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_tools_short"
+        android:shortcutLongLabel="@string/shortcut_tools_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.antigravity.jasper"
+            android:targetClass="com.antigravity.jasper.MainActivity">
+            <extra android:name="mode" android:value="mobile_assistant" />
+        </intent>
+    </shortcut>
+</shortcuts>

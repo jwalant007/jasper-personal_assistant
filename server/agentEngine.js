@@ -510,7 +510,8 @@ const TOOL_REGISTRY = {
         notepad: 'notepad.exe', calc: 'calc.exe', calculator: 'calc.exe',
         chrome: 'chrome.exe', paint: 'mspaint.exe', mspaint: 'mspaint.exe',
         taskmgr: 'taskmgr.exe', explorer: 'explorer.exe', spotify: 'spotify.exe',
-        edge: 'msedge.exe', code: 'code.cmd'
+        edge: 'msedge.exe', code: 'code.cmd', vscode: 'code.cmd', 'vs code': 'code.cmd',
+        terminal: 'wt.exe', powershell: 'powershell.exe', cmd: 'cmd.exe'
       };
       if (url) {
         try {
@@ -528,9 +529,15 @@ const TOOL_REGISTRY = {
         const target = validApps[cleanName];
         if (!target) return { success: false, error: `App '${appName}' is not in approved list` };
         const { spawn } = require('child_process');
-        const proc = spawn(target, [], { detached: true, stdio: 'ignore' });
-        proc.unref();
-        return { success: true, launched: cleanName };
+        try {
+          const proc = process.platform === 'win32'
+            ? spawn('cmd.exe', ['/c', 'start', '', target], { detached: true, stdio: 'ignore' })
+            : spawn(target, [], { detached: true, stdio: 'ignore' });
+          proc.unref();
+          return { success: true, launched: cleanName, target };
+        } catch (launchErr) {
+          return { success: false, error: `Failed to launch ${appName}: ${launchErr.message}` };
+        }
       }
       return { success: false, error: 'Provide appName or url' };
     }
@@ -1214,12 +1221,77 @@ Key Directives:
     const runTool = (toolName, args = {}) => this.executeTool(toolName, { ...args, timezone: effectiveTz }, { userId: cleanUserId, timezone: effectiveTz, clientTime });
 
     // ── Immediate Cancellation & Interruption Handler ─────────────────────
-    if (lower.match(/\b(stop|cancel that|cancel|hold on|don't send|never mind)\b/)) {
+    if (lower.match(/\b(stop|stop talking|be quiet|shut up|cancel that|cancel|hold on|don't send|never mind)\b/)) {
       this.conversationContext.lastIntent = 'cancelled';
       return {
         success: true,
         response: 'Understood, Sir. Immediate halt executed. Standing by for your directive.',
+        action: 'stop_speech',
         toolsExecuted: [{ intent: 'cancellation' }],
+        memoriesUsed: [],
+        timestamp: new Date().toISOString()
+      };
+    }
+
+    // ── Desktop Overlay & Shell Controls ──────────────────────────────────
+    if (lower.match(/\b(hide|close|dismiss|minimize)\s+(the\s+)?(function\s+bar|floating\s+bar|overlay|bar)\b/)) {
+      return {
+        success: true,
+        response: 'Hiding the floating function bar, Sir. Jasper continues running in the background.',
+        action: 'hide_bar',
+        toolsExecuted: [{ intent: 'hide_bar' }],
+        memoriesUsed: [],
+        timestamp: new Date().toISOString()
+      };
+    }
+
+    if (lower.match(/\b(turn off|disable|pause|mute|stop)\s+(the\s+)?(listening|microphone|mic|voice recognition|ears)\b/)) {
+      return {
+        success: true,
+        response: 'Microphone muted and background listening disabled, Sir. You can re-enable anytime from the tray icon or by pressing Ctrl+Alt+J.',
+        action: 'mute_listening',
+        toolsExecuted: [{ intent: 'mute_listening' }],
+        memoriesUsed: [],
+        timestamp: new Date().toISOString()
+      };
+    }
+
+    if (lower.match(/\b(turn on|enable|resume|unmute|start)\s+(the\s+)?(listening|microphone|mic|ears)\b/)) {
+      return {
+        success: true,
+        response: 'Background voice listening active and standing by for "Hey Jasper", Sir.',
+        action: 'unmute_listening',
+        toolsExecuted: [{ intent: 'unmute_listening' }],
+        memoriesUsed: [],
+        timestamp: new Date().toISOString()
+      };
+    }
+
+    if (lower.match(/\b(open|show|launch|expand)\s+(the\s+|your\s+)?(main\s+interface|main\s+window|dashboard|full\s+interface|hud|jasper)\b/)) {
+      return {
+        success: true,
+        response: 'Opening the full J.A.S.P.E.R. interface, Sir.',
+        action: 'open_main_window',
+        toolsExecuted: [{ intent: 'open_main_window' }],
+        memoriesUsed: [],
+        timestamp: new Date().toISOString()
+      };
+    }
+
+    // ── Timer & Countdown Routine ─────────────────────────────────────────
+    const timerMatch = lower.match(/\b(?:start|set|create)\s+(?:a\s+)?(\d+)\s*[- ]*(minute|min|second|sec|hour|hr)s?\s*(?:timer|countdown)\b/) ||
+                       lower.match(/\btimer\s+(?:for\s+)?(\d+)\s*[- ]*(minute|min|second|sec|hour|hr)s?\b/);
+    if (timerMatch) {
+      const val = parseInt(timerMatch[1], 10);
+      const unit = timerMatch[2].startsWith('min') ? 'minutes' : (timerMatch[2].startsWith('sec') ? 'seconds' : 'hours');
+      const multiplier = unit === 'seconds' ? 1 : (unit === 'minutes' ? 60 : 3600);
+      const totalSeconds = val * multiplier;
+      return {
+        success: true,
+        response: `Timer initiated for ${val} ${unit}, Sir. I will notify you the moment it elapses.`,
+        action: 'start_timer',
+        timer: { value: val, unit, totalSeconds, endsAt: Date.now() + totalSeconds * 1000 },
+        toolsExecuted: [{ intent: 'timer', seconds: totalSeconds, unit }],
         memoriesUsed: [],
         timestamp: new Date().toISOString()
       };
@@ -1419,12 +1491,21 @@ Key Directives:
 
     // App launching
     if (lower.match(/\b(open|launch|start)\b/)) {
-      const apps = ['notepad', 'calculator', 'calc', 'chrome', 'paint', 'spotify', 'explorer'];
-      for (const app of apps) {
-        if (lower.includes(app)) {
-          const r = await this.executeTool('open_application', { appName: app });
-          results.push({ intent: 'app_launch', app, ...r });
-          break;
+      if (lower.match(/\b(vs\s*code|vscode|code)\b/)) {
+        const r = await this.executeTool('open_application', { appName: 'vscode' });
+        results.push({ intent: 'app_launch', app: 'VS Code', ...r });
+      } else if (lower.match(/\b(terminal|command prompt|cmd|powershell)\b/)) {
+        const termApp = lower.includes('powershell') ? 'powershell' : (lower.includes('cmd') || lower.includes('command prompt') ? 'cmd' : 'terminal');
+        const r = await this.executeTool('open_application', { appName: termApp });
+        results.push({ intent: 'app_launch', app: termApp, ...r });
+      } else {
+        const apps = ['notepad', 'calculator', 'calc', 'chrome', 'paint', 'spotify', 'explorer'];
+        for (const app of apps) {
+          if (lower.includes(app)) {
+            const r = await this.executeTool('open_application', { appName: app });
+            results.push({ intent: 'app_launch', app, ...r });
+            break;
+          }
         }
       }
     }

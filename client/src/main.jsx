@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
+import FloatingFunctionBar from './components/FloatingFunctionBar.jsx';
+import MobileAssistantOverlay from './components/MobileAssistantOverlay.jsx';
 import { JasperProvider } from './context/index.jsx';
 import { getApiBase } from './utils/apiConfig.js';
 import './index.css';
@@ -106,12 +108,27 @@ if (typeof window !== 'undefined' && window.fetch) {
   };
 }
 
+const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
+const currentMode = searchParams.get('mode');
+
+function RootRouter() {
+  if (currentMode === 'floating_bar') {
+    return <FloatingFunctionBar />;
+  }
+  if (currentMode === 'mobile_assistant') {
+    return <MobileAssistantOverlay />;
+  }
+  return (
+    <JasperProvider>
+      <App />
+    </JasperProvider>
+  );
+}
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ErrorBoundary>
-      <JasperProvider>
-        <App />
-      </JasperProvider>
+      <RootRouter />
     </ErrorBoundary>
   </React.StrictMode>
 );

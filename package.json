@@ -47,6 +47,13 @@
         "filter": [
           "**/*.ps1"
         ]
+      },
+      {
+        "from": "electron",
+        "to": "electron",
+        "filter": [
+          "**/*.ps1"
+        ]
       }
     ],
     "win": {
