@@ -642,26 +642,34 @@ app.use(express.urlencoded({ extended: true }));
 // -------------------------------------------------------------
 // SECURE AUTHENTICATION & ACCESS CONTROL
 // -------------------------------------------------------------
+const crypto = require('crypto');
 const isProductionEnv = process.env.NODE_ENV === 'production' || !!process.env.RENDER;
 const configuredToken = (process.env.JASPER_AUTH_TOKEN || '').trim();
 
 let JASPER_AUTH_SECRET = configuredToken;
 if (!JASPER_AUTH_SECRET) {
   if (isProductionEnv) {
-    console.error('🚨 [CRITICAL SECURITY ERROR] JASPER_AUTH_TOKEN is NOT configured in production environment! Failing closed.');
+    console.error('🚨 [CRITICAL SECURITY WARNING] JASPER_AUTH_TOKEN is NOT configured in production environment!');
     console.error('👉 ACTION REQUIRED: Define the "JASPER_AUTH_TOKEN" environment variable:');
     console.error('   • Render.com: Go to Dashboard -> Your Service -> Environment -> Add "JASPER_AUTH_TOKEN" with a strong secret.');
     console.error('   • Docker/VPS: Pass "-e JASPER_AUTH_TOKEN=<secret>" or add to server/.env.');
     console.error('   • Local Dev:  Unset NODE_ENV/RENDER or set NODE_ENV=development.');
-    JASPER_AUTH_SECRET = '';
+
+    // Auto-generate strong cryptographic session token to prevent service lockout while maintaining strict access control
+    const autoToken = 'jasper_sec_prod_' + crypto.randomBytes(16).toString('hex');
+    JASPER_AUTH_SECRET = autoToken;
+    console.warn(`🛡️  [SECURITY AUTO-RECOVERY] Generated resilient cryptographic cluster token for active session.`);
+    console.warn('👉 To lock in a permanent secret across deploys, add "JASPER_AUTH_TOKEN" in your Render.com Environment settings.');
   } else {
     JASPER_AUTH_SECRET = 'jasper';
     console.warn('⚠️  [SECURITY NOTICE] Using default JASPER_AUTH_TOKEN ("jasper") for development/test mode. Set a strong custom token in server/.env for production environments.');
   }
 } else if (isProductionEnv && JASPER_AUTH_SECRET === 'jasper') {
-  console.error('🚨 [CRITICAL SECURITY ERROR] Insecure default token "jasper" detected in production environment! Failing closed.');
+  console.error('🚨 [CRITICAL SECURITY WARNING] Insecure default token "jasper" detected in production environment!');
   console.error('👉 ACTION REQUIRED: Change JASPER_AUTH_TOKEN to a secure non-default secret in your production environment settings.');
-  JASPER_AUTH_SECRET = '';
+  const autoToken = 'jasper_sec_prod_' + crypto.randomBytes(16).toString('hex');
+  JASPER_AUTH_SECRET = autoToken;
+  console.warn(`🛡️  [SECURITY AUTO-RECOVERY] Overriding insecure default with generated cryptographic secret for production safety.`);
 }
 
 // In-Memory Sliding-Window Rate Limiter for Authentication & Sensitive Operations
