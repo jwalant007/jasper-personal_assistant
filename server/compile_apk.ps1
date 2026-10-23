@@ -5,7 +5,7 @@ $ErrorActionPreference = 'Stop'
 
 $jdkPath = "C:\Users\Jwalant\jdk17\jdk-17.0.10+7"
 if (-not (Test-Path $jdkPath)) {
-    $jdkPath = "C:\Users\Jwalant\.vscode\extensions\redhat.java-1.54.0-win32-x64\jre\21.0.10-win32-x86_64"
+    $jdkPath = "C:\Users\Jwalant\jdk21"
 }
 
 $env:JAVA_HOME = $jdkPath

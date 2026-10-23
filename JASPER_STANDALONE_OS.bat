@@ -1,5 +1,5 @@
 @echo off
-title JWALANT BHATT CREATION - JASPER OS STANDALONE KIOSK LAUNCHER
+title JWALANT BHATT CREATION - JASPER OS STANDALONE & ALWAYS-ON DESKTOP ASSISTANT
 color 0B
 cls
 echo ===============================================================================
@@ -24,9 +24,35 @@ if %errorlevel% equ 0 (
 
 cd /d "%~dp0"
 
+echo [ONLINE] Checking for native J.A.S.P.E.R. Always-On Desktop Shell...
+
+:: 1. Check if installed native desktop executable exists (with Floating Bar & Background Voice)
+if exist "%LocalAppData%\Programs\jasper-assistant\JASPER Assistant.exe" (
+    echo [SYSTEM] Launching Native J.A.S.P.E.R. Always-On Desktop Assistant...
+    start "" "%LocalAppData%\Programs\jasper-assistant\JASPER Assistant.exe"
+    exit
+)
+if exist "%ProgramFiles%\JASPER Assistant\JASPER Assistant.exe" (
+    echo [SYSTEM] Launching Native J.A.S.P.E.R. Always-On Desktop Assistant...
+    start "" "%ProgramFiles%\JASPER Assistant\JASPER Assistant.exe"
+    exit
+)
+if exist "%ProgramFiles(x86)%\JASPER Assistant\JASPER Assistant.exe" (
+    echo [SYSTEM] Launching Native J.A.S.P.E.R. Always-On Desktop Assistant...
+    start "" "%ProgramFiles(x86)%\JASPER Assistant\JASPER Assistant.exe"
+    exit
+)
+
+:: 2. Check if local development Electron assistant is available
+if exist "electron\main.js" if exist "node_modules\electron" (
+    echo [SYSTEM] Starting J.A.S.P.E.R. Always-On Desktop Shell (Floating Bar + Background Voice)...
+    start "" npm run electron:dev
+    exit
+)
+
 echo [ONLINE] Opening JASPER OS Cloud Kiosk Shell...
 
-:: 1. Check Chrome in standard installation paths
+:: 3. Check Chrome in standard installation paths
 if exist "%ProgramFiles%\Google\Chrome\Application\chrome.exe" (
     start "" "%ProgramFiles%\Google\Chrome\Application\chrome.exe" --kiosk --app=%TARGET_URL%
     exit
@@ -40,7 +66,7 @@ if exist "%LocalAppData%\Google\Chrome\Application\chrome.exe" (
     exit
 )
 
-:: 2. Check Edge in standard installation paths
+:: 4. Check Edge in standard installation paths
 if exist "%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe" (
     start "" "%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe" --kiosk --app=%TARGET_URL% --edge-kiosk-type=fullscreen
     exit
@@ -50,7 +76,7 @@ if exist "%ProgramFiles%\Microsoft\Edge\Application\msedge.exe" (
     exit
 )
 
-:: 3. Check browsers in PATH
+:: 5. Check browsers in PATH
 where chrome >nul 2>nul && (
     start "" chrome --kiosk --app=%TARGET_URL%
     exit
@@ -60,7 +86,6 @@ where msedge >nul 2>nul && (
     exit
 )
 
-:: 4. Fallback to default browser
+:: 6. Fallback to default browser
 start "" "%TARGET_URL%"
 exit
-

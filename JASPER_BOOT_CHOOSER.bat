@@ -6,38 +6,52 @@ echo ===========================================================================
 echo        ⚡ JWALANT BHATT CREATION - DUAL OS BOOT SELECTOR ⚡
 echo ===============================================================================
 echo.
-echo    [1] Launch JASPER OS (Full Screen Standalone AI OS)
-echo    [2] Continue to Standard Windows 11 Desktop
-echo    [3] Launch Local Assistant Core (Server + Vite Dashboard)
-echo    [4] Launch Telephony & AI Receptionist Hub
+echo    [1] Launch Always-On Desktop Assistant (Floating Bar + Tray + Wake-Word)
+echo    [2] Launch Standalone JASPER OS (Full Screen Kiosk Shell)
+echo    [3] Continue to Standard Windows Desktop
+echo    [4] Launch Local Assistant Core (Server + Vite Dashboard)
+echo    [5] Launch Telephony & AI Receptionist Hub
 echo.
 echo ===============================================================================
-echo Choice will auto-select [2] Windows 11 Desktop in 5 seconds...
+echo Choice will auto-select [3] Windows Desktop in 6 seconds...
 echo.
 
-choice /c 1234 /t 5 /d 2 /m "Select Operating System Environment:"
+choice /c 12345 /t 6 /d 3 /m "Select Operating System Environment:"
 
-if errorlevel 4 goto TELEPHONY_HUB
-if errorlevel 3 goto LOCAL_CORE
-if errorlevel 2 goto WINDOWS_DESKTOP
-if errorlevel 1 goto JASPER_OS
+if errorlevel 5 goto TELEPHONY_HUB
+if errorlevel 4 goto LOCAL_CORE
+if errorlevel 3 goto WINDOWS_DESKTOP
+if errorlevel 2 goto KIOSK_OS
+if errorlevel 1 goto DESKTOP_ASSISTANT
 
-:JASPER_OS
+:DESKTOP_ASSISTANT
 cls
 echo.
-echo [SYSTEM] Booting JASPER OS Standalone Environment...
+echo [SYSTEM] Booting J.A.S.P.E.R. Always-On Desktop Assistant...
 cd /d "%~dp0"
-if exist "%~dp0JASPER_STANDALONE_OS.bat" (
-    call "%~dp0JASPER_STANDALONE_OS.bat"
+if exist "%LocalAppData%\Programs\jasper-assistant\JASPER Assistant.exe" (
+    start "" "%LocalAppData%\Programs\jasper-assistant\JASPER Assistant.exe"
     exit
 )
-start "" "https://jasper-personal-assistant.onrender.com"
+if exist "electron\main.js" (
+    start "" npm run electron:dev
+    exit
+)
+call "%~dp0JASPER_STANDALONE_OS.bat"
+exit
+
+:KIOSK_OS
+cls
+echo.
+echo [SYSTEM] Booting Standalone JASPER OS Kiosk Shell...
+cd /d "%~dp0"
+call "%~dp0JASPER_STANDALONE_OS.bat"
 exit
 
 :LOCAL_CORE
 cls
 echo.
-echo [SYSTEM] Starting Local J.A.S.P.E.R. Core...
+echo [SYSTEM] Starting Local J.A.S.P.E.R. Core Services...
 cd /d "%~dp0"
 call "%~dp0start-jasper.bat"
 exit
