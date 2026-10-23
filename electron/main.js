@@ -1,5 +1,6 @@
 const { app, BrowserWindow, Tray, Menu, globalShortcut, nativeImage, ipcMain, screen } = require('electron');
 const path = require('path');
+const net = require('net');
 const { spawn } = require('child_process');
 const settingsManager = require('./settingsManager');
 const WakeWordManager = require('./wakeWordManager');
@@ -13,7 +14,7 @@ if (!gotTheLock) {
 }
 
 const CLOUD_URL = process.env.JASPER_SERVER_URL || 'https://jasper-personal-assistant.onrender.com';
-const USE_LOCAL_SERVER = process.env.JASPER_LOCAL_SERVER === 'true';
+const USE_LOCAL_SERVER = process.env.JASPER_LOCAL_SERVER !== 'false';
 
 let mainWindow = null;
 let floatingBarWindow = null;
@@ -36,7 +37,32 @@ app.on('second-instance', () => {
   }
 });
 
-function startBackendServer() {
+function isPortActive(port, host = '127.0.0.1') {
+  return new Promise((resolve) => {
+    const socket = new net.Socket();
+    socket.setTimeout(800);
+    socket.once('connect', () => {
+      socket.destroy();
+      resolve(true);
+    });
+    socket.once('timeout', () => {
+      socket.destroy();
+      resolve(false);
+    });
+    socket.once('error', () => {
+      resolve(false);
+    });
+    socket.connect(port, host);
+  });
+}
+
+async function startBackendServer() {
+  const alreadyRunning = await isPortActive(3001);
+  if (alreadyRunning) {
+    console.log('[Electron] JASPER backend server is already active on port 3001. Skipping spawn.');
+    return;
+  }
+
   let serverPath;
   if (app.isPackaged) {
     serverPath = path.join(process.resourcesPath, 'app.asar', 'server', 'server.js');
