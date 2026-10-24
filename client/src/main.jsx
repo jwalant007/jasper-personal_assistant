@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import FloatingFunctionBar from './components/FloatingFunctionBar.jsx';
 import MobileAssistantOverlay from './components/MobileAssistantOverlay.jsx';
+import StandaloneSiriDesktopWidget from './components/StandaloneSiriDesktopWidget.jsx';
 import { JasperProvider } from './context/index.jsx';
 import { getApiBase } from './utils/apiConfig.js';
 import './index.css';
@@ -114,6 +115,9 @@ const currentMode = searchParams.get('mode');
 function RootRouter() {
   if (currentMode === 'floating_bar') {
     return <FloatingFunctionBar />;
+  }
+  if (currentMode === 'siri_widget' || currentMode === 'desktop_widget') {
+    return <StandaloneSiriDesktopWidget />;
   }
   if (currentMode === 'mobile_assistant') {
     return <MobileAssistantOverlay />;

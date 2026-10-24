@@ -299,14 +299,15 @@ function createTray() {
 }
 
 function createFloatingBarWindow() {
+  const isSiriOrb = settingsManager.get('desktopWidgetStyle') !== 'classic_bar';
   const pos = settingsManager.get('floatingBarPosition');
   const primaryDisplay = screen.getPrimaryDisplay();
-  const { width: screenWidth } = primaryDisplay.workAreaSize;
+  const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
 
-  const defaultWidth = 480;
-  const defaultHeight = 72;
-  const defaultX = Math.round((screenWidth - defaultWidth) / 2);
-  const defaultY = 32;
+  const defaultWidth = isSiriOrb ? 84 : 480;
+  const defaultHeight = isSiriOrb ? 84 : 72;
+  const defaultX = isSiriOrb ? screenWidth - 110 : Math.round((screenWidth - defaultWidth) / 2);
+  const defaultY = isSiriOrb ? screenHeight - 140 : 32;
 
   const barX = (pos && typeof pos.x === 'number') ? pos.x : defaultX;
   const barY = (pos && typeof pos.y === 'number') ? pos.y : defaultY;
@@ -333,12 +334,15 @@ function createFloatingBarWindow() {
 
   floatingBarWindow.setAlwaysOnTop(true, 'screen-saver');
 
-  if (app.isPackaged) {
-    floatingBarWindow.loadFile(path.join(__dirname, '..', 'client', 'dist', 'index.html'), {
-      query: { mode: 'floating_bar' }
+  const mode = isSiriOrb ? 'siri_widget' : 'floating_bar';
+  const distPath = path.join(__dirname, '..', 'client', 'dist', 'index.html');
+
+  if (app.isPackaged || require('fs').existsSync(distPath)) {
+    floatingBarWindow.loadFile(distPath, {
+      query: { mode }
     });
   } else {
-    floatingBarWindow.loadURL('http://localhost:5173/?mode=floating_bar');
+    floatingBarWindow.loadURL(`http://localhost:5173/?mode=${mode}`);
   }
 
   floatingBarWindow.once('ready-to-show', () => {
@@ -398,15 +402,16 @@ function createMainWindow() {
     });
   } catch (_) {}
 
-  if (app.isPackaged) {
-    mainWindow.loadFile(path.join(__dirname, '..', 'client', 'dist', 'index.html'));
+  const distPath = path.join(__dirname, '..', 'client', 'dist', 'index.html');
+  if (app.isPackaged || require('fs').existsSync(distPath)) {
+    mainWindow.loadFile(distPath);
   } else {
     mainWindow.loadURL('http://localhost:5173');
   }
 
   mainWindow.once('ready-to-show', () => {
-    // Show on start unless launched with --hidden
-    if (!process.argv.includes('--hidden')) {
+    // Show on start unless launched with --hidden or --widget-only
+    if (!process.argv.includes('--hidden') && !process.argv.includes('--widget-only')) {
       mainWindow.show();
     }
   });
@@ -431,15 +436,14 @@ function registerGlobalHotkeys() {
     globalShortcut.unregisterAll();
     const hotkey = settingsManager.get('globalShortcut') || 'CommandOrControl+Alt+J';
     
-    const ret = globalShortcut.register(hotkey, () => {
-      console.log(`[Electron] Global shortcut ${hotkey} triggered!`);
+    const triggerAssistant = () => {
+      console.log(`[Electron] Global assistant hotkey triggered!`);
       if (floatingBarWindow && !floatingBarWindow.isDestroyed()) {
-        if (floatingBarWindow.isVisible()) {
-          floatingBarWindow.webContents.send('jasper:toggle-command-bar');
-        } else {
+        if (!floatingBarWindow.isVisible()) {
           floatingBarWindow.show();
-          floatingBarWindow.focus();
         }
+        floatingBarWindow.focus();
+        floatingBarWindow.webContents.send('jasper:toggle-command-bar');
       } else if (mainWindow && !mainWindow.isDestroyed()) {
         if (mainWindow.isVisible() && mainWindow.isFocused()) {
           mainWindow.hide();
@@ -448,7 +452,12 @@ function registerGlobalHotkeys() {
           mainWindow.focus();
         }
       }
-    });
+    };
+
+    const ret = globalShortcut.register(hotkey, triggerAssistant);
+    try {
+      globalShortcut.register('CommandOrControl+Space', triggerAssistant);
+    } catch (_) {}
 
     if (ret) {
       console.log(`[Electron] Global shortcut ${hotkey} registered successfully.`);
@@ -518,10 +527,16 @@ ipcMain.on('jasper:toggle-bar', () => {
     updateTrayMenu();
   }
 });
-ipcMain.on('jasper:resize-bar', (event, { width, height }) => {
+ipcMain.on('jasper:resize-bar', (event, { width, height, x, y }) => {
   if (floatingBarWindow && !floatingBarWindow.isDestroyed() && width && height) {
-    const [currentW, currentH] = floatingBarWindow.getSize();
-    if (currentW !== width || currentH !== height) {
+    if (typeof x === 'number' && typeof y === 'number') {
+      floatingBarWindow.setBounds({
+        x: Math.round(x),
+        y: Math.round(y),
+        width: Math.round(width),
+        height: Math.round(height)
+      }, true);
+    } else {
       floatingBarWindow.setSize(Math.round(width), Math.round(height), true);
     }
   }
@@ -637,7 +652,11 @@ app.whenReady().then(() => {
 
   // Create floating bar and main window
   createFloatingBarWindow();
-  setTimeout(createMainWindow, 600);
+  if (!process.argv.includes('--widget-only')) {
+    setTimeout(createMainWindow, 600);
+  } else {
+    console.log('[Electron] Running in Standalone Siri Desktop Widget mode (--widget-only). Main HUD will open on demand.');
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

@@ -16,6 +16,7 @@ const DEFAULT_SETTINGS = {
   floatingBarVisible: true,
   floatingBarPosition: null, // { x, y }
   floatingBarCompact: false,
+  desktopWidgetStyle: 'siri_orb', // 'siri_orb' | 'classic_bar'
   globalShortcut: 'CommandOrControl+Alt+J',
   speechRecognitionMode: 'local', // 'local' | 'cloud'
   privacyAudioProcessing: 'offline_strict',

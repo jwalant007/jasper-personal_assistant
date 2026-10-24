@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Settings, X, Sparkles, Mic, Volume2, Move, Clock, Keyboard, 
-  RotateCcw, Sliders, CheckCircle2, Eye, EyeOff, Palette
+  RotateCcw, Sliders, CheckCircle2, Eye, EyeOff, Palette, Laptop
 } from 'lucide-react';
 import { 
   getSiriWidgetSettings, 
@@ -330,6 +330,47 @@ export default function SiriWidgetSettingsModal({ isOpen, onClose }) {
                 onChange={(e) => updateSetting('soundChime', e.target.checked)}
                 className="w-4 h-4 accent-cyan-400 cursor-pointer"
               />
+            </div>
+          </div>
+
+          {/* Section 6: Native Windows Desktop Mode */}
+          <div className="p-4 rounded-xl bg-gradient-to-r from-cyan-950/40 via-purple-950/20 to-black/60 border border-cyan-500/30 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Laptop className="w-4 h-4 text-cyan-400" />
+                <span className="font-semibold text-white text-xs">
+                  Native Windows Desktop Overlay (Always-On)
+                </span>
+              </div>
+              <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/80 border border-cyan-700/60 px-2 py-0.5 rounded-full">
+                Windows System-Wide
+              </span>
+            </div>
+            
+            <p className="text-[11px] text-gray-300 leading-relaxed">
+              Want the Siri Orb floating on your Windows desktop 24/7 above all apps (VS Code, Chrome, Games, Desktop) even when Jasper is closed?
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+              <div className="p-2.5 rounded-xl bg-black/40 border border-white/10 flex flex-col justify-between gap-2">
+                <div>
+                  <div className="font-bold text-xs text-white">1-Click Desktop Launcher</div>
+                  <div className="text-[10px] text-gray-400 mt-0.5">Runs transparent widget on Windows desktop</div>
+                </div>
+                <div className="text-[10px] font-mono text-cyan-300 bg-cyan-950/40 border border-cyan-900/60 p-1.5 rounded-lg">
+                  Launch_AlwaysOn_Desktop_Siri.bat
+                </div>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-black/40 border border-white/10 flex flex-col justify-between gap-2">
+                <div>
+                  <div className="font-bold text-xs text-white">Start With Windows Boot</div>
+                  <div className="text-[10px] text-gray-400 mt-0.5">Auto-starts floating orb on laptop startup</div>
+                </div>
+                <div className="text-[10px] font-mono text-amber-300 bg-amber-950/40 border border-amber-900/60 p-1.5 rounded-lg">
+                  Setup_Siri_AutoStart_With_Windows.bat
+                </div>
+              </div>
             </div>
           </div>
 
