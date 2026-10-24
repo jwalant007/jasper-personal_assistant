@@ -17,6 +17,7 @@ contextBridge.exposeInMainWorld('jasperElectron', {
   hideFloatingBar: () => ipcRenderer.send('jasper:hide-bar'),
   toggleFloatingBar: () => ipcRenderer.send('jasper:toggle-bar'),
   resizeFloatingBar: (dims) => ipcRenderer.send('jasper:resize-bar', dims),
+  moveBarBy: (delta) => ipcRenderer.send('jasper:move-bar-by', delta),
   saveBarPosition: (pos) => ipcRenderer.send('jasper:save-bar-position', pos),
 
   // Listening & Speech Controls

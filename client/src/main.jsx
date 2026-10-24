@@ -112,6 +112,18 @@ if (typeof window !== 'undefined' && window.fetch) {
 const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
 const currentMode = searchParams.get('mode');
 
+if (typeof document !== 'undefined') {
+  if (currentMode === 'siri_widget' || currentMode === 'desktop_widget') {
+    document.documentElement.classList.add('mode-siri-widget');
+    document.body.classList.add('mode-siri-widget');
+    document.documentElement.style.background = 'transparent';
+    document.body.style.background = 'transparent';
+    document.documentElement.style.backgroundColor = 'transparent';
+    document.body.style.backgroundColor = 'transparent';
+    document.body.style.backgroundImage = 'none';
+  }
+}
+
 function RootRouter() {
   if (currentMode === 'floating_bar') {
     return <FloatingFunctionBar />;

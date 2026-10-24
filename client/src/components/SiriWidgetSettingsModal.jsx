@@ -12,7 +12,7 @@ import {
 } from '../utils/siriWidgetSettings';
 import { playChime } from './VoiceController';
 
-export default function SiriWidgetSettingsModal({ isOpen, onClose }) {
+export default function SiriWidgetSettingsModal({ isOpen = true, onClose, inWindow = false }) {
   const [settings, setSettings] = useState(getSiriWidgetSettings());
   const [testHoldProgress, setTestHoldProgress] = useState(0);
   const [isTestHolding, setIsTestHolding] = useState(false);
@@ -23,7 +23,20 @@ export default function SiriWidgetSettingsModal({ isOpen, onClose }) {
     }
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen && !inWindow) return null;
+
+  const handleClose = () => {
+    if (onClose) onClose();
+    window.dispatchEvent(new CustomEvent('jasper:close-siri-settings'));
+  };
+
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === 'Escape') handleClose();
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, []);
 
   const updateSetting = (key, value) => {
     const updated = saveSiriWidgetSettings({ [key]: value });
@@ -46,17 +59,11 @@ export default function SiriWidgetSettingsModal({ isOpen, onClose }) {
 
   const activeTheme = THEME_OPTIONS.find(t => t.id === settings.theme) || THEME_OPTIONS[0];
 
-  return (
+  const modalBody = (
     <div 
-      className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-150 font-sans text-white"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && onClose) onClose();
-      }}
+      onClick={(e) => e.stopPropagation()}
+      className={`w-full ${inWindow ? 'h-full flex flex-col bg-[#121620] overflow-hidden' : 'max-w-xl bg-[#121620] border border-cyan-500/30 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.85)] overflow-hidden flex flex-col max-h-[92vh]'}`}
     >
-      <div 
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-xl bg-[#121620] border border-cyan-500/30 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.85)] overflow-hidden flex flex-col max-h-[92vh]"
-      >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-white/10 bg-white/[0.02]">
           <div className="flex items-center gap-2.5">
@@ -76,11 +83,11 @@ export default function SiriWidgetSettingsModal({ isOpen, onClose }) {
             </div>
           </div>
           <button 
-            onClick={onClose}
+            onClick={handleClose}
             className="p-1.5 rounded-xl hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
             title="Close Settings"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4 pointer-events-none" />
           </button>
         </div>
 
@@ -398,7 +405,7 @@ export default function SiriWidgetSettingsModal({ isOpen, onClose }) {
           </div>
 
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-bold text-xs shadow-[0_0_20px_rgba(0,229,255,0.4)] transition-all cursor-pointer"
           >
             Done
@@ -406,6 +413,20 @@ export default function SiriWidgetSettingsModal({ isOpen, onClose }) {
         </div>
 
       </div>
+  );
+
+  if (inWindow) {
+    return modalBody;
+  }
+
+  return (
+    <div 
+      className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-150 font-sans text-white"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) handleClose();
+      }}
+    >
+      {modalBody}
     </div>
   );
 }

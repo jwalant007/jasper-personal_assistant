@@ -163,6 +163,17 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Standalone Siri Desktop Widget / Floating Transparent Mode */
+html.mode-siri-widget,
+body.mode-siri-widget,
+body.mode-siri-widget #root {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+}
+
 /* Subtle modern studio backdrop (replaces harsh scifi grid) */
 .hologram-grid {
   display: none;

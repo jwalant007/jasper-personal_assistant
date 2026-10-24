@@ -169,60 +169,65 @@ export default function SiriAssistantWidget() {
     };
   }, [settings.triggerKey, settings.holdSeconds, settings.soundChime, isAssistantOpen]);
 
-  // Pointer Dragging Handlers
+  // Pointer Dragging Handlers: Move by holding anywhere from the cursor
   const handlePointerDown = (e) => {
     // Only drag on primary left click
     if (e.button !== 0) return;
+    e.preventDefault();
+    e.stopPropagation();
     setIsDragging(true);
     setHasMoved(false);
     setShowContextMenu(false);
 
-    dragStartRef.current = {
-      pointerX: e.clientX,
-      pointerY: e.clientY,
-      startPosX: pos.x,
-      startPosY: pos.y
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startPosX = pos.x;
+    const startPosY = pos.y;
+    let didMove = false;
+
+    const onPointerMove = (moveEvent) => {
+      const dx = moveEvent.clientX - startX;
+      const dy = moveEvent.clientY - startY;
+
+      if (Math.hypot(dx, dy) > 3) {
+        didMove = true;
+        setHasMoved(true);
+      }
+
+      const widgetSizePx = settings.widgetSize === 'compact' ? 44 : settings.widgetSize === 'large' ? 68 : 56;
+      const maxX = Math.max(0, window.innerWidth - widgetSizePx);
+      const maxY = Math.max(0, window.innerHeight - widgetSizePx);
+
+      const nextX = Math.max(0, Math.min(maxX, startPosX + dx));
+      const nextY = Math.max(0, Math.min(maxY, startPosY + dy));
+
+      setPos({ x: nextX, y: nextY });
     };
 
-    try {
-      e.currentTarget.setPointerCapture(e.pointerId);
-    } catch (_) {}
-  };
+    const onPointerUp = (upEvent) => {
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
+      setIsDragging(false);
 
-  const handlePointerMove = (e) => {
-    if (!isDragging) return;
-    const dx = e.clientX - dragStartRef.current.pointerX;
-    const dy = e.clientY - dragStartRef.current.pointerY;
+      if (didMove) {
+        const dx = upEvent.clientX - startX;
+        const dy = upEvent.clientY - startY;
+        const widgetSizePx = settings.widgetSize === 'compact' ? 44 : settings.widgetSize === 'large' ? 68 : 56;
+        const maxX = Math.max(0, window.innerWidth - widgetSizePx);
+        const maxY = Math.max(0, window.innerHeight - widgetSizePx);
+        const finalX = Math.max(0, Math.min(maxX, startPosX + dx));
+        const finalY = Math.max(0, Math.min(maxY, startPosY + dy));
+        saveSiriWidgetSettings({ posX: finalX, posY: finalY });
+      } else {
+        // Normal click: open assistant
+        setIsAssistantOpen(true);
+      }
+    };
 
-    if (Math.hypot(dx, dy) > 4) {
-      setHasMoved(true);
-    }
-
-    const widgetSizePx = settings.widgetSize === 'compact' ? 44 : settings.widgetSize === 'large' ? 68 : 56;
-    const maxX = Math.max(10, window.innerWidth - widgetSizePx - 10);
-    const maxY = Math.max(10, window.innerHeight - widgetSizePx - 10);
-
-    const nextX = Math.max(10, Math.min(maxX, dragStartRef.current.startPosX + dx));
-    const nextY = Math.max(10, Math.min(maxY, dragStartRef.current.startPosY + dy));
-
-    setPos({ x: nextX, y: nextY });
-  };
-
-  const handlePointerUp = (e) => {
-    if (!isDragging) return;
-    setIsDragging(false);
-
-    try {
-      e.currentTarget.releasePointerCapture(e.pointerId);
-    } catch (_) {}
-
-    if (hasMoved) {
-      // Save new position
-      saveSiriWidgetSettings({ posX: pos.x, posY: pos.y });
-    } else {
-      // Normal click: open assistant
-      setIsAssistantOpen(true);
-    }
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerUp);
   };
 
   // Right-click context menu
@@ -234,7 +239,6 @@ export default function SiriAssistantWidget() {
 
   const activeTheme = THEME_OPTIONS.find(t => t.id === settings.theme) || THEME_OPTIONS[0];
   const widgetDimension = settings.widgetSize === 'compact' ? 'w-11 h-11' : settings.widgetSize === 'large' ? 'w-16 h-16' : 'w-14 h-14';
-  const sizePx = settings.widgetSize === 'compact' ? 44 : settings.widgetSize === 'large' ? 68 : 56;
 
   return (
     <>
@@ -283,7 +287,7 @@ export default function SiriAssistantWidget() {
         </div>
       )}
 
-      {/* ── 2. FLOATING DRAGGABLE HOVERING SIRI WIDGET ─────────────────────── */}
+      {/* ── 2. FLOATING DRAGGABLE HOVERING SIRI WIDGET (CIRCLE ICON ONLY) ────── */}
       {settings.enabled && (
         <div
           style={{
@@ -294,18 +298,16 @@ export default function SiriAssistantWidget() {
             touchAction: 'none'
           }}
           onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
           onContextMenu={handleContextMenu}
-          className={`group select-none cursor-grab active:cursor-grabbing transition-transform ${
-            isDragging ? 'scale-105 shadow-2xl' : 'hover:scale-105'
+          className={`group select-none cursor-grab active:cursor-grabbing rounded-full transition-transform ${
+            isDragging ? 'scale-105' : 'hover:scale-105'
           }`}
-          title={`J.A.S.P.E.R. Siri Assistant\n• Hold ${settings.triggerKey} for ${settings.holdSeconds}s\n• Click or Drag anywhere\n• Right-click for Settings`}
+          title={`J.A.S.P.E.R. Siri Assistant\n• Hold cursor to Move\n• Click to Open\n• Hold ${settings.triggerKey} for ${settings.holdSeconds}s\n• Right-click for Settings`}
         >
           <div 
             className={`relative flex items-center justify-center rounded-full ${widgetDimension}`}
             style={{ 
-              boxShadow: `0 0 25px ${activeTheme.glow}, 0 8px 24px rgba(0,0,0,0.6)` 
+              boxShadow: `0 0 25px ${activeTheme.glow}` 
             }}
           >
             {/* Concentric Charging Ring SVG (Visible while holding) */}
@@ -326,22 +328,17 @@ export default function SiriAssistantWidget() {
             )}
 
             {/* Outer Iridescent Spinning Ring */}
-            <div className={`absolute inset-0 rounded-full p-[2px] bg-gradient-to-tr ${activeTheme.gradient} animate-spin-slow`}>
+            <div className={`absolute inset-0 rounded-full p-[2px] bg-gradient-to-tr ${activeTheme.gradient} animate-spin-slow pointer-events-none`}>
               <div className="w-full h-full bg-[#0a0d14]/90 backdrop-blur-md rounded-full" />
             </div>
 
             {/* Inner Glowing Orb Core */}
-            <div className={`relative z-10 w-3/5 h-3/5 rounded-full ${activeTheme.core} flex items-center justify-center shadow-[0_0_15px_#00e5ff] transition-all`}>
+            <div className={`relative z-10 w-3/5 h-3/5 rounded-full ${activeTheme.core} flex items-center justify-center shadow-[0_0_15px_#00e5ff] transition-all pointer-events-none`}>
               <Mic className="w-4 h-4 text-black group-hover:scale-110 transition-transform" />
             </div>
 
             {/* Subtle Pulse Aura */}
             <div className="absolute inset-0 rounded-full border border-cyan-400/40 animate-ping pointer-events-none opacity-20" />
-
-            {/* Hover Tooltip Pill */}
-            <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2.5 py-1 bg-black/90 border border-cyan-500/40 rounded-xl text-[10px] text-cyan-200 whitespace-nowrap shadow-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity font-mono">
-              Hold <span className="font-bold text-white">{settings.triggerKey}</span> or Click
-            </div>
           </div>
         </div>
       )}

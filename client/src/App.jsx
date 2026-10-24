@@ -1163,14 +1163,20 @@ export default function App() {
     localStorage.setItem('jasper_past_chats', JSON.stringify(pastChats));
   }, [pastChats]);
 
-  // Parse wake query param on mount
+  // Parse wake and app query params on mount
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('wake') === 'true') {
       console.log('[App] Wake parameter detected in URL. Waking up assistant...');
       setTriggerWakeOnMount(true);
-      
-      // Clean query parameter from address bar
+    }
+    if (params.get('app') === 'telephony' || params.get('modal') === 'telephony') {
+      console.log('[App] Telephony parameter detected in URL. Launching Telephony Hub...');
+      setShowTelephony(true);
+    }
+    
+    // Clean query parameter from address bar
+    if (params.get('wake') || params.get('app') || params.get('modal')) {
       const newUrl = window.location.protocol + '//' + window.location.host + window.location.pathname;
       window.history.replaceState({ path: newUrl }, '', newUrl);
     }

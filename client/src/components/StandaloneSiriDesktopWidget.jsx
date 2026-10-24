@@ -220,26 +220,62 @@ export default function StandaloneSiriDesktopWidget() {
     );
   }
 
+  const handleOrbPointerDown = (e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setShowContextMenu(false);
+
+    let startScreenX = e.screenX;
+    let startScreenY = e.screenY;
+    let hasMoved = false;
+
+    const onPointerMove = (moveEvt) => {
+      const dx = moveEvt.screenX - startScreenX;
+      const dy = moveEvt.screenY - startScreenY;
+      if (Math.hypot(dx, dy) > 2) {
+        hasMoved = true;
+        if (window.jasperElectron?.moveBarBy) {
+          window.jasperElectron.moveBarBy({ dx, dy });
+          startScreenX = moveEvt.screenX;
+          startScreenY = moveEvt.screenY;
+        }
+      }
+    };
+
+    const onPointerUp = () => {
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
+
+      if (!hasMoved) {
+        expandWidget();
+      }
+    };
+
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerUp);
+  };
+
   // ── 2. COMPACT HOVERING SIRI ORB (84x84) ───────────────────────────────────
   return (
     <div 
-      className="w-full h-full flex items-center justify-center bg-transparent select-none p-1 overflow-hidden"
-      style={{ WebkitAppRegion: 'drag' }}
+      className="w-full h-full flex items-center justify-center bg-transparent select-none p-0 m-0 overflow-hidden"
     >
       <div
-        style={{ WebkitAppRegion: 'no-drag' }}
-        onClick={expandWidget}
+        onPointerDown={handleOrbPointerDown}
         onContextMenu={(e) => {
           e.preventDefault();
           setShowContextMenu(true);
           setContextMenuPos({ x: e.clientX, y: e.clientY });
         }}
-        className="relative w-16 h-16 flex items-center justify-center cursor-pointer group"
-        title={`J.A.S.P.E.R. Siri Assistant (Windows Overlay)\n• Click to Open\n• Hold ${settings.triggerKey} for ${settings.holdSeconds}s\n• Right-click for Options`}
+        className="relative w-16 h-16 flex items-center justify-center cursor-grab active:cursor-grabbing group rounded-full"
+        title={`J.A.S.P.E.R. Siri Assistant\n• Hold cursor to Move\n• Click to Open\n• Hold ${settings.triggerKey} for ${settings.holdSeconds}s\n• Right-click for Options`}
       >
         {/* Glow Shadow */}
         <div 
-          className="absolute inset-0 rounded-full blur-md transition-all duration-300 group-hover:scale-125"
+          className="absolute inset-0 rounded-full blur-md transition-all duration-300 group-hover:scale-125 pointer-events-none"
           style={{ background: activeTheme.glow }}
         />
 
@@ -261,12 +297,12 @@ export default function StandaloneSiriDesktopWidget() {
         )}
 
         {/* Outer Iridescent Spinning Ring */}
-        <div className={`absolute inset-0 rounded-full p-[2px] bg-gradient-to-tr ${activeTheme.gradient} animate-spin-slow`}>
+        <div className={`absolute inset-0 rounded-full p-[2px] bg-gradient-to-tr ${activeTheme.gradient} animate-spin-slow pointer-events-none`}>
           <div className="w-full h-full bg-[#0a0d14]/90 rounded-full" />
         </div>
 
         {/* Inner Glowing Core */}
-        <div className={`relative z-10 w-9 h-9 rounded-full ${activeTheme.core} flex items-center justify-center shadow-[0_0_15px_#00e5ff] group-hover:scale-110 transition-transform`}>
+        <div className={`relative z-10 w-9 h-9 rounded-full ${activeTheme.core} flex items-center justify-center shadow-[0_0_15px_#00e5ff] group-hover:scale-110 transition-transform pointer-events-none`}>
           <Mic className="w-4 h-4 text-black" />
         </div>
 

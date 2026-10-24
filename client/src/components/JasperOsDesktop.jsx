@@ -60,7 +60,7 @@ import SiriWidgetSettingsModal from './SiriWidgetSettingsModal';
  * ALL NATIVE JASPER OS APPLICATIONS REGISTRY
  */
 const JASPER_OS_APPS_REGISTRY = [
-  { id: 'siriSettings', title: 'Siri Voice Assistant & Hotkey Settings', category: 'System & Hardware', icon: Sparkles, component: (props) => <SiriWidgetSettingsModal isOpen={true} onClose={props.onClose} />, defaultSize: { w: 660, h: 600 } },
+  { id: 'siriSettings', title: 'Siri Voice Assistant & Hotkey Settings', category: 'System & Hardware', icon: Sparkles, component: (props) => <SiriWidgetSettingsModal inWindow={true} isOpen={true} onClose={props.onClose} />, defaultSize: { w: 660, h: 600 } },
   { id: 'telephonyHub', title: 'Telephony Hub', category: 'Hardware Control', icon: PhoneForwarded, component: TelephonyReceptionistWidget, defaultSize: { w: 960, h: 640 } },
   { id: 'payVault', title: 'Pay Vault & Guardian Budget', category: 'Finance & Security', icon: Wallet, component: PaymentBalanceWidget, defaultSize: { w: 940, h: 640 } },
   { id: 'videoStudio', title: 'AI Video Creator & YouTube Studio', category: 'Creative & AI', icon: Video, component: JasperVideoStudioApp, defaultSize: { w: 980, h: 660 } },
@@ -413,25 +413,28 @@ function OsWindow({
           )}
           {/* Ubuntu Yaru Window Controls */}
           <button
+            onMouseDown={(e) => e.stopPropagation()}
             onClick={() => onMinimize(id)}
-            className="w-6 h-6 rounded-full bg-[#353535] hover:bg-[#454545] text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+            className="window-control-btn w-6 h-6 rounded-full bg-[#353535] hover:bg-[#454545] text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
             title="Minimize"
           >
-            <Minus className="w-3 h-3" />
+            <Minus className="w-3 h-3 pointer-events-none" />
           </button>
           <button
+            onMouseDown={(e) => e.stopPropagation()}
             onClick={toggleMaximize}
-            className="w-6 h-6 rounded-full bg-[#353535] hover:bg-[#454545] text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+            className="window-control-btn w-6 h-6 rounded-full bg-[#353535] hover:bg-[#454545] text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
             title={isMaximized ? "Restore Window" : "Maximize"}
           >
-            {isMaximized ? <Square className="w-2.5 h-2.5" /> : <Maximize2 className="w-2.5 h-2.5" />}
+            {isMaximized ? <Square className="w-2.5 h-2.5 pointer-events-none" /> : <Maximize2 className="w-2.5 h-2.5 pointer-events-none" />}
           </button>
           <button
+            onMouseDown={(e) => e.stopPropagation()}
             onClick={() => onClose(id)}
-            className="w-6 h-6 rounded-full bg-[#353535] hover:bg-[#E95420] text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer ubuntu-btn-close"
+            className="window-control-btn w-6 h-6 rounded-full bg-[#353535] hover:bg-[#E95420] text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer ubuntu-btn-close"
             title="Close"
           >
-            <X className="w-3 h-3" />
+            <X className="w-3 h-3 pointer-events-none" />
           </button>
         </div>
       </div>
@@ -495,13 +498,19 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
     const handleOpenSiriSettings = () => {
       setShowSiriSettings(true);
     };
+    const handleCloseSiriSettings = () => {
+      setShowSiriSettings(false);
+      closeWindow('siriSettings');
+    };
     window.addEventListener('jasper:siri-settings-changed', handleSiriSettingsChange);
     window.addEventListener('jasper:open-siri-settings', handleOpenSiriSettings);
+    window.addEventListener('jasper:close-siri-settings', handleCloseSiriSettings);
     return () => {
       window.removeEventListener('jasper:siri-settings-changed', handleSiriSettingsChange);
       window.removeEventListener('jasper:open-siri-settings', handleOpenSiriSettings);
+      window.removeEventListener('jasper:close-siri-settings', handleCloseSiriSettings);
     };
-  }, []);
+  }, [closeWindow]);
 
   // Satellite Hardware Bridge & DB Persistence
   const [satelliteOnline, setSatelliteOnline] = useState(false);
@@ -1879,7 +1888,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
                     <span className="text-xs font-mono">Loading module...</span>
                   </div>
                 }>
-                  <AppComponent onLockSystem={onLockSystem} />
+                  <AppComponent onLockSystem={onLockSystem} onClose={() => closeWindow(app.id)} />
                 </React.Suspense>
               </OsWindow>
             </div>

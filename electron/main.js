@@ -319,6 +319,7 @@ function createFloatingBarWindow() {
     y: barY,
     frame: false,
     transparent: true,
+    backgroundColor: '#00000000',
     alwaysOnTop: true,
     resizable: false,
     skipTaskbar: true,
@@ -539,6 +540,12 @@ ipcMain.on('jasper:resize-bar', (event, { width, height, x, y }) => {
     } else {
       floatingBarWindow.setSize(Math.round(width), Math.round(height), true);
     }
+  }
+});
+ipcMain.on('jasper:move-bar-by', (event, { dx, dy }) => {
+  if (floatingBarWindow && !floatingBarWindow.isDestroyed() && (dx || dy)) {
+    const [curX, curY] = floatingBarWindow.getPosition();
+    floatingBarWindow.setPosition(Math.round(curX + dx), Math.round(curY + dy));
   }
 });
 ipcMain.on('jasper:save-bar-position', (event, pos) => {
