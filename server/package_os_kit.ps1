@@ -30,6 +30,7 @@ try {
         "JASPER_BOOT_CHOOSER.bat",
         "JASPER_PORTABLE_KEY.bat",
         "JASPER_STANDALONE_OS.bat",
+        "Launch_Cloud_Voice_Assistant.bat",
         "Launch_Telephony_Hub.bat",
         "start-jasper.bat",
         "start-satellite.bat",
