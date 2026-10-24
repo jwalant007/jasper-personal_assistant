@@ -481,7 +481,15 @@ const PhoneController = {
   bluetooth: async (enabled) => {
     const action = enabled ? 'enable' : 'disable';
     try {
-      return await runAdb(`shell svc bluetooth ${action}`);
+      // Modern Android 11/12/13/14+ uses cmd bluetooth_manager
+      try {
+        const out = await runAdb(`shell cmd bluetooth_manager ${action}`);
+        return { success: true, enabled, output: out, method: 'bluetooth_manager' };
+      } catch (_) {
+        // Fallback for older Android versions
+        const out = await runAdb(`shell svc bluetooth ${action}`);
+        return { success: true, enabled, output: out, method: 'svc bluetooth' };
+      }
     } catch (e) {
       throw new Error(`Failed to toggle Bluetooth: ${e.message}`);
     }

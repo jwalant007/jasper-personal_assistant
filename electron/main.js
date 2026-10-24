@@ -380,6 +380,24 @@ function createMainWindow() {
     }
   });
 
+  // Native Web Bluetooth support for Fitbands & Smart Devices in Electron
+  mainWindow.webContents.on('select-bluetooth-device', (event, deviceList, callback) => {
+    event.preventDefault();
+    console.log(`[Electron Bluetooth] Discovery event received. Found ${deviceList ? deviceList.length : 0} device(s).`);
+    if (deviceList && deviceList.length > 0) {
+      callback(deviceList[0].deviceId);
+    } else {
+      callback('');
+    }
+  });
+
+  try {
+    mainWindow.webContents.session.setBluetoothPairingHandler((details, callback) => {
+      console.log(`[Electron Bluetooth] Pairing request (${details.pairingKind}) for device: ${details.deviceId}`);
+      callback({ response: true });
+    });
+  } catch (_) {}
+
   if (app.isPackaged) {
     mainWindow.loadFile(path.join(__dirname, '..', 'client', 'dist', 'index.html'));
   } else {

@@ -273,7 +273,14 @@ export default function HealthFitbandWidget({ onClose, onAskJasper }) {
   // Real BLE Fitband Connect via Web Bluetooth API
   const handleConnectBLE = async (targetMac = macAddress) => {
     if (!navigator.bluetooth) {
-      setBleError('Web Bluetooth API is not supported in this browser environment. Using Virtual Simulator.');
+      const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
+      const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+      if (!isHttps && !isLocal) {
+        setBleError('Web Bluetooth requires a secure HTTPS connection. Please use https://jasper-personal-assistant.onrender.com or localhost.');
+      } else {
+        setBleError('Web Bluetooth is not available in this browser/environment (supported in Chrome & Edge desktop). Switched to Virtual Fitband mode.');
+      }
+      setConnectionMode('virtual');
       return;
     }
 
