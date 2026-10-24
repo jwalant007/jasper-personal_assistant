@@ -500,7 +500,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
     };
     const handleCloseSiriSettings = () => {
       setShowSiriSettings(false);
-      closeWindow('siriSettings');
+      setOpenWindows(prev => ({ ...prev, siriSettings: false }));
     };
     window.addEventListener('jasper:siri-settings-changed', handleSiriSettingsChange);
     window.addEventListener('jasper:open-siri-settings', handleOpenSiriSettings);
@@ -510,7 +510,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
       window.removeEventListener('jasper:open-siri-settings', handleOpenSiriSettings);
       window.removeEventListener('jasper:close-siri-settings', handleCloseSiriSettings);
     };
-  }, [closeWindow]);
+  }, []);
 
   // Satellite Hardware Bridge & DB Persistence
   const [satelliteOnline, setSatelliteOnline] = useState(false);
