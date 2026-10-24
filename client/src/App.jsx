@@ -12,6 +12,7 @@ import DraggableModalWrapper from './components/DraggableModalWrapper';
 import JasperOsDesktop from './components/JasperOsDesktop';
 import EmergencyAlertToast from './components/EmergencyAlertToast';
 import JasperIncomingCallModal from './components/JasperIncomingCallModal';
+import SiriAssistantWidget from './components/SiriAssistantWidget';
 
 // Code-Split Dynamic Modal Apps & Widgets (Loaded on-demand)
 const PcCommandCenterWidget = React.lazy(() => import('./components/PcCommandCenterWidget'));
@@ -3682,6 +3683,8 @@ export default function App() {
           }}
         />
       )}
+      {/* 22. Persistent Floating Siri Assistant Widget & Hotkey Listener */}
+      <SiriAssistantWidget />
     </div>
   );
 }

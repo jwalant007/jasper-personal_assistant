@@ -53,11 +53,14 @@ const JasperVideoStudioApp = React.lazy(() => import('./JasperVideoStudioApp'));
 const TelephonyReceptionistWidget = React.lazy(() => import('./TelephonyReceptionistWidget'));
 
 import { Calculator, FileCode, Compass, MessageSquare, ShieldAlert, Video, Wallet, PhoneForwarded } from 'lucide-react';
+import { getSiriWidgetSettings, saveSiriWidgetSettings } from '../utils/siriWidgetSettings';
+import SiriWidgetSettingsModal from './SiriWidgetSettingsModal';
 
 /**
  * ALL NATIVE JASPER OS APPLICATIONS REGISTRY
  */
 const JASPER_OS_APPS_REGISTRY = [
+  { id: 'siriSettings', title: 'Siri Voice Assistant & Hotkey Settings', category: 'System & Hardware', icon: Sparkles, component: (props) => <SiriWidgetSettingsModal isOpen={true} onClose={props.onClose} />, defaultSize: { w: 660, h: 600 } },
   { id: 'telephonyHub', title: 'Telephony Hub', category: 'Hardware Control', icon: PhoneForwarded, component: TelephonyReceptionistWidget, defaultSize: { w: 960, h: 640 } },
   { id: 'payVault', title: 'Pay Vault & Guardian Budget', category: 'Finance & Security', icon: Wallet, component: PaymentBalanceWidget, defaultSize: { w: 940, h: 640 } },
   { id: 'videoStudio', title: 'AI Video Creator & YouTube Studio', category: 'Creative & AI', icon: Video, component: JasperVideoStudioApp, defaultSize: { w: 980, h: 660 } },
@@ -478,8 +481,27 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
   const [brightnessLevel, setBrightnessLevel] = useState(100);
   const [nightLight, setNightLight] = useState(false);
   const [wifiEnabled, setWifiEnabled] = useState(true);
+  const [showSiriSettings, setShowSiriSettings] = useState(false);
+  const [siriWidgetEnabled, setSiriWidgetEnabled] = useState(() => getSiriWidgetSettings().enabled);
   const [focusedWinId, setFocusedWinId] = useState(null);
   const [hoveredDockApp, setHoveredDockApp] = useState(null);
+
+  useEffect(() => {
+    const handleSiriSettingsChange = (e) => {
+      if (e.detail && typeof e.detail.enabled === 'boolean') {
+        setSiriWidgetEnabled(e.detail.enabled);
+      }
+    };
+    const handleOpenSiriSettings = () => {
+      setShowSiriSettings(true);
+    };
+    window.addEventListener('jasper:siri-settings-changed', handleSiriSettingsChange);
+    window.addEventListener('jasper:open-siri-settings', handleOpenSiriSettings);
+    return () => {
+      window.removeEventListener('jasper:siri-settings-changed', handleSiriSettingsChange);
+      window.removeEventListener('jasper:open-siri-settings', handleOpenSiriSettings);
+    };
+  }, []);
 
   // Satellite Hardware Bridge & DB Persistence
   const [satelliteOnline, setSatelliteOnline] = useState(false);
@@ -1283,6 +1305,44 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
               </div>
             </button>
 
+            {/* Siri Assistant Widget Toggle & Quick Config */}
+            <div className="relative group">
+              <button
+                onClick={() => {
+                  const next = !siriWidgetEnabled;
+                  setSiriWidgetEnabled(next);
+                  saveSiriWidgetSettings({ enabled: next });
+                }}
+                className={`w-full p-2.5 rounded-xl border flex items-center justify-between transition-all text-left cursor-pointer ${
+                  siriWidgetEnabled
+                    ? 'bg-gradient-to-r from-pink-500/20 via-indigo-500/20 to-cyan-500/20 border-cyan-400/50 text-white shadow-sm'
+                    : 'bg-[#252525] border-[#333333] text-slate-400 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <Sparkles className={`w-4 h-4 shrink-0 ${siriWidgetEnabled ? 'text-cyan-300 animate-pulse' : 'text-slate-500'}`} />
+                  <div className="min-w-0">
+                    <div className="text-xs font-semibold truncate">Siri Assistant</div>
+                    <div className="text-[10px] text-slate-400 truncate">
+                      {siriWidgetEnabled ? 'Orb Active' : 'Off'}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowQuickSettings(false);
+                    setShowSiriSettings(true);
+                  }}
+                  className="p-1 rounded-lg hover:bg-white/20 text-slate-300 hover:text-cyan-300 transition-colors ml-1"
+                  title="Configure Siri Assistant & Hotkey"
+                >
+                  <Sliders className="w-3.5 h-3.5" />
+                </button>
+              </button>
+            </div>
+
             {/* Smart TV Remote Shortcut */}
             <button
               onClick={() => launchApp('tvRemote')}
@@ -1334,6 +1394,18 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
             </div>
 
             <div className="flex items-center gap-1.5">
+              {/* Siri Assistant Settings */}
+              <button
+                onClick={() => {
+                  setShowQuickSettings(false);
+                  setShowSiriSettings(true);
+                }}
+                className="p-2 rounded-xl bg-[#252525] hover:bg-[#303030] text-cyan-300 hover:text-cyan-200 transition-colors cursor-pointer"
+                title="Siri Voice Assistant & Hotkey Settings"
+              >
+                <Sparkles className="w-4 h-4 text-cyan-400" />
+              </button>
+
               {/* Settings */}
               {onOpenSettings ? (
                 <button
@@ -2115,6 +2187,12 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
           </div>
         </div>
       )}
+
+      {/* Siri Assistant & Hotkey Settings Modal in OS Mode */}
+      <SiriWidgetSettingsModal
+        isOpen={showSiriSettings}
+        onClose={() => setShowSiriSettings(false)}
+      />
     </div>
   );
 }

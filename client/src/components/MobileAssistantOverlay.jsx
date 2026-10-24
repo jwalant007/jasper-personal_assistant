@@ -9,8 +9,8 @@ import { getApiBase } from '../utils/apiConfig.js';
 import { speakDeviceAudio } from '../utils/speakDeviceAudio.js';
 import { playChime } from './VoiceController.jsx';
 
-export default function MobileAssistantOverlay() {
-  const [state, setState] = useState('listening'); // 'listening' | 'thinking' | 'speaking' | 'idle'
+export default function MobileAssistantOverlay({ onClose, autoWake = true, embedded = false }) {
+  const [state, setState] = useState(autoWake ? 'listening' : 'idle'); // 'listening' | 'thinking' | 'speaking' | 'idle'
   const [transcript, setTranscript] = useState('');
   const [response, setResponse] = useState('');
   const [textInput, setTextInput] = useState('');
@@ -100,11 +100,15 @@ export default function MobileAssistantOverlay() {
       };
 
       recognitionRef.current = rec;
-      // Auto-start listening on assistant invocation
-      playChime('wake');
-      setTimeout(() => {
-        try { rec.start(); } catch (_) {}
-      }, 200);
+      // Auto-start listening on assistant invocation if autoWake enabled
+      if (autoWake) {
+        playChime('wake');
+        setTimeout(() => {
+          try { rec.start(); } catch (_) {}
+        }, 200);
+      } else {
+        setState('idle');
+      }
 
     } catch (e) {
       console.warn('[MobileAssistant] Speech Recognition init caught:', e);
@@ -229,11 +233,31 @@ export default function MobileAssistantOverlay() {
     }, 1000);
   };
 
+  // Close on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        closeAssistant();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   const openFullApp = () => {
-    window.location.href = '/';
+    if (embedded && onClose) {
+      onClose();
+    } else {
+      window.location.href = '/';
+    }
   };
 
   const closeAssistant = () => {
+    stopAll();
+    if (onClose) {
+      onClose();
+      return;
+    }
     // If Android Bridge is available
     if (window.AndroidAssistant?.finish) {
       window.AndroidAssistant.finish();
@@ -244,9 +268,20 @@ export default function MobileAssistantOverlay() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-md font-sans text-white">
+    <div 
+      className="fixed inset-0 z-[99999] flex flex-col justify-end bg-black/60 backdrop-blur-md font-sans text-white animate-in fade-in duration-200"
+      onClick={(e) => {
+        // Close if clicking the backdrop itself
+        if (e.target === e.currentTarget) {
+          closeAssistant();
+        }
+      }}
+    >
       {/* ── Siri/Google Assistant Bottom Sheet Card ────────────────────── */}
-      <div className="w-full max-w-lg mx-auto bg-gradient-to-b from-[#0c0f17] to-[#07090e] border-t border-cyan-500/30 rounded-t-3xl shadow-[0_-15px_40px_rgba(0,229,255,0.15)] p-5 flex flex-col gap-4 animate-slideUp">
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-lg mx-auto bg-gradient-to-b from-[#0c0f17] to-[#07090e] border-t border-cyan-500/30 rounded-t-3xl shadow-[0_-15px_40px_rgba(0,229,255,0.15)] p-5 flex flex-col gap-4 animate-slideUp"
+      >
         
         {/* Top Header: Drag Handle & Controls */}
         <div className="flex items-center justify-between pb-1">
