@@ -4,7 +4,8 @@ import {
   Shield, ShieldCheck, Zap, Activity, Cpu, HardDrive, Wifi, Smartphone, Tv, Monitor, 
   PhoneForwarded, Wallet, AlertTriangle, ArrowUpRight, Play, CheckCircle2, RefreshCw, 
   Lock, Sparkles, BarChart3, Bot, Video, Box, Radio, Bell, Clock, ChevronRight,
-  TrendingDown, DollarSign, Layers, Flame, PhoneCall, Volume2, Mic
+  TrendingDown, DollarSign, Layers, Flame, PhoneCall, Volume2, Mic,
+  Home, Sun, TrendingUp, Headphones, Camera, Trophy, Newspaper
 } from 'lucide-react';
 import { getApiBase } from '../utils/apiConfig';
 
@@ -611,6 +612,83 @@ export default function JasperCommandCenter({
                   <div className="text-[9px] font-mono text-slate-500">Dev Terminal</div>
                 </div>
               </button>
+
+              <button
+                onClick={() => onLaunchApp('smartHome')}
+                className="p-2.5 rounded-xl bg-slate-900/80 hover:bg-cyan-950/30 border border-white/[0.06] hover:border-cyan-400/40 flex items-center gap-2 transition-all cursor-pointer text-left"
+              >
+                <Home className="w-4 h-4 text-cyan-400 shrink-0" />
+                <div>
+                  <div className="text-xs font-sans font-medium text-slate-200">Smart Home</div>
+                  <div className="text-[9px] font-mono text-slate-500">IoT Matrix</div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => onLaunchApp('networkRadar')}
+                className="p-2.5 rounded-xl bg-slate-900/80 hover:bg-emerald-950/30 border border-white/[0.06] hover:border-emerald-400/40 flex items-center gap-2 transition-all cursor-pointer text-left"
+              >
+                <Radio className="w-4 h-4 text-emerald-400 shrink-0" />
+                <div>
+                  <div className="text-xs font-sans font-medium text-slate-200">Cyber Radar</div>
+                  <div className="text-[9px] font-mono text-slate-500">Subnet Sniffer</div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => onLaunchApp('morningBriefing')}
+                className="p-2.5 rounded-xl bg-slate-900/80 hover:bg-amber-950/30 border border-white/[0.06] hover:border-amber-400/40 flex items-center gap-2 transition-all cursor-pointer text-left"
+              >
+                <Sun className="w-4 h-4 text-amber-400 shrink-0" />
+                <div>
+                  <div className="text-xs font-sans font-medium text-slate-200">Morning Intel</div>
+                  <div className="text-[9px] font-mono text-slate-500">Executive Debrief</div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => onLaunchApp('marketIntel')}
+                className="p-2.5 rounded-xl bg-slate-900/80 hover:bg-emerald-950/30 border border-white/[0.06] hover:border-emerald-400/40 flex items-center gap-2 transition-all cursor-pointer text-left"
+              >
+                <TrendingUp className="w-4 h-4 text-emerald-400 shrink-0" />
+                <div>
+                  <div className="text-xs font-sans font-medium text-slate-200">Market Intel</div>
+                  <div className="text-[9px] font-mono text-slate-500">Crypto Tickers</div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => onLaunchApp('focusMatrix')}
+                className="p-2.5 rounded-xl bg-slate-900/80 hover:bg-purple-950/30 border border-white/[0.06] hover:border-purple-400/40 flex items-center gap-2 transition-all cursor-pointer text-left"
+              >
+                <Headphones className="w-4 h-4 text-purple-400 shrink-0" />
+                <div>
+                  <div className="text-xs font-sans font-medium text-slate-200">Deep Work</div>
+                  <div className="text-[9px] font-mono text-slate-500">Binaural Beats</div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => onLaunchApp('visionSentinel')}
+                className="p-2.5 rounded-xl bg-slate-900/80 hover:bg-rose-950/30 border border-white/[0.06] hover:border-rose-400/40 flex items-center gap-2 transition-all cursor-pointer text-left"
+              >
+                <Camera className="w-4 h-4 text-rose-400 shrink-0" />
+                <div>
+                  <div className="text-xs font-sans font-medium text-slate-200">Vision Sentry</div>
+                  <div className="text-[9px] font-mono text-slate-500">CCTV & Motion</div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => onLaunchApp('habitMatrix')}
+                className="p-2.5 rounded-xl bg-slate-900/80 hover:bg-emerald-950/30 border border-white/[0.06] hover:border-emerald-400/40 flex items-center gap-2 transition-all cursor-pointer text-left"
+              >
+                <Trophy className="w-4 h-4 text-emerald-400 shrink-0" />
+                <div>
+                  <div className="text-xs font-sans font-medium text-slate-200">Habit Matrix</div>
+                  <div className="text-[9px] font-mono text-slate-500">Quests & Leveling</div>
+                </div>
+              </button>
             </div>
           </div>
 
@@ -701,12 +779,12 @@ export default function JasperCommandCenter({
               </div>
               <div>
                 <h3 className="font-sans font-bold text-xs uppercase tracking-wider text-slate-100">All Applications</h3>
-                <p className="text-[10px] font-mono text-indigo-300">35 Native Operating System Apps</p>
+                <p className="text-[10px] font-mono text-indigo-300">45+ Native Operating System Apps</p>
               </div>
             </div>
 
             <p className="text-xs text-slate-300 font-sans leading-relaxed my-2">
-              Access the complete suite of JASPER OS modules: Telephony Hub, Pay Vault, 3D Blender Studio, Video Creator, Social Auto-Reply, File Explorer, Terminal, and more.
+              Access the complete suite of JASPER OS modules: Smart Home, Cyber Radar, Morning Briefing, Market Intel, Focus Matrix, Vision Sentinel, Telephony Hub, Pay Vault, 3D Blender, Video Creator, and more.
             </p>
           </div>
 
@@ -715,7 +793,7 @@ export default function JasperCommandCenter({
               onClick={onViewAllApps}
               className="w-full py-2.5 px-4 rounded-xl bg-indigo-500/25 hover:bg-indigo-500/35 border border-indigo-400/50 hover:border-indigo-300 text-indigo-200 font-sans font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-[0_0_15px_rgba(99,102,241,0.25)] cursor-pointer"
             >
-              <span>Spread All 35 Apps Matrix</span>
+              <span>Spread All 45+ Apps Matrix</span>
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
