@@ -51,8 +51,18 @@ const HolographicAnswerModal = React.lazy(() => import('./HolographicAnswerModal
 const PhoneSentinelWidget = React.lazy(() => import('./PhoneSentinelWidget'));
 const JasperVideoStudioApp = React.lazy(() => import('./JasperVideoStudioApp'));
 const TelephonyReceptionistWidget = React.lazy(() => import('./TelephonyReceptionistWidget'));
+const SmartHomeMatrixWidget = React.lazy(() => import('./SmartHomeMatrixWidget'));
+const NetworkRadarWidget = React.lazy(() => import('./NetworkRadarWidget'));
+const MorningBriefingWidget = React.lazy(() => import('./MorningBriefingWidget'));
+const MarketIntelWidget = React.lazy(() => import('./MarketIntelWidget'));
+const HardwareHudWidget = React.lazy(() => import('./HardwareHudWidget'));
+const VisionSentinelWidget = React.lazy(() => import('./VisionSentinelWidget'));
+const FocusMatrixWidget = React.lazy(() => import('./FocusMatrixWidget'));
+const AiNewsDigestWidget = React.lazy(() => import('./AiNewsDigestWidget'));
+const AiCostSentinelWidget = React.lazy(() => import('./AiCostSentinelWidget'));
+const HabitMatrixWidget = React.lazy(() => import('./HabitMatrixWidget'));
 
-import { Calculator, FileCode, Compass, MessageSquare, ShieldAlert, Video, Wallet, PhoneForwarded } from 'lucide-react';
+import { Calculator, FileCode, Compass, MessageSquare, ShieldAlert, Video, Wallet, PhoneForwarded, Home, TrendingUp, Headphones, Newspaper } from 'lucide-react';
 import { getSiriWidgetSettings, saveSiriWidgetSettings } from '../utils/siriWidgetSettings';
 import SiriWidgetSettingsModal from './SiriWidgetSettingsModal';
 
@@ -95,7 +105,17 @@ const JASPER_OS_APPS_REGISTRY = [
   { id: 'spatialGps', title: 'Spatial GPS & Satellite Intelligence', category: 'Productivity & Tools', icon: Globe, component: (props) => <MapsWidget {...props} initialTab="satellite" />, defaultSize: { w: 760, h: 560 } },
   { id: 'healthHub', title: 'Health & Fitband Tracker App', category: 'Media & Life', icon: Heart, component: HealthFitbandWidget, defaultSize: { w: 580, h: 500 } },
   { id: 'liveTranslation', title: 'Universal Live Translator App', category: 'Productivity & Tools', icon: Languages, component: LiveTranslationWidget, defaultSize: { w: 600, h: 500 } },
-  { id: 'userManual', title: 'JASPER OS Master Guide App', category: 'Productivity & Tools', icon: BookOpen, component: UserManualWidget, defaultSize: { w: 640, h: 520 } }
+  { id: 'userManual', title: 'JASPER OS Master Guide App', category: 'Productivity & Tools', icon: BookOpen, component: UserManualWidget, defaultSize: { w: 640, h: 520 } },
+  { id: 'smartHome', title: 'Smart Home & IoT Matrix App', category: 'Hardware Control', icon: Home, component: SmartHomeMatrixWidget, defaultSize: { w: 840, h: 600 } },
+  { id: 'networkRadar', title: 'LAN Cyber Radar & Device Sniffer', category: 'System & Hardware', icon: Radio, component: NetworkRadarWidget, defaultSize: { w: 820, h: 580 } },
+  { id: 'morningBriefing', title: 'Morning Executive Briefing App', category: 'Productivity & Tools', icon: Sun, component: MorningBriefingWidget, defaultSize: { w: 760, h: 560 } },
+  { id: 'marketIntel', title: 'Market Intelligence & Crypto Ticker', category: 'Media & Life', icon: TrendingUp, component: MarketIntelWidget, defaultSize: { w: 860, h: 580 } },
+  { id: 'hardwareHud', title: 'Hardware Telemetry & Thermal H.U.D.', category: 'System & Hardware', icon: Cpu, component: HardwareHudWidget, defaultSize: { w: 780, h: 540 } },
+  { id: 'visionSentinel', title: 'Vision Sentinel & CCTV Sentry', category: 'Hardware Control', icon: Camera, component: VisionSentinelWidget, defaultSize: { w: 840, h: 600 } },
+  { id: 'focusMatrix', title: 'Deep Work & Binaural Soundscape', category: 'Productivity & Tools', icon: Headphones, component: FocusMatrixWidget, defaultSize: { w: 720, h: 560 } },
+  { id: 'aiNewsDigest', title: 'AI News & Intelligence Digest', category: 'AI & Intelligence', icon: Newspaper, component: AiNewsDigestWidget, defaultSize: { w: 780, h: 580 } },
+  { id: 'aiCostSentinel', title: 'LLM Token & Cloud Burn Sentinel', category: 'AI & Intelligence', icon: Zap, component: AiCostSentinelWidget, defaultSize: { w: 740, h: 540 } },
+  { id: 'habitMatrix', title: 'Gamified Habit & Quest Matrix', category: 'Productivity & Tools', icon: Trophy, component: HabitMatrixWidget, defaultSize: { w: 780, h: 560 } }
 ];
 
 /**
