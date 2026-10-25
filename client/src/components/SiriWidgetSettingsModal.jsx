@@ -72,13 +72,13 @@ export default function SiriWidgetSettingsModal({ isOpen = true, onClose, inWind
             </div>
             <div>
               <h3 className="font-semibold text-sm text-white flex items-center gap-2">
-                Siri Assistant & Hotkey Settings
+                JASPER Widget & Voice Settings
                 <span className="text-[10px] font-mono uppercase bg-cyan-950/60 text-cyan-400 border border-cyan-800/60 px-2 py-0.5 rounded-full">
                   OS Mode
                 </span>
               </h3>
               <p className="text-[11px] text-gray-400">
-                Configure keyboard hold-to-activate trigger & floating draggable widget
+                Configure keyboard hold-to-activate trigger & floating draggable JASPER Widget
               </p>
             </div>
           </div>
@@ -152,7 +152,7 @@ export default function SiriWidgetSettingsModal({ isOpen = true, onClose, inWind
 
               <div>
                 <div className="font-semibold text-white flex items-center gap-2">
-                  <span>Hovering Draggable Siri Widget</span>
+                  <span>Hovering Draggable JASPER Widget</span>
                   {settings.enabled ? (
                     <span className="text-[10px] text-emerald-400 font-mono bg-emerald-950/60 border border-emerald-800/40 px-1.5 py-0.5 rounded">Active</span>
                   ) : (
@@ -190,7 +190,7 @@ export default function SiriWidgetSettingsModal({ isOpen = true, onClose, inWind
             </div>
             
             <p className="text-[11px] text-gray-400">
-              Select which key triggers the Siri assistant when held down for a few seconds outside of text inputs.
+              Select which key triggers the JASPER Widget when held down for a few seconds outside of text inputs.
             </p>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">

@@ -3,11 +3,26 @@ import {
   Mic, MicOff, Square, Sparkles, Send, Volume2, X, Maximize2, 
   Clock, CloudSun, Calculator, FileText, Calendar, Search, 
   Music, Flashlight, Battery, Wifi, Bluetooth, Settings, 
-  AlertCircle, CheckCircle2, ChevronUp, ChevronDown, RotateCcw
+  AlertCircle, CheckCircle2, ChevronUp, ChevronDown, RotateCcw,
+  ArrowLeft, Home, Radio, Sun, TrendingUp, Cpu, Camera, Headphones,
+  Newspaper, Zap, Trophy, Shield
 } from 'lucide-react';
 import { getApiBase } from '../utils/apiConfig.js';
 import { speakDeviceAudio } from '../utils/speakDeviceAudio.js';
 import { playChime } from './VoiceController.jsx';
+import { playJarvisBeep } from '../utils/jarvisAudioSynth.js';
+
+// Lazy load all widgets for embedded inline viewing
+const SmartHomeMatrixWidget = React.lazy(() => import('./SmartHomeMatrixWidget.jsx'));
+const NetworkRadarWidget = React.lazy(() => import('./NetworkRadarWidget.jsx'));
+const MorningBriefingWidget = React.lazy(() => import('./MorningBriefingWidget.jsx'));
+const MarketIntelWidget = React.lazy(() => import('./MarketIntelWidget.jsx'));
+const HardwareHudWidget = React.lazy(() => import('./HardwareHudWidget.jsx'));
+const VisionSentinelWidget = React.lazy(() => import('./VisionSentinelWidget.jsx'));
+const FocusMatrixWidget = React.lazy(() => import('./FocusMatrixWidget.jsx'));
+const AiNewsDigestWidget = React.lazy(() => import('./AiNewsDigestWidget.jsx'));
+const AiCostSentinelWidget = React.lazy(() => import('./AiCostSentinelWidget.jsx'));
+const HabitMatrixWidget = React.lazy(() => import('./HabitMatrixWidget.jsx'));
 
 export default function MobileAssistantOverlay({ onClose, autoWake = true, embedded = false }) {
   const [state, setState] = useState(autoWake ? 'listening' : 'idle'); // 'listening' | 'thinking' | 'speaking' | 'idle'
@@ -18,11 +33,23 @@ export default function MobileAssistantOverlay({ onClose, autoWake = true, embed
   const [batteryLevel, setBatteryLevel] = useState(null);
   const [activeTimer, setActiveTimer] = useState(null);
   const [timerSecondsLeft, setTimerSecondsLeft] = useState(0);
+  const [activeWidget, setActiveWidget] = useState(null); // 'smartHome' | 'networkRadar' | etc.
 
   const recognitionRef = useRef(null);
   const silenceTimerRef = useRef(null);
   const timerIntervalRef = useRef(null);
   const mediaStreamRef = useRef(null);
+
+  // Resize Electron floating window when widget opens/closes
+  useEffect(() => {
+    if (window.jasperElectron?.resizeFloatingBar) {
+      if (activeWidget) {
+        window.jasperElectron.resizeFloatingBar({ width: 500, height: 720 });
+      } else {
+        window.jasperElectron.resizeFloatingBar({ width: 440, height: 620 });
+      }
+    }
+  }, [activeWidget]);
 
   // Read Battery API
   useEffect(() => {
@@ -120,7 +147,6 @@ export default function MobileAssistantOverlay({ onClose, autoWake = true, embed
         try { recognitionRef.current.abort(); } catch (_) {}
       }
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-      // Clean up torch if active
       if (mediaStreamRef.current) {
         mediaStreamRef.current.getTracks().forEach(t => t.stop());
       }
@@ -149,6 +175,90 @@ export default function MobileAssistantOverlay({ onClose, autoWake = true, embed
 
     setTranscript(clean);
     setTextInput('');
+    const lower = clean.toLowerCase();
+
+    // Voice Directives to Open Widgets Immediately
+    if (lower.includes('smart home') || lower.includes('lights') || lower.includes('iot')) {
+      setActiveWidget('smartHome');
+      playJarvisBeep('success');
+      setResponse('Opening Smart Home & IoT Matrix, Sir.');
+      speakDeviceAudio('Opening Smart Home and IoT Matrix.');
+      setState('idle');
+      return;
+    }
+    if (lower.includes('radar') || lower.includes('network') || lower.includes('subnet') || lower.includes('sniffer')) {
+      setActiveWidget('networkRadar');
+      playJarvisBeep('success');
+      setResponse('LAN Cyber Radar active. Sweeping 192.168.29.0/24 subnet.');
+      speakDeviceAudio('Activating LAN Cyber Radar and subnet sniffer.');
+      setState('idle');
+      return;
+    }
+    if (lower.includes('morning') || lower.includes('briefing') || lower.includes('debrief')) {
+      setActiveWidget('morningBriefing');
+      playJarvisBeep('success');
+      setResponse('Accessing your synthesized Morning Executive Briefing.');
+      speakDeviceAudio('Accessing your Morning Executive Briefing.');
+      setState('idle');
+      return;
+    }
+    if (lower.includes('crypto') || lower.includes('market') || lower.includes('bitcoin') || lower.includes('stock')) {
+      setActiveWidget('marketIntel');
+      playJarvisBeep('success');
+      setResponse('Displaying real-time market sparklines and crypto intel.');
+      speakDeviceAudio('Displaying real-time market intelligence.');
+      setState('idle');
+      return;
+    }
+    if (lower.includes('focus') || lower.includes('deep work') || lower.includes('binaural') || lower.includes('pomodoro')) {
+      setActiveWidget('focusMatrix');
+      playJarvisBeep('success');
+      setResponse('Initiating Deep Work flow state and binaural soundscape generator.');
+      speakDeviceAudio('Initiating Deep Work flow state.');
+      setState('idle');
+      return;
+    }
+    if (lower.includes('vision') || lower.includes('cctv') || lower.includes('camera') || lower.includes('sentry')) {
+      setActiveWidget('visionSentinel');
+      playJarvisBeep('success');
+      setResponse('Arming Vision Sentinel and live computer vision motion sentry.');
+      speakDeviceAudio('Arming Vision Sentinel and camera feed.');
+      setState('idle');
+      return;
+    }
+    if (lower.includes('habit') || lower.includes('quest') || lower.includes('streak') || lower.includes('xp')) {
+      setActiveWidget('habitMatrix');
+      playJarvisBeep('success');
+      setResponse('Opening your 90-day Habit Consistency and Quest Matrix.');
+      speakDeviceAudio('Opening Habit and Quest Matrix.');
+      setState('idle');
+      return;
+    }
+    if (lower.includes('ai news') || lower.includes('news digest') || lower.includes('arxiv')) {
+      setActiveWidget('aiNewsDigest');
+      playJarvisBeep('success');
+      setResponse('Curating executive 3-bullet AI intelligence summaries.');
+      speakDeviceAudio('Curating AI intelligence digest.');
+      setState('idle');
+      return;
+    }
+    if (lower.includes('cost') || lower.includes('token') || lower.includes('burn') || lower.includes('ollama')) {
+      setActiveWidget('aiCostSentinel');
+      playJarvisBeep('success');
+      setResponse('Displaying LLM token quotas, cloud spend, and edge fallback status.');
+      speakDeviceAudio('Displaying LLM token cost sentinel.');
+      setState('idle');
+      return;
+    }
+    if (lower.includes('hardware') || lower.includes('cpu temp') || lower.includes('thermals') || lower.includes('battery')) {
+      setActiveWidget('hardwareHud');
+      playJarvisBeep('success');
+      setResponse('Hardware thermal gauges and peripheral battery deck online.');
+      speakDeviceAudio('Displaying hardware telemetry and thermal HUD.');
+      setState('idle');
+      return;
+    }
+
     setState('thinking');
 
     try {
@@ -237,12 +347,16 @@ export default function MobileAssistantOverlay({ onClose, autoWake = true, embed
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
-        closeAssistant();
+        if (activeWidget) {
+          setActiveWidget(null);
+        } else {
+          closeAssistant();
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+  }, [activeWidget, onClose]);
 
   const openFullApp = () => {
     if (embedded && onClose) {
@@ -258,7 +372,6 @@ export default function MobileAssistantOverlay({ onClose, autoWake = true, embed
       onClose();
       return;
     }
-    // If Android Bridge is available
     if (window.AndroidAssistant?.finish) {
       window.AndroidAssistant.finish();
     } else {
@@ -267,240 +380,278 @@ export default function MobileAssistantOverlay({ onClose, autoWake = true, embed
     }
   };
 
+  // Full Widget Catalog List
+  const allWidgetsList = [
+    { id: 'smartHome', name: 'Smart Home', desc: 'IoT Lighting & AC', icon: Home, color: 'text-cyan-400' },
+    { id: 'networkRadar', name: 'Cyber Radar', desc: 'LAN Sniffer & Ports', icon: Radio, color: 'text-emerald-400' },
+    { id: 'morningBriefing', name: 'Morning Brief', desc: 'Day Intel & Spoken', icon: Sun, color: 'text-amber-400' },
+    { id: 'marketIntel', name: 'Market Intel', desc: 'Crypto & Equities', icon: TrendingUp, color: 'text-emerald-400' },
+    { id: 'hardwareHud', name: 'Hardware HUD', desc: 'Thermals & Peripherals', icon: Cpu, color: 'text-sky-400' },
+    { id: 'visionSentinel', name: 'Vision Sentinel', desc: 'CCTV & Motion Sentry', icon: Camera, color: 'text-rose-400' },
+    { id: 'focusMatrix', name: 'Deep Work', desc: 'Binaural Flow State', icon: Headphones, color: 'text-purple-400' },
+    { id: 'aiNewsDigest', name: 'AI News Digest', desc: 'Executive Curations', icon: Newspaper, color: 'text-sky-300' },
+    { id: 'aiCostSentinel', name: 'Token Sentinel', desc: 'API Burn & Quotas', icon: Zap, color: 'text-emerald-400' },
+    { id: 'habitMatrix', name: 'Habit Matrix', desc: '90-Day Quests & XP', icon: Trophy, color: 'text-amber-400' }
+  ];
+
   return (
     <div 
       className="fixed inset-0 z-[99999] flex flex-col justify-end bg-black/60 backdrop-blur-md font-sans text-white animate-in fade-in duration-200"
       onClick={(e) => {
-        // Close if clicking the backdrop itself
         if (e.target === e.currentTarget) {
           closeAssistant();
         }
       }}
     >
-      {/* ── Siri/Google Assistant Bottom Sheet Card ────────────────────── */}
+      {/* ── JASPER WIDGET CARD ────────────────────────────────────────── */}
       <div 
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-lg mx-auto bg-gradient-to-b from-[#0c0f17] to-[#07090e] border-t border-cyan-500/30 rounded-t-3xl shadow-[0_-15px_40px_rgba(0,229,255,0.15)] p-5 flex flex-col gap-4 animate-slideUp"
+        className={`w-full ${activeWidget ? 'max-w-xl max-h-[90vh]' : 'max-w-lg'} mx-auto bg-gradient-to-b from-[#0c0f17] via-[#080b12] to-[#05070a] border-t border-cyan-500/30 rounded-t-3xl shadow-[0_-15px_40px_rgba(0,229,255,0.18)] p-5 flex flex-col gap-3.5 transition-all duration-300`}
       >
         
-        {/* Top Header: Drag Handle & Controls */}
-        <div className="flex items-center justify-between pb-1">
-          <div className="w-10 h-1 bg-gray-600 rounded-full mx-auto absolute left-1/2 -translate-x-1/2 top-2" />
+        {/* Top Header */}
+        <div className="flex items-center justify-between pb-1 relative">
+          <div className="w-10 h-1 bg-gray-600/60 rounded-full mx-auto absolute left-1/2 -translate-x-1/2 -top-2" />
           
-          <button 
-            onClick={openFullApp}
-            className="flex items-center gap-1.5 text-xs text-cyan-400 bg-cyan-950/40 border border-cyan-800/40 px-2.5 py-1 rounded-full font-mono"
-            title="Expand to Full J.A.S.P.E.R. HUD"
-          >
-            <Maximize2 className="w-3 h-3" />
-            <span>Full HUD</span>
-          </button>
+          {activeWidget ? (
+            <button 
+              onClick={() => {
+                playJarvisBeep('click');
+                setActiveWidget(null);
+              }}
+              className="flex items-center gap-1.5 text-xs text-cyan-300 bg-cyan-950/60 border border-cyan-500/40 hover:bg-cyan-900/60 px-3 py-1 rounded-full font-mono transition-all cursor-pointer"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back to Voice</span>
+            </button>
+          ) : (
+            <button 
+              onClick={openFullApp}
+              className="flex items-center gap-1.5 text-xs text-cyan-400 bg-cyan-950/40 border border-cyan-800/40 hover:bg-cyan-900/40 px-2.5 py-1 rounded-full font-mono transition-all cursor-pointer"
+              title="Expand to Full J.A.S.P.E.R. HUD"
+            >
+              <Maximize2 className="w-3 h-3" />
+              <span>Full OS</span>
+            </button>
+          )}
 
-          <span className="text-[11px] font-mono tracking-widest text-cyan-300 font-bold uppercase">
-            JASPER Mobile Assistant
-          </span>
+          <div className="text-center">
+            <span className="text-[12px] font-mono tracking-widest text-cyan-300 font-bold uppercase flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+              JASPER WIDGET
+            </span>
+          </div>
 
           <button 
             onClick={closeAssistant}
-            className="p-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white"
-            title="Close Assistant"
+            className="p-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
+            title="Close Widget"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Center: Glowing Animated Arc Orb */}
-        <div className="flex flex-col items-center justify-center py-2">
-          <div 
-            onClick={startVoiceCapture}
-            className="relative w-24 h-24 flex items-center justify-center cursor-pointer group"
-          >
-            {/* Outer Pulsing Rings */}
-            <div className={`absolute inset-0 rounded-full border border-cyan-400/30 transition-all duration-500 ${
-              state === 'listening' ? 'scale-125 border-cyan-400 border-2 shadow-[0_0_25px_#00e5ff] animate-ping' :
-              state === 'thinking' ? 'scale-110 border-purple-400 border-2 shadow-[0_0_20px_#a855f7] animate-spin' :
-              state === 'speaking' ? 'scale-120 border-cyan-300 shadow-[0_0_20px_#00e5ff] animate-pulse' : ''
-            }`} />
-
-            <div className={`absolute inset-2 rounded-full border border-dashed transition-all duration-500 ${
-              state === 'thinking' ? 'border-purple-400 animate-spin-reverse' : 'border-cyan-500/40'
-            }`} />
-
-            {/* Inner Core */}
-            <div className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 ${
-              state === 'listening' ? 'bg-gradient-to-tr from-cyan-500 to-emerald-400 shadow-[0_0_20px_#00e5ff]' :
-              state === 'thinking' ? 'bg-gradient-to-tr from-purple-500 to-pink-500 shadow-[0_0_20px_#a855f7]' :
-              state === 'speaking' ? 'bg-gradient-to-tr from-cyan-400 to-blue-500 shadow-[0_0_20px_#00e5ff]' :
-              'bg-gradient-to-tr from-cyan-800 to-cyan-600 shadow-[0_0_10px_#00e5ff]'
-            }`}>
-              <Mic className="w-6 h-6 text-black" />
-            </div>
-          </div>
-
-          {/* Status Label & Waveform */}
-          <div className="flex items-center gap-2 mt-3">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-            <span className="text-xs font-mono text-cyan-300 uppercase tracking-wider">
-              {state === 'listening' ? 'Listening for command...' :
-               state === 'thinking' ? 'Synthesizing response...' :
-               state === 'speaking' ? 'J.A.S.P.E.R. Speaking...' : 'Ready for directive'}
-            </span>
-          </div>
-
-          {/* Active Audio Wave Bars */}
-          {state === 'listening' || state === 'speaking' ? (
-            <div className="flex items-center gap-1 h-5 mt-1.5">
-              <span className="w-1 bg-cyan-400 rounded-full animate-bounce h-2" />
-              <span className="w-1 bg-cyan-300 rounded-full animate-bounce h-5" style={{ animationDelay: '150ms' }} />
-              <span className="w-1 bg-cyan-400 rounded-full animate-bounce h-3" style={{ animationDelay: '300ms' }} />
-              <span className="w-1 bg-cyan-200 rounded-full animate-bounce h-4" style={{ animationDelay: '450ms' }} />
-            </div>
-          ) : null}
-        </div>
-
-        {/* Live Conversation Bubbles */}
-        {(transcript || response) && (
-          <div className="flex flex-col gap-2 max-h-36 overflow-y-auto px-1 text-xs">
-            {transcript && (
-              <div className="self-end bg-cyan-950/60 border border-cyan-500/40 rounded-2xl rounded-tr-sm px-3.5 py-2 text-cyan-200 max-w-[85%]">
-                <span className="font-semibold text-cyan-400">You: </span>
-                {transcript}
+        {/* IF A WIDGET IS SELECTED: RENDER EMBEDDED WIDGET */}
+        {activeWidget ? (
+          <div className="flex-1 overflow-y-auto max-h-[70vh] rounded-2xl border border-cyan-500/20 bg-slate-950/60 p-2 custom-scrollbar">
+            <React.Suspense fallback={
+              <div className="py-20 text-center text-xs font-mono text-cyan-400 flex flex-col items-center justify-center gap-2">
+                <Sparkles className="w-6 h-6 animate-spin text-cyan-400" />
+                <span>Launching {activeWidget} module...</span>
               </div>
-            )}
-            {response && (
-              <div className="self-start bg-black/60 border border-white/10 rounded-2xl rounded-tl-sm px-3.5 py-2 text-gray-100 max-w-[90%] leading-relaxed">
-                <div className="flex items-center justify-between text-[10px] text-cyan-400 font-mono mb-1">
-                  <span className="flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" />
-                    J.A.S.P.E.R.
-                  </span>
-                  <button onClick={() => speakDeviceAudio(response)}>
-                    <Volume2 className="w-3 h-3" />
-                  </button>
+            }>
+              {activeWidget === 'smartHome' && <SmartHomeMatrixWidget onClose={() => setActiveWidget(null)} />}
+              {activeWidget === 'networkRadar' && <NetworkRadarWidget onClose={() => setActiveWidget(null)} />}
+              {activeWidget === 'morningBriefing' && <MorningBriefingWidget onClose={() => setActiveWidget(null)} />}
+              {activeWidget === 'marketIntel' && <MarketIntelWidget onClose={() => setActiveWidget(null)} />}
+              {activeWidget === 'hardwareHud' && <HardwareHudWidget onClose={() => setActiveWidget(null)} />}
+              {activeWidget === 'visionSentinel' && <VisionSentinelWidget onClose={() => setActiveWidget(null)} />}
+              {activeWidget === 'focusMatrix' && <FocusMatrixWidget onClose={() => setActiveWidget(null)} />}
+              {activeWidget === 'aiNewsDigest' && <AiNewsDigestWidget onClose={() => setActiveWidget(null)} />}
+              {activeWidget === 'aiCostSentinel' && <AiCostSentinelWidget onClose={() => setActiveWidget(null)} />}
+              {activeWidget === 'habitMatrix' && <HabitMatrixWidget onClose={() => setActiveWidget(null)} />}
+            </React.Suspense>
+          </div>
+        ) : (
+          /* OTHERWISE: RENDER MAIN VOICE ORB & CONVERSATION */
+          <>
+            {/* Center: Glowing Animated Arc Orb */}
+            <div className="flex flex-col items-center justify-center py-1">
+              <div 
+                onClick={startVoiceCapture}
+                className="relative w-22 h-22 flex items-center justify-center cursor-pointer group"
+                title="Tap to Speak with JASPER"
+              >
+                {/* Outer Pulsing Rings */}
+                <div className={`absolute inset-0 rounded-full border border-cyan-400/30 transition-all duration-500 ${
+                  state === 'listening' ? 'scale-125 border-cyan-400 border-2 shadow-[0_0_25px_#00e5ff] animate-ping' :
+                  state === 'thinking' ? 'scale-110 border-purple-400 border-2 shadow-[0_0_20px_#a855f7] animate-spin' :
+                  state === 'speaking' ? 'scale-120 border-cyan-300 shadow-[0_0_20px_#00e5ff] animate-pulse' : ''
+                }`} />
+
+                <div className={`absolute inset-2 rounded-full border border-dashed transition-all duration-500 ${
+                  state === 'thinking' ? 'border-purple-400 animate-spin-reverse' : 'border-cyan-500/40'
+                }`} />
+
+                {/* Inner Core */}
+                <div className={`w-13 h-13 rounded-full flex items-center justify-center transition-all duration-300 ${
+                  state === 'listening' ? 'bg-gradient-to-tr from-cyan-500 to-emerald-400 shadow-[0_0_20px_#00e5ff]' :
+                  state === 'thinking' ? 'bg-gradient-to-tr from-purple-500 to-pink-500 shadow-[0_0_20px_#a855f7]' :
+                  state === 'speaking' ? 'bg-gradient-to-tr from-cyan-400 to-blue-500 shadow-[0_0_20px_#00e5ff]' :
+                  'bg-gradient-to-tr from-cyan-800 to-cyan-600 shadow-[0_0_10px_#00e5ff]'
+                }`}>
+                  <Mic className="w-5 h-5 text-black" />
                 </div>
-                {response}
+              </div>
+
+              {/* Status Label */}
+              <div className="flex items-center gap-2 mt-2.5">
+                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                <span className="text-[11px] font-mono text-cyan-300 uppercase tracking-wider">
+                  {state === 'listening' ? 'Listening for command...' :
+                   state === 'thinking' ? 'Synthesizing response...' :
+                   state === 'speaking' ? 'J.A.S.P.E.R. Speaking...' : 'Ready for directive'}
+                </span>
+              </div>
+            </div>
+
+            {/* Live Conversation Bubbles */}
+            {(transcript || response) && (
+              <div className="flex flex-col gap-2 max-h-32 overflow-y-auto px-1 text-xs custom-scrollbar">
+                {transcript && (
+                  <div className="self-end bg-cyan-950/60 border border-cyan-500/40 rounded-2xl rounded-tr-sm px-3.5 py-1.5 text-cyan-200 max-w-[85%] font-mono">
+                    <span className="font-semibold text-cyan-400">You: </span>
+                    {transcript}
+                  </div>
+                )}
+                {response && (
+                  <div className="self-start bg-black/60 border border-white/10 rounded-2xl rounded-tl-sm px-3.5 py-2 text-gray-100 max-w-[90%] leading-relaxed">
+                    <div className="flex items-center justify-between text-[10px] text-cyan-400 font-mono mb-1">
+                      <span className="flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" />
+                        J.A.S.P.E.R.
+                      </span>
+                      <button onClick={() => speakDeviceAudio(response)}>
+                        <Volume2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                    {response}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Active Timer Pill if Running */}
+            {activeTimer && (
+              <div className="flex items-center justify-between bg-amber-500/15 border border-amber-500/40 rounded-xl px-3 py-1.5 text-xs text-amber-300 font-mono">
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 animate-spin" />
+                  {activeTimer}: {Math.floor(timerSecondsLeft / 60)}:{(timerSecondsLeft % 60).toString().padStart(2, '0')}
+                </span>
+                <button 
+                  onClick={() => {
+                    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+                    setActiveTimer(null);
+                  }}
+                  className="text-red-400 text-[10px] hover:underline"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── ALL WIDGETS TRAY (Horizontally Scrollable) ──────────────────── */}
+        <div className="space-y-1.5 pt-1 border-t border-slate-800/80">
+          <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-slate-400 px-1">
+            <span>Integrated Widgets ({allWidgetsList.length})</span>
+            <span className="text-cyan-400">Tap to Launch</span>
+          </div>
+
+          <div className="flex items-center gap-2 overflow-x-auto py-1 scrollbar-none text-xs">
+            {allWidgetsList.map(w => {
+              const IconComp = w.icon;
+              const isSelected = activeWidget === w.id;
+
+              return (
+                <button
+                  key={w.id}
+                  onClick={() => {
+                    playJarvisBeep('click');
+                    setActiveWidget(isSelected ? null : w.id);
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border whitespace-nowrap transition-all cursor-pointer shrink-0 ${
+                    isSelected
+                      ? 'bg-cyan-500/25 border-cyan-400 text-cyan-200 shadow-[0_0_12px_rgba(6,182,212,0.3)]'
+                      : 'bg-white/[0.04] border-white/10 text-slate-300 hover:text-white hover:border-cyan-500/40 hover:bg-cyan-950/20'
+                  }`}
+                  title={`${w.name}: ${w.desc}`}
+                >
+                  <IconComp className={`w-3.5 h-3.5 ${w.color}`} />
+                  <span className="font-medium text-[11px]">{w.name}</span>
+                </button>
+              );
+            })}
+
+            {/* Quick Tools: 5-Min Timer */}
+            <button
+              onClick={() => processCommand('start a 5 minute timer')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 hover:border-cyan-500/40 text-slate-300 hover:text-white transition-colors shrink-0 cursor-pointer"
+            >
+              <Clock className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="text-[11px]">5m Timer</span>
+            </button>
+
+            {/* Quick Tools: Weather */}
+            <button
+              onClick={() => processCommand('what is the weather')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 hover:border-amber-500/40 text-slate-300 hover:text-white transition-colors shrink-0 cursor-pointer"
+            >
+              <CloudSun className="w-3.5 h-3.5 text-amber-400" />
+              <span className="text-[11px]">Weather</span>
+            </button>
+
+            {/* Quick Tools: Flashlight Toggle */}
+            <button
+              onClick={toggleFlashlight}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border whitespace-nowrap transition-colors shrink-0 cursor-pointer ${
+                isFlashlightOn 
+                  ? 'bg-amber-400/25 border-amber-400 text-amber-300' 
+                  : 'bg-white/[0.04] border-white/10 text-slate-300 hover:border-cyan-500/40'
+              }`}
+            >
+              <Flashlight className="w-3.5 h-3.5 text-yellow-300" />
+              <span className="text-[11px]">{isFlashlightOn ? 'Torch ON' : 'Torch'}</span>
+            </button>
+
+            {/* Quick Tools: Calculator */}
+            <button
+              onClick={() => setTextInput('calculate ')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 hover:border-emerald-500/40 text-slate-300 hover:text-white transition-colors shrink-0 cursor-pointer"
+            >
+              <Calculator className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-[11px]">Calc</span>
+            </button>
+
+            {/* Quick Tools: Battery */}
+            {batteryLevel && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 whitespace-nowrap text-slate-300 shrink-0 font-mono text-[11px]">
+                <Battery className="w-3.5 h-3.5 text-green-400" />
+                <span>{batteryLevel.level}%</span>
               </div>
             )}
           </div>
-        )}
-
-        {/* Active Timer Pill if Running */}
-        {activeTimer && (
-          <div className="flex items-center justify-between bg-amber-500/15 border border-amber-500/40 rounded-xl px-3 py-1.5 text-xs text-amber-300 font-mono">
-            <span className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 animate-spin" />
-              {activeTimer}: {Math.floor(timerSecondsLeft / 60)}:{(timerSecondsLeft % 60).toString().padStart(2, '0')}
-            </span>
-            <button 
-              onClick={() => {
-                if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-                setActiveTimer(null);
-              }}
-              className="text-red-400 text-[10px] hover:underline"
-            >
-              Cancel
-            </button>
-          </div>
-        )}
-
-        {/* ── Quick Tools Grid (Horizontally Scrollable) ──────────────────── */}
-        <div className="flex items-center gap-2 overflow-x-auto py-1.5 scrollbar-none text-xs">
-          {/* Quick Tool: 5-Min Timer */}
-          <button
-            onClick={() => {
-              processCommand('start a 5 minute timer');
-            }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-500/40 hover:bg-cyan-950/30 whitespace-nowrap text-gray-300 hover:text-cyan-300 transition-colors shrink-0"
-          >
-            <Clock className="w-3.5 h-3.5 text-cyan-400" />
-            <span>5m Timer</span>
-          </button>
-
-          {/* Quick Tool: Weather */}
-          <button
-            onClick={() => {
-              processCommand('what is the weather');
-            }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-500/40 hover:bg-cyan-950/30 whitespace-nowrap text-gray-300 hover:text-cyan-300 transition-colors shrink-0"
-          >
-            <CloudSun className="w-3.5 h-3.5 text-amber-400" />
-            <span>Weather</span>
-          </button>
-
-          {/* Quick Tool: Flashlight Toggle */}
-          <button
-            onClick={toggleFlashlight}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border whitespace-nowrap transition-colors shrink-0 ${
-              isFlashlightOn 
-                ? 'bg-amber-400/25 border-amber-400 text-amber-300' 
-                : 'bg-white/5 border-white/10 text-gray-300 hover:border-cyan-500/40'
-            }`}
-          >
-            <Flashlight className="w-3.5 h-3.5 text-yellow-300" />
-            <span>{isFlashlightOn ? 'Torch ON' : 'Torch'}</span>
-          </button>
-
-          {/* Quick Tool: Calculator */}
-          <button
-            onClick={() => {
-              setTextInput('calculate ');
-            }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-500/40 hover:bg-cyan-950/30 whitespace-nowrap text-gray-300 hover:text-cyan-300 transition-colors shrink-0"
-          >
-            <Calculator className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Calculate</span>
-          </button>
-
-          {/* Quick Tool: Notes */}
-          <button
-            onClick={() => {
-              processCommand('take a note');
-            }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-500/40 hover:bg-cyan-950/30 whitespace-nowrap text-gray-300 hover:text-cyan-300 transition-colors shrink-0"
-          >
-            <FileText className="w-3.5 h-3.5 text-blue-400" />
-            <span>Take Note</span>
-          </button>
-
-          {/* Quick Tool: Battery Info */}
-          {batteryLevel && (
-            <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 border border-white/10 whitespace-nowrap text-gray-300 shrink-0 font-mono">
-              <Battery className="w-3.5 h-3.5 text-green-400" />
-              <span>{batteryLevel.level}% {batteryLevel.charging ? '⚡' : ''}</span>
-            </div>
-          )}
-
-          {/* Quick Tool: Web Search */}
-          <button
-            onClick={() => {
-              setTextInput('search for ');
-            }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-500/40 hover:bg-cyan-950/30 whitespace-nowrap text-gray-300 hover:text-cyan-300 transition-colors shrink-0"
-          >
-            <Search className="w-3.5 h-3.5 text-purple-400" />
-            <span>Search</span>
-          </button>
-
-          {/* Quick Tool: Music Toggle */}
-          <button
-            onClick={() => {
-              processCommand('toggle music');
-            }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-500/40 hover:bg-cyan-950/30 whitespace-nowrap text-gray-300 hover:text-cyan-300 transition-colors shrink-0"
-          >
-            <Music className="w-3.5 h-3.5 text-pink-400" />
-            <span>Music</span>
-          </button>
         </div>
 
         {/* Bottom Input & Action Bar */}
         <div className="flex items-center gap-2 pt-1">
           <button
             onClick={stopAll}
-            className="p-2.5 rounded-xl bg-red-500/20 text-red-300 border border-red-500/30 hover:bg-red-500/30 transition-colors shrink-0"
+            className="p-2.5 rounded-xl bg-red-500/20 text-red-300 border border-red-500/30 hover:bg-red-500/30 transition-colors shrink-0 cursor-pointer"
             title="Stop Speech / Reset"
           >
-            <Square className="w-4 h-4 fill-current" />
+            <Square className="w-3.5 h-3.5 fill-current" />
           </button>
 
           <form 
@@ -511,17 +662,17 @@ export default function MobileAssistantOverlay({ onClose, autoWake = true, embed
               type="text"
               value={textInput}
               onChange={(e) => setTextInput(e.target.value)}
-              placeholder="Ask anything or speak..."
+              placeholder="Ask anything or speak (e.g. 'open radar', 'crypto')..."
               className="flex-1 bg-transparent text-xs text-white placeholder-gray-500 outline-none"
             />
-            <button type="submit" className="text-cyan-400 hover:text-cyan-300 p-0.5">
+            <button type="submit" className="text-cyan-400 hover:text-cyan-300 p-0.5 cursor-pointer">
               <Send className="w-3.5 h-3.5" />
             </button>
           </form>
 
           <button
             onClick={startVoiceCapture}
-            className={`p-2.5 rounded-xl font-bold flex items-center justify-center transition-all shrink-0 ${
+            className={`p-2.5 rounded-xl font-bold flex items-center justify-center transition-all shrink-0 cursor-pointer ${
               state === 'listening'
                 ? 'bg-cyan-400 text-black shadow-[0_0_15px_#00e5ff]'
                 : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30'

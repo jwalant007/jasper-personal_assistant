@@ -271,7 +271,7 @@ export default function StandaloneSiriDesktopWidget() {
           setContextMenuPos({ x: e.clientX, y: e.clientY });
         }}
         className="relative w-16 h-16 flex items-center justify-center cursor-grab active:cursor-grabbing group rounded-full"
-        title={`J.A.S.P.E.R. Siri Assistant\n• Hold cursor to Move\n• Click to Open\n• Hold ${settings.triggerKey} for ${settings.holdSeconds}s\n• Right-click for Options`}
+        title={`J.A.S.P.E.R. Widget\n• Hold cursor to Move\n• Click to Open\n• Hold ${settings.triggerKey} for ${settings.holdSeconds}s\n• Right-click for Options`}
       >
         {/* Glow Shadow */}
         <div 
@@ -328,7 +328,7 @@ export default function StandaloneSiriDesktopWidget() {
             className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-cyan-500/20 text-cyan-300 font-medium text-left"
           >
             <Mic className="w-3.5 h-3.5" />
-            <span>Open Assistant</span>
+            <span>Open JASPER Widget</span>
           </button>
           
           {window.jasperElectron?.openMainWindow && (

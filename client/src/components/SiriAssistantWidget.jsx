@@ -277,7 +277,7 @@ export default function SiriAssistantWidget() {
             <div className="text-center">
               <div className="text-sm font-bold text-white tracking-wide uppercase font-mono flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-                Charging J.A.S.P.E.R. Siri Voice
+                Charging J.A.S.P.E.R. Widget
               </div>
               <div className="text-xs text-cyan-300 font-mono mt-0.5">
                 Keep holding {settings.triggerKey}... ({Math.round(holdProgress)}%)
@@ -302,7 +302,7 @@ export default function SiriAssistantWidget() {
           className={`group select-none cursor-grab active:cursor-grabbing rounded-full transition-transform ${
             isDragging ? 'scale-105' : 'hover:scale-105'
           }`}
-          title={`J.A.S.P.E.R. Siri Assistant\n• Hold cursor to Move\n• Click to Open\n• Hold ${settings.triggerKey} for ${settings.holdSeconds}s\n• Right-click for Settings`}
+          title={`JASPER Widget\n• Hold cursor to Move\n• Click to Open\n• Hold ${settings.triggerKey} for ${settings.holdSeconds}s\n• Right-click for Settings`}
         >
           <div 
             className={`relative flex items-center justify-center rounded-full ${widgetDimension}`}
@@ -360,14 +360,14 @@ export default function SiriAssistantWidget() {
             className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-cyan-500/20 text-cyan-300 font-medium text-left"
           >
             <Mic className="w-3.5 h-3.5" />
-            <span>Open Siri Assistant</span>
+            <span>Open JASPER Widget</span>
           </button>
           <button
             onClick={() => setIsSettingsOpen(true)}
             className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-gray-300 text-left"
           >
             <Settings className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Assistant Settings</span>
+            <span>Widget Settings</span>
           </button>
           <button
             onClick={() => {

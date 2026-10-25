@@ -70,7 +70,7 @@ import SiriWidgetSettingsModal from './SiriWidgetSettingsModal';
  * ALL NATIVE JASPER OS APPLICATIONS REGISTRY
  */
 const JASPER_OS_APPS_REGISTRY = [
-  { id: 'siriSettings', title: 'Siri Voice Assistant & Hotkey Settings', category: 'System & Hardware', icon: Sparkles, component: (props) => <SiriWidgetSettingsModal inWindow={true} isOpen={true} onClose={props.onClose} />, defaultSize: { w: 660, h: 600 } },
+  { id: 'siriSettings', title: 'JASPER Widget & Voice Assistant Settings', category: 'System & Hardware', icon: Sparkles, component: (props) => <SiriWidgetSettingsModal inWindow={true} isOpen={true} onClose={props.onClose} />, defaultSize: { w: 660, h: 600 } },
   { id: 'telephonyHub', title: 'Telephony Hub', category: 'Hardware Control', icon: PhoneForwarded, component: TelephonyReceptionistWidget, defaultSize: { w: 960, h: 640 } },
   { id: 'payVault', title: 'Pay Vault & Guardian Budget', category: 'Finance & Security', icon: Wallet, component: PaymentBalanceWidget, defaultSize: { w: 940, h: 640 } },
   { id: 'videoStudio', title: 'AI Video Creator & YouTube Studio', category: 'Creative & AI', icon: Video, component: JasperVideoStudioApp, defaultSize: { w: 980, h: 660 } },
@@ -1438,7 +1438,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
                   setShowSiriSettings(true);
                 }}
                 className="p-2 rounded-xl bg-[#252525] hover:bg-[#303030] text-cyan-300 hover:text-cyan-200 transition-colors cursor-pointer"
-                title="Siri Voice Assistant & Hotkey Settings"
+                title="JASPER Widget & Voice Assistant Settings"
               >
                 <Sparkles className="w-4 h-4 text-cyan-400" />
               </button>

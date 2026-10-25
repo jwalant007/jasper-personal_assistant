@@ -113,7 +113,7 @@ const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.
 const currentMode = searchParams.get('mode');
 
 if (typeof document !== 'undefined') {
-  if (currentMode === 'siri_widget' || currentMode === 'desktop_widget') {
+  if (currentMode === 'siri_widget' || currentMode === 'desktop_widget' || currentMode === 'jasper_widget') {
     document.documentElement.classList.add('mode-siri-widget');
     document.body.classList.add('mode-siri-widget');
     document.documentElement.style.background = 'transparent';
@@ -128,7 +128,7 @@ function RootRouter() {
   if (currentMode === 'floating_bar') {
     return <FloatingFunctionBar />;
   }
-  if (currentMode === 'siri_widget' || currentMode === 'desktop_widget') {
+  if (currentMode === 'siri_widget' || currentMode === 'desktop_widget' || currentMode === 'jasper_widget') {
     return <StandaloneSiriDesktopWidget />;
   }
   if (currentMode === 'mobile_assistant') {
