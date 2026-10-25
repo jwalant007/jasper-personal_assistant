@@ -125,18 +125,17 @@ if (typeof document !== 'undefined') {
 }
 
 function RootRouter() {
-  if (currentMode === 'floating_bar') {
-    return <FloatingFunctionBar />;
-  }
-  if (currentMode === 'siri_widget' || currentMode === 'desktop_widget' || currentMode === 'jasper_widget') {
-    return <StandaloneSiriDesktopWidget />;
-  }
-  if (currentMode === 'mobile_assistant') {
-    return <MobileAssistantOverlay />;
-  }
   return (
     <JasperProvider>
-      <App />
+      {currentMode === 'floating_bar' ? (
+        <FloatingFunctionBar />
+      ) : currentMode === 'siri_widget' || currentMode === 'desktop_widget' || currentMode === 'jasper_widget' ? (
+        <StandaloneSiriDesktopWidget />
+      ) : currentMode === 'mobile_assistant' ? (
+        <MobileAssistantOverlay />
+      ) : (
+        <App />
+      )}
     </JasperProvider>
   );
 }

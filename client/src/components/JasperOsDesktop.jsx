@@ -1359,7 +1359,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
                 <div className="flex items-center gap-2 min-w-0">
                   <Sparkles className={`w-4 h-4 shrink-0 ${siriWidgetEnabled ? 'text-cyan-300 animate-pulse' : 'text-slate-500'}`} />
                   <div className="min-w-0">
-                    <div className="text-xs font-semibold truncate">Siri Assistant</div>
+                    <div className="text-xs font-semibold truncate">JASPER Widget</div>
                     <div className="text-[10px] text-slate-400 truncate">
                       {siriWidgetEnabled ? 'Orb Active' : 'Off'}
                     </div>
@@ -1373,7 +1373,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
                     setShowSiriSettings(true);
                   }}
                   className="p-1 rounded-lg hover:bg-white/20 text-slate-300 hover:text-cyan-300 transition-colors ml-1"
-                  title="Configure Siri Assistant & Hotkey"
+                  title="Configure JASPER Widget & Voice Settings"
                 >
                   <Sliders className="w-3.5 h-3.5" />
                 </button>
