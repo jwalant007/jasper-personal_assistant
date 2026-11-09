@@ -51,6 +51,7 @@ const JasperVideoStudioApp = React.lazy(() => import('./components/JasperVideoSt
 const PaymentBalanceWidget = React.lazy(() => import('./components/PaymentBalanceWidget'));
 const TelephonyReceptionistWidget = React.lazy(() => import('./components/TelephonyReceptionistWidget'));
 const PlatformDownloadsModal = React.lazy(() => import('./components/PlatformDownloadsModal'));
+const IntelligenceCommandCenterWidget = React.lazy(() => import('./components/IntelligenceCommandCenterWidget'));
 import geminiClient from './utils/geminiClient';
 import { getServerIp, setServerIp, getApiBase, getWsBase } from './utils/apiConfig.js';
 import { getPhoneBrainMode, setPhoneBrainMode, togglePhoneBrainMode } from './utils/mobileBrain.js';
@@ -236,6 +237,10 @@ export default function App() {
   const setShowBlenderStudio = (v) => v ? openModal('blenderStudio') : closeModal('blenderStudio');
   const showVideoStudio = isModalOpen('videoStudio');
   const setShowVideoStudio = (v) => v ? openModal('videoStudio') : closeModal('videoStudio');
+
+  // Intelligence Command Center (OSINT + GEOINT)
+  const showIntelligenceHub = isModalOpen('intelligenceHub');
+  const setShowIntelligenceHub = (v) => v ? openModal('intelligenceHub') : closeModal('intelligenceHub');
 
   // Local Component State
   const [showKey, setShowKey] = useState(false);
@@ -1461,7 +1466,7 @@ export default function App() {
     }
 
     // Intercept Voice App Open Commands (e.g. "Jasper open search", "open calculator", "open files", "open whatsapp auto reply", "open blender", "open tv", "open jio stb")
-    const appOpenRegex = /(open|launch|start|show|run)\s+(video|video creator|video studio|video app|youtube studio|capcut|invideo|search|search engine|files|file manager|explorer|code|code studio|terminal|notes|planner|tasks|calculator|calc|tv|tv remote|smart tv|tv screen|jio|jio fiber|jio stb|stb|stb remote|phone|android|pc|pc hub|pc command|security|biometrics|browser|web agent|sports|spatial gps|satellite|satellite intelligence|orbital|maps?|navigation|health|fitband|translator|translation|manual|guide|whatsapp|instagram|auto reply|call auto|social auto|blender|blender 3d|3d studio)/i;
+    const appOpenRegex = /(open|launch|start|show|run)\s+(video|video creator|video studio|video app|youtube studio|capcut|invideo|search|search engine|files|file manager|explorer|code|code studio|terminal|notes|planner|tasks|calculator|calc|tv|tv remote|smart tv|tv screen|jio|jio fiber|jio stb|stb|stb remote|phone|android|pc|pc hub|pc command|security|biometrics|browser|web agent|sports|spatial gps|satellite|satellite intelligence|orbital|maps?|navigation|health|fitband|translator|translation|manual|guide|whatsapp|instagram|auto reply|call auto|social auto|blender|blender 3d|3d studio|intelligence|osint|geoint|geospatial|intel hub|command center|argos|atlas|argos atlas)/i;
     const appMatch = queryText.match(appOpenRegex);
     if (appMatch) {
       const targetApp = appMatch[2].toLowerCase();
@@ -1473,6 +1478,15 @@ export default function App() {
         }
         setShowVideoStudio(true);
         openedAppName = 'AI Video Creator & YouTube Studio';
+      }
+      else if (targetApp.includes('argos') || targetApp.includes('atlas')) {
+        setModalData('maps', { initialTab: 'argos' });
+        setShowMaps(true);
+        openedAppName = 'ARGOS ATLAS Intelligence Workstation';
+      }
+      else if (targetApp.includes('intelligence') || targetApp.includes('osint') || targetApp.includes('geoint') || targetApp.includes('geospatial') || targetApp.includes('intel hub') || targetApp.includes('command center')) {
+        setShowIntelligenceHub(true);
+        openedAppName = 'OSINT & Geospatial Intelligence Command Center';
       }
       else if (targetApp.includes('satellite') || targetApp.includes('orbital') || targetApp.includes('spatial') || targetApp.includes('map') || targetApp.includes('nav') || targetApp.includes('gps')) {
         setModalData('maps', { initialTab: targetApp.includes('nav') || targetApp.includes('route') ? 'navigation' : 'satellite' });
@@ -1517,6 +1531,18 @@ export default function App() {
 
     // Intercept 3D & 4D Hologram & Simulation commands (including "show me X in 3D", "render in blender", "show hologram of X")
     const hologramRegex = /(4d hologram|4d|tesseract|temporal|3d hologram|hologram|show me .* in 3d|show me .* 3d|show .* in 3d|show .* hologram|visualize .* in 3d|show 3d|render 3d|3d model|spiderman|spider-man|spider man|peter parker|iron spider|miles morales|simulation|simulations|simulate|run 3d|3d simulation|physics simulation|quantum simulation|stark simulation|dna simulation|orbital simulation)/i;
+
+    // Intercept OSINT / Geospatial Intelligence commands
+    const osintRegex = /(analyze.*(gps|coordinates?|coords?|location)|satellite imagery|geospatial|osint|intelligence report|geo.*intel|show.*satellite|compare.*satellite|ndvi|vegetation analysis|flood monitor|wildfire monitor|environmental.*monitor|geographic.*intel|show.*radar|weather.*radar|overpass.*sat|copernicus|nasa.*earth|earthdata|sentinel.*image|landsat)/i;
+    if (osintRegex.test(queryText)) {
+      setShowIntelligenceHub(true);
+      const response = `Activating J.A.S.P.E.R. OSINT & Geospatial Intelligence Command Center for: "${queryText}"`;
+      const newChat = { id: Date.now(), query: queryText, attachments: attachments, response, timestamp: new Date().toLocaleString() };
+      setPastChats((prev) => [newChat, ...prev]);
+      setSelectedChatId(newChat.id);
+      setSpeakingText(response);
+      return;
+    }
     if (hologramRegex.test(queryText)) {
       setHologramQuery(queryText);
       setShowHologramModal(true);
@@ -3650,6 +3676,11 @@ export default function App() {
             <JasperCalculatorApp />
           </div>
         </DraggableModalWrapper>
+      )}
+
+      {/* Intelligence Command Center — OSINT & GEOINT */}
+      {showIntelligenceHub && (
+        <IntelligenceCommandCenterWidget onClose={() => setShowIntelligenceHub(false)} />
       )}
       </React.Suspense>
 

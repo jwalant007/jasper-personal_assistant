@@ -54,7 +54,9 @@ import {
   Maximize2,
   Shield,
   Info,
-  Sparkles
+  Sparkles,
+  FileText,
+  Download
 } from 'lucide-react';
 import { getLocation, watchLiveGps } from '../utils/locationService';
 import { geocodeAddress, getFastestRoute, calculateDistanceKm, generateShareLocationUrl, getNearbyPlaces } from '../utils/navigationService';
@@ -79,8 +81,12 @@ import {
 } from '../utils/satelliteIntelligence';
 
 export default function MapsWidget({ onClose, initialDestination = '', initialContact = '', initialTab = 'satellite' }) {
-  // Tabs: 'satellite' | 'navigation' | 'contacts' | 'telemetry' | 'places'
-  const [activeTab, setActiveTab] = useState(initialTab === 'navigation' ? 'navigation' : (initialContact ? 'contacts' : 'satellite'));
+  // Tabs: 'satellite' | 'navigation' | 'contacts' | 'telemetry' | 'places' | 'argos'
+  const [activeTab, setActiveTab] = useState(
+    initialTab === 'argos' ? 'argos' :
+    initialTab === 'navigation' ? 'navigation' :
+    (initialContact ? 'contacts' : 'satellite')
+  );
   
   // Live GPS & Satellite Telemetry
   const [userLocation, setUserLocation] = useState(null);
@@ -133,6 +139,33 @@ export default function MapsWidget({ onClose, initialDestination = '', initialCo
   const [isScanningRecon, setIsScanningRecon] = useState(false);
   const [preciseIntel, setPreciseIntel] = useState(null);
   const [overheadReconList, setOverheadReconList] = useState([]);
+
+  // ─── ARGOS ATLAS State ────────────────────────────────────────────────────
+  const [argosMode, setArgosMode] = useState('map');
+  const [argosCoords, setArgosCoords] = useState({ lat: '', lon: '' });
+  const [argosLocation, setArgosLocation] = useState(null);
+  const [argosIsLoading, setArgosIsLoading] = useState(false);
+  const [argosError, setArgosError] = useState('');
+  const [argosSearchQuery, setArgosSearchQuery] = useState('');
+  const [argosSearchResults, setArgosSearchResults] = useState(null);
+  const [argosReport, setArgosReport] = useState(null);
+  const [argosSavedReports, setArgosSavedReports] = useState([]);
+  const [argosRadiusKm, setArgosRadiusKm] = useState(1);
+  const [argosDistanceA, setArgosDistanceA] = useState({ lat: '', lon: '' });
+  const [argosDistanceB, setArgosDistanceB] = useState({ lat: '', lon: '' });
+  const [argosDistance, setArgosDistance] = useState(null);
+  const [argosSelectedLayer, setArgosSelectedLayer] = useState('trueColor');
+  const [argosSelectedDaysAgo, setArgosSelectedDaysAgo] = useState(1);
+  const [argosImageryInfo, setArgosImageryInfo] = useState(null);
+  const [argosEnvData, setArgosEnvData] = useState(null);
+  const [argosAiQuery, setArgosAiQuery] = useState('');
+  const [argosAiResponse, setArgosAiResponse] = useState('');
+  const [argosAiLoading, setArgosAiLoading] = useState(false);
+  const [argosReportForm, setArgosReportForm] = useState({ title: '', locationName: '', notes: '', investigationType: 'general' });
+  const argosMapContainerRef = useRef(null);
+  const argosMapInstanceRef = useRef(null);
+  const argosRadiusLayerRef = useRef(null);
+  const argosMarkersRef = useRef([]);
 
   // DOM Refs
   const mapContainerRef = useRef(null);
@@ -1309,10 +1342,155 @@ Nearest Overhead Recon: WorldView-3 in 16m (Maxar 0.31m Sub-Meter Optical)
     (!placeSearchQuery || p.name.toLowerCase().includes(placeSearchQuery.toLowerCase()) || p.address?.toLowerCase().includes(placeSearchQuery.toLowerCase()))
   );
 
+  // ─── ARGOS ATLAS Map Initialization ───────────────────────────────────────
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (activeTab !== 'argos' || argosMode !== 'map') return;
+    if (!argosMapContainerRef.current || argosMapInstanceRef.current) return;
+    const map = L.map(argosMapContainerRef.current, { center: [20, 0], zoom: 2, zoomControl: true });
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19, attribution: '© Esri Satellite | © OSM Contributors'
+    }).addTo(map);
+    // OSM labels overlay
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19, attribution: '© CARTO', opacity: 0.7
+    }).addTo(map);
+    argosMapInstanceRef.current = map;
+    setTimeout(() => map.invalidateSize(), 300);
+    return () => { map.remove(); argosMapInstanceRef.current = null; };
+  }, [activeTab, argosMode]);
+
   const filteredContacts = contacts.filter(c =>
     c.name.toLowerCase().includes(contactSearchQuery.toLowerCase()) ||
     c.relation.toLowerCase().includes(contactSearchQuery.toLowerCase())
   );
+
+  // ─── ARGOS ATLAS Handlers ──────────────────────────────────────────────────
+  const argosApiRequest = async (path, opts = {}) => {
+    const token = localStorage.getItem('jasper_auth_token') || '';
+    const res = await fetch(`${getApiBase()}${path}`, {
+      ...opts,
+      headers: { 'Content-Type': 'application/json', 'x-jasper-token': token, ...(opts.headers || {}) }
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  };
+
+  const handleArgosAnalyze = async () => {
+    if (!argosCoords.lat || !argosCoords.lon) { setArgosError('Enter valid coordinates.'); return; }
+    setArgosIsLoading(true); setArgosError(''); setArgosLocation(null);
+    try {
+      const data = await argosApiRequest(`/api/osint/location?lat=${argosCoords.lat}&lon=${argosCoords.lon}&radius=${argosRadiusKm}`);
+      setArgosLocation(data);
+      const env = await argosApiRequest(`/api/geo/environmental?lat=${argosCoords.lat}&lon=${argosCoords.lon}`);
+      setArgosEnvData(env);
+    } catch (e) { setArgosError(e.message); }
+    finally { setArgosIsLoading(false); }
+  };
+
+  const handleArgosSearch = async () => {
+    if (!argosSearchQuery.trim()) return;
+    setArgosIsLoading(true); setArgosError(''); setArgosSearchResults(null);
+    try {
+      const data = await argosApiRequest(`/api/osint/search?q=${encodeURIComponent(argosSearchQuery)}`);
+      setArgosSearchResults(data);
+    } catch (e) { setArgosError(e.message); }
+    finally { setArgosIsLoading(false); }
+  };
+
+  const handleArgosGetImagery = async () => {
+    setArgosIsLoading(true); setArgosError('');
+    try {
+      const data = await argosApiRequest(`/api/satellite/imagery?layer=${argosSelectedLayer}&daysAgo=${argosSelectedDaysAgo}`);
+      setArgosImageryInfo(data);
+      if (argosMapInstanceRef.current && data.tileUrl) {
+        argosMarkersRef.current.forEach(l => argosMapInstanceRef.current.removeLayer(l));
+        argosMarkersRef.current = [];
+        const satLayer = L.tileLayer(data.tileUrl, { opacity: 0.85, maxZoom: 10, attribution: data.source || 'NASA GIBS' });
+        satLayer.addTo(argosMapInstanceRef.current);
+        argosMarkersRef.current.push(satLayer);
+      }
+    } catch (e) { setArgosError(e.message); }
+    finally { setArgosIsLoading(false); }
+  };
+
+  const handleArgosGenerateReport = async () => {
+    if (!argosCoords.lat || !argosCoords.lon) { setArgosError('Enter coordinates first.'); return; }
+    setArgosIsLoading(true); setArgosError('');
+    try {
+      const payload = {
+        title: argosReportForm.title || `ARGOS Report – ${argosCoords.lat}, ${argosCoords.lon}`,
+        lat: parseFloat(argosCoords.lat), lon: parseFloat(argosCoords.lon),
+        locationName: argosReportForm.locationName || argosLocation?.geocoding?.displayName || '',
+        notes: argosReportForm.notes,
+        investigationType: argosReportForm.investigationType,
+        locationData: argosLocation, environmentalData: argosEnvData
+      };
+      const result = await argosApiRequest('/api/intelligence/report', { method: 'POST', body: JSON.stringify(payload) });
+      setArgosReport(result);
+      setArgosMode('reports');
+      await handleArgosLoadReports();
+    } catch (e) { setArgosError(e.message); }
+    finally { setArgosIsLoading(false); }
+  };
+
+  const handleArgosLoadReports = async () => {
+    try {
+      const data = await argosApiRequest('/api/intelligence/reports');
+      setArgosSavedReports(data.reports || data || []);
+    } catch (e) { console.error('Reports load error:', e); }
+  };
+
+  const handleArgosCalculateDistance = () => {
+    if (!argosDistanceA.lat || !argosDistanceA.lon || !argosDistanceB.lat || !argosDistanceB.lon) return;
+    const d = calculateDistanceKm(
+      parseFloat(argosDistanceA.lat), parseFloat(argosDistanceA.lon),
+      parseFloat(argosDistanceB.lat), parseFloat(argosDistanceB.lon)
+    );
+    setArgosDistance(d);
+  };
+
+  const handleArgosDrawRadius = () => {
+    if (!argosMapInstanceRef.current || !argosCoords.lat || !argosCoords.lon) return;
+    if (argosRadiusLayerRef.current) argosMapInstanceRef.current.removeLayer(argosRadiusLayerRef.current);
+    const circle = L.circle([parseFloat(argosCoords.lat), parseFloat(argosCoords.lon)], {
+      radius: argosRadiusKm * 1000, color: '#06b6d4', weight: 2, fillOpacity: 0.1, dashArray: '6 4'
+    }).addTo(argosMapInstanceRef.current);
+    argosRadiusLayerRef.current = circle;
+    argosMapInstanceRef.current.flyTo([parseFloat(argosCoords.lat), parseFloat(argosCoords.lon)], 12);
+  };
+
+  const handleArgosPlotMarker = () => {
+    if (!argosMapInstanceRef.current || !argosCoords.lat || !argosCoords.lon) return;
+    const marker = L.circleMarker([parseFloat(argosCoords.lat), parseFloat(argosCoords.lon)], {
+      radius: 8, color: '#f59e0b', fillColor: '#f59e0b', fillOpacity: 0.9, weight: 2
+    }).bindPopup(`<b>Target</b><br/>${argosCoords.lat}, ${argosCoords.lon}`).addTo(argosMapInstanceRef.current);
+    argosMarkersRef.current.push(marker);
+    argosMapInstanceRef.current.flyTo([parseFloat(argosCoords.lat), parseFloat(argosCoords.lon)], 13);
+  };
+
+  const handleArgosAiQuery = async () => {
+    if (!argosAiQuery.trim()) return;
+    setArgosAiLoading(true); setArgosAiResponse('');
+    try {
+      const context = argosLocation
+        ? `Location: ${argosLocation.geocoding?.displayName || ''}, Coords: ${argosCoords.lat}, ${argosCoords.lon}`
+        : argosCoords.lat ? `Coords: ${argosCoords.lat}, ${argosCoords.lon}` : '';
+      const data = await argosApiRequest('/api/agent/chat', {
+        method: 'POST',
+        body: JSON.stringify({ message: argosAiQuery, context: context ? `ARGOS ATLAS Geospatial Context: ${context}` : undefined })
+      });
+      setArgosAiResponse(data.response || data.message || 'No response');
+    } catch (e) { setArgosAiResponse(`Error: ${e.message}`); }
+    finally { setArgosAiLoading(false); }
+  };
+
+  const handleArgosDownloadJson = (report) => {
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `argos-report-${Date.now()}.json`; a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="bg-slate-950/95 border border-cyan-500/40 rounded-2xl p-4 sm:p-6 text-slate-100 backdrop-blur-2xl shadow-2xl max-w-6xl w-full mx-auto relative overflow-hidden flex flex-col gap-4 font-sans">
@@ -1429,6 +1607,7 @@ Nearest Overhead Recon: WorldView-3 in 16m (Maxar 0.31m Sub-Meter Optical)
             { id: 'contacts', label: `📡 Contacts Radar (${contacts.length})`, icon: Users },
             { id: 'places', label: '📍 Nearby Amenities', icon: Search },
             { id: 'telemetry', label: '📊 Live Telemetry', icon: Radio },
+            { id: 'argos', label: '🌐 ARGOS ATLAS', icon: Globe },
           ].map(tab => {
             const Icon = tab.icon;
             const active = activeTab === tab.id;
@@ -2725,6 +2904,668 @@ Nearest Overhead Recon: WorldView-3 in 16m (Maxar 0.31m Sub-Meter Optical)
               {[userLocation?.city, userLocation?.region, userLocation?.country].filter(Boolean).join(', ') || 'Detecting Area...'}
             </div>
             <div className="text-[10px] text-amber-400 mt-0.5">Source: {userLocation?.source || 'HTML5 Geolocation'}</div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════════
+          TAB: ARGOS ATLAS — Advanced Geospatial Intelligence Workstation
+      ═══════════════════════════════════════════════════════════════════════ */}
+      {activeTab === 'argos' && (
+        <div className="space-y-4">
+
+          {/* ── ARGOS Header ── */}
+          <div className="p-4 bg-gradient-to-r from-slate-900 to-slate-950 border border-cyan-500/50 rounded-2xl">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-cyan-500/20 border border-cyan-500/40 rounded-xl animate-pulse">
+                  <Globe className="w-6 h-6 text-cyan-400" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-blue-300 uppercase tracking-widest font-mono">
+                    ARGOS ATLAS
+                  </h3>
+                  <p className="text-[10px] text-slate-400 font-mono">Advanced Geospatial Intelligence Workstation • Open Source Data Only</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-[10px] text-slate-500 font-mono">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping inline-block" />
+                OSINT ACTIVE
+              </div>
+            </div>
+          </div>
+
+          {/* ── Global Error ── */}
+          {argosError && (
+            <div className="p-3 bg-red-900/30 border border-red-500/40 rounded-xl text-red-300 text-xs font-mono flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 shrink-0" /> {argosError}
+              <button onClick={() => setArgosError('')} className="ml-auto text-red-400 hover:text-red-200">✕</button>
+            </div>
+          )}
+
+          {/* ── Sub-Navigation ── */}
+          <div className="flex flex-wrap gap-1.5">
+            {[
+              { id: 'map',        label: 'GLOBAL MAP',      emoji: '🗺️' },
+              { id: 'satellite',  label: 'SATELLITE',       emoji: '🛰️' },
+              { id: 'osint',      label: 'OSINT LAYER',     emoji: '🔍' },
+              { id: 'geoanalysis',label: 'GEOANALYSIS',     emoji: '📐' },
+              { id: 'tracker',    label: 'LOC TRACKER',     emoji: '📍' },
+              { id: 'reports',    label: 'INTEL REPORTS',   emoji: '📋' },
+              { id: 'ai',         label: 'AI ASSISTANT',    emoji: '🤖' },
+            ].map(m => (
+              <button key={m.id} onClick={() => setArgosMode(m.id)}
+                className={`px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold border transition-all ${
+                  argosMode === m.id
+                    ? 'bg-cyan-500/20 border-cyan-400/60 text-cyan-300 shadow-md shadow-cyan-500/10'
+                    : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-500'
+                }`}>
+                {m.emoji} {m.label}
+              </button>
+            ))}
+          </div>
+
+          {/* ═══ MODE: GLOBAL MAP ═══════════════════════════════════════════ */}
+          {argosMode === 'map' && (
+            <div className="space-y-3">
+              {/* Coordinate input row */}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2">
+                  <Crosshair className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                  <input value={argosCoords.lat} onChange={e => setArgosCoords(p => ({...p, lat: e.target.value}))}
+                    placeholder="Latitude" className="bg-transparent text-xs font-mono text-slate-100 w-28 outline-none placeholder-slate-600" />
+                </div>
+                <div className="flex items-center gap-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2">
+                  <MapPin className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                  <input value={argosCoords.lon} onChange={e => setArgosCoords(p => ({...p, lon: e.target.value}))}
+                    placeholder="Longitude" className="bg-transparent text-xs font-mono text-slate-100 w-28 outline-none placeholder-slate-600" />
+                </div>
+                <button onClick={handleArgosPlotMarker}
+                  className="px-3 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold transition-all flex items-center gap-1.5">
+                  <Target className="w-3.5 h-3.5" /> PLOT
+                </button>
+                <button onClick={handleArgosDrawRadius}
+                  className="px-3 py-2 rounded-xl bg-blue-700 hover:bg-blue-600 text-white text-xs font-bold transition-all flex items-center gap-1.5">
+                  <Radar className="w-3.5 h-3.5" /> RADIUS {argosRadiusKm}km
+                </button>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] text-slate-500 font-mono">R(km):</span>
+                  <input type="number" value={argosRadiusKm} min={0.1} max={100} step={0.5}
+                    onChange={e => setArgosRadiusKm(Number(e.target.value))}
+                    className="w-16 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-slate-100 outline-none" />
+                </div>
+                <button onClick={handleArgosAnalyze} disabled={argosIsLoading}
+                  className="px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 text-white text-xs font-bold transition-all flex items-center gap-1.5">
+                  {argosIsLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />} ANALYZE
+                </button>
+              </div>
+
+              {/* Leaflet Map */}
+              <div ref={argosMapContainerRef}
+                className="w-full rounded-2xl border border-cyan-500/30 overflow-hidden bg-slate-900"
+                style={{ height: 380 }} />
+
+              {/* Map info row */}
+              <div className="text-[10px] font-mono text-slate-500 text-center">
+                ARGOS ATLAS • Satellite Base Layer: Esri World Imagery • Labels: CARTO Dark • Use PLOT to mark coordinates
+              </div>
+
+              {/* Quick intel cards if analyzed */}
+              {argosLocation && (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { label: 'LOCATION', value: argosLocation.geocoding?.displayName?.slice(0,40) || '—', color: 'cyan' },
+                    { label: 'COUNTRY', value: argosLocation.country?.name?.common || '—', color: 'blue' },
+                    { label: 'ELEVATION', value: argosLocation.elevation?.elevation != null ? `${argosLocation.elevation.elevation}m` : '—', color: 'emerald' },
+                    { label: 'TIMEZONE', value: argosLocation.timezone?.timezone || '—', color: 'amber' },
+                  ].map(card => (
+                    <div key={card.label} className={`p-2.5 bg-slate-900/80 border border-${card.color}-500/30 rounded-xl`}>
+                      <div className={`text-[9px] text-${card.color}-400 font-mono tracking-widest mb-1`}>{card.label}</div>
+                      <div className="text-xs text-slate-100 font-semibold truncate">{card.value}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ═══ MODE: SATELLITE ════════════════════════════════════════════ */}
+          {argosMode === 'satellite' && (
+            <div className="space-y-3">
+              <div className="p-3 bg-slate-900/70 border border-cyan-500/30 rounded-2xl">
+                <p className="text-[10px] text-cyan-400 font-mono tracking-widest mb-3">▶ SATELLITE IMAGERY CONFIGURATION</p>
+                <div className="flex flex-wrap gap-2 items-end">
+                  <div>
+                    <label className="text-[9px] text-slate-400 font-mono block mb-1">IMAGERY LAYER</label>
+                    <select value={argosSelectedLayer} onChange={e => setArgosSelectedLayer(e.target.value)}
+                      className="bg-slate-800 border border-slate-600 rounded-xl px-3 py-1.5 text-xs font-mono text-slate-100 outline-none">
+                      <option value="trueColor">🌍 True Color (MODIS)</option>
+                      <option value="falseColor">🔵 False Color</option>
+                      <option value="ndvi">🌿 NDVI Vegetation</option>
+                      <option value="blackMarble">🌃 Black Marble (Night)</option>
+                      <option value="landSurface">🌡 Land Surface Temp</option>
+                      <option value="fires">🔥 Active Fire Detection</option>
+                      <option value="aerosol">💨 Aerosol Optical Depth</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[9px] text-slate-400 font-mono block mb-1">DAYS AGO</label>
+                    <select value={argosSelectedDaysAgo} onChange={e => setArgosSelectedDaysAgo(Number(e.target.value))}
+                      className="bg-slate-800 border border-slate-600 rounded-xl px-3 py-1.5 text-xs font-mono text-slate-100 outline-none">
+                      {[0,1,3,7,14,30].map(d => <option key={d} value={d}>{d === 0 ? 'Today' : `${d} days ago`}</option>)}
+                    </select>
+                  </div>
+                  <button onClick={handleArgosGetImagery} disabled={argosIsLoading}
+                    className="px-4 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white text-xs font-bold transition-all flex items-center gap-2">
+                    {argosIsLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Satellite className="w-3.5 h-3.5" />}
+                    FETCH IMAGERY
+                  </button>
+                </div>
+              </div>
+
+              {argosImageryInfo && (
+                <div className="p-3 bg-slate-900/70 border border-emerald-500/30 rounded-2xl space-y-2">
+                  <p className="text-[10px] text-emerald-400 font-mono tracking-widest">▶ IMAGERY METADATA</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                    {[
+                      { k: 'Layer', v: argosImageryInfo.layer || argosSelectedLayer },
+                      { k: 'Source', v: argosImageryInfo.source || 'NASA GIBS' },
+                      { k: 'Resolution', v: argosImageryInfo.resolution || '250m' },
+                      { k: 'Acquisition', v: argosImageryInfo.acquisitionDate || 'Near real-time' },
+                      { k: 'Sensor', v: argosImageryInfo.sensor || 'MODIS' },
+                      { k: 'Update Freq', v: argosImageryInfo.updateFrequency || 'Daily' },
+                    ].map(item => (
+                      <div key={item.k} className="bg-slate-800 rounded-xl p-2">
+                        <div className="text-[9px] text-slate-400 font-mono">{item.k}</div>
+                        <div className="text-slate-100 font-semibold mt-0.5 truncate">{item.v}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {argosImageryInfo.tileUrl && (
+                    <div className="p-2 bg-slate-800 rounded-xl">
+                      <div className="text-[9px] text-slate-400 font-mono mb-1">TILE URL TEMPLATE</div>
+                      <code className="text-[10px] text-cyan-300 break-all">{argosImageryInfo.tileUrl}</code>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="p-3 bg-slate-900/50 border border-slate-700 rounded-2xl space-y-2">
+                <p className="text-[10px] text-slate-400 font-mono tracking-widest">▶ EXTERNAL SATELLITE RESOURCES</p>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: 'NASA Worldview', url: 'https://worldview.earthdata.nasa.gov/' },
+                    { label: 'ESA Copernicus Browser', url: 'https://browser.dataspace.copernicus.eu/' },
+                    { label: 'USGS EarthExplorer', url: 'https://earthexplorer.usgs.gov/' },
+                    { label: 'NASA FIRMS (Fires)', url: 'https://firms.modaps.eosdis.nasa.gov/' },
+                    { label: 'OpenTopography', url: 'https://portal.opentopography.org/' },
+                  ].map(r => (
+                    <a key={r.label} href={r.url} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs text-slate-300 hover:text-white transition-all">
+                      <ExternalLink className="w-3 h-3" /> {r.label}
+                    </a>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-2 bg-amber-900/20 border border-amber-500/30 rounded-xl text-[10px] text-amber-300 font-mono">
+                ⚠ All satellite imagery is sourced from publicly accessible NASA GIBS / ESA Copernicus repositories. 
+                Imagery is NOT real-time surveillance. Update frequency varies by dataset (typically 1–7 days).
+              </div>
+            </div>
+          )}
+
+          {/* ═══ MODE: OSINT LAYER ══════════════════════════════════════════ */}
+          {argosMode === 'osint' && (
+            <div className="space-y-3">
+              {/* Text Search */}
+              <div className="p-3 bg-slate-900/70 border border-cyan-500/30 rounded-2xl">
+                <p className="text-[10px] text-cyan-400 font-mono tracking-widest mb-2">▶ OSINT INTELLIGENCE SEARCH</p>
+                <div className="flex gap-2">
+                  <input value={argosSearchQuery} onChange={e => setArgosSearchQuery(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleArgosSearch()}
+                    placeholder="Search: location, organization, infrastructure, event..."
+                    className="flex-1 bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-xs font-mono text-slate-100 outline-none placeholder-slate-600" />
+                  <button onClick={handleArgosSearch} disabled={argosIsLoading}
+                    className="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white text-xs font-bold transition-all flex items-center gap-1.5">
+                    {argosIsLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />} SEARCH
+                  </button>
+                </div>
+              </div>
+
+              {/* Coordinate-based intel */}
+              <div className="p-3 bg-slate-900/70 border border-blue-500/30 rounded-2xl">
+                <p className="text-[10px] text-blue-400 font-mono tracking-widest mb-2">▶ COORDINATE INTELLIGENCE</p>
+                <div className="flex flex-wrap gap-2 items-center">
+                  <input value={argosCoords.lat} onChange={e => setArgosCoords(p => ({...p, lat: e.target.value}))}
+                    placeholder="Latitude" className="w-32 bg-slate-800 border border-slate-600 rounded-xl px-3 py-1.5 text-xs font-mono text-slate-100 outline-none placeholder-slate-600" />
+                  <input value={argosCoords.lon} onChange={e => setArgosCoords(p => ({...p, lon: e.target.value}))}
+                    placeholder="Longitude" className="w-32 bg-slate-800 border border-slate-600 rounded-xl px-3 py-1.5 text-xs font-mono text-slate-100 outline-none placeholder-slate-600" />
+                  <button onClick={handleArgosAnalyze} disabled={argosIsLoading}
+                    className="px-4 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-bold transition-all flex items-center gap-1.5">
+                    {argosIsLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Crosshair className="w-3.5 h-3.5" />} LOCATE
+                  </button>
+                </div>
+              </div>
+
+              {/* Results: Geographic */}
+              {argosSearchResults?.geographic?.length > 0 && (
+                <div className="p-3 bg-slate-900/70 border border-cyan-500/20 rounded-2xl space-y-2">
+                  <p className="text-[10px] text-cyan-400 font-mono tracking-widest">▶ GEOGRAPHIC RESULTS ({argosSearchResults.geographic.length})</p>
+                  {argosSearchResults.geographic.slice(0, 5).map((r, i) => (
+                    <div key={i} className="p-2.5 bg-slate-800 rounded-xl flex items-start gap-3">
+                      <MapPin className="w-4 h-4 text-cyan-400 mt-0.5 shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-slate-100 font-semibold truncate">{r.name || r.displayName}</div>
+                        <div className="text-[10px] text-slate-400 font-mono">{r.type} • {r.lat?.toFixed(4)}, {r.lon?.toFixed(4)}</div>
+                        <button onClick={() => setArgosCoords({ lat: String(r.lat), lon: String(r.lon) })}
+                          className="mt-1 text-[10px] text-cyan-400 hover:text-cyan-300 font-mono">
+                          → Set as target
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Results: Wikipedia */}
+              {argosSearchResults?.wikipedia?.length > 0 && (
+                <div className="p-3 bg-slate-900/70 border border-blue-500/20 rounded-2xl space-y-2">
+                  <p className="text-[10px] text-blue-400 font-mono tracking-widest">▶ WIKIPEDIA INTELLIGENCE ({argosSearchResults.wikipedia.length})</p>
+                  {argosSearchResults.wikipedia.slice(0, 4).map((w, i) => (
+                    <div key={i} className="p-2.5 bg-slate-800 rounded-xl">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="text-xs text-slate-100 font-semibold">{w.title}</div>
+                        {w.url && <a href={w.url} target="_blank" rel="noopener noreferrer" className="shrink-0"><ExternalLink className="w-3 h-3 text-blue-400" /></a>}
+                      </div>
+                      <div className="text-[10px] text-slate-400 mt-1 line-clamp-2">{w.snippet || w.description}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Results: News */}
+              {argosSearchResults?.news?.length > 0 && (
+                <div className="p-3 bg-slate-900/70 border border-amber-500/20 rounded-2xl space-y-2">
+                  <p className="text-[10px] text-amber-400 font-mono tracking-widest">▶ NEWS INTELLIGENCE ({argosSearchResults.news.length})</p>
+                  {argosSearchResults.news.slice(0, 4).map((n, i) => (
+                    <div key={i} className="p-2.5 bg-slate-800 rounded-xl">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="text-xs text-slate-100 font-semibold line-clamp-1">{n.title}</div>
+                        {n.url && <a href={n.url} target="_blank" rel="noopener noreferrer" className="shrink-0"><ExternalLink className="w-3 h-3 text-amber-400" /></a>}
+                      </div>
+                      <div className="text-[10px] text-slate-400 mt-1 font-mono">{n.source} • {n.publishedAt || n.date || ''}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Infrastructure from location intel */}
+              {argosLocation?.infrastructure?.length > 0 && (
+                <div className="p-3 bg-slate-900/70 border border-emerald-500/20 rounded-2xl space-y-2">
+                  <p className="text-[10px] text-emerald-400 font-mono tracking-widest">▶ NEARBY INFRASTRUCTURE (OSM)</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {argosLocation.infrastructure.slice(0, 8).map((inf, i) => (
+                      <div key={i} className="p-2 bg-slate-800 rounded-xl flex items-center gap-2">
+                        <Building2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <div>
+                          <div className="text-xs text-slate-200">{inf.name || inf.type}</div>
+                          <div className="text-[9px] text-slate-500 font-mono">{inf.category} • {inf.distance || ''}m</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {!argosSearchResults && !argosLocation && !argosIsLoading && (
+                <div className="p-6 text-center text-slate-500 text-xs font-mono">
+                  Search for a location or enter coordinates above to begin intelligence gathering.
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ═══ MODE: GEOANALYSIS ══════════════════════════════════════════ */}
+          {argosMode === 'geoanalysis' && (
+            <div className="space-y-3">
+              {/* Distance Calculator */}
+              <div className="p-3 bg-slate-900/70 border border-blue-500/30 rounded-2xl">
+                <p className="text-[10px] text-blue-400 font-mono tracking-widest mb-3">▶ A. DISTANCE CALCULATOR</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                  <div className="space-y-1.5">
+                    <div className="text-[9px] text-slate-400 font-mono">POINT A</div>
+                    <div className="flex gap-1.5">
+                      <input value={argosDistanceA.lat} onChange={e => setArgosDistanceA(p => ({...p, lat: e.target.value}))}
+                        placeholder="Lat A" className="flex-1 bg-slate-800 border border-slate-600 rounded-lg px-2 py-1.5 text-xs font-mono text-slate-100 outline-none placeholder-slate-600" />
+                      <input value={argosDistanceA.lon} onChange={e => setArgosDistanceA(p => ({...p, lon: e.target.value}))}
+                        placeholder="Lon A" className="flex-1 bg-slate-800 border border-slate-600 rounded-lg px-2 py-1.5 text-xs font-mono text-slate-100 outline-none placeholder-slate-600" />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="text-[9px] text-slate-400 font-mono">POINT B</div>
+                    <div className="flex gap-1.5">
+                      <input value={argosDistanceB.lat} onChange={e => setArgosDistanceB(p => ({...p, lat: e.target.value}))}
+                        placeholder="Lat B" className="flex-1 bg-slate-800 border border-slate-600 rounded-lg px-2 py-1.5 text-xs font-mono text-slate-100 outline-none placeholder-slate-600" />
+                      <input value={argosDistanceB.lon} onChange={e => setArgosDistanceB(p => ({...p, lon: e.target.value}))}
+                        placeholder="Lon B" className="flex-1 bg-slate-800 border border-slate-600 rounded-lg px-2 py-1.5 text-xs font-mono text-slate-100 outline-none placeholder-slate-600" />
+                    </div>
+                  </div>
+                </div>
+                <button onClick={handleArgosCalculateDistance}
+                  className="px-4 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all flex items-center gap-1.5">
+                  <Navigation className="w-3.5 h-3.5" /> CALCULATE DISTANCE
+                </button>
+                {argosDistance !== null && (
+                  <div className="mt-3 p-3 bg-blue-900/30 border border-blue-500/40 rounded-xl">
+                    <div className="text-[9px] text-blue-400 font-mono tracking-widest mb-1">HAVERSINE DISTANCE</div>
+                    <div className="text-2xl font-black text-blue-300 font-mono">{argosDistance.toFixed(2)} <span className="text-sm text-blue-400">km</span></div>
+                    <div className="text-[10px] text-slate-400 font-mono">{(argosDistance * 1000).toFixed(0)} meters • {(argosDistance * 0.621371).toFixed(2)} miles</div>
+                  </div>
+                )}
+              </div>
+
+              {/* Radius Analysis */}
+              <div className="p-3 bg-slate-900/70 border border-cyan-500/30 rounded-2xl">
+                <p className="text-[10px] text-cyan-400 font-mono tracking-widest mb-3">▶ B. RADIUS ANALYSIS</p>
+                <div className="flex flex-wrap gap-2 items-center mb-2">
+                  <input value={argosCoords.lat} onChange={e => setArgosCoords(p => ({...p, lat: e.target.value}))}
+                    placeholder="Center Lat" className="w-28 bg-slate-800 border border-slate-600 rounded-lg px-2 py-1.5 text-xs font-mono text-slate-100 outline-none placeholder-slate-600" />
+                  <input value={argosCoords.lon} onChange={e => setArgosCoords(p => ({...p, lon: e.target.value}))}
+                    placeholder="Center Lon" className="w-28 bg-slate-800 border border-slate-600 rounded-lg px-2 py-1.5 text-xs font-mono text-slate-100 outline-none placeholder-slate-600" />
+                  <input type="number" value={argosRadiusKm} min={0.1} max={100} step={0.5}
+                    onChange={e => setArgosRadiusKm(Number(e.target.value))}
+                    className="w-20 bg-slate-800 border border-slate-600 rounded-lg px-2 py-1.5 text-xs font-mono text-slate-100 outline-none" />
+                  <span className="text-[10px] text-slate-500 font-mono">km</span>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  <button onClick={() => { setArgosMode('map'); setTimeout(handleArgosDrawRadius, 300); }}
+                    className="px-3 py-1.5 rounded-xl bg-cyan-700 hover:bg-cyan-600 text-white text-xs font-bold transition-all flex items-center gap-1.5">
+                    <Radar className="w-3.5 h-3.5" /> DRAW RADIUS ON MAP
+                  </button>
+                  <button onClick={handleArgosAnalyze} disabled={argosIsLoading}
+                    className="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 text-white text-xs font-bold transition-all flex items-center gap-1.5">
+                    {argosIsLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Building2 className="w-3.5 h-3.5" />}
+                    FIND INFRASTRUCTURE
+                  </button>
+                </div>
+                {argosLocation?.infrastructure?.length > 0 && (
+                  <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                    {argosLocation.infrastructure.slice(0,6).map((inf, i) => (
+                      <div key={i} className="p-2 bg-slate-800 rounded-lg flex items-center gap-2 text-xs">
+                        <Building2 className="w-3 h-3 text-cyan-400 shrink-0" />
+                        <span className="text-slate-200 truncate">{inf.name || inf.type}</span>
+                        <span className="text-slate-500 font-mono text-[10px] ml-auto shrink-0">{inf.distance}m</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* GeoJSON Export */}
+              {argosLocation && (
+                <div className="p-3 bg-slate-900/70 border border-emerald-500/30 rounded-2xl">
+                  <p className="text-[10px] text-emerald-400 font-mono tracking-widest mb-2">▶ C. GEOJSON EXPORT</p>
+                  <button onClick={() => {
+                    const geo = { type: 'FeatureCollection', features: [
+                      { type: 'Feature', geometry: { type: 'Point', coordinates: [parseFloat(argosCoords.lon), parseFloat(argosCoords.lat)] },
+                        properties: { name: argosLocation.geocoding?.displayName, ...argosLocation } }
+                    ]};
+                    const blob = new Blob([JSON.stringify(geo, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a'); a.href = url; a.download = `argos-${Date.now()}.geojson`; a.click();
+                    URL.revokeObjectURL(url);
+                  }} className="px-4 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold transition-all flex items-center gap-1.5">
+                    <Download className="w-3.5 h-3.5" /> DOWNLOAD GEOJSON
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ═══ MODE: LOCATION TRACKER ═════════════════════════════════════ */}
+          {argosMode === 'tracker' && (
+            <div className="space-y-3">
+              {/* Input */}
+              <div className="p-3 bg-slate-900/70 border border-cyan-500/30 rounded-2xl">
+                <p className="text-[10px] text-cyan-400 font-mono tracking-widest mb-2">▶ COORDINATE INTELLIGENCE DASHBOARD</p>
+                <div className="flex flex-wrap gap-2 items-center">
+                  <input value={argosCoords.lat} onChange={e => setArgosCoords(p => ({...p, lat: e.target.value}))}
+                    placeholder="Latitude" className="w-32 bg-slate-800 border border-slate-600 rounded-xl px-3 py-1.5 text-xs font-mono text-slate-100 outline-none placeholder-slate-600" />
+                  <input value={argosCoords.lon} onChange={e => setArgosCoords(p => ({...p, lon: e.target.value}))}
+                    placeholder="Longitude" className="w-32 bg-slate-800 border border-slate-600 rounded-xl px-3 py-1.5 text-xs font-mono text-slate-100 outline-none placeholder-slate-600" />
+                  <button onClick={handleArgosAnalyze} disabled={argosIsLoading}
+                    className="px-4 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white text-xs font-bold transition-all flex items-center gap-1.5">
+                    {argosIsLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Crosshair className="w-3.5 h-3.5" />}
+                    ANALYZE
+                  </button>
+                  <button onClick={() => { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition(p => { setArgosCoords({ lat: String(p.coords.latitude.toFixed(6)), lon: String(p.coords.longitude.toFixed(6)) }); }, err => setArgosError(err.message), { enableHighAccuracy: true }); } else { setArgosError('Geolocation not supported'); } }}
+                    className="px-3 py-1.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold transition-all flex items-center gap-1.5">
+                    <Crosshair className="w-3.5 h-3.5" /> MY LOCATION
+                  </button>
+                </div>
+                <p className="text-[9px] text-slate-500 font-mono mt-1">📍 My Location uses browser geolocation (your device only). No data is transmitted without your action.</p>
+              </div>
+
+              {argosLocation && (
+                <>
+                  {/* Location Overview */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {[
+                      { label: 'ADDRESS', value: argosLocation.geocoding?.displayName || '—', icon: '📍' },
+                      { label: 'COUNTRY', value: `${argosLocation.country?.name?.common || '—'}`, icon: '🏳️' },
+                      { label: 'CAPITAL', value: argosLocation.country?.capital?.[0] || '—', icon: '🏛️' },
+                      { label: 'POPULATION', value: argosLocation.country?.population ? argosLocation.country.population.toLocaleString() : '—', icon: '👥' },
+                      { label: 'TIMEZONE', value: argosLocation.timezone?.timezone || '—', icon: '🕐' },
+                      { label: 'ELEVATION', value: argosLocation.elevation?.elevation != null ? `${argosLocation.elevation.elevation}m ASL` : '—', icon: '⛰️' },
+                    ].map(item => (
+                      <div key={item.label} className="p-2.5 bg-slate-900/80 border border-slate-700 rounded-xl">
+                        <div className="text-[9px] text-slate-400 font-mono tracking-widest">{item.icon} {item.label}</div>
+                        <div className="text-xs text-slate-100 font-semibold mt-0.5 truncate">{item.value}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Coordinate formats */}
+                  <div className="p-3 bg-slate-900/70 border border-blue-500/30 rounded-2xl">
+                    <p className="text-[10px] text-blue-400 font-mono tracking-widest mb-2">▶ COORDINATE FORMATS</p>
+                    <div className="space-y-1.5 text-xs font-mono">
+                      <div className="flex justify-between items-center p-2 bg-slate-800 rounded-lg">
+                        <span className="text-slate-400">DECIMAL</span>
+                        <span className="text-cyan-300">{parseFloat(argosCoords.lat).toFixed(6)}, {parseFloat(argosCoords.lon).toFixed(6)}</span>
+                      </div>
+                      <div className="flex justify-between items-center p-2 bg-slate-800 rounded-lg">
+                        <span className="text-slate-400">DMS</span>
+                        <span className="text-cyan-300 text-[11px]">{decimalToDms(parseFloat(argosCoords.lat), parseFloat(argosCoords.lon))}</span>
+                      </div>
+                      <div className="flex justify-between items-center p-2 bg-slate-800 rounded-lg">
+                        <span className="text-slate-400">MGRS</span>
+                        <span className="text-cyan-300">{latLonToMgrs(parseFloat(argosCoords.lat), parseFloat(argosCoords.lon))}</span>
+                      </div>
+                      <div className="flex justify-between items-center p-2 bg-slate-800 rounded-lg">
+                        <span className="text-slate-400">GEOHASH</span>
+                        <span className="text-cyan-300">{latLonToGeohash(parseFloat(argosCoords.lat), parseFloat(argosCoords.lon))}</span>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Environmental data */}
+              {argosEnvData && (
+                <div className="p-3 bg-slate-900/70 border border-emerald-500/30 rounded-2xl">
+                  <p className="text-[10px] text-emerald-400 font-mono tracking-widest mb-2">▶ ENVIRONMENTAL INTELLIGENCE (Open-Meteo)</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                    {[
+                      { icon: '🌡', label: 'TEMPERATURE', value: argosEnvData.current?.temperature != null ? `${argosEnvData.current.temperature}°C` : '—' },
+                      { icon: '💧', label: 'HUMIDITY', value: argosEnvData.current?.humidity != null ? `${argosEnvData.current.humidity}%` : '—' },
+                      { icon: '🌬', label: 'WIND', value: argosEnvData.current?.windSpeed != null ? `${argosEnvData.current.windSpeed} km/h` : '—' },
+                      { icon: '☁', label: 'CLOUD COVER', value: argosEnvData.current?.cloudCover != null ? `${argosEnvData.current.cloudCover}%` : '—' },
+                    ].map(item => (
+                      <div key={item.label} className="p-2 bg-slate-800 rounded-xl">
+                        <div className="text-[9px] text-slate-400 font-mono">{item.icon} {item.label}</div>
+                        <div className="text-slate-100 font-bold mt-0.5">{item.value}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="text-[9px] text-slate-500 font-mono mt-2">Source: Open-Meteo (open-meteo.com) • Free & Open Data</div>
+                </div>
+              )}
+
+              {!argosLocation && !argosIsLoading && (
+                <div className="p-6 text-center text-slate-500 text-xs font-mono">
+                  Enter coordinates and click ANALYZE to begin location intelligence.
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ═══ MODE: INTEL REPORTS ════════════════════════════════════════ */}
+          {argosMode === 'reports' && (
+            <div className="space-y-3">
+              {/* Report Form */}
+              <div className="p-3 bg-slate-900/70 border border-cyan-500/30 rounded-2xl">
+                <p className="text-[10px] text-cyan-400 font-mono tracking-widest mb-3">▶ GENERATE INTELLIGENCE REPORT</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+                  <input value={argosReportForm.title} onChange={e => setArgosReportForm(p => ({...p, title: e.target.value}))}
+                    placeholder="Report Title" className="bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-xs font-mono text-slate-100 outline-none placeholder-slate-600" />
+                  <input value={argosReportForm.locationName} onChange={e => setArgosReportForm(p => ({...p, locationName: e.target.value}))}
+                    placeholder="Location Name" className="bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-xs font-mono text-slate-100 outline-none placeholder-slate-600" />
+                  <div className="flex gap-2">
+                    <input value={argosCoords.lat} onChange={e => setArgosCoords(p => ({...p, lat: e.target.value}))}
+                      placeholder="Latitude" className="flex-1 bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-xs font-mono text-slate-100 outline-none placeholder-slate-600" />
+                    <input value={argosCoords.lon} onChange={e => setArgosCoords(p => ({...p, lon: e.target.value}))}
+                      placeholder="Longitude" className="flex-1 bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-xs font-mono text-slate-100 outline-none placeholder-slate-600" />
+                  </div>
+                  <select value={argosReportForm.investigationType} onChange={e => setArgosReportForm(p => ({...p, investigationType: e.target.value}))}
+                    className="bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-xs font-mono text-slate-100 outline-none">
+                    <option value="general">General Intelligence</option>
+                    <option value="infrastructure">Infrastructure Analysis</option>
+                    <option value="environmental">Environmental Monitoring</option>
+                    <option value="geopolitical">Geopolitical Overview</option>
+                    <option value="historical">Historical Comparison</option>
+                  </select>
+                  <textarea value={argosReportForm.notes} onChange={e => setArgosReportForm(p => ({...p, notes: e.target.value}))}
+                    placeholder="Investigation notes and observations..." rows={2}
+                    className="sm:col-span-2 bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-xs font-mono text-slate-100 outline-none placeholder-slate-600 resize-none" />
+                </div>
+                <button onClick={handleArgosGenerateReport} disabled={argosIsLoading}
+                  className="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white text-xs font-bold transition-all flex items-center gap-2">
+                  {argosIsLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
+                  GENERATE & SAVE REPORT
+                </button>
+              </div>
+
+              {/* Success notice */}
+              {argosReport && (
+                <div className="p-3 bg-emerald-900/30 border border-emerald-500/40 rounded-xl text-emerald-300 text-xs font-mono flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" /> Report generated: {argosReport.title || argosReport.reportId}
+                </div>
+              )}
+
+              {/* Saved Reports */}
+              <div className="p-3 bg-slate-900/70 border border-slate-700 rounded-2xl">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-[10px] text-slate-400 font-mono tracking-widest">▶ SAVED REPORTS ({argosSavedReports.length})</p>
+                  <button onClick={handleArgosLoadReports} className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all">
+                    <RefreshCw className="w-3 h-3" />
+                  </button>
+                </div>
+                {argosSavedReports.length === 0 ? (
+                  <div className="text-center text-slate-500 text-xs font-mono py-4">No reports saved yet.</div>
+                ) : (
+                  <div className="space-y-2">
+                    {argosSavedReports.map((rep, i) => (
+                      <div key={rep.reportId || i} className="p-3 bg-slate-800 border border-slate-700 rounded-xl flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs text-slate-100 font-semibold truncate">{rep.title || `Report ${i+1}`}</div>
+                          <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                            {rep.coordinates?.lat?.toFixed(4)}, {rep.coordinates?.lon?.toFixed(4)} • {rep.timestamp ? new Date(rep.timestamp).toLocaleDateString() : ''}
+                          </div>
+                          {rep.confidence && (
+                            <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-full mt-1 inline-block ${
+                              rep.confidence === 'HIGH' ? 'bg-emerald-500/20 text-emerald-300' :
+                              rep.confidence === 'MEDIUM' ? 'bg-amber-500/20 text-amber-300' :
+                              'bg-red-500/20 text-red-300'
+                            }`}>{rep.confidence}</span>
+                          )}
+                        </div>
+                        <button onClick={() => handleArgosDownloadJson(rep)}
+                          className="px-2.5 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-cyan-400 text-[10px] font-mono flex items-center gap-1 transition-all shrink-0">
+                          <Download className="w-3 h-3" /> JSON
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ═══ MODE: AI ASSISTANT ═════════════════════════════════════════ */}
+          {argosMode === 'ai' && (
+            <div className="space-y-3">
+              <div className="p-3 bg-gradient-to-r from-slate-900 to-slate-950 border border-cyan-500/30 rounded-2xl">
+                <p className="text-[10px] text-cyan-400 font-mono tracking-widest mb-2">▶ JASPER AI GEOSPATIAL ASSISTANT</p>
+                <div className="text-[11px] text-slate-400 mb-3">
+                  Ask J.A.S.P.E.R. about any geographic location, coordinates, satellite imagery, or geospatial analysis.
+                  Current context: {argosCoords.lat && argosCoords.lon ? `📍 ${argosCoords.lat}, ${argosCoords.lon}` : 'No coordinates set'}
+                </div>
+                <div className="space-y-2">
+                  {/* Quick prompts */}
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {[
+                      'Analyze these GPS coordinates',
+                      'What is at this location?',
+                      'Show me historical satellite imagery',
+                      'Identify infrastructure around these coordinates',
+                      'Generate a geographic intelligence report',
+                      'Analyze vegetation changes in this region',
+                    ].map(prompt => (
+                      <button key={prompt} onClick={() => setArgosAiQuery(prompt)}
+                        className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-[10px] text-slate-300 hover:text-white font-mono transition-all">
+                        {prompt}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input value={argosAiQuery} onChange={e => setArgosAiQuery(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleArgosAiQuery()}
+                      placeholder="Ask J.A.S.P.E.R. a geospatial question..."
+                      className="flex-1 bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-xs font-mono text-slate-100 outline-none placeholder-slate-600" />
+                    <button onClick={handleArgosAiQuery} disabled={argosAiLoading || !argosAiQuery.trim()}
+                      className="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white text-xs font-bold transition-all flex items-center gap-1.5">
+                      {argosAiLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                      ASK
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {argosAiResponse && (
+                <div className="p-3 bg-slate-900/70 border border-cyan-500/30 rounded-2xl">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-5 h-5 rounded-full bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center">
+                      <Sparkles className="w-3 h-3 text-cyan-400" />
+                    </div>
+                    <span className="text-[10px] text-cyan-400 font-mono tracking-widest">J.A.S.P.E.R. RESPONSE</span>
+                  </div>
+                  <div className="text-xs text-slate-200 leading-relaxed whitespace-pre-wrap">{argosAiResponse}</div>
+                </div>
+              )}
+
+              <div className="p-2 bg-slate-900/50 border border-slate-700 rounded-xl text-[10px] text-slate-500 font-mono">
+                J.A.S.P.E.R. AI uses all available geospatial context (coordinates, location intel, environmental data) when available.
+                AI responses are analytical interpretations, not verified intelligence.
+              </div>
+            </div>
+          )}
+
+          {/* ═══ DISCLAIMER ═════════════════════════════════════════════════ */}
+          <div className="p-2.5 bg-slate-900/40 border border-slate-800 rounded-xl text-[9px] text-slate-500 font-mono leading-relaxed">
+            ARGOS ATLAS uses exclusively free, open-source, and publicly available data: OpenStreetMap, Open-Meteo, Nominatim, NASA GIBS, Wikipedia, GDELT.
+            No proprietary, classified, or restricted data sources are used. All imagery dates and sources are displayed.
+            This tool does not perform surveillance or tracking of individuals. GPS location is used only for the user's own device with explicit browser permission.
           </div>
         </div>
       )}

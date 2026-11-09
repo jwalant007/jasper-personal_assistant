@@ -61,6 +61,7 @@ const FocusMatrixWidget = React.lazy(() => import('./FocusMatrixWidget'));
 const AiNewsDigestWidget = React.lazy(() => import('./AiNewsDigestWidget'));
 const AiCostSentinelWidget = React.lazy(() => import('./AiCostSentinelWidget'));
 const HabitMatrixWidget = React.lazy(() => import('./HabitMatrixWidget'));
+const IntelligenceCommandCenterWidget = React.lazy(() => import('./IntelligenceCommandCenterWidget'));
 
 import { Calculator, FileCode, Compass, MessageSquare, ShieldAlert, Video, Wallet, PhoneForwarded, Home, TrendingUp, Headphones, Newspaper } from 'lucide-react';
 import { getSiriWidgetSettings, saveSiriWidgetSettings } from '../utils/siriWidgetSettings';
@@ -115,7 +116,9 @@ const JASPER_OS_APPS_REGISTRY = [
   { id: 'focusMatrix', title: 'Deep Work & Binaural Soundscape', category: 'Productivity & Tools', icon: Headphones, component: FocusMatrixWidget, defaultSize: { w: 720, h: 560 } },
   { id: 'aiNewsDigest', title: 'AI News & Intelligence Digest', category: 'AI & Intelligence', icon: Newspaper, component: AiNewsDigestWidget, defaultSize: { w: 780, h: 580 } },
   { id: 'aiCostSentinel', title: 'LLM Token & Cloud Burn Sentinel', category: 'AI & Intelligence', icon: Zap, component: AiCostSentinelWidget, defaultSize: { w: 740, h: 540 } },
-  { id: 'habitMatrix', title: 'Gamified Habit & Quest Matrix', category: 'Productivity & Tools', icon: Trophy, component: HabitMatrixWidget, defaultSize: { w: 780, h: 560 } }
+  { id: 'habitMatrix', title: 'Gamified Habit & Quest Matrix', category: 'Productivity & Tools', icon: Trophy, component: HabitMatrixWidget, defaultSize: { w: 780, h: 560 } },
+  { id: 'intelligenceHub', title: 'OSINT & Geospatial Intelligence', category: 'AI & Intelligence', icon: Globe, component: (props) => <IntelligenceCommandCenterWidget onClose={props.onClose} />, defaultSize: { w: 1200, h: 760 } },
+  { id: 'argosAtlas', title: 'ARGOS ATLAS Geospatial Intelligence', category: 'AI & Intelligence', icon: Globe, component: (props) => <MapsWidget {...props} initialTab="argos" />, defaultSize: { w: 900, h: 650 } }
 ];
 
 /**
@@ -985,6 +988,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
   const launchApp = (rawAppId) => {
     let appId = rawAppId;
     if (rawAppId === 'maps' || rawAppId === 'satelliteIntel') appId = 'spatialGps';
+    if (rawAppId === 'argos' || rawAppId === 'atlas') appId = 'argosAtlas';
     if (rawAppId === 'blenderStudio') appId = 'hologramStudio';
     if (rawAppId === 'video' || rawAppId === 'youtube' || rawAppId === 'videoCreator' || rawAppId === 'videoStudioApp') appId = 'videoStudio';
     if (!openWindows[appId]) {
@@ -998,6 +1002,7 @@ export default function JasperOsDesktop({ onToggleClassicMode, jasperState = 'id
   const toggleWindow = (rawWinId) => {
     let winId = rawWinId;
     if (rawWinId === 'maps' || rawWinId === 'satelliteIntel') winId = 'spatialGps';
+    if (rawWinId === 'argos' || rawWinId === 'atlas') winId = 'argosAtlas';
     if (rawWinId === 'blenderStudio') winId = 'hologramStudio';
     if (rawWinId === 'video' || rawWinId === 'youtube' || rawWinId === 'videoCreator' || rawWinId === 'videoStudioApp') winId = 'videoStudio';
     if (openWindows[winId]) {

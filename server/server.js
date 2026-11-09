@@ -42,6 +42,9 @@ const meetingEngine = require('./meetingEngine');
 const callIntelligenceEngine = require('./callIntelligenceEngine');
 const financialIntelligenceEngine = require('./financialIntelligenceEngine');
 const morningRoutineEngine = require('./morningRoutineEngine');
+const osintService = require('./osintService');
+const satelliteService = require('./satelliteService');
+const intelligenceReportService = require('./intelligenceReportService');
 
 // Optional WhatsApp Web Client (whatsapp-web.js) for laptop WhatsApp Web auto-send
 let Client, LocalAuth, WAStatus;
@@ -716,6 +719,316 @@ app.get('/api/satellite/status', (req, res) => {
 app.get('/api/ping', (req, res) => {
   res.json({ pong: true, timestamp: Date.now() });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OSINT & GEOSPATIAL INTELLIGENCE API ENDPOINTS
+// All data sourced from publicly available free APIs. No private data accessed.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// OSINT Text Search — aggregates Nominatim, Wikipedia, GDELT
+app.get('/api/osint/search', async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || typeof q !== 'string' || q.trim().length < 2) {
+      return res.status(400).json({ error: 'Query parameter "q" is required (min 2 chars)' });
+    }
+    const result = await osintService.searchOsint(q.trim().slice(0, 200));
+    res.json({ success: true, ...result });
+  } catch (e) {
+    console.error('[OSINT] Search error:', e.message);
+    res.status(500).json({ error: 'OSINT search failed', details: e.message });
+  }
+});
+
+// Geographic OSINT — comprehensive location intelligence
+app.get('/api/osint/location', async (req, res) => {
+  try {
+    const lat = parseFloat(req.query.lat);
+    const lon = parseFloat(req.query.lon);
+    const radius = Math.min(5000, Math.max(100, parseInt(req.query.radius) || 1000));
+    if (isNaN(lat) || isNaN(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+      return res.status(400).json({ error: 'Valid lat (-90 to 90) and lon (-180 to 180) required' });
+    }
+    const result = await osintService.getLocationIntelligence(lat, lon, { radius });
+    res.json({ success: true, ...result });
+  } catch (e) {
+    console.error('[OSINT] Location intelligence error:', e.message);
+    res.status(500).json({ error: 'Location intelligence failed', details: e.message });
+  }
+});
+
+// Reverse Geocoding — coordinates to address
+app.get('/api/geo/reverse', async (req, res) => {
+  try {
+    const lat = parseFloat(req.query.lat);
+    const lon = parseFloat(req.query.lon);
+    if (isNaN(lat) || isNaN(lon)) return res.status(400).json({ error: 'lat and lon required' });
+    const result = await osintService.reverseGeocode(lat, lon);
+    res.json({ success: true, ...result });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Nominatim Place Search — text to coordinates
+app.get('/api/geo/search', async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q) return res.status(400).json({ error: 'Query "q" required' });
+    const result = await osintService.nominatimSearch(q.trim().slice(0, 200));
+    res.json({ success: true, ...result });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Elevation Data
+app.get('/api/geo/elevation', async (req, res) => {
+  try {
+    const lat = parseFloat(req.query.lat);
+    const lon = parseFloat(req.query.lon);
+    if (isNaN(lat) || isNaN(lon)) return res.status(400).json({ error: 'lat and lon required' });
+    const result = await osintService.getElevation(lat, lon);
+    res.json({ success: true, ...result });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Timezone for Coordinates
+app.get('/api/geo/timezone', async (req, res) => {
+  try {
+    const lat = parseFloat(req.query.lat);
+    const lon = parseFloat(req.query.lon);
+    if (isNaN(lat) || isNaN(lon)) return res.status(400).json({ error: 'lat and lon required' });
+    const result = await osintService.getTimezoneForCoords(lat, lon);
+    res.json({ success: true, ...result });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Nearby Infrastructure (OpenStreetMap Overpass)
+app.get('/api/geo/infrastructure', async (req, res) => {
+  try {
+    const lat = parseFloat(req.query.lat);
+    const lon = parseFloat(req.query.lon);
+    const radius = Math.min(5000, Math.max(100, parseInt(req.query.radius) || 1000));
+    if (isNaN(lat) || isNaN(lon)) return res.status(400).json({ error: 'lat and lon required' });
+    const result = await osintService.getNearbyInfrastructure(lat, lon, radius);
+    res.json({ success: true, ...result });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Environmental Data (Open-Meteo weather + conditions)
+app.get('/api/geo/environmental', async (req, res) => {
+  try {
+    const lat = parseFloat(req.query.lat);
+    const lon = parseFloat(req.query.lon);
+    if (isNaN(lat) || isNaN(lon)) return res.status(400).json({ error: 'lat and lon required' });
+    const result = await osintService.getEnvironmentalData(lat, lon);
+    res.json({ success: true, ...result });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Country Intelligence
+app.get('/api/geo/country', async (req, res) => {
+  try {
+    const lat = parseFloat(req.query.lat);
+    const lon = parseFloat(req.query.lon);
+    if (isNaN(lat) || isNaN(lon)) return res.status(400).json({ error: 'lat and lon required' });
+    const result = await osintService.getCountryInfo(lat, lon);
+    res.json({ success: true, ...result });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// OSINT Source Health Status
+app.get('/api/osint/sources/status', async (req, res) => {
+  try {
+    const [osintStatus, satStatus] = await Promise.allSettled([
+      osintService.checkDataSourceStatus(),
+      satelliteService.checkSatelliteSourceStatus()
+    ]);
+    res.json({
+      success: true,
+      timestamp: new Date().toISOString(),
+      osintSources: osintStatus.status === 'fulfilled' ? osintStatus.value : [],
+      satelliteSources: satStatus.status === 'fulfilled' ? satStatus.value : []
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// NASA GIBS Satellite Imagery Layer Info
+app.get('/api/satellite/imagery', (req, res) => {
+  try {
+    const { layer, daysAgo } = req.query;
+    const days = Math.min(60, Math.max(1, parseInt(daysAgo) || 1));
+    const result = satelliteService.getNasaGibsTileUrl(layer || 'trueColor', days);
+    res.json({ success: true, ...result, availableLayers: Object.keys(satelliteService.NASA_GIBS_LAYERS) });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// All available satellite layers
+app.get('/api/satellite/layers', (req, res) => {
+  res.json({ success: true, layers: satelliteService.NASA_GIBS_LAYERS });
+});
+
+// Available imagery dates
+app.get('/api/satellite/dates', (req, res) => {
+  const days = Math.min(30, Math.max(5, parseInt(req.query.days) || 14));
+  res.json({ success: true, dates: satelliteService.getAvailableImageryDates(days) });
+});
+
+// Live ISS Telemetry
+app.get('/api/satellite/iss', async (req, res) => {
+  try {
+    const result = await satelliteService.getLiveIssTelemetry();
+    res.json({ success: true, ...result });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Live Weather Radar (RainViewer)
+app.get('/api/satellite/weather-radar', async (req, res) => {
+  try {
+    const result = await satelliteService.getLiveWeatherRadar();
+    res.json({ success: true, ...result });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// NDVI Vegetation Analysis Info
+app.get('/api/satellite/ndvi', (req, res) => {
+  const lat = parseFloat(req.query.lat) || 0;
+  const lon = parseFloat(req.query.lon) || 0;
+  res.json({ success: true, ...satelliteService.getNdviAnalysisInfo(lat, lon) });
+});
+
+// Satellite Intelligence Summary for Coordinates
+app.get('/api/satellite/summary', (req, res) => {
+  const lat = parseFloat(req.query.lat) || 0;
+  const lon = parseFloat(req.query.lon) || 0;
+  res.json({ success: true, ...satelliteService.getSatelliteIntelligenceSummary(lat, lon) });
+});
+
+// Active Fire Data Info
+app.get('/api/satellite/fires', async (req, res) => {
+  try {
+    const lat = parseFloat(req.query.lat) || 0;
+    const lon = parseFloat(req.query.lon) || 0;
+    const result = await satelliteService.getActiveFires(lat, lon);
+    res.json({ success: true, ...result });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Generate Intelligence Report
+app.post('/api/intelligence/report', async (req, res) => {
+  try {
+    const { title, coordinates, locationName, investigationType, analystNotes } = req.body || {};
+    
+    // If coordinates provided, fetch location data for the report
+    let findings = req.body.findings || {};
+    if (coordinates && coordinates.lat !== undefined && coordinates.lon !== undefined) {
+      const lat = parseFloat(coordinates.lat);
+      const lon = parseFloat(coordinates.lon);
+      if (!isNaN(lat) && !isNaN(lon)) {
+        try {
+          const locationIntel = await osintService.getLocationIntelligence(lat, lon);
+          findings = {
+            geocoding: locationIntel.geocoding,
+            environmental: locationIntel.environmental,
+            elevation: locationIntel.elevation,
+            infrastructure: locationIntel.infrastructure,
+            timezone: locationIntel.timezone,
+            countryIntelligence: locationIntel.countryIntelligence,
+            historicalContext: locationIntel.historicalContext
+          };
+        } catch (e) {
+          console.warn('[Intelligence] Report data collection partial failure:', e.message);
+        }
+      }
+    }
+
+    const report = intelligenceReportService.generateReport({
+      title: title || `Intelligence Report — ${new Date().toLocaleString()}`,
+      investigationType: investigationType || 'geographic',
+      coordinates,
+      locationName,
+      findings,
+      analystNotes: analystNotes || '',
+      requestedBy: 'JASPER User'
+    });
+
+    res.json({ success: true, report, summary: intelligenceReportService.formatReportSummary(report) });
+  } catch (e) {
+    console.error('[Intelligence] Report generation error:', e.message);
+    res.status(500).json({ error: 'Report generation failed', details: e.message });
+  }
+});
+
+// List Intelligence Reports
+app.get('/api/intelligence/reports', (req, res) => {
+  const result = intelligenceReportService.listReports();
+  res.json(result);
+});
+
+// Get Specific Intelligence Report
+app.get('/api/intelligence/reports/:id', (req, res) => {
+  const result = intelligenceReportService.getReport(req.params.id);
+  if (result.error) return res.status(404).json(result);
+  res.json(result);
+});
+
+// Delete Intelligence Report
+app.delete('/api/intelligence/reports/:id', (req, res) => {
+  const result = intelligenceReportService.deleteReport(req.params.id);
+  res.json(result);
+});
+
+// News Intelligence for a query or location
+app.get('/api/osint/news', async (req, res) => {
+  try {
+    const { q, lat, lon } = req.query;
+    const latNum = parseFloat(lat);
+    const lonNum = parseFloat(lon);
+    const result = await osintService.getNewsIntelligence(
+      q || null,
+      !isNaN(latNum) ? latNum : null,
+      !isNaN(lonNum) ? lonNum : null
+    );
+    res.json({ success: true, ...result });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Wikipedia geo context
+app.get('/api/osint/wiki-geo', async (req, res) => {
+  try {
+    const lat = parseFloat(req.query.lat);
+    const lon = parseFloat(req.query.lon);
+    if (isNaN(lat) || isNaN(lon)) return res.status(400).json({ error: 'lat and lon required' });
+    const result = await osintService.getWikipediaGeoContext(lat, lon);
+    res.json({ success: true, ...result });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+// ─── END OSINT & GEOSPATIAL INTELLIGENCE ENDPOINTS ───────────────────────────
 
 // Auth Guard Middleware
 app.use((req, res, next) => {

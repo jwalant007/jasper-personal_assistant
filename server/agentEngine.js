@@ -993,6 +993,208 @@ const TOOL_REGISTRY = {
       const contacts = telephonyEngine.getContacts();
       return { success: true, count: contacts.length, contacts };
     }
+  },
+
+  // ── OSINT & GEOSPATIAL INTELLIGENCE TOOLS ─────────────────────────────────
+
+  analyze_coordinates: {
+    name: 'analyze_coordinates',
+    description: 'Analyze GPS coordinates using OSINT and geospatial intelligence. Retrieves location name, country, elevation, timezone, environmental data, and nearby infrastructure from open sources.',
+    permissionLevel: 0,
+    parameters: {
+      lat: { type: 'number', description: 'Latitude (-90 to 90)' },
+      lon: { type: 'number', description: 'Longitude (-180 to 180)' },
+      radius: { type: 'number', description: 'Search radius in meters for infrastructure (default 1000, max 5000)' }
+    },
+    async handler(args) {
+      try {
+        const osintService = require('./osintService');
+        const lat = parseFloat(args.lat);
+        const lon = parseFloat(args.lon);
+        if (isNaN(lat) || isNaN(lon)) return { error: 'Valid lat and lon required' };
+        const result = await osintService.getLocationIntelligence(lat, lon, { radius: args.radius || 1000 });
+        const geo = result.geocoding;
+        const env = result.environmental;
+        const elev = result.elevation;
+        const tz = result.timezone;
+        return {
+          success: true,
+          coordinates: { lat, lon },
+          location: geo?.displayName || 'Unknown',
+          country: geo?.address?.country || result.countryIntelligence?.country?.name || 'Unknown',
+          city: geo?.address?.city || geo?.address?.town || geo?.address?.village || 'Unknown',
+          timezone: tz?.timezone || 'Unknown',
+          elevation: elev?.elevationMeters ? `${elev.elevationMeters}m` : 'Unknown',
+          weather: env?.current ? `${env.current.temperature}°C, ${env.current.cloudCover}% cloud cover` : 'Unavailable',
+          infrastructureCount: result.infrastructure?.totalFound || 0,
+          historicalArticles: result.historicalContext?.articles?.length || 0,
+          sources: 7,
+          classification: 'UNCLASSIFIED // OPEN SOURCE'
+        };
+      } catch (e) {
+        return { error: `Coordinate analysis failed: ${e.message}` };
+      }
+    }
+  },
+
+  reverse_geocode: {
+    name: 'reverse_geocode',
+    description: 'Convert GPS coordinates to a human-readable address and location details using OpenStreetMap data.',
+    permissionLevel: 0,
+    parameters: {
+      lat: { type: 'number', description: 'Latitude' },
+      lon: { type: 'number', description: 'Longitude' }
+    },
+    async handler(args) {
+      try {
+        const osintService = require('./osintService');
+        const result = await osintService.reverseGeocode(parseFloat(args.lat), parseFloat(args.lon));
+        return {
+          success: true,
+          displayName: result.displayName,
+          address: result.address,
+          source: result.source
+        };
+      } catch (e) {
+        return { error: e.message };
+      }
+    }
+  },
+
+  search_location: {
+    name: 'search_location',
+    description: 'Search for a location by name or description and get its GPS coordinates. Uses OpenStreetMap Nominatim.',
+    permissionLevel: 0,
+    parameters: {
+      query: { type: 'string', description: 'Location name, address, or description to search' }
+    },
+    async handler(args) {
+      try {
+        const osintService = require('./osintService');
+        const result = await osintService.nominatimSearch(args.query || '');
+        const top = result.results?.[0];
+        if (!top) return { found: false, message: `No location found for: ${args.query}` };
+        return {
+          success: true,
+          found: true,
+          name: top.displayName,
+          lat: top.lat,
+          lon: top.lon,
+          type: top.type,
+          category: top.category,
+          source: 'OpenStreetMap Nominatim'
+        };
+      } catch (e) {
+        return { error: e.message };
+      }
+    }
+  },
+
+  get_satellite_imagery_info: {
+    name: 'get_satellite_imagery_info',
+    description: 'Get information about available satellite imagery for a location, including NASA GIBS layers, available dates, and links to imagery viewers.',
+    permissionLevel: 0,
+    parameters: {
+      lat: { type: 'number', description: 'Latitude' },
+      lon: { type: 'number', description: 'Longitude' },
+      layer: { type: 'string', description: 'Layer type: trueColor, falseColor, ndvi, blackMarble, landSurface, fires, aerosol, sentinel2' }
+    },
+    async handler(args) {
+      try {
+        const satService = require('./satelliteService');
+        const lat = parseFloat(args.lat) || 0;
+        const lon = parseFloat(args.lon) || 0;
+        const summary = satService.getSatelliteIntelligenceSummary(lat, lon);
+        const layerInfo = satService.getNasaGibsTileUrl(args.layer || 'trueColor', 1);
+        return {
+          success: true,
+          coordinates: { lat, lon },
+          currentLayer: layerInfo,
+          availableLayers: summary.availableLayers.map(l => ({ key: l.key, name: l.name, resolution: l.resolution })),
+          externalViewers: summary.additionalSources,
+          note: 'Use the Satellite Intelligence panel in J.A.S.P.E.R to view imagery interactively'
+        };
+      } catch (e) {
+        return { error: e.message };
+      }
+    }
+  },
+
+  generate_intelligence_report: {
+    name: 'generate_intelligence_report',
+    description: 'Generate a structured OSINT intelligence report for a location. Collects data from multiple open sources and formats a report.',
+    permissionLevel: 0,
+    parameters: {
+      lat: { type: 'number', description: 'Latitude of target location' },
+      lon: { type: 'number', description: 'Longitude of target location' },
+      title: { type: 'string', description: 'Report title' },
+      notes: { type: 'string', description: 'Analyst notes or specific focus areas' }
+    },
+    async handler(args) {
+      try {
+        const osintService = require('./osintService');
+        const reportService = require('./intelligenceReportService');
+        const lat = parseFloat(args.lat);
+        const lon = parseFloat(args.lon);
+        if (isNaN(lat) || isNaN(lon)) return { error: 'Valid coordinates required' };
+
+        const locationIntel = await osintService.getLocationIntelligence(lat, lon);
+        const report = reportService.generateReport({
+          title: args.title || `Intelligence Report — ${lat.toFixed(4)}, ${lon.toFixed(4)}`,
+          coordinates: { lat, lon },
+          locationName: locationIntel.geocoding?.displayName || 'Unknown Location',
+          findings: locationIntel,
+          analystNotes: args.notes || '',
+          requestedBy: 'JASPER AI Agent'
+        });
+
+        return {
+          success: true,
+          reportId: report.reportId,
+          title: report.metadata.title,
+          confidence: report.confidence.overall,
+          location: report.subject.locationName,
+          sourcesUsed: report.sources.length,
+          message: `Intelligence report ${report.reportId} generated successfully. Access it in the Intelligence Reports section.`
+        };
+      } catch (e) {
+        return { error: `Report generation failed: ${e.message}` };
+      }
+    }
+  },
+
+  get_environmental_data: {
+    name: 'get_environmental_data',
+    description: 'Get current environmental and weather conditions for a geographic location using Open-Meteo data.',
+    permissionLevel: 0,
+    parameters: {
+      lat: { type: 'number', description: 'Latitude' },
+      lon: { type: 'number', description: 'Longitude' }
+    },
+    async handler(args) {
+      try {
+        const osintService = require('./osintService');
+        const result = await osintService.getEnvironmentalData(parseFloat(args.lat), parseFloat(args.lon));
+        if (result.error) return result;
+        const c = result.current;
+        return {
+          success: true,
+          location: { lat: result.lat, lon: result.lon, elevation: result.elevation, timezone: result.timezone },
+          current: {
+            temperature: `${c.temperature}°C`,
+            humidity: `${c.humidity}%`,
+            windSpeed: `${c.windSpeed} km/h`,
+            precipitation: `${c.precipitation}mm`,
+            cloudCover: `${c.cloudCover}%`,
+            uvIndex: c.uvIndex,
+            visibility: `${c.visibility}m`
+          },
+          source: result.source
+        };
+      } catch (e) {
+        return { error: e.message };
+      }
+    }
   }
 };
 
